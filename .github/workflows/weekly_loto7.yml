@@ -1,0 +1,65 @@
+name: Weekly LOTO7 Update
+
+on:
+  schedule:
+    # Friday 20:00 JST = Friday 11:00 UTC
+    - cron: "0 11 * * 5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-loto7-update
+  cancel-in-progress: false
+
+jobs:
+  update-and-predict:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Fetch latest LOTO7 data
+        shell: bash
+        run: |
+          if [ -f loto7.csv ]; then
+            python scrapingloto7.py --csv loto7.csv --months 3
+          else
+            python scrapingloto7.py --csv loto7.csv --all-history
+          fi
+
+      - name: Generate five latest predictions
+        run: |
+          python loto7_evolving_agent.py \
+            --csv loto7.csv \
+            --tickets 5 \
+            --out-dir loto7_agent_output
+
+      - name: Commit updated data and predictions
+        shell: bash
+        run: |
+          if [ -z "$(git status --porcelain -- loto7.csv loto7_agent_output)" ]; then
+            echo "No LOTO7 updates to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- loto7.csv \
+            loto7_agent_output/prediction_ranking.csv \
+            loto7_agent_output/candidate_tickets.csv \
+            loto7_agent_output/expert_backtest.csv \
+            loto7_agent_output/agent_state.json
+          git commit -m "chore: update weekly LOTO7 data and predictions"
+          git push
