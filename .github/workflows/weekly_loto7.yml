@@ -6,8 +6,10 @@ on:
     - cron: "0 11 * * 5"
   workflow_dispatch:
 
-permissions:
-  contents: write
+# The repository agent receives all GITHUB_TOKEN scopes that GitHub Actions
+# can grant at workflow level. This does not grant account-admin access or
+# reveal repository/environment secrets unless a workflow explicitly uses them.
+permissions: write-all
 
 concurrency:
   group: weekly-loto7-update
@@ -17,10 +19,15 @@ jobs:
   update-and-predict:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    env:
+      TZ: Asia/Tokyo
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -47,19 +54,50 @@ jobs:
             --tickets 5 \
             --out-dir loto7_agent_output
 
-      - name: Commit updated data and predictions
+      - name: Reconcile results and update cumulative history
+        run: |
+          python prediction_tracker.py \
+            --loto-csv loto7.csv \
+            --tickets-csv loto7_agent_output/candidate_tickets.csv \
+            --history-csv loto7_agent_output/prediction_history.csv \
+            --results-txt loto7_agent_output/prediction_results.txt \
+            --latest-txt loto7_agent_output/latest_prediction.txt
+
+      - name: Show latest prediction and results
+        shell: bash
+        run: |
+          {
+            echo '## LOTO7 latest prediction'
+            echo '```text'
+            cat loto7_agent_output/latest_prediction.txt
+            echo '```'
+            echo
+            echo '## Recent prediction/result history'
+            echo '```text'
+            tail -n 120 loto7_agent_output/prediction_results.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit updated data, predictions and results
         shell: bash
         run: |
           if [ -z "$(git status --porcelain -- loto7.csv loto7_agent_output)" ]; then
             echo "No LOTO7 updates to commit."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
+
+          git config user.name "loto7-ai-agent[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add -- loto7.csv \
             loto7_agent_output/prediction_ranking.csv \
             loto7_agent_output/candidate_tickets.csv \
             loto7_agent_output/expert_backtest.csv \
-            loto7_agent_output/agent_state.json
-          git commit -m "chore: update weekly LOTO7 data and predictions"
+            loto7_agent_output/agent_state.json \
+            loto7_agent_output/prediction_history.csv \
+            loto7_agent_output/prediction_results.txt \
+            loto7_agent_output/latest_prediction.txt
+
+          git commit -m "chore: update weekly LOTO7 prediction history and results"
+          git pull --rebase
           git push
