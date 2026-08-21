@@ -1,104 +1,134 @@
-# LOTO7 AI Agent v2
+# LOTO7 AI Agent v3 — Continuous Evolution
 
-LOTO7の履歴を毎週更新し、**最新結果の鮮度確認 → 複数ソース検証 → 5通り単位バックテスト → Champion/Challenger選択 → 最新5通り予測 → append-only監査台帳 → 当選照合**を自動実行します。
+LOTO7履歴を使い、**毎日バックテスト → Challenger生成 → 統計検証 → 研究世代更新 → 条件を満たした場合のみChampion昇格 → 5通り予測 → append-only監査**を自動実行する継続進化型エージェントです。
 
-> 予測は当せんを保証しません。モデルがランダム基準を上回ったかを継続的に検証し、改善が確認できないChallengerは昇格させません。
+> 予測は当せんを保証しません。ランダム基準や現行Championを上回ったかを継続検証し、改善が確認できないモデルは本番昇格させません。
 
-## 自動実行
+## 毎日20:00 JSTに自動進化
 
-GitHub Actions `Weekly LOTO7 Update v2` は毎週金曜日 **20:00 JST（11:00 UTC）** に開始します。
+GitHub Actions `Daily LOTO7 Evolution v3` は **毎日20:00 JST（11:00 UTC）** に実行します。
 
-1. pytestで回帰テスト
-2. 楽天バックナンバーから最新結果を取得
-3. 金曜20時時点で最新回が未反映なら10分間隔で最大90分再試行
-4. 本数字7個・ボーナス2個・重複・1〜37範囲を検証
-5. みずほ銀行の同一回結果を取得できた場合は楽天と本数字・ボーナス数字を照合
-6. 2ソース間で不一致なら処理停止
-7. みずほ側が解析できない場合は `degraded_single_result_source` として明示
-8. Champion/Challengerを直近60回・120回の5券ポートフォリオで比較
-9. 両評価窓でChampionを上回ったChallengerのみ昇格
-10. 最新5通りを生成
-11. 予測・実績を別々のappend-only台帳へ保存し、照合結果を再生成
-12. `STATUS.md` と閲覧用テキストを更新し、自動コミット
+1. pytest / compileチェック
+2. 最新公開結果を取得・形式検証
+3. 金曜日に新結果が未反映なら10分間隔で最大90分再試行
+4. 楽天の結果を主取得元として利用
+5. みずほ銀行の同一回を解析できた場合は本数字・ボーナス数字をクロスチェック
+6. 前日の研究Winnerを研究親モデルとして継承
+7. 毎日6個の新しい変異Challengerを自動生成
+8. Champion・前日研究Winner・新規Challengerを30/60/120回窓でバックテスト
+9. ランダム5通りとも比較
+10. paired sign-flip検定を実施
+11. 日次の多重検定をBonferroni補正
+12. 同一データを毎日再検証する影響をalpha-spendingで追加補正
+13. 条件を満たす場合のみChampion昇格
+14. 同一 `loto7.csv` SHA256ではChampion昇格を最大1回に制限
+15. 本番予測5通りと日次研究予測5通りを別々に生成
+16. 進化履歴・予測・実績・当選照合を自動コミット
+
+## 「進化し続ける」の意味
+
+### 研究系統
+
+毎日の研究Winnerのパラメータを `evolution_state.json` に保存し、翌日はそのモデルを親として新しい変異候補を生成します。
+
+これにより、Championに昇格しなかった研究モデルも翌日の探索に利用でき、**日次で世代を継承する探索系統**になります。
+
+### 本番Champion
+
+研究モデルを無条件に本番採用しません。
+
+昇格には以下を要求します。
+
+- 直近30回: Champion以上
+- 直近60回: Championよりスコア改善
+- 直近120回: Championよりスコア改善
+- 60/120回で最大一致数を悪化させない
+- 120回でランダム基準を上回る
+- paired sign-flip検定を通過
+- 当日の複数Challenger数を考慮した補正済み有意水準を通過
+- 同じ抽せんデータでの反復検定を考慮したalpha-spendingを通過
+
+同一データSHAで一度Championが昇格した後は、次の抽せん結果でデータSHAが変わるまで追加昇格を禁止します。
+
+## 5通り単位のバックテスト
+
+数字ランキングだけでなく、実際の出力と同じ**5通りポートフォリオ**を評価します。
+
+主な指標:
+
+- 5通り中の最大本数字一致数
+- 5通り平均一致数
+- 3個以上一致した券が1枚以上あった割合
+- 4個以上一致した券が1枚以上あった割合
+- 複合スコア
+- 同条件ランダム5通りとの差
+- Championとのpaired差
+
+## 本番予測と研究予測を分離
+
+### 本番予測
+
+- `loto7_agent_output/candidate_tickets.csv`
+- `loto7_agent_output/latest_prediction.txt`
+- `loto7_agent_output/predictions.csv`
+
+`predictions.csv` はappend-onlyです。対象回について一度保存した本番予測を、後日の研究結果や当選結果に合わせて変更しません。
+
+### 日次研究予測
+
+- `loto7_agent_output/research_candidate_tickets.csv`
+- `loto7_agent_output/latest_research_prediction.txt`
+
+研究予測は**毎日更新**されます。本番監査履歴とは別物です。
+
+## 進化状態・履歴
+
+- `loto7_agent_output/evolution_state.json` — 現在の世代、研究親、Champion、累積評価数、昇格ロック状態
+- `loto7_agent_output/evolution_history.jsonl` — 日次進化履歴
+- `loto7_agent_output/model_evaluation.json` — 最新世代の全バックテスト結果と昇格判定
+- `loto7_agent_output/model_champion.json` — 現行Champion
+- `loto7_agent_output/agent_state.json` — 最新AI状態
+
+`evolution_history.jsonl` は前レコードのハッシュを次レコードに含める**ハッシュチェーン**形式で、履歴改変を検知しやすくしています。
+
+## 当選照合・収支
+
+- `loto7_agent_output/actual_results.csv` — append-only実績スナップショット
+- `loto7_agent_output/reconciliation.csv` — 予測と実績の照合
+- `loto7_agent_output/prediction_results.txt` — 人間向け累積結果
+
+記録項目には、本数字一致数、ボーナス一致数、1〜6等、実績当選金額、1口300円基準の購入額・差引・回収率を含みます。
+
+## データ取得・検証
+
+- 主取得元: 楽天×宝くじ ロト7バックナンバー
+- クロスチェック元: みずほ銀行 当せん番号案内
+- スケジュール確認: 宝くじ公式サイト
+
+不一致を検出した場合は処理を停止します。第2ソースを機械解析できない場合は `degraded_single_result_source` と明示します。
 
 ## 権限
 
-GitHub Actionsは最小権限で運用します。
+GitHub Actionsは最小権限です。
 
 ```yaml
 permissions:
   contents: write
 ```
 
-`write-all` は使用しません。予測性能に不要な権限を付与しないためです。
+予測性能と無関係な `write-all` は使用しません。
 
-## データ取得・検証
+## CI
 
-- 主取得元: 楽天×宝くじ ロト7バックナンバー
-- 照合元: みずほ銀行 当せん番号案内（ロト7）
-- スケジュール確認: 宝くじ公式サイト
+`.github/workflows/ci.yml` がPull Requestとmainへのpushで以下を確認します。
 
-`loto7_agent_output/source_validation.json` に、取得時刻・最新回・鮮度条件・ソース照合状態を保存します。
-
-## 自己進化 / Champion-Challenger
-
-`loto7_v2_runner.py` が現行Championと複数Challengerを同じ時系列条件で評価します。各過去時点では、その時点より前のデータだけを使用します。
-
-評価対象は「数字ランキング」だけではなく、実際の出力と同じ**5通り**です。
-
-主な指標:
-
-- 5通り中の最大本数字一致数
-- 5通り平均一致数
-- 5通りのどれかが3個以上一致した割合
-- 5通りのどれかが4個以上一致した割合
-- 同条件のランダム5通りとの差
-- 直近60回と120回の両窓
-
-Challengerは60回・120回の両方でスコア改善し、最大一致数を悪化させない場合だけ昇格できます。
-
-## 監査台帳
-
-### 不変の予測台帳
-
-`loto7_agent_output/predictions.csv`
-
-予測作成時点の以下を保存し、後から当選結果に合わせて変更しません。
-
-- 対象回
-- 予測5通り
-- 作成時刻
-- モデルバージョン
-- Git SHA
-- データSHA256
-- 戦略重み
-
-### 実績スナップショット台帳
-
-`loto7_agent_output/actual_results.csv`
-
-当選結果と各等級の実績当選金額を別台帳へ追加します。後日金額が補完・訂正された場合も、古いスナップショットを消さず新しい版を追加します。
-
-### 派生照合結果
-
-`loto7_agent_output/reconciliation.csv`
-
-予測台帳と実績台帳から毎回再生成します。1〜6等条件、本数字一致、ボーナス一致、実績当選金額、1口300円を基準にした差引を記録します。
-
-`loto7_agent_output/prediction_results.txt` では、累積購入額・当選額・差引・回収率も確認できます。
-
-## 主な出力
-
-- `STATUS.md` — 最新取得回、最新予測対象、モデル、データSHA、ソース検証状態
-- `loto7_agent_output/latest_prediction.txt` — 最新予測5通り
-- `loto7_agent_output/prediction_results.txt` — 累積当選照合・収支
-- `loto7_agent_output/predictions.csv` — append-only予測台帳
-- `loto7_agent_output/actual_results.csv` — append-only実績台帳
-- `loto7_agent_output/reconciliation.csv` — 派生照合結果
-- `loto7_agent_output/model_champion.json` — 現行Champion
-- `loto7_agent_output/model_evaluation.json` — Champion/Challenger比較
-- `loto7_agent_output/source_validation.json` — 複数ソース検証
-- `loto7_agent_output/agent_state.json` — モデル・データ・検証状態
+- Python compile
+- pytest
+- v3の日次進化安全策
+- 等級判定
+- 鮮度ゲート
+- 複数ソース解析
+- Champion/Challenger判定
 
 ## ローカル実行
 
@@ -106,11 +136,24 @@ Challengerは60回・120回の両方でスコア改善し、最大一致数を�
 python -m pip install -r requirements.txt
 python -m pip install pytest
 python -m pytest -q
+
 python fetch_validate.py --csv loto7.csv --max-attempts 1 --interval-seconds 0
-python loto7_v2_runner.py --csv loto7.csv --tickets 5 --out-dir loto7_agent_output
-python audit_ledger.py --loto-csv loto7.csv --tickets-csv loto7_agent_output/candidate_tickets.csv --out-dir loto7_agent_output --status-md STATUS.md
+
+python loto7_v3_runner.py \
+  --csv loto7.csv \
+  --tickets 5 \
+  --mutants 6 \
+  --out-dir loto7_agent_output
+
+python audit_ledger.py \
+  --loto-csv loto7.csv \
+  --tickets-csv loto7_agent_output/candidate_tickets.csv \
+  --out-dir loto7_agent_output \
+  --status-md STATUS.md
+
+python evolution_status.py
 ```
 
 ## 公式当せん条件
 
-ロト7の等級条件は宝くじ公式サイトの条件に従います。2等は本数字6個＋ボーナス1個、6等は本数字3個＋ボーナス1個または2個です。
+ロト7の等級条件は宝くじ公式の条件に従います。2等は本数字6個＋ボーナス1個、6等は本数字3個＋ボーナス1個または2個です。
