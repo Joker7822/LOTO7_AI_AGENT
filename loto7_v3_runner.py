@@ -295,13 +295,17 @@ def main() -> int:
             research_parent = current_champion
 
     mutants = make_mutants(research_parent, data_sha, generation, count=args.mutants)
-    configs = [current_champion] + [m for m in mutants if m.version() != current_champion.version()]
+    configs = [current_champion]
+    if research_parent.version() != current_champion.version():
+        configs.append(research_parent)
+    configs += [m for m in mutants if m.version() not in {c.version() for c in configs}]
     evaluations = [
         evaluate_config(x, cfg, min_train=args.min_train, pool_size=args.portfolio_backtest_pool)
         for cfg in configs
     ]
     champ_eval = evaluations[0]
-    alpha = alpha_per_candidate(data_day_index, len(mutants))
+    candidate_count = max(1, len(evaluations) - 1)
+    alpha = alpha_per_candidate(data_day_index, candidate_count)
     decisions = []
     eligible = []
     for idx, ev in enumerate(evaluations[1:], 1):
@@ -419,7 +423,7 @@ def main() -> int:
         "champion_version": model_version,
         "research_winner": research_eval["version"],
         "research_parent_config": research_eval["config"],
-        "total_evaluations": int(state.get("total_evaluations", 0)) + len(mutants),
+        "total_evaluations": int(state.get("total_evaluations", 0)) + candidate_count,
         "total_promotions": total_promotions,
         "promotion_locked_for_data_sha": promotion_locked or promoted,
         "per_candidate_alpha": alpha,
@@ -438,14 +442,14 @@ def main() -> int:
         "promoted": promoted,
         "promotion_locked_for_data_sha": promotion_locked,
         "per_candidate_alpha": alpha,
-        "candidates_evaluated": len(mutants),
+        "candidates_evaluated": candidate_count,
         "top_research_score120": float(research_eval["windows"]["120"]["model"]["score"]),
     }
     history_hash = append_hash_chain(args.evolution_history, history_record)
     new_state["last_history_hash"] = history_hash
     args.evolution_state.write_text(json.dumps(new_state, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(f"[EVOLUTION] generation={generation} data_day={data_day_index} candidates={len(mutants)}")
+    print(f"[EVOLUTION] generation={generation} data_day={data_day_index} candidates={candidate_count}")
     print(f"[MODEL] champion={model_version} promoted={promoted} locked={promotion_locked or promoted}")
     print(f"[RESEARCH] winner={research_eval['version']} alpha/candidate={alpha:.8f}")
     for w in ("30","60","120"):
