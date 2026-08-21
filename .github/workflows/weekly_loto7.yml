@@ -1,16 +1,17 @@
-name: Daily LOTO7 Evolution v3
+name: Intraday LOTO7 Evolution v3
 
 on:
   schedule:
-    # Every day 20:00 JST = 11:00 UTC
-    - cron: "0 11 * * *"
+    # Four times every day: 02:00 / 08:00 / 14:00 / 20:00 JST
+    # UTC equivalents: 17:00 / 23:00 / 05:00 / 11:00
+    - cron: "0 5,11,17,23 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: daily-loto7-evolution
+  group: intraday-loto7-evolution
   cancel-in-progress: false
 
 jobs:
@@ -50,7 +51,7 @@ jobs:
             --interval-seconds 600 \
             --months 3
 
-      - name: Daily backtest and continuous evolution
+      - name: Intraday backtest and continuous evolution
         run: |
           python loto7_v3_runner.py \
             --csv loto7.csv \
@@ -69,7 +70,7 @@ jobs:
             --out-dir loto7_agent_output \
             --status-md STATUS.md
 
-      - name: Add daily evolution status
+      - name: Add evolution status
         run: |
           python evolution_status.py \
             --status STATUS.md \
@@ -87,7 +88,7 @@ jobs:
             cat loto7_agent_output/latest_prediction.txt
             echo '```'
             echo
-            echo '## Daily evolved research prediction'
+            echo '## Latest evolved research prediction'
             echo '```text'
             cat loto7_agent_output/latest_research_prediction.txt
             echo '```'
@@ -98,7 +99,7 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit daily evolution state
+      - name: Commit evolution state
         shell: bash
         run: |
           if [ -z "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
@@ -128,6 +129,6 @@ jobs:
             loto7_agent_output/prediction_results.txt \
             loto7_agent_output/latest_prediction.txt
 
-          git commit -m "chore: daily LOTO7 backtest and continuous evolution"
+          git commit -m "chore: intraday LOTO7 backtest and continuous evolution"
           git pull --rebase
           git push
