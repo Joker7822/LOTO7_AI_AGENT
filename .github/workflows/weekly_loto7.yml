@@ -2,9 +2,9 @@ name: Intraday LOTO7 Evolution v3
 
 on:
   schedule:
-    # Four times every day: 02:00 / 08:00 / 14:00 / 20:00 JST
-    # UTC equivalents: 17:00 / 23:00 / 05:00 / 11:00
-    - cron: "0 5,11,17,23 * * *"
+    # Eight times every day: 02:00 / 05:00 / 08:00 / 11:00 / 14:00 / 17:00 / 20:00 / 23:00 JST
+    # UTC equivalents: 17:00 / 20:00 / 23:00 / 02:00 / 05:00 / 08:00 / 11:00 / 14:00
+    - cron: "0 2,5,8,11,14,17,20,23 * * *"
   workflow_dispatch:
 
 permissions:
