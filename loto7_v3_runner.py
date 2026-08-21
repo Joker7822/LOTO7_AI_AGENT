@@ -286,8 +286,16 @@ def main() -> int:
     same_data = state.get("current_data_sha") == data_sha
     data_day_index = int(state.get("data_day_index", 0)) + 1 if same_data else 1
 
-    mutants = make_mutants(current_champion, data_sha, generation, count=args.mutants)
-    configs = [current_champion] + mutants
+    research_parent = current_champion
+    parent_cfg = state.get("research_parent_config")
+    if isinstance(parent_cfg, dict):
+        try:
+            research_parent = v2.ModelConfig(**parent_cfg)
+        except Exception:
+            research_parent = current_champion
+
+    mutants = make_mutants(research_parent, data_sha, generation, count=args.mutants)
+    configs = [current_champion] + [m for m in mutants if m.version() != current_champion.version()]
     evaluations = [
         evaluate_config(x, cfg, min_train=args.min_train, pool_size=args.portfolio_backtest_pool)
         for cfg in configs
@@ -410,6 +418,7 @@ def main() -> int:
         "last_promotion_data_sha": data_sha if promoted else str(state.get("last_promotion_data_sha", "")),
         "champion_version": model_version,
         "research_winner": research_eval["version"],
+        "research_parent_config": research_eval["config"],
         "total_evaluations": int(state.get("total_evaluations", 0)) + len(mutants),
         "total_promotions": total_promotions,
         "promotion_locked_for_data_sha": promotion_locked or promoted,
@@ -425,6 +434,7 @@ def main() -> int:
         "champion_before": champ_eval["version"],
         "champion_after": model_version,
         "research_winner": research_eval["version"],
+        "research_parent_before": research_parent.version(),
         "promoted": promoted,
         "promotion_locked_for_data_sha": promotion_locked,
         "per_candidate_alpha": alpha,
