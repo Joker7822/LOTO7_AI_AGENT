@@ -9,6 +9,7 @@ import json
 import re
 import sys
 import time
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -25,7 +26,13 @@ def now_jst() -> dt.datetime:
 
 
 def http_get(url: str, timeout: int = 30) -> str:
-    req = urllib.request.Request(url, headers={"User-Agent":"Mozilla/5.0 LOTO7_AI_AGENT/2.0","Accept-Language":"ja,en;q=0.8"})
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "Mozilla/5.0 LOTO7_AI_AGENT/2.0",
+            "Accept-Language": "ja,en;q=0.8",
+        },
+    )
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.read().decode("utf-8", errors="replace")
 
@@ -81,7 +88,12 @@ def validate_row(row: Dict[str, str]) -> Dict[str, object]:
     main = parse_nums(row.get("本数字", ""))
     bonus = parse_nums(row.get("ボーナス数字", ""))
     validate_numbers(main, bonus)
-    return {"round": round_no, "date": date.isoformat(), "main": list(main), "bonus": list(bonus)}
+    return {
+        "round": round_no,
+        "date": date.isoformat(),
+        "main": list(main),
+        "bonus": list(bonus),
+    }
 
 
 def expected_new_round(before: Optional[Dict[str, str]], now: Optional[dt.datetime] = None) -> Optional[Tuple[int, str]]:
@@ -110,9 +122,10 @@ def parse_mizuho(html: str, target_round: Optional[int] = None) -> Optional[Dict
         pos = next((text.find(x) for x in locators if text.find(x) >= 0), -1)
         if pos < 0:
             return None
-        segment = text[max(0, pos - 200): pos + 2500]
+        segment = text[pos: pos + 2500]
     else:
         segment = text
+
     mr = re.search(r"(?:第\s*)?(\d{1,6})\s*回", segment)
     md = re.search(r"(20\d{2})[年/]\s*(\d{1,2})[月/]\s*(\d{1,2})日?", segment)
     mm = re.search(r"本数字\s*([0-9\s()（）]+?)\s*ボーナス数字", segment)
@@ -137,7 +150,10 @@ def parse_official_schedule(html: str) -> Optional[Dict[str, object]]:
     d = re.search(r"抽せん日\s*[:：]?\s*(20\d{2})[/年]\s*(\d{1,2})[/月]\s*(\d{1,2})日?", text)
     if not m:
         return None
-    return {"round": int(m.group(1)), "date": f"{int(d.group(1)):04d}-{int(d.group(2)):02d}-{int(d.group(3)):02d}" if d else ""}
+    return {
+        "round": int(m.group(1)),
+        "date": f"{int(d.group(1)):04d}-{int(d.group(2)):02d}-{int(d.group(3)):02d}" if d else "",
+    }
 
 
 def source_snapshot(target_round: int) -> Dict[str, object]:
@@ -157,11 +173,16 @@ def compare_sources(primary: Dict[str, object], sources: Dict[str, object]) -> T
     notes: List[str] = []
     mz = sources.get("mizuho", {})
     if isinstance(mz, dict) and "main" in mz and int(mz.get("round", -1)) == int(primary["round"]):
-        same = list(mz.get("main", [])) == list(primary["main"]) and list(mz.get("bonus", [])) == list(primary["bonus"]) and (not mz.get("date") or mz.get("date") == primary["date"])
+        same = (
+            list(mz.get("main", [])) == list(primary["main"])
+            and list(mz.get("bonus", [])) == list(primary["bonus"])
+            and (not mz.get("date") or mz.get("date") == primary["date"])
+        )
         if not same:
             return "mismatch", ["Rakuten and Mizuho results disagree"]
         notes.append("Mizuho result matches Rakuten main/bonus numbers")
         return "verified_two_result_sources", notes
+
     official = sources.get("official_schedule", {})
     if isinstance(official, dict) and "round" in official:
         notes.append(f"official schedule visible: round={official.get('round')} date={official.get('date','')}")
@@ -183,30 +204,52 @@ def main() -> int:
     ap.add_argument("--months", type=int, default=3)
     ap.add_argument("--require-two-result-sources", action="store_true")
     args = ap.parse_args()
+
     before_rows = read_rows(args.csv)
     before = latest_row(before_rows)
     expected = expected_new_round(before)
     last_error = ""
+
     for attempt in range(1, max(1, args.max_attempts) + 1):
         print(f"[FETCH] attempt {attempt}/{args.max_attempts}")
         try:
-            scrapingloto7.update_loto7_csv(str(args.csv), months=max(1, args.months), all_history=not args.csv.exists() or not before_rows)
+            scrapingloto7.update_loto7_csv(
+                str(args.csv),
+                months=max(1, args.months),
+                all_history=not args.csv.exists() or not before_rows,
+            )
             rows = read_rows(args.csv)
             latest = latest_row(rows)
             if latest is None:
                 raise RuntimeError("loto7.csv is empty after fetch")
             primary = validate_row(latest)
+
             if expected is not None:
                 expected_round, expected_date = expected
                 if int(primary["round"]) < expected_round or str(primary["date"]) != expected_date:
-                    raise RuntimeError(f"fresh result not available yet: expected round={expected_round} date={expected_date}; got round={primary['round']} date={primary['date']}")
+                    raise RuntimeError(
+                        f"fresh result not available yet: expected round={expected_round} date={expected_date}; "
+                        f"got round={primary['round']} date={primary['date']}"
+                    )
+
             sources = source_snapshot(int(primary["round"]))
             verification, notes = compare_sources(primary, sources)
             if verification == "mismatch":
                 raise RuntimeError("cross-source mismatch: " + "; ".join(notes))
             if args.require_two_result_sources and verification != "verified_two_result_sources":
                 raise RuntimeError("second result source not yet verified")
-            report = {"checked_at_jst": now_jst().isoformat(timespec="seconds"), "attempt": attempt, "status": "ok" if verification == "verified_two_result_sources" else "degraded", "verification": verification, "primary_source": "Rakuten backnumber via scrapingloto7.py", "latest": primary, "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None, "sources": sources, "notes": notes}
+
+            report = {
+                "checked_at_jst": now_jst().isoformat(timespec="seconds"),
+                "attempt": attempt,
+                "status": "ok" if verification == "verified_two_result_sources" else "degraded",
+                "verification": verification,
+                "primary_source": "Rakuten backnumber via scrapingloto7.py",
+                "latest": primary,
+                "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None,
+                "sources": sources,
+                "notes": notes,
+            }
             write_report(args.report, report)
             print(f"[VALIDATION] {verification} round={primary['round']} date={primary['date']}")
             return 0
@@ -215,7 +258,13 @@ def main() -> int:
             print(f"[WAIT] {last_error}", file=sys.stderr)
             if attempt < args.max_attempts and args.interval_seconds > 0:
                 time.sleep(args.interval_seconds)
-    write_report(args.report, {"checked_at_jst": now_jst().isoformat(timespec="seconds"), "status": "failed", "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None, "error": last_error})
+
+    write_report(args.report, {
+        "checked_at_jst": now_jst().isoformat(timespec="seconds"),
+        "status": "failed",
+        "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None,
+        "error": last_error,
+    })
     return 2
 
 
