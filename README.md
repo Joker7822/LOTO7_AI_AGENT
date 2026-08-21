@@ -1,128 +1,107 @@
-# LOTO7 AI Agent v3 — Continuous Evolution
+# LOTO7 AI Agent v4 — Continuous Research + Future OOS Governance
 
-LOTO7履歴を使い、**バックテスト完了 → Challenger生成・統計検証 → 研究世代更新 → 保存 → 待ち時間なしで次のバックテスト開始**を繰り返す継続進化型エージェントです。
+LOTO7履歴を使って研究モデルを**待ち時間なしで連続探索**しつつ、Production Championの昇格は**未来の抽せん結果で事前凍結したshadow候補を評価した時だけ**許可する構成です。
 
-> 予測は当せんを保証しません。ランダム基準や現行Championを上回ったかを継続検証し、改善が確認できないモデルは本番昇格させません。
+> 予測は当せんを保証しません。過去データを大量に探索して良く見えたモデルを、そのまま本番採用しないことを最優先にしています。
 
-## 連続自動進化
+## v4の基本構造
 
-GitHub Actions `Continuous LOTO7 Evolution v3` は、1回ごとの固定時刻実行ではなく、1つのランナー内でバックテストを連続実行します。
+### 1. Continuous Research
 
-1. ランナー起動時にpytestを実行
-2. 最新公開結果を定期取得・形式検証
-3. 金曜日20〜21時台に新結果が未反映なら10分間隔で最大90分再試行
-4. 楽天の結果を主取得元として利用
-5. みずほ銀行の同一回を解析できた場合は本数字・ボーナス数字をクロスチェック
-6. 直前実行の研究Winnerを研究親モデルとして継承
-7. 1反復あたり6個の新しい変異Challengerを自動生成
-8. Champion・研究Winner・新規Challengerを30/60/120回窓でバックテスト
-9. ランダム5通りとも比較
-10. paired sign-flip検定を実施
-11. 各反復の多重検定をBonferroni補正
-12. 同一データを繰り返し検証する影響をalpha-spendingで追加補正
-13. 条件を満たす場合のみChampion昇格
-14. 同一 `loto7.csv` SHA256ではChampion昇格を最大1回に制限
-15. 本番予測5通りと研究予測5通りを別々に生成
-16. 実測時間・進化履歴・予測・実績・当選照合をコミット
-17. **コミット完了後、sleepを入れず直ちに次の反復を開始**
+- 研究Winnerを次世代の親に継承
+- 1世代あたり局所変異と大域random restartを混在
+- 30 / 60 / 120回窓で研究スコアを比較
+- 上位モデルを `candidate_pool.json` に保存
+- 研究予測5通りは各世代で更新
+- 研究終了後はsleepせず次世代へ進む
 
-1つのGitHub Actionsランナーは約4時間連続反復し、正常終了時に次のランナーを`workflow_dispatch`で自動起動します。さらに毎日02:00 JSTに回復用スケジュールがあり、連鎖が停止していた場合の再起動点になります。
+過去データの研究スコアは**探索順位専用**です。Production Champion昇格には使いません。
 
-公開結果サイトへのアクセスは研究反復ごとには行わず、通常は最大1時間間隔、金曜20〜21時台は最大10分間隔に制限します。バックテスト・モデル探索そのものは待ち時間なしで連続します。
+### 2. Frozen Shadow Models
 
-## 実行時間の実測
+新しい抽せん結果を取り込んだ時点で、次回用のshadow候補を最大6モデル選び、各モデルの5通りを事前凍結します。
 
-各反復の実測時間を以下へ累積します。
+- `loto7_agent_output/shadow_registry.json`
+- Championの5通りも同時に凍結
+- 同じ対象回について後から書き換えない
 
-- `loto7_agent_output/execution_metrics.csv`
-- `STATUS.md` の `Continuous Runtime`
+### 3. Future OOS Evaluation
 
-記録項目:
+次の抽せん結果が取得されたら、凍結済みshadowとChampionを**実際に未知だった未来の結果**で比較します。
 
-- 完了日時(JST)
-- ランナー内反復番号
-- 進化世代
-- 実行秒数
-- データSHA256
-- Champion
-- 研究Winner
+- `loto7_agent_output/shadow_oos_results.csv` — append-only OOS結果
+- `loto7_agent_output/oos_candidate_state.json` — 累積OOS証拠
 
-`STATUS.md` には最新1回の秒数、直近20回平均、累積実測回数を表示します。初回連続実行前は十分な本番実測値がないため、所要時間を確定値として扱いません。
+単一ソースしか検証できない抽せん結果は記録には残しますが、Champion昇格の統計証拠には数えません。
 
-## 「進化し続ける」の意味
+### 4. Production Promotion
 
-### 研究系統
+Production Championの昇格条件は以下です。
 
-各反復の研究Winnerのパラメータを `evolution_state.json` に保存し、次の反復ではそのモデルを親として新しい変異候補を生成します。
+- 信頼済み未来OOS: 8回以上
+- anytime-valid e-process の e-value: 20以上
+- Championに対する平均複合score差: +0.05以上
+- OOS勝率: 55%以上
+- 直近の抽せん結果が `verified_two_result_sources`
 
-これにより、Championに昇格しなかった研究モデルも次の探索に利用でき、**実行時間が許す限り世代を連続継承する探索系統**になります。
+過去30/60/120回バックテストの結果だけでは**昇格しません**。
 
-### 本番Champion
+## 連続GitHub Actions
 
-研究モデルを無条件に本番採用しません。
+使用するworkflowは2本だけです。
 
-昇格には以下を要求します。
+- `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・監査
+- `.github/workflows/ci.yml` — コード変更時のcompile / pytest
 
-- 直近30回: Champion以上
-- 直近60回: Championよりスコア改善
-- 直近120回: Championよりスコア改善
-- 60/120回で最大一致数を悪化させない
-- 120回でランダム基準を上回る
-- paired sign-flip検定を通過
-- 同一反復内の複数Challenger数を考慮した補正済み有意水準を通過
-- 同じ抽せんデータでの反復検定を考慮したalpha-spendingを通過
+旧v3の `weekly_loto7.yml` と、一回性の `start_continuous_now.yml` は削除しています。
 
-同一データSHAで一度Championが昇格した後は、次の抽せん結果でデータSHAが変わるまで追加昇格を禁止します。実行回数を増やしても、この制限は緩和しません。
+`Continuous LOTO7 Research v4` は1ランナー内で約4時間研究を繰り返し、正常終了時に次のランナーを起動します。毎日02:00 JSTのスケジュールは回復用です。
 
-## 5通り単位のバックテスト
+公開結果サイトへのアクセスは研究世代ごとには行わず、通常は最大1時間間隔です。金曜日20〜21時台は新結果待ちのため10分間隔・最大90分再試行します。
 
-数字ランキングだけでなく、実際の出力と同じ**5通りポートフォリオ**を評価します。
+## Git checkpointとCI負荷
 
-主な指標:
+研究計算は連続しますが、Gitへは原則**10世代ごと**にcheckpointします。新データ取得・OOS採点・shadow凍結・Champion昇格など重要イベント時は即checkpointします。
 
-- 5通り中の最大本数字一致数
-- 5通り平均一致数
-- 3個以上一致した券が1枚以上あった割合
-- 4個以上一致した券が1枚以上あった割合
-- 複合スコア
-- 同条件ランダム5通りとの差
-- Championとのpaired差
+CIは以下の変更時だけ起動します。
 
-## 本番予測と研究予測を分離
+- Pythonコード
+- `tests/**`
+- `requirements.txt`
+- workflow定義
 
-### 本番予測
+`STATUS.md` や `loto7_agent_output/**` だけの自動checkpointではCIを起動しません。
 
+## 主な出力
+
+### Production
+
+- `loto7_agent_output/model_champion.json`
 - `loto7_agent_output/candidate_tickets.csv`
 - `loto7_agent_output/latest_prediction.txt`
-- `loto7_agent_output/predictions.csv`
+- `loto7_agent_output/predictions.csv` — append-only
 
-`predictions.csv` はappend-onlyです。対象回について一度保存した本番予測を、後日の研究結果や当選結果に合わせて変更しません。
+### Research
 
-### 継続研究予測
-
+- `loto7_agent_output/v4_research_state.json`
+- `loto7_agent_output/candidate_pool.json`
+- `loto7_agent_output/v4_research_evaluation.json`
 - `loto7_agent_output/research_candidate_tickets.csv`
 - `loto7_agent_output/latest_research_prediction.txt`
 
-研究予測は**各反復で更新**されます。本番監査履歴とは別物です。
+### Future OOS Governance
 
-## 進化状態・履歴
+- `loto7_agent_output/shadow_registry.json`
+- `loto7_agent_output/shadow_oos_results.csv`
+- `loto7_agent_output/oos_candidate_state.json`
 
-- `loto7_agent_output/evolution_state.json` — 現在の世代、研究親、Champion、累積評価数、昇格ロック状態
-- `loto7_agent_output/evolution_history.jsonl` — 各反復の進化履歴
-- `loto7_agent_output/model_evaluation.json` — 最新世代の全バックテスト結果と昇格判定
-- `loto7_agent_output/model_champion.json` — 現行Champion
-- `loto7_agent_output/agent_state.json` — 最新AI状態
-- `loto7_agent_output/execution_metrics.csv` — 各反復の実測所要時間
+### Audit / Runtime
 
-`evolution_history.jsonl` は前レコードのハッシュを次レコードに含める**ハッシュチェーン**形式で、履歴改変を検知しやすくしています。
-
-## 当選照合・収支
-
-- `loto7_agent_output/actual_results.csv` — append-only実績スナップショット
-- `loto7_agent_output/reconciliation.csv` — 予測と実績の照合
-- `loto7_agent_output/prediction_results.txt` — 人間向け累積結果
-
-記録項目には、本数字一致数、ボーナス一致数、1〜6等、実績当選金額、1口300円基準の購入額・差引・回収率を含みます。
+- `loto7_agent_output/actual_results.csv`
+- `loto7_agent_output/reconciliation.csv`
+- `loto7_agent_output/prediction_results.txt`
+- `loto7_agent_output/execution_metrics.csv`
+- `STATUS.md`
 
 ## データ取得・検証
 
@@ -130,56 +109,26 @@ GitHub Actions `Continuous LOTO7 Evolution v3` は、1回ごとの固定時刻�
 - クロスチェック元: みずほ銀行 当せん番号案内
 - スケジュール確認: 宝くじ公式サイト
 
-不一致を検出した場合は処理を停止します。第2ソースを機械解析できない場合は `degraded_single_result_source` と明示します。
+取得結果が食い違った場合は処理を停止します。第2ソースを機械解析できない場合は `degraded_single_result_source` とし、研究は継続しますがProduction昇格用OOS証拠には数えません。
 
-## 権限
-
-GitHub Actionsは連続運用に必要な範囲に限定します。
-
-```yaml
-permissions:
-  contents: write
-  actions: write
-```
-
-`contents: write` は監査・進化状態の自動コミット、`actions: write` は正常終了後に次の同一ワークフローを`workflow_dispatch`するために使用します。アカウント管理権限やSecretsの無条件閲覧権限ではありません。
-
-## CI
-
-`.github/workflows/ci.yml` がPull Requestとmainへのpushで以下を確認します。
-
-- Python compile
-- pytest
-- v3の継続進化安全策
-- 等級判定
-- 鮮度ゲート
-- 複数ソース解析
-- Champion/Challenger判定
-
-## ローカル実行
+## ローカル検証
 
 ```bash
 python -m pip install -r requirements.txt
 python -m pip install pytest
+python -m compileall -q .
 python -m pytest -q
 
 python fetch_validate.py --csv loto7.csv --max-attempts 1 --interval-seconds 0
-
-python loto7_v3_runner.py \
-  --csv loto7.csv \
-  --tickets 5 \
-  --mutants 6 \
-  --out-dir loto7_agent_output
-
+python loto7_v4_runner.py --csv loto7.csv --out-dir loto7_agent_output
 python audit_ledger.py \
   --loto-csv loto7.csv \
   --tickets-csv loto7_agent_output/candidate_tickets.csv \
   --out-dir loto7_agent_output \
   --status-md STATUS.md
-
-python evolution_status.py
+python v4_status.py
 ```
 
-## 公式当せん条件
+## 注意
 
-ロト7の等級条件は宝くじ公式の条件に従います。2等は本数字6個＋ボーナス1個、6等は本数字3個＋ボーナス1個または2個です。
+ロト7は確率的な抽せんです。バックテスト改善や研究世代数の増加は、将来の当せんを保証しません。v4は、探索量を増やすことよりも**未来OOSで再現した改善だけを本番採用する**ことを重視しています。
