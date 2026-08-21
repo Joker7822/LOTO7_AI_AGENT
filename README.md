@@ -61,20 +61,38 @@ Production Championの昇格条件は以下です。
 
 出力:
 
-- `loto7_agent_output/historical_round_predictions.csv` — 各回×5口の予測と実績照合
+- `loto7_agent_output/historical_round_predictions.csv` — 各回×5口の予測と一次照合
 - `loto7_agent_output/historical_round_accuracy.csv` — 各回のTop7/5口精度とrandom比較
 - `loto7_agent_output/historical_replay_summary.json` — 累積指標
 - `loto7_agent_output/historical_accuracy_report.md` — 人間向け精度レポート
 
-このhistorical replayは**精度確認用のreference backtest**です。v4 Production Championの昇格条件である未来OOS証拠には加算しません。
+### 過去予測の独立照合
 
-`loto7.csv` のSHAが変わった時だけ再計算し、同じデータではcache判定でスキップします。
+`historical_reconcile.py` は `historical_round_predictions.csv` に埋め込まれた実績値をそのまま信用せず、`loto7.csv` を別に読み直して各予測を再照合します。
+
+- 基準回 / 対象回 / 予測5口を追跡
+- 本数字・ボーナス数字の一致数を再計算
+- 1〜6等を再判定
+- 各回で公表された1口あたり当選金額を参照
+- 1口300円として参考購入額・参考差引を記録
+- replay側に埋め込まれた実績と `loto7.csv` が不一致ならfail closed
+- 金額は過去の公表配当を使う参考値で、実際に購入していた場合の実現損益とは区別
+
+追加出力:
+
+- `loto7_agent_output/historical_reconciliation.csv` — 1口単位の独立照合台帳
+- `loto7_agent_output/historical_reconciliation_summary.json` — 照合・等級・参考金額集計
+- `loto7_agent_output/historical_reconciliation_report.md` — 人間向け照合レポート
+
+このhistorical replay / reconciliationは**精度確認用のreference backtest**です。v4 Production Championの昇格条件である未来OOS証拠には加算しません。
+
+`loto7.csv` または過去予測ファイルのSHAが変わった時だけ再計算し、同じデータではcache判定でスキップします。
 
 ## 連続GitHub Actions
 
 使用するworkflowは2本だけです。
 
-- `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・過去回精度replay・監査
+- `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・過去回精度replay・独立照合・監査
 - `.github/workflows/ci.yml` — コード変更時のcompile / pytest
 
 旧v3の `weekly_loto7.yml` と、一回性の `start_continuous_now.yml` は削除しています。
@@ -113,12 +131,15 @@ CIは以下の変更時だけ起動します。
 - `loto7_agent_output/research_candidate_tickets.csv`
 - `loto7_agent_output/latest_research_prediction.txt`
 
-### Historical Accuracy
+### Historical Accuracy / Reconciliation
 
 - `loto7_agent_output/historical_round_predictions.csv`
 - `loto7_agent_output/historical_round_accuracy.csv`
 - `loto7_agent_output/historical_replay_summary.json`
 - `loto7_agent_output/historical_accuracy_report.md`
+- `loto7_agent_output/historical_reconciliation.csv`
+- `loto7_agent_output/historical_reconciliation_summary.json`
+- `loto7_agent_output/historical_reconciliation_report.md`
 
 ### Future OOS Governance
 
@@ -152,6 +173,11 @@ python -m pytest -q
 
 python fetch_validate.py --csv loto7.csv --max-attempts 1 --interval-seconds 0
 python historical_replay.py --csv loto7.csv --out-dir loto7_agent_output --if-stale
+python historical_reconcile.py \
+  --predictions loto7_agent_output/historical_round_predictions.csv \
+  --loto-csv loto7.csv \
+  --out-dir loto7_agent_output \
+  --if-stale
 python loto7_v4_runner.py --csv loto7.csv --out-dir loto7_agent_output
 python audit_ledger.py \
   --loto-csv loto7.csv \
