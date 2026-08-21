@@ -1,0 +1,57 @@
+{
+  "report_version": "historical-replay-v1",
+  "evaluation_type": "strict_walk_forward_fixed_baseline",
+  "leakage_control": "For target row t, model scoring and ticket generation use only rows [0,t). The target result is read only after tickets are frozen.",
+  "model_version": "baseline-5fdb8dc2ad",
+  "model_config": {
+    "name": "baseline",
+    "eta": 3.0,
+    "decay": 0.995,
+    "expert_uniform_mix": 0.15,
+    "final_uniform_mix": 0.2,
+    "overlap_penalty": 0.65
+  },
+  "csv_sha256": "12e55f5d26e25b243d0ad754ce4886fed189ae1bc89901d367d8f6aa89ea7403",
+  "source_rows": 691,
+  "min_train": 100,
+  "portfolio_pool_size": 650,
+  "random_portfolios_per_round": 32,
+  "evaluated_rounds": 591,
+  "evaluated_tickets": 2955,
+  "first_evaluated_round": 101,
+  "last_evaluated_round": 691,
+  "top7": {
+    "mean_hits": 1.3705583756345177,
+    "random_theoretical_mean_hits": 1.3243243243243243,
+    "delta_vs_random": 0.046234051310193314,
+    "z_vs_random": 1.188199515082017,
+    "approx_two_sided_p": 0.2347548147062779,
+    "signal_claim": "not_confirmed"
+  },
+  "portfolio_5_tickets": {
+    "mean_max_hits": 2.248730964467005,
+    "random_mean_max_hits": 2.4257085448392557,
+    "mean_score": 2.566751269035533,
+    "random_mean_score": 2.7594591810490696,
+    "mean_score_delta_vs_random": -0.19270791201353635,
+    "rounds_beating_random_rate": 0.36548223350253806,
+    "ge3_round_rate": 0.36548223350253806,
+    "random_ge3_round_rate": 0.42930414551607443,
+    "ge4_round_rate": 0.0727580372250423,
+    "random_ge4_round_rate": 0.06810490693739425
+  },
+  "prize_grades": {
+    "grade_counts": {
+      "はずれ": 2832,
+      "6等": 75,
+      "4等": 4,
+      "5等": 44
+    },
+    "winning_tickets": 123,
+    "winning_ticket_rate": 0.0416243654822335,
+    "rounds_with_any_prize": 97,
+    "rounds_with_any_prize_rate": 0.16412859560067683
+  },
+  "interpretation": "Historical replay is a baseline/reference backtest, not future OOS evidence for v4 Champion promotion.",
+  "last_n": 0
+}
