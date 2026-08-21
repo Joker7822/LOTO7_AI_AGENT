@@ -1,39 +1,61 @@
 # LOTO7 AI Agent v3 — Continuous Evolution
 
-LOTO7履歴を使い、**1日8回バックテスト → Challenger生成 → 統計検証 → 研究世代更新 → 条件を満たした場合のみChampion昇格 → 5通り予測 → append-only監査**を自動実行する継続進化型エージェントです。
+LOTO7履歴を使い、**バックテスト完了 → Challenger生成・統計検証 → 研究世代更新 → 保存 → 待ち時間なしで次のバックテスト開始**を繰り返す継続進化型エージェントです。
 
 > 予測は当せんを保証しません。ランダム基準や現行Championを上回ったかを継続検証し、改善が確認できないモデルは本番昇格させません。
 
-## 1日8回自動進化
+## 連続自動進化
 
-GitHub Actions `Intraday LOTO7 Evolution v3` は毎日 **02:00 / 05:00 / 08:00 / 11:00 / 14:00 / 17:00 / 20:00 / 23:00 JST** に実行します。
+GitHub Actions `Continuous LOTO7 Evolution v3` は、1回ごとの固定時刻実行ではなく、1つのランナー内でバックテストを連続実行します。
 
-1. pytest / compileチェック
-2. 最新公開結果を取得・形式検証
-3. 金曜日20:00実行時に新結果が未反映なら10分間隔で最大90分再試行
+1. ランナー起動時にpytestを実行
+2. 最新公開結果を定期取得・形式検証
+3. 金曜日20〜21時台に新結果が未反映なら10分間隔で最大90分再試行
 4. 楽天の結果を主取得元として利用
 5. みずほ銀行の同一回を解析できた場合は本数字・ボーナス数字をクロスチェック
 6. 直前実行の研究Winnerを研究親モデルとして継承
-7. 1実行あたり6個の新しい変異Challengerを自動生成
+7. 1反復あたり6個の新しい変異Challengerを自動生成
 8. Champion・研究Winner・新規Challengerを30/60/120回窓でバックテスト
 9. ランダム5通りとも比較
 10. paired sign-flip検定を実施
-11. 各実行の多重検定をBonferroni補正
+11. 各反復の多重検定をBonferroni補正
 12. 同一データを繰り返し検証する影響をalpha-spendingで追加補正
 13. 条件を満たす場合のみChampion昇格
 14. 同一 `loto7.csv` SHA256ではChampion昇格を最大1回に制限
 15. 本番予測5通りと研究予測5通りを別々に生成
-16. 進化履歴・予測・実績・当選照合を自動コミット
+16. 実測時間・進化履歴・予測・実績・当選照合をコミット
+17. **コミット完了後、sleepを入れず直ちに次の反復を開始**
 
-最大で **48個の新規Challenger/日** を評価します。研究世代は各実行で進みますが、本番Championは同じ抽せんデータで何度も昇格しません。
+1つのGitHub Actionsランナーは約4時間連続反復し、正常終了時に次のランナーを`workflow_dispatch`で自動起動します。さらに毎日02:00 JSTに回復用スケジュールがあり、連鎖が停止していた場合の再起動点になります。
+
+公開結果サイトへのアクセスは研究反復ごとには行わず、通常は最大1時間間隔、金曜20〜21時台は最大10分間隔に制限します。バックテスト・モデル探索そのものは待ち時間なしで連続します。
+
+## 実行時間の実測
+
+各反復の実測時間を以下へ累積します。
+
+- `loto7_agent_output/execution_metrics.csv`
+- `STATUS.md` の `Continuous Runtime`
+
+記録項目:
+
+- 完了日時(JST)
+- ランナー内反復番号
+- 進化世代
+- 実行秒数
+- データSHA256
+- Champion
+- 研究Winner
+
+`STATUS.md` には最新1回の秒数、直近20回平均、累積実測回数を表示します。初回連続実行前は十分な本番実測値がないため、所要時間を確定値として扱いません。
 
 ## 「進化し続ける」の意味
 
 ### 研究系統
 
-各実行の研究Winnerのパラメータを `evolution_state.json` に保存し、次回実行ではそのモデルを親として新しい変異候補を生成します。
+各反復の研究Winnerのパラメータを `evolution_state.json` に保存し、次の反復ではそのモデルを親として新しい変異候補を生成します。
 
-これにより、Championに昇格しなかった研究モデルも次の探索に利用でき、**1日8世代を基本とする継続探索系統**になります。
+これにより、Championに昇格しなかった研究モデルも次の探索に利用でき、**実行時間が許す限り世代を連続継承する探索系統**になります。
 
 ### 本番Champion
 
@@ -47,10 +69,10 @@ GitHub Actions `Intraday LOTO7 Evolution v3` は毎日 **02:00 / 05:00 / 08:00 /
 - 60/120回で最大一致数を悪化させない
 - 120回でランダム基準を上回る
 - paired sign-flip検定を通過
-- 同一実行内の複数Challenger数を考慮した補正済み有意水準を通過
+- 同一反復内の複数Challenger数を考慮した補正済み有意水準を通過
 - 同じ抽せんデータでの反復検定を考慮したalpha-spendingを通過
 
-同一データSHAで一度Championが昇格した後は、次の抽せん結果でデータSHAが変わるまで追加昇格を禁止します。
+同一データSHAで一度Championが昇格した後は、次の抽せん結果でデータSHAが変わるまで追加昇格を禁止します。実行回数を増やしても、この制限は緩和しません。
 
 ## 5通り単位のバックテスト
 
@@ -81,15 +103,16 @@ GitHub Actions `Intraday LOTO7 Evolution v3` は毎日 **02:00 / 05:00 / 08:00 /
 - `loto7_agent_output/research_candidate_tickets.csv`
 - `loto7_agent_output/latest_research_prediction.txt`
 
-研究予測は**各実行で更新**されます。本番監査履歴とは別物です。
+研究予測は**各反復で更新**されます。本番監査履歴とは別物です。
 
 ## 進化状態・履歴
 
 - `loto7_agent_output/evolution_state.json` — 現在の世代、研究親、Champion、累積評価数、昇格ロック状態
-- `loto7_agent_output/evolution_history.jsonl` — 各実行の進化履歴
+- `loto7_agent_output/evolution_history.jsonl` — 各反復の進化履歴
 - `loto7_agent_output/model_evaluation.json` — 最新世代の全バックテスト結果と昇格判定
 - `loto7_agent_output/model_champion.json` — 現行Champion
 - `loto7_agent_output/agent_state.json` — 最新AI状態
+- `loto7_agent_output/execution_metrics.csv` — 各反復の実測所要時間
 
 `evolution_history.jsonl` は前レコードのハッシュを次レコードに含める**ハッシュチェーン**形式で、履歴改変を検知しやすくしています。
 
@@ -111,14 +134,15 @@ GitHub Actions `Intraday LOTO7 Evolution v3` は毎日 **02:00 / 05:00 / 08:00 /
 
 ## 権限
 
-GitHub Actionsは最小権限です。
+GitHub Actionsは連続運用に必要な範囲に限定します。
 
 ```yaml
 permissions:
   contents: write
+  actions: write
 ```
 
-予測性能と無関係な `write-all` は使用しません。
+`contents: write` は監査・進化状態の自動コミット、`actions: write` は正常終了後に次の同一ワークフローを`workflow_dispatch`するために使用します。アカウント管理権限やSecretsの無条件閲覧権限ではありません。
 
 ## CI
 
