@@ -1,4 +1,4 @@
-name: Weekly LOTO7 Update
+name: Weekly LOTO7 Update v2
 
 on:
   schedule:
@@ -6,19 +6,18 @@ on:
     - cron: "0 11 * * 5"
   workflow_dispatch:
 
-# The repository agent receives all GITHUB_TOKEN scopes that GitHub Actions
-# can grant at workflow level. This does not grant account-admin access or
-# reveal repository/environment secrets unless a workflow explicitly uses them.
-permissions: write-all
+# Least privilege: the agent only needs to update repository contents.
+permissions:
+  contents: write
 
 concurrency:
   group: weekly-loto7-update
   cancel-in-progress: false
 
 jobs:
-  update-and-predict:
+  update-validate-predict-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 110
     env:
       TZ: Asia/Tokyo
 
@@ -36,52 +35,59 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: python -m pip install -r requirements.txt
-
-      - name: Fetch latest LOTO7 data
-        shell: bash
         run: |
-          if [ -f loto7.csv ]; then
-            python scrapingloto7.py --csv loto7.csv --months 3
-          else
-            python scrapingloto7.py --csv loto7.csv --all-history
-          fi
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
 
-      - name: Generate five latest predictions
+      - name: Run regression tests
+        run: python -m pytest -q
+
+      - name: Fetch latest result with freshness gate
         run: |
-          python loto7_evolving_agent.py \
+          python fetch_validate.py \
+            --csv loto7.csv \
+            --report loto7_agent_output/source_validation.json \
+            --max-attempts 10 \
+            --interval-seconds 600 \
+            --months 3
+
+      - name: Evaluate Champion and Challengers, then generate five predictions
+        run: |
+          python loto7_v2_runner.py \
             --csv loto7.csv \
             --tickets 5 \
-            --out-dir loto7_agent_output
+            --out-dir loto7_agent_output \
+            --champion-file loto7_agent_output/model_champion.json
 
-      - name: Reconcile results and update cumulative history
+      - name: Update append-only audit ledgers and human-readable reports
         run: |
-          python prediction_tracker.py \
+          python audit_ledger.py \
             --loto-csv loto7.csv \
             --tickets-csv loto7_agent_output/candidate_tickets.csv \
-            --history-csv loto7_agent_output/prediction_history.csv \
-            --results-txt loto7_agent_output/prediction_results.txt \
-            --latest-txt loto7_agent_output/latest_prediction.txt
+            --out-dir loto7_agent_output \
+            --status-md STATUS.md
 
-      - name: Show latest prediction and results
+      - name: Show status, latest prediction and recent results
         shell: bash
         run: |
           {
-            echo '## LOTO7 latest prediction'
+            cat STATUS.md
+            echo
+            echo '## Latest prediction'
             echo '```text'
             cat loto7_agent_output/latest_prediction.txt
             echo '```'
             echo
-            echo '## Recent prediction/result history'
+            echo '## Recent reconciliation'
             echo '```text'
             tail -n 120 loto7_agent_output/prediction_results.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit updated data, predictions and results
+      - name: Commit audited state
         shell: bash
         run: |
-          if [ -z "$(git status --porcelain -- loto7.csv loto7_agent_output)" ]; then
+          if [ -z "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
             echo "No LOTO7 updates to commit."
             exit 0
           fi
@@ -90,14 +96,20 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add -- loto7.csv \
+            STATUS.md \
             loto7_agent_output/prediction_ranking.csv \
             loto7_agent_output/candidate_tickets.csv \
             loto7_agent_output/expert_backtest.csv \
             loto7_agent_output/agent_state.json \
-            loto7_agent_output/prediction_history.csv \
+            loto7_agent_output/model_champion.json \
+            loto7_agent_output/model_evaluation.json \
+            loto7_agent_output/source_validation.json \
+            loto7_agent_output/predictions.csv \
+            loto7_agent_output/actual_results.csv \
+            loto7_agent_output/reconciliation.csv \
             loto7_agent_output/prediction_results.txt \
             loto7_agent_output/latest_prediction.txt
 
-          git commit -m "chore: update weekly LOTO7 prediction history and results"
+          git commit -m "chore: update validated LOTO7 model, predictions and audit ledgers"
           git pull --rebase
           git push
