@@ -7,6 +7,7 @@ on:
       - ".github/workflows/continuous_loto7_v4.yml"
       - "loto7_v4_runner.py"
       - "historical_replay.py"
+      - "historical_reconcile.py"
       - "v4_status.py"
       - "runtime_metrics.py"
       - "fetch_validate.py"
@@ -96,6 +97,14 @@ jobs:
               --pool-size 650 \
               --random-reps 32 \
               --last-n 0 \
+              --if-stale
+
+            # Re-read actual results independently and reconcile every historical
+            # prediction ticket. Fails closed if replay-embedded results disagree.
+            python historical_reconcile.py \
+              --predictions loto7_agent_output/historical_round_predictions.csv \
+              --loto-csv loto7.csv \
+              --out-dir loto7_agent_output \
               --if-stale
             LAST_FETCH=$(date +%s)
           }
@@ -193,6 +202,9 @@ jobs:
             echo
             echo '## Historical replay accuracy'
             cat loto7_agent_output/historical_accuracy_report.md
+            echo
+            echo '## Historical prediction reconciliation'
+            cat loto7_agent_output/historical_reconciliation_report.md
             echo
             echo '## Production prediction'
             echo '```text'
