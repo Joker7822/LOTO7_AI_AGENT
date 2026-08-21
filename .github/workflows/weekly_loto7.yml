@@ -1,21 +1,20 @@
-name: Weekly LOTO7 Update v2
+name: Daily LOTO7 Evolution v3
 
 on:
   schedule:
-    # Friday 20:00 JST = Friday 11:00 UTC
-    - cron: "0 11 * * 5"
+    # Every day 20:00 JST = 11:00 UTC
+    - cron: "0 11 * * *"
   workflow_dispatch:
 
-# Least privilege: the agent only needs to update repository contents.
 permissions:
   contents: write
 
 concurrency:
-  group: weekly-loto7-update
+  group: daily-loto7-evolution
   cancel-in-progress: false
 
 jobs:
-  update-validate-predict-audit:
+  evolve-validate-predict-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 110
     env:
@@ -42,7 +41,7 @@ jobs:
       - name: Run regression tests
         run: python -m pytest -q
 
-      - name: Fetch latest result with freshness gate
+      - name: Fetch and validate latest public result
         run: |
           python fetch_validate.py \
             --csv loto7.csv \
@@ -51,15 +50,18 @@ jobs:
             --interval-seconds 600 \
             --months 3
 
-      - name: Evaluate Champion and Challengers, then generate five predictions
+      - name: Daily backtest and continuous evolution
         run: |
-          python loto7_v2_runner.py \
+          python loto7_v3_runner.py \
             --csv loto7.csv \
             --tickets 5 \
+            --mutants 6 \
             --out-dir loto7_agent_output \
-            --champion-file loto7_agent_output/model_champion.json
+            --champion-file loto7_agent_output/model_champion.json \
+            --evolution-state loto7_agent_output/evolution_state.json \
+            --evolution-history loto7_agent_output/evolution_history.jsonl
 
-      - name: Update append-only audit ledgers and human-readable reports
+      - name: Update append-only prediction and result audit ledgers
         run: |
           python audit_ledger.py \
             --loto-csv loto7.csv \
@@ -67,15 +69,27 @@ jobs:
             --out-dir loto7_agent_output \
             --status-md STATUS.md
 
-      - name: Show status, latest prediction and recent results
+      - name: Add daily evolution status
+        run: |
+          python evolution_status.py \
+            --status STATUS.md \
+            --state loto7_agent_output/evolution_state.json \
+            --evaluation loto7_agent_output/model_evaluation.json
+
+      - name: Show production and research state
         shell: bash
         run: |
           {
             cat STATUS.md
             echo
-            echo '## Latest prediction'
+            echo '## Production prediction (append-only audit target)'
             echo '```text'
             cat loto7_agent_output/latest_prediction.txt
+            echo '```'
+            echo
+            echo '## Daily evolved research prediction'
+            echo '```text'
+            cat loto7_agent_output/latest_research_prediction.txt
             echo '```'
             echo
             echo '## Recent reconciliation'
@@ -84,7 +98,7 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit audited state
+      - name: Commit daily evolution state
         shell: bash
         run: |
           if [ -z "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
@@ -104,12 +118,16 @@ jobs:
             loto7_agent_output/model_champion.json \
             loto7_agent_output/model_evaluation.json \
             loto7_agent_output/source_validation.json \
+            loto7_agent_output/evolution_state.json \
+            loto7_agent_output/evolution_history.jsonl \
+            loto7_agent_output/research_candidate_tickets.csv \
+            loto7_agent_output/latest_research_prediction.txt \
             loto7_agent_output/predictions.csv \
             loto7_agent_output/actual_results.csv \
             loto7_agent_output/reconciliation.csv \
             loto7_agent_output/prediction_results.txt \
             loto7_agent_output/latest_prediction.txt
 
-          git commit -m "chore: update validated LOTO7 model, predictions and audit ledgers"
+          git commit -m "chore: daily LOTO7 backtest and continuous evolution"
           git pull --rebase
           git push
