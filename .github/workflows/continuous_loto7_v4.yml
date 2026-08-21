@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/continuous_loto7_v4.yml"
       - "loto7_v4_runner.py"
+      - "historical_replay.py"
       - "v4_status.py"
       - "runtime_metrics.py"
       - "fetch_validate.py"
@@ -85,6 +86,17 @@ jobs:
               --max-attempts "$max_attempts" \
               --interval-seconds "$retry_seconds" \
               --months 3
+
+            # Full round-by-round replay is recomputed only when its cache key
+            # (CSV SHA or evaluation parameters) changes.
+            python historical_replay.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --min-train 100 \
+              --pool-size 650 \
+              --random-reps 32 \
+              --last-n 0 \
+              --if-stale
             LAST_FETCH=$(date +%s)
           }
 
@@ -101,7 +113,8 @@ jobs:
               --pool loto7_agent_output/candidate_pool.json \
               --registry loto7_agent_output/shadow_registry.json \
               --oos loto7_agent_output/oos_candidate_state.json \
-              --metrics loto7_agent_output/execution_metrics.csv
+              --metrics loto7_agent_output/execution_metrics.csv \
+              --historical loto7_agent_output/historical_replay_summary.json
 
             if [ -z "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
               LAST_CHECKPOINT=$(date +%s)
@@ -177,6 +190,9 @@ jobs:
         run: |
           {
             cat STATUS.md
+            echo
+            echo '## Historical replay accuracy'
+            cat loto7_agent_output/historical_accuracy_report.md
             echo
             echo '## Production prediction'
             echo '```text'
