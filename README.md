@@ -1,37 +1,39 @@
 # LOTO7 AI Agent v3 — Continuous Evolution
 
-LOTO7履歴を使い、**毎日バックテスト → Challenger生成 → 統計検証 → 研究世代更新 → 条件を満たした場合のみChampion昇格 → 5通り予測 → append-only監査**を自動実行する継続進化型エージェントです。
+LOTO7履歴を使い、**1日4回バックテスト → Challenger生成 → 統計検証 → 研究世代更新 → 条件を満たした場合のみChampion昇格 → 5通り予測 → append-only監査**を自動実行する継続進化型エージェントです。
 
 > 予測は当せんを保証しません。ランダム基準や現行Championを上回ったかを継続検証し、改善が確認できないモデルは本番昇格させません。
 
-## 毎日20:00 JSTに自動進化
+## 1日4回自動進化
 
-GitHub Actions `Daily LOTO7 Evolution v3` は **毎日20:00 JST（11:00 UTC）** に実行します。
+GitHub Actions `Intraday LOTO7 Evolution v3` は毎日 **02:00 / 08:00 / 14:00 / 20:00 JST** に実行します。
 
 1. pytest / compileチェック
 2. 最新公開結果を取得・形式検証
-3. 金曜日に新結果が未反映なら10分間隔で最大90分再試行
+3. 金曜日20:00実行時に新結果が未反映なら10分間隔で最大90分再試行
 4. 楽天の結果を主取得元として利用
 5. みずほ銀行の同一回を解析できた場合は本数字・ボーナス数字をクロスチェック
-6. 前日の研究Winnerを研究親モデルとして継承
-7. 毎日6個の新しい変異Challengerを自動生成
-8. Champion・前日研究Winner・新規Challengerを30/60/120回窓でバックテスト
+6. 直前実行の研究Winnerを研究親モデルとして継承
+7. 1実行あたり6個の新しい変異Challengerを自動生成
+8. Champion・研究Winner・新規Challengerを30/60/120回窓でバックテスト
 9. ランダム5通りとも比較
 10. paired sign-flip検定を実施
-11. 日次の多重検定をBonferroni補正
-12. 同一データを毎日再検証する影響をalpha-spendingで追加補正
+11. 各実行の多重検定をBonferroni補正
+12. 同一データを繰り返し検証する影響をalpha-spendingで追加補正
 13. 条件を満たす場合のみChampion昇格
 14. 同一 `loto7.csv` SHA256ではChampion昇格を最大1回に制限
-15. 本番予測5通りと日次研究予測5通りを別々に生成
+15. 本番予測5通りと研究予測5通りを別々に生成
 16. 進化履歴・予測・実績・当選照合を自動コミット
+
+最大で **24個の新規Challenger/日** を評価します。研究世代は各実行で進みますが、本番Championは同じ抽せんデータで何度も昇格しません。
 
 ## 「進化し続ける」の意味
 
 ### 研究系統
 
-毎日の研究Winnerのパラメータを `evolution_state.json` に保存し、翌日はそのモデルを親として新しい変異候補を生成します。
+各実行の研究Winnerのパラメータを `evolution_state.json` に保存し、次回実行ではそのモデルを親として新しい変異候補を生成します。
 
-これにより、Championに昇格しなかった研究モデルも翌日の探索に利用でき、**日次で世代を継承する探索系統**になります。
+これにより、Championに昇格しなかった研究モデルも次の探索に利用でき、**1日4世代を基本とする継続探索系統**になります。
 
 ### 本番Champion
 
@@ -45,7 +47,7 @@ GitHub Actions `Daily LOTO7 Evolution v3` は **毎日20:00 JST（11:00 UTC）**
 - 60/120回で最大一致数を悪化させない
 - 120回でランダム基準を上回る
 - paired sign-flip検定を通過
-- 当日の複数Challenger数を考慮した補正済み有意水準を通過
+- 同一実行内の複数Challenger数を考慮した補正済み有意水準を通過
 - 同じ抽せんデータでの反復検定を考慮したalpha-spendingを通過
 
 同一データSHAで一度Championが昇格した後は、次の抽せん結果でデータSHAが変わるまで追加昇格を禁止します。
@@ -74,17 +76,17 @@ GitHub Actions `Daily LOTO7 Evolution v3` は **毎日20:00 JST（11:00 UTC）**
 
 `predictions.csv` はappend-onlyです。対象回について一度保存した本番予測を、後日の研究結果や当選結果に合わせて変更しません。
 
-### 日次研究予測
+### 継続研究予測
 
 - `loto7_agent_output/research_candidate_tickets.csv`
 - `loto7_agent_output/latest_research_prediction.txt`
 
-研究予測は**毎日更新**されます。本番監査履歴とは別物です。
+研究予測は**各実行で更新**されます。本番監査履歴とは別物です。
 
 ## 進化状態・履歴
 
 - `loto7_agent_output/evolution_state.json` — 現在の世代、研究親、Champion、累積評価数、昇格ロック状態
-- `loto7_agent_output/evolution_history.jsonl` — 日次進化履歴
+- `loto7_agent_output/evolution_history.jsonl` — 各実行の進化履歴
 - `loto7_agent_output/model_evaluation.json` — 最新世代の全バックテスト結果と昇格判定
 - `loto7_agent_output/model_champion.json` — 現行Champion
 - `loto7_agent_output/agent_state.json` — 最新AI状態
@@ -124,7 +126,7 @@ permissions:
 
 - Python compile
 - pytest
-- v3の日次進化安全策
+- v3の継続進化安全策
 - 等級判定
 - 鮮度ゲート
 - 複数ソース解析
