@@ -45,6 +45,25 @@ def best_evidence(oos, champion):
     return max(candidates, default=None, key=lambda x: (x[0], x[2], x[1]))
 
 
+def historical_lines(hist):
+    if not hist:
+        return ["- 過去回replay: **未生成**"]
+    top = hist.get("top7") if isinstance(hist.get("top7"), dict) else {}
+    pf = hist.get("portfolio_5_tickets") if isinstance(hist.get("portfolio_5_tickets"), dict) else {}
+    prizes = hist.get("prize_grades") if isinstance(hist.get("prize_grades"), dict) else {}
+    return [
+        f"- 評価回数: **{hist.get('evaluated_rounds', 0)}回** ({hist.get('first_evaluated_round', '?')}〜{hist.get('last_evaluated_round', '?')})",
+        f"- Top7平均本数字一致: **{float(top.get('mean_hits', 0.0)):.4f}** / random **{float(top.get('random_theoretical_mean_hits', 0.0)):.4f}**",
+        f"- Top7近似両側p: **{float(top.get('approx_two_sided_p', 1.0)):.6f}** / 判定 **{top.get('signal_claim', '確認できません')}**",
+        f"- 5口平均最大一致: **{float(pf.get('mean_max_hits', 0.0)):.4f}** / random **{float(pf.get('random_mean_max_hits', 0.0)):.4f}**",
+        f"- 5口平均score差 vs random: **{float(pf.get('mean_score_delta_vs_random', 0.0)):+.4f}**",
+        f"- 3個以上一致券あり: **{float(pf.get('ge3_round_rate', 0.0))*100:.1f}%** / random **{float(pf.get('random_ge3_round_rate', 0.0))*100:.1f}%**",
+        f"- 4個以上一致券あり: **{float(pf.get('ge4_round_rate', 0.0))*100:.1f}%** / random **{float(pf.get('random_ge4_round_rate', 0.0))*100:.1f}%**",
+        f"- 何らかの等級当選があった回: **{float(prizes.get('rounds_with_any_prize_rate', 0.0))*100:.2f}%**",
+        "- 用途: **過去回の精度確認専用。v4 Champion昇格の未来OOS証拠には使用しない**",
+    ]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--status", type=Path, default=Path("STATUS.md"))
@@ -53,12 +72,14 @@ def main() -> int:
     ap.add_argument("--registry", type=Path, default=Path("loto7_agent_output/shadow_registry.json"))
     ap.add_argument("--oos", type=Path, default=Path("loto7_agent_output/oos_candidate_state.json"))
     ap.add_argument("--metrics", type=Path, default=Path("loto7_agent_output/execution_metrics.csv"))
+    ap.add_argument("--historical", type=Path, default=Path("loto7_agent_output/historical_replay_summary.json"))
     args = ap.parse_args()
 
     state = load(args.state)
     pool = load(args.pool)
     registry = load(args.registry)
     oos = load(args.oos)
+    historical = load(args.historical)
     champion = str(state.get("champion_version", ""))
     pool_n = len(pool.get("candidates", []) or [])
     shadow_n = len(registry.get("candidates", []) or [])
@@ -76,6 +97,12 @@ def main() -> int:
         "- 過去データの研究スコアから本番昇格: **無効（禁止）**",
         f"- 現在ソース検証: **{state.get('source_verification', '確認できません')}**",
         f"- 本番昇格に利用可能なソース: **{'YES' if state.get('source_trusted_for_promotion') else 'NO'}**",
+        "",
+        "## Historical Replay Accuracy",
+        "",
+    ]
+    lines += historical_lines(historical)
+    lines += [
         "",
         "## OOS Governance v4",
         "",

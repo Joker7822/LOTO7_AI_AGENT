@@ -46,11 +46,35 @@ Production Championの昇格条件は以下です。
 
 過去30/60/120回バックテストの結果だけでは**昇格しません**。
 
+## 過去回の回別予測・精度確認
+
+`historical_replay.py` は、過去の各抽せん回を順番に再生して精度を確認します。
+
+- 第101回以降を標準評価対象とする
+- 対象回 `t` の予測時には **`t` より前の履歴だけ**を使用
+- 対象回の当選結果は5口を固定した後にだけ照合
+- 固定baseline設定を使うため、研究Winnerを後から過去へ当てはめるselection leakageを避ける
+- Top7の平均本数字一致数を理論random平均と比較
+- 5口ポートフォリオの最大一致数、平均一致数、3個以上/4個以上一致率、複合scoreを評価
+- 各回32個のrandom 5口ポートフォリオと同条件比較
+- 1〜6等の等級も回別・口別に記録
+
+出力:
+
+- `loto7_agent_output/historical_round_predictions.csv` — 各回×5口の予測と実績照合
+- `loto7_agent_output/historical_round_accuracy.csv` — 各回のTop7/5口精度とrandom比較
+- `loto7_agent_output/historical_replay_summary.json` — 累積指標
+- `loto7_agent_output/historical_accuracy_report.md` — 人間向け精度レポート
+
+このhistorical replayは**精度確認用のreference backtest**です。v4 Production Championの昇格条件である未来OOS証拠には加算しません。
+
+`loto7.csv` のSHAが変わった時だけ再計算し、同じデータではcache判定でスキップします。
+
 ## 連続GitHub Actions
 
 使用するworkflowは2本だけです。
 
-- `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・監査
+- `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・過去回精度replay・監査
 - `.github/workflows/ci.yml` — コード変更時のcompile / pytest
 
 旧v3の `weekly_loto7.yml` と、一回性の `start_continuous_now.yml` は削除しています。
@@ -89,6 +113,13 @@ CIは以下の変更時だけ起動します。
 - `loto7_agent_output/research_candidate_tickets.csv`
 - `loto7_agent_output/latest_research_prediction.txt`
 
+### Historical Accuracy
+
+- `loto7_agent_output/historical_round_predictions.csv`
+- `loto7_agent_output/historical_round_accuracy.csv`
+- `loto7_agent_output/historical_replay_summary.json`
+- `loto7_agent_output/historical_accuracy_report.md`
+
 ### Future OOS Governance
 
 - `loto7_agent_output/shadow_registry.json`
@@ -120,6 +151,7 @@ python -m compileall -q .
 python -m pytest -q
 
 python fetch_validate.py --csv loto7.csv --max-attempts 1 --interval-seconds 0
+python historical_replay.py --csv loto7.csv --out-dir loto7_agent_output --if-stale
 python loto7_v4_runner.py --csv loto7.csv --out-dir loto7_agent_output
 python audit_ledger.py \
   --loto-csv loto7.csv \
