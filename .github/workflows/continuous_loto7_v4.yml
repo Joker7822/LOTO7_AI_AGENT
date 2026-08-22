@@ -9,6 +9,7 @@ on:
       - "research_feedback.py"
       - "research_feedback_bootstrap.py"
       - "feedback_optimizer.py"
+      - "formal_challenger.py"
       - "historical_replay.py"
       - "historical_reconcile.py"
       - "nested_replay.py"
@@ -134,7 +135,9 @@ jobs:
               --metrics loto7_agent_output/execution_metrics.csv \
               --historical loto7_agent_output/historical_replay_summary.json \
               --reconciliation loto7_agent_output/historical_reconciliation_summary.json \
-              --nested loto7_agent_output/nested_replay_summary.json
+              --nested loto7_agent_output/nested_replay_summary.json \
+              --feedback loto7_agent_output/research_feedback_state.json \
+              --formal loto7_agent_output/formal_challenger_state.json
 
             if [ -z "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
               LAST_CHECKPOINT=$(date +%s)
@@ -180,8 +183,8 @@ jobs:
               --source-report loto7_agent_output/source_validation.json \
               --challengers 6
 
-            # One-time bootstrap plus the expanded full-history optimizer. The
-            # optimizer is research-only and never contributes to Production promotion.
+            # Apply one Formal Challenger policy, then run the Research-only
+            # full-history optimizer. Neither retrospective path can promote Production.
             python research_feedback_bootstrap.py \
               --evaluation loto7_agent_output/v4_research_evaluation.json \
               --champion-file loto7_agent_output/model_champion.json \
@@ -249,11 +252,18 @@ jobs:
               echo 'Research feedback has not been generated yet.'
             fi
             echo
-            echo '## Expanded full-history feedback optimizer'
+            echo '## Signal-gated full-history feedback optimizer'
             if [ -f loto7_agent_output/feedback_optimizer_report.md ]; then
               cat loto7_agent_output/feedback_optimizer_report.md
             else
               echo 'Feedback optimizer has not been generated yet.'
+            fi
+            echo
+            echo '## Formal Challenger state'
+            if [ -f loto7_agent_output/formal_challenger_state.json ]; then
+              cat loto7_agent_output/formal_challenger_state.json
+            else
+              echo 'Formal Challenger has not been frozen yet.'
             fi
             echo
             echo '## Production prediction'
