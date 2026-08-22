@@ -96,6 +96,42 @@ def nested_lines(nested):
     ]
 
 
+def signal_lines(feedback):
+    summary = feedback.get("accepted_parent_summary") if isinstance(feedback.get("accepted_parent_summary"), dict) else {}
+    windows = summary.get("windows") if isinstance(summary.get("windows"), dict) else {}
+    full = windows.get("full") if isinstance(windows.get("full"), dict) else {}
+    recent = windows.get("120") if isinstance(windows.get("120"), dict) else {}
+    fs = full.get("signal") if isinstance(full.get("signal"), dict) else {}
+    rs = recent.get("signal") if isinstance(recent.get("signal"), dict) else {}
+    if not fs:
+        return ["- Signal分離評価: **初回再評価待ち**"]
+    return [
+        f"- Research Parent: **{feedback.get('accepted_parent_version', '確認できません')}**",
+        f"- 全期間 Top7 edge vs uniform: **{float(fs.get('top7_hits_delta_vs_uniform', 0.0)):+.4f}**",
+        f"- 全期間 actual-mass edge vs uniform: **{float(fs.get('actual_mass_delta_vs_uniform', 0.0)):+.6f}**",
+        f"- 全期間 log edge vs uniform: **{float(fs.get('log_edge_vs_uniform', 0.0)):+.6f}**",
+        f"- 全期間 Brier edge vs uniform: **{float(fs.get('brier_edge_vs_uniform', 0.0)):+.6f}**",
+        f"- 直近120回 log edge vs uniform: **{float(rs.get('log_edge_vs_uniform', 0.0)):+.6f}**",
+        f"- Portfolio feedback objective: **{float(summary.get('feedback_objective', 0.0)):+.4f}**",
+        f"- Signal objective: **{float(summary.get('signal_objective', 0.0)):+.4f}**",
+        "- Research採用: **Portfolio改善だけでは不可。Signal非劣化ゲートも必須**",
+    ]
+
+
+def formal_lines(formal, registry):
+    if not formal:
+        return ["- Formal Challenger: **初回固定待ち**"]
+    return [
+        f"- Formal Challenger: **{formal.get('candidate_version', '確認できません')}**",
+        f"- block id: **{formal.get('block_id', '確認できません')}**",
+        f"- block開始対象回: **第{formal.get('block_start_target_round', '?')}回**",
+        f"- trusted Future OOS: **{int(formal.get('trusted_draws_so_far', 0))}/{int(formal.get('minimum_trusted_draws', 8))}回**",
+        f"- 現在の凍結対象回: **第{registry.get('target_round', '?')}回**",
+        f"- Promotion候補数: **{int(registry.get('promotion_candidate_count', len(registry.get('candidates', []) or [])))}**",
+        "- ポリシー: **同一Challengerを8 trusted drawsまで固定。他shadowはResearch-only**",
+    ]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--status", type=Path, default=Path("STATUS.md"))
@@ -107,6 +143,8 @@ def main() -> int:
     ap.add_argument("--historical", type=Path, default=Path("loto7_agent_output/historical_replay_summary.json"))
     ap.add_argument("--reconciliation", type=Path, default=Path("loto7_agent_output/historical_reconciliation_summary.json"))
     ap.add_argument("--nested", type=Path, default=Path("loto7_agent_output/nested_replay_summary.json"))
+    ap.add_argument("--feedback", type=Path, default=Path("loto7_agent_output/research_feedback_state.json"))
+    ap.add_argument("--formal", type=Path, default=Path("loto7_agent_output/formal_challenger_state.json"))
     args = ap.parse_args()
 
     state = load(args.state)
@@ -116,6 +154,8 @@ def main() -> int:
     historical = load(args.historical)
     reconciliation = load(args.reconciliation)
     nested = load(args.nested)
+    feedback = load(args.feedback)
+    formal = load(args.formal)
     champion = str(state.get("champion_version", ""))
     pool_n = len(pool.get("candidates", []) or [])
     shadow_n = len(registry.get("candidates", []) or [])
@@ -134,20 +174,24 @@ def main() -> int:
         f"- 現在ソース検証: **{state.get('source_verification', '確認できません')}**",
         f"- 本番昇格に利用可能なソース: **{'YES' if state.get('source_trusted_for_promotion') else 'NO'}**",
         "",
-        "## Historical Replay Accuracy",
+        "## Research Signal / Portfolio Separation",
         "",
     ]
+    lines += signal_lines(feedback)
+    lines += ["", "## Historical Replay Accuracy", ""]
     lines += historical_lines(historical)
     lines += ["", "## Historical Reconciliation", ""]
     lines += reconciliation_lines(reconciliation)
     lines += ["", "## Nested Champion / Research / Random", ""]
     lines += nested_lines(nested)
+    lines += ["", "## Formal Challenger", ""]
+    lines += formal_lines(formal, registry)
     lines += [
         "",
         "## OOS Governance v4",
         "",
         f"- 凍結済みshadow対象回: **第{registry.get('target_round', '確認できません')}回**",
-        f"- 凍結shadow候補数: **{shadow_n}**",
+        f"- Promotion対象shadow候補数: **{shadow_n}**",
         f"- 最終OOS採点回: **{oos.get('last_graded_round', 'なし')}**",
         f"- 累積Champion昇格数: **{state.get('total_promotions', 0)}**",
         "- 昇格条件: **信頼済み未来OOS 8回以上 / e-value ≥ 20 / 平均score差 ≥ 0.05 / 勝率 ≥ 55%**",
@@ -155,7 +199,7 @@ def main() -> int:
     if best:
         evalue, draws, mean_delta, win_rate, rec = best
         lines += [
-            f"- 現Championに対する最有力shadow: **{rec.get('candidate_version', '')}**",
+            f"- 現Championに対するFormal OOS候補: **{rec.get('candidate_version', '')}**",
             f"- 信頼済みOOS回数: **{draws}**",
             f"- e-value: **{evalue:.4f}**",
             f"- 平均score差: **{mean_delta:.4f}**",
