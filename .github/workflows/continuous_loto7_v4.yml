@@ -8,6 +8,7 @@ on:
       - "loto7_v4_runner.py"
       - "research_feedback.py"
       - "research_feedback_bootstrap.py"
+      - "feedback_optimizer.py"
       - "historical_replay.py"
       - "historical_reconcile.py"
       - "nested_replay.py"
@@ -179,8 +180,8 @@ jobs:
               --source-report loto7_agent_output/source_validation.json \
               --challengers 6
 
-            # One-time bootstrap: preserve the Research Parent that actually created
-            # this generation before the replay-feedback state exists.
+            # One-time bootstrap plus the expanded full-history optimizer. The
+            # optimizer is research-only and never contributes to Production promotion.
             python research_feedback_bootstrap.py \
               --evaluation loto7_agent_output/v4_research_evaluation.json \
               --champion-file loto7_agent_output/model_champion.json \
@@ -246,6 +247,13 @@ jobs:
               cat loto7_agent_output/research_feedback_report.md
             else
               echo 'Research feedback has not been generated yet.'
+            fi
+            echo
+            echo '## Expanded full-history feedback optimizer'
+            if [ -f loto7_agent_output/feedback_optimizer_report.md ]; then
+              cat loto7_agent_output/feedback_optimizer_report.md
+            else
+              echo 'Feedback optimizer has not been generated yet.'
             fi
             echo
             echo '## Production prediction'

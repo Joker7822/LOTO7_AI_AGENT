@@ -48,7 +48,7 @@ def bootstrap(evaluation: Dict[str, object], champion_path: Path) -> Dict[str, o
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Seed replay-feedback state from the research parent used to create the current generation")
+    ap = argparse.ArgumentParser(description="Seed replay-feedback state and run expanded full-history research optimization")
     ap.add_argument("--evaluation", type=Path, default=Path("loto7_agent_output/v4_research_evaluation.json"))
     ap.add_argument("--champion-file", type=Path, default=Path("loto7_agent_output/model_champion.json"))
     ap.add_argument("--feedback-state", type=Path, default=Path("loto7_agent_output/research_feedback_state.json"))
@@ -57,15 +57,27 @@ def main() -> int:
     old = load_json(args.feedback_state)
     if isinstance(old.get("accepted_parent_config"), dict):
         print(f"[REPLAY-BOOTSTRAP] existing parent retained: {old.get('accepted_parent_version','')}")
-        return 0
+    else:
+        evaluation = load_json(args.evaluation)
+        if not evaluation:
+            raise SystemExit("v4_research_evaluation.json is missing or invalid")
+        state = bootstrap(evaluation, args.champion_file)
+        args.feedback_state.parent.mkdir(parents=True, exist_ok=True)
+        args.feedback_state.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"[REPLAY-BOOTSTRAP] seeded parent={state['accepted_parent_version']}")
 
-    evaluation = load_json(args.evaluation)
-    if not evaluation:
-        raise SystemExit("v4_research_evaluation.json is missing or invalid")
-    state = bootstrap(evaluation, args.champion_file)
-    args.feedback_state.parent.mkdir(parents=True, exist_ok=True)
-    args.feedback_state.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"[REPLAY-BOOTSTRAP] seeded parent={state['accepted_parent_version']}")
+    # This script already runs once per research generation immediately before
+    # research_feedback.py. Reuse that hook for a wider full-history optimizer.
+    # It only runs after an accepted-parent summary exists and skips automatically
+    # on new data until research_feedback refreshes the reference metrics.
+    from feedback_optimizer import optimize_once
+
+    optimize_once(
+        evaluation_path=args.evaluation,
+        feedback_state_path=args.feedback_state,
+        out_dir=args.feedback_state.parent,
+        research_state_path=args.feedback_state.parent / "v4_research_state.json",
+    )
     return 0
 
 
