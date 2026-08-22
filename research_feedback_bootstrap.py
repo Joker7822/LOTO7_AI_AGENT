@@ -1,0 +1,73 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+from typing import Dict, Optional
+
+import loto7_v2_runner as v2
+
+
+def load_json(path: Path) -> Dict[str, object]:
+    if not path.exists():
+        return {}
+    try:
+        obj = json.loads(path.read_text(encoding="utf-8"))
+        return obj if isinstance(obj, dict) else {}
+    except Exception:
+        return {}
+
+
+def config_for_version(evaluation: Dict[str, object], version: str) -> Optional[Dict[str, object]]:
+    for item in evaluation.get("evaluations", []) or []:
+        if isinstance(item, dict) and str(item.get("version", "")) == version:
+            cfg = item.get("config")
+            if isinstance(cfg, dict):
+                return dict(cfg)
+    return None
+
+
+def bootstrap(evaluation: Dict[str, object], champion_path: Path) -> Dict[str, object]:
+    parent_version = str(evaluation.get("research_parent", ""))
+    parent_config = config_for_version(evaluation, parent_version) if parent_version else None
+    if parent_config is None:
+        champion = v2.load_champion(champion_path)
+        parent_version = champion.version()
+        parent_config = dict(champion.__dict__)
+    return {
+        "report_version": "research-feedback-v1",
+        "accepted_parent_version": parent_version,
+        "accepted_parent_config": parent_config,
+        "last_candidate_version": "",
+        "data_sha256": "",
+        "replay_count": 0,
+        "accept_count": 0,
+        "bootstrap_source": "v4_research_evaluation.research_parent",
+    }
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Seed replay-feedback state from the research parent used to create the current generation")
+    ap.add_argument("--evaluation", type=Path, default=Path("loto7_agent_output/v4_research_evaluation.json"))
+    ap.add_argument("--champion-file", type=Path, default=Path("loto7_agent_output/model_champion.json"))
+    ap.add_argument("--feedback-state", type=Path, default=Path("loto7_agent_output/research_feedback_state.json"))
+    args = ap.parse_args()
+
+    old = load_json(args.feedback_state)
+    if isinstance(old.get("accepted_parent_config"), dict):
+        print(f"[REPLAY-BOOTSTRAP] existing parent retained: {old.get('accepted_parent_version','')}")
+        return 0
+
+    evaluation = load_json(args.evaluation)
+    if not evaluation:
+        raise SystemExit("v4_research_evaluation.json is missing or invalid")
+    state = bootstrap(evaluation, args.champion_file)
+    args.feedback_state.parent.mkdir(parents=True, exist_ok=True)
+    args.feedback_state.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"[REPLAY-BOOTSTRAP] seeded parent={state['accepted_parent_version']}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
