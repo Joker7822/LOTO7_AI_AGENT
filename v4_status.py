@@ -64,6 +64,38 @@ def historical_lines(hist):
     ]
 
 
+def reconciliation_lines(rec):
+    if not rec:
+        return ["- 独立照合: **未生成**"]
+    integrity = rec.get("integrity") if isinstance(rec.get("integrity"), dict) else {}
+    return [
+        f"- 独立再照合: **{rec.get('evaluated_rounds', 0)}回 / {rec.get('evaluated_tickets', 0)}口**",
+        f"- 当選口数: **{rec.get('winning_tickets', 0)}口** ({float(rec.get('winning_ticket_rate', 0.0))*100:.3f}%)",
+        f"- 参考購入額: **{int(rec.get('purchase_cost_yen', 0)):,}円**",
+        f"- 公表当選額ベース参考払戻: **{int(rec.get('published_reference_payout_yen', 0)):,}円**",
+        f"- 参考回収率: **{float(rec.get('published_reference_roi', 0.0))*100:.2f}%**",
+        f"- 予測側実績とloto7.csvの不一致: **{int(integrity.get('mismatches', 0))}件**",
+    ]
+
+
+def nested_lines(nested):
+    if not nested:
+        return ["- Nested replay: **未生成**"]
+    c = nested.get("champion_reference") if isinstance(nested.get("champion_reference"), dict) else {}
+    r = nested.get("nested_research") if isinstance(nested.get("nested_research"), dict) else {}
+    rnd = nested.get("random_reference") if isinstance(nested.get("random_reference"), dict) else {}
+    dc = r.get("score_delta_vs_champion") if isinstance(r.get("score_delta_vs_champion"), dict) else {}
+    dr = r.get("score_delta_vs_random") if isinstance(r.get("score_delta_vs_random"), dict) else {}
+    return [
+        f"- Nested評価回数: **{nested.get('evaluated_rounds', 0)}回** ({nested.get('first_round', '?')}〜{nested.get('last_round', '?')})",
+        f"- 平均score Champion / Research / Random: **{float(c.get('mean_score', 0.0)):.4f} / {float(r.get('mean_score', 0.0)):.4f} / {float(rnd.get('mean_score', 0.0)):.4f}**",
+        f"- Research差 vs Champion: **{float(dc.get('mean', 0.0)):+.4f}** (95% CI {float(dc.get('low95', 0.0)):+.4f}〜{float(dc.get('high95', 0.0)):+.4f})",
+        f"- Research差 vs Random: **{float(dr.get('mean', 0.0)):+.4f}** (95% CI {float(dr.get('low95', 0.0)):+.4f}〜{float(dr.get('high95', 0.0)):+.4f})",
+        f"- Research勝率 vs Champion / Random: **{float(r.get('round_win_rate_vs_champion', 0.0))*100:.1f}% / {float(r.get('round_win_rate_vs_random', 0.0))*100:.1f}%**",
+        "- 選択方法: **各対象回より前の成績のみで事前定義モデルから選択**",
+    ]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--status", type=Path, default=Path("STATUS.md"))
@@ -73,6 +105,8 @@ def main() -> int:
     ap.add_argument("--oos", type=Path, default=Path("loto7_agent_output/oos_candidate_state.json"))
     ap.add_argument("--metrics", type=Path, default=Path("loto7_agent_output/execution_metrics.csv"))
     ap.add_argument("--historical", type=Path, default=Path("loto7_agent_output/historical_replay_summary.json"))
+    ap.add_argument("--reconciliation", type=Path, default=Path("loto7_agent_output/historical_reconciliation_summary.json"))
+    ap.add_argument("--nested", type=Path, default=Path("loto7_agent_output/nested_replay_summary.json"))
     args = ap.parse_args()
 
     state = load(args.state)
@@ -80,6 +114,8 @@ def main() -> int:
     registry = load(args.registry)
     oos = load(args.oos)
     historical = load(args.historical)
+    reconciliation = load(args.reconciliation)
+    nested = load(args.nested)
     champion = str(state.get("champion_version", ""))
     pool_n = len(pool.get("candidates", []) or [])
     shadow_n = len(registry.get("candidates", []) or [])
@@ -102,6 +138,10 @@ def main() -> int:
         "",
     ]
     lines += historical_lines(historical)
+    lines += ["", "## Historical Reconciliation", ""]
+    lines += reconciliation_lines(reconciliation)
+    lines += ["", "## Nested Champion / Research / Random", ""]
+    lines += nested_lines(nested)
     lines += [
         "",
         "## OOS Governance v4",
