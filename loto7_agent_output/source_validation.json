@@ -1,9 +1,10 @@
 {
-  "checked_at_jst": "2026-08-22T09:43:28+09:00",
+  "checked_at_jst": "2026-08-22T10:10:39+09:00",
   "attempt": 1,
   "status": "degraded",
   "verification": "degraded_single_result_source",
   "primary_source": "Rakuten backnumber via scrapingloto7.py",
+  "secondary_policy": "Mizuho preferred; Rakuten Bank public winning-number page is accepted as fallback",
   "latest": {
     "round": 691,
     "date": "2026-08-21",
@@ -27,6 +28,10 @@
       "status": "unavailable",
       "error": "HTTP Error 403: Forbidden"
     },
+    "rakuten_bank": {
+      "status": "target_not_parseable",
+      "iframes_checked": 1
+    },
     "official_schedule": {
       "round": 692,
       "date": "2026-08-28"
@@ -34,6 +39,6 @@
   },
   "notes": [
     "official schedule visible: round=692 date=2026-08-28",
-    "Mizuho result was not parseable for this round; operating in degraded single-result-source mode"
+    "No secondary result endpoint was parseable for this round; operating in degraded single-result-source mode"
   ]
 }
