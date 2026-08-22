@@ -10,6 +10,7 @@ import re
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -17,6 +18,7 @@ from typing import Dict, List, Optional, Tuple
 import scrapingloto7
 
 MIZUHO_URL = "https://www.mizuhobank.co.jp/takarakuji/check/loto/loto7/index.html"
+RAKUTEN_BANK_URL = "https://www.rakuten-bank.co.jp/takarakuji/backnumber/"
 OFFICIAL_URL = "https://www.takarakuji-official.jp/ec/loto7/?knyschm=0&kujiprdShbt=61"
 JST = dt.timezone(dt.timedelta(hours=9))
 
@@ -29,7 +31,7 @@ def http_get(url: str, timeout: int = 30) -> str:
     req = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "Mozilla/5.0 LOTO7_AI_AGENT/2.0",
+            "User-Agent": "Mozilla/5.0 LOTO7_AI_AGENT/4.1",
             "Accept-Language": "ja,en;q=0.8",
         },
     )
@@ -115,21 +117,21 @@ def expected_new_round(before: Optional[Dict[str, str]], now: Optional[dt.dateti
     return None
 
 
-def parse_mizuho(html: str, target_round: Optional[int] = None) -> Optional[Dict[str, object]]:
-    text = strip_html(html)
+def parse_result_text(text: str, target_round: Optional[int] = None) -> Optional[Dict[str, object]]:
     if target_round is not None:
-        locators = [f"第{target_round}回", f"{target_round}回"]
-        pos = next((text.find(x) for x in locators if text.find(x) >= 0), -1)
-        if pos < 0:
+        locators = [f"第{target_round}回", f"第 {target_round} 回", f"{target_round}回", f"{target_round} 回"]
+        positions = [text.find(x) for x in locators if text.find(x) >= 0]
+        if not positions:
             return None
-        segment = text[pos: pos + 2500]
+        pos = min(positions)
+        segment = text[max(0, pos - 200): pos + 3500]
     else:
         segment = text
 
     mr = re.search(r"(?:第\s*)?(\d{1,6})\s*回", segment)
-    md = re.search(r"(20\d{2})[年/]\s*(\d{1,2})[月/]\s*(\d{1,2})日?", segment)
-    mm = re.search(r"本数字\s*([0-9\s()（）]+?)\s*ボーナス数字", segment)
-    mb = re.search(r"ボーナス数字\s*([0-9\s()（）]+?)(?:等級|販売実績額|キャリーオーバー|$)", segment)
+    md = re.search(r"(20\d{2})\s*[年/]\s*(\d{1,2})\s*[月/]\s*(\d{1,2})\s*日?", segment)
+    mm = re.search(r"本数字\s*[:：]?\s*([0-9\s()（）]+?)\s*ボーナス数字", segment)
+    mb = re.search(r"ボーナス数字\s*[:：]?\s*([0-9\s()（）]+?)(?:等級|1等|販売実績額|キャリーオーバー|次回|$)", segment)
     if not (mr and mm and mb):
         return None
     main = tuple(int(x) for x in re.findall(r"\d{1,2}", mm.group(1)))[:7]
@@ -138,10 +140,59 @@ def parse_mizuho(html: str, target_round: Optional[int] = None) -> Optional[Dict
         validate_numbers(main, bonus)
     except ValueError:
         return None
+    round_no = int(mr.group(1))
+    if target_round is not None and round_no != int(target_round):
+        return None
     date_text = ""
     if md:
         date_text = f"{int(md.group(1)):04d}-{int(md.group(2)):02d}-{int(md.group(3)):02d}"
-    return {"round": int(mr.group(1)), "date": date_text, "main": list(main), "bonus": list(bonus)}
+    return {"round": round_no, "date": date_text, "main": list(main), "bonus": list(bonus)}
+
+
+def parse_mizuho(html: str, target_round: Optional[int] = None) -> Optional[Dict[str, object]]:
+    return parse_result_text(strip_html(html), target_round)
+
+
+def parse_rakuten_bank(html: str, target_round: Optional[int] = None) -> Optional[Dict[str, object]]:
+    return parse_result_text(strip_html(html), target_round)
+
+
+def iframe_urls(html: str, base_url: str) -> List[str]:
+    urls: List[str] = []
+    seen = set()
+    for src in re.findall(r"(?is)<iframe[^>]+src\s*=\s*[\"']([^\"']+)[\"']", html):
+        url = urllib.parse.urljoin(base_url, html_lib.unescape(src).strip())
+        parsed = urllib.parse.urlparse(url)
+        if parsed.scheme not in {"http", "https"}:
+            continue
+        if url in seen:
+            continue
+        seen.add(url)
+        urls.append(url)
+    return urls
+
+
+def fetch_rakuten_bank_result(target_round: int) -> Dict[str, object]:
+    root = http_get(RAKUTEN_BANK_URL)
+    direct = parse_rakuten_bank(root, target_round)
+    if direct is not None:
+        return {**direct, "transport": "root_page"}
+
+    checked: List[str] = []
+    queue = iframe_urls(root, RAKUTEN_BANK_URL)
+    for url in queue[:12]:
+        checked.append(url)
+        try:
+            child = http_get(url)
+        except Exception:
+            continue
+        got = parse_rakuten_bank(child, target_round)
+        if got is not None:
+            return {**got, "transport": "iframe", "url": url}
+        for nested in iframe_urls(child, url):
+            if nested not in queue and len(queue) < 20:
+                queue.append(nested)
+    return {"status": "target_not_parseable", "iframes_checked": len(checked)}
 
 
 def parse_official_schedule(html: str) -> Optional[Dict[str, object]]:
@@ -163,30 +214,48 @@ def source_snapshot(target_round: int) -> Dict[str, object]:
     except Exception as exc:
         out["mizuho"] = {"status": "unavailable", "error": str(exc)[:300]}
     try:
+        out["rakuten_bank"] = fetch_rakuten_bank_result(target_round)
+    except Exception as exc:
+        out["rakuten_bank"] = {"status": "unavailable", "error": str(exc)[:300]}
+    try:
         out["official_schedule"] = parse_official_schedule(http_get(OFFICIAL_URL)) or {"status": "not_parseable"}
     except Exception as exc:
         out["official_schedule"] = {"status": "unavailable", "error": str(exc)[:300]}
     return out
 
 
+def result_matches(primary: Dict[str, object], candidate: Dict[str, object]) -> bool:
+    return (
+        int(candidate.get("round", -1)) == int(primary["round"])
+        and list(candidate.get("main", [])) == list(primary["main"])
+        and list(candidate.get("bonus", [])) == list(primary["bonus"])
+        and (not candidate.get("date") or candidate.get("date") == primary["date"])
+    )
+
+
 def compare_sources(primary: Dict[str, object], sources: Dict[str, object]) -> Tuple[str, List[str]]:
     notes: List[str] = []
-    mz = sources.get("mizuho", {})
-    if isinstance(mz, dict) and "main" in mz and int(mz.get("round", -1)) == int(primary["round"]):
-        same = (
-            list(mz.get("main", [])) == list(primary["main"])
-            and list(mz.get("bonus", [])) == list(primary["bonus"])
-            and (not mz.get("date") or mz.get("date") == primary["date"])
-        )
-        if not same:
-            return "mismatch", ["Rakuten and Mizuho results disagree"]
-        notes.append("Mizuho result matches Rakuten main/bonus numbers")
-        return "verified_two_result_sources", notes
+    verified: List[str] = []
+    for key, label in (("mizuho", "Mizuho"), ("rakuten_bank", "Rakuten Bank")):
+        candidate = sources.get(key, {})
+        if not isinstance(candidate, dict) or "main" not in candidate:
+            continue
+        if int(candidate.get("round", -1)) != int(primary["round"]):
+            continue
+        if not result_matches(primary, candidate):
+            return "mismatch", [f"Rakuten primary and {label} results disagree"]
+        verified.append(label)
+        notes.append(f"{label} result matches Rakuten primary main/bonus numbers")
 
     official = sources.get("official_schedule", {})
     if isinstance(official, dict) and "round" in official:
         notes.append(f"official schedule visible: round={official.get('round')} date={official.get('date','')}")
-    notes.append("Mizuho result was not parseable for this round; operating in degraded single-result-source mode")
+
+    if verified:
+        notes.append("result verification succeeded using at least two published result endpoints")
+        return "verified_two_result_sources", notes
+
+    notes.append("No secondary result endpoint was parseable for this round; operating in degraded single-result-source mode")
     return "degraded_single_result_source", notes
 
 
@@ -196,7 +265,7 @@ def write_report(path: Path, obj: Dict[str, object]) -> None:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Fetch LOTO7 with freshness gate and cross-source validation")
+    ap = argparse.ArgumentParser(description="Fetch LOTO7 with freshness gate and redundant cross-source validation")
     ap.add_argument("--csv", type=Path, default=Path("loto7.csv"))
     ap.add_argument("--report", type=Path, default=Path("loto7_agent_output/source_validation.json"))
     ap.add_argument("--max-attempts", type=int, default=10)
@@ -245,6 +314,7 @@ def main() -> int:
                 "status": "ok" if verification == "verified_two_result_sources" else "degraded",
                 "verification": verification,
                 "primary_source": "Rakuten backnumber via scrapingloto7.py",
+                "secondary_policy": "Mizuho preferred; Rakuten Bank public winning-number page is accepted as fallback",
                 "latest": primary,
                 "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None,
                 "sources": sources,
