@@ -7,6 +7,7 @@ on:
       - ".github/workflows/continuous_loto7_v4.yml"
       - "loto7_v4_runner.py"
       - "research_feedback.py"
+      - "research_feedback_bootstrap.py"
       - "historical_replay.py"
       - "historical_reconcile.py"
       - "nested_replay.py"
@@ -90,7 +91,6 @@ jobs:
               --interval-seconds "$retry_seconds" \
               --months 3
 
-            # Full fixed-baseline round replay: recompute only when the cache key changes.
             python historical_replay.py \
               --csv loto7.csv \
               --out-dir loto7_agent_output \
@@ -100,15 +100,12 @@ jobs:
               --last-n 0 \
               --if-stale
 
-            # Independent re-read/reconciliation of every historical prediction ticket.
             python historical_reconcile.py \
               --predictions loto7_agent_output/historical_round_predictions.csv \
               --loto-csv loto7.csv \
               --out-dir loto7_agent_output \
               --if-stale
 
-            # Leakage-safe Champion / Research selector / Random comparison.
-            # Research selection uses only outcomes that were already known before each target draw.
             python nested_replay.py \
               --csv loto7.csv \
               --out-dir loto7_agent_output \
@@ -181,6 +178,13 @@ jobs:
               --oos-results loto7_agent_output/shadow_oos_results.csv \
               --source-report loto7_agent_output/source_validation.json \
               --challengers 6
+
+            # One-time bootstrap: preserve the Research Parent that actually created
+            # this generation before the replay-feedback state exists.
+            python research_feedback_bootstrap.py \
+              --evaluation loto7_agent_output/v4_research_evaluation.json \
+              --champion-file loto7_agent_output/model_champion.json \
+              --feedback-state loto7_agent_output/research_feedback_state.json
 
             # Whenever the provisional Research Winner changes (or data changes),
             # replay that model over every eligible historical draw. Only a replay-
