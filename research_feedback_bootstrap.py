@@ -48,11 +48,23 @@ def bootstrap(evaluation: Dict[str, object], champion_path: Path) -> Dict[str, o
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Seed replay-feedback state and run expanded full-history research optimization")
+    ap = argparse.ArgumentParser(description="Apply formal OOS challenger governance, seed replay state, and run research optimization")
     ap.add_argument("--evaluation", type=Path, default=Path("loto7_agent_output/v4_research_evaluation.json"))
     ap.add_argument("--champion-file", type=Path, default=Path("loto7_agent_output/model_champion.json"))
     ap.add_argument("--feedback-state", type=Path, default=Path("loto7_agent_output/research_feedback_state.json"))
     args = ap.parse_args()
+
+    # This hook runs immediately after loto7_v4_runner.py. Reduce the newly frozen
+    # shadow registry to exactly one promotion-eligible Formal Challenger before
+    # the next draw can be graded. Research-only shadow candidates are archived.
+    from formal_challenger import enforce
+
+    formal = enforce(args.feedback_state.parent)
+    if formal.get("enforced"):
+        print(
+            f"[FORMAL-HOOK] challenger={formal.get('formal_challenger_version')} "
+            f"trusted={formal.get('trusted_draws')}/{formal.get('minimum_trusted_draws')}"
+        )
 
     old = load_json(args.feedback_state)
     if isinstance(old.get("accepted_parent_config"), dict):
@@ -66,10 +78,6 @@ def main() -> int:
         args.feedback_state.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"[REPLAY-BOOTSTRAP] seeded parent={state['accepted_parent_version']}")
 
-    # This script already runs once per research generation immediately before
-    # research_feedback.py. Reuse that hook for a wider full-history optimizer.
-    # It only runs after an accepted-parent summary exists and skips automatically
-    # on new data until research_feedback refreshes the reference metrics.
     from feedback_optimizer import optimize_once
 
     optimize_once(
