@@ -1,6 +1,6 @@
 # Full-History Feedback Optimizer
 
-- generation: **672**
+- generation: **682**
 - incumbent: **feedback-g00625-c01-1bd218e77b**
 - trials: **2**
 - accepted: **なし**
@@ -8,7 +8,7 @@
 - overlap_penalty探索範囲: **0.25〜2.0**
 - Production昇格証拠: **使用しない**
 
-- feedback-g00672-c01-e4f8cc6b41: objective gain **-0.1674** / accepted **NO**
-- feedback-g00672-c02-570c2e49f9: objective gain **-0.4677** / accepted **NO**
+- feedback-g00682-c01-01a5ad5faf: objective gain **-0.1521** / accepted **NO**
+- feedback-g00682-c02-8354965f78: objective gain **-0.3003** / accepted **NO**
 
 > このoptimizerは過去データへの研究最適化です。精度の独立検証は未来OOSのみです。
