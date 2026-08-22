@@ -84,15 +84,33 @@ Production Championの昇格条件は以下です。
 - `loto7_agent_output/historical_reconciliation_summary.json` — 照合・等級・参考金額集計
 - `loto7_agent_output/historical_reconciliation_report.md` — 人間向け照合レポート
 
-このhistorical replay / reconciliationは**精度確認用のreference backtest**です。v4 Production Championの昇格条件である未来OOS証拠には加算しません。
+### Nested Champion / Research / Random比較
 
-`loto7.csv` または過去予測ファイルのSHAが変わった時だけ再計算し、同じデータではcache判定でスキップします。
+`nested_replay.py` は、現在のResearch Winnerを過去へ後付けせず、v2時点で事前定義されていた `baseline / stable / balanced / adaptive` の4モデルから、各対象回より**前に確定していた予測成績だけ**でResearchモデルを選びます。
+
+標準では直近120回を対象に、次の3者を同条件で比較します。
+
+- Champion reference: baseline
+- Nested Research selector: 過去時点で選ばれた事前定義モデル
+- Random reference: 各回32個のrandom 5口ポートフォリオ平均
+
+評価指標は平均最大一致、1口平均一致、3個以上/4個以上一致回率、複合score、ResearchのChampion/Randomに対するscore差、回別勝率、deterministic bootstrap 95%信頼区間です。
+
+出力:
+
+- `loto7_agent_output/nested_replay_rounds.csv`
+- `loto7_agent_output/nested_replay_summary.json`
+- `loto7_agent_output/nested_replay_report.md`
+
+historical replay / reconciliation / nested replayはすべて**精度確認用の診断**です。v4 Production Championの昇格条件である未来OOS証拠には加算しません。
+
+`loto7.csv` または関連予測ファイルのSHA・評価条件が変わった時だけ再計算し、同じデータではcache判定でスキップします。
 
 ## 連続GitHub Actions
 
 使用するworkflowは2本だけです。
 
-- `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・過去回精度replay・独立照合・監査
+- `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・過去回精度replay・独立照合・nested比較・監査
 - `.github/workflows/ci.yml` — コード変更時のcompile / pytest
 
 旧v3の `weekly_loto7.yml` と、一回性の `start_continuous_now.yml` は削除しています。
@@ -131,7 +149,7 @@ CIは以下の変更時だけ起動します。
 - `loto7_agent_output/research_candidate_tickets.csv`
 - `loto7_agent_output/latest_research_prediction.txt`
 
-### Historical Accuracy / Reconciliation
+### Historical Accuracy / Reconciliation / Nested
 
 - `loto7_agent_output/historical_round_predictions.csv`
 - `loto7_agent_output/historical_round_accuracy.csv`
@@ -140,6 +158,9 @@ CIは以下の変更時だけ起動します。
 - `loto7_agent_output/historical_reconciliation.csv`
 - `loto7_agent_output/historical_reconciliation_summary.json`
 - `loto7_agent_output/historical_reconciliation_report.md`
+- `loto7_agent_output/nested_replay_rounds.csv`
+- `loto7_agent_output/nested_replay_summary.json`
+- `loto7_agent_output/nested_replay_report.md`
 
 ### Future OOS Governance
 
@@ -158,10 +179,13 @@ CIは以下の変更時だけ起動します。
 ## データ取得・検証
 
 - 主取得元: 楽天×宝くじ ロト7バックナンバー
-- クロスチェック元: みずほ銀行 当せん番号案内
+- 優先クロスチェック元: みずほ銀行 当せん番号案内
+- フォールバッククロスチェック元: 楽天銀行 当せん番号案内 / 埋め込みbacknumber
 - スケジュール確認: 宝くじ公式サイト
 
-取得結果が食い違った場合は処理を停止します。第2ソースを機械解析できない場合は `degraded_single_result_source` とし、研究は継続しますがProduction昇格用OOS証拠には数えません。
+みずほ側が取得できない場合は楽天銀行側を試し、対象回・本数字・ボーナス数字・取得できる場合は抽せん日まで一致した時だけ `verified_two_result_sources` とします。解析可能な第2ソースが主取得元と食い違った場合はfail closedです。どちらの第2ソースも機械解析できない場合は `degraded_single_result_source` とし、研究は継続しますがProduction昇格用OOS証拠には数えません。
+
+詳細は `VALIDATION.md` を参照してください。
 
 ## ローカル検証
 
@@ -178,6 +202,7 @@ python historical_reconcile.py \
   --loto-csv loto7.csv \
   --out-dir loto7_agent_output \
   --if-stale
+python nested_replay.py --csv loto7.csv --out-dir loto7_agent_output --last-n 120 --if-stale
 python loto7_v4_runner.py --csv loto7.csv --out-dir loto7_agent_output
 python audit_ledger.py \
   --loto-csv loto7.csv \
