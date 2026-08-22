@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/continuous_loto7_v4.yml"
       - "loto7_v4_runner.py"
+      - "research_feedback.py"
       - "historical_replay.py"
       - "historical_reconcile.py"
       - "nested_replay.py"
@@ -180,6 +181,21 @@ jobs:
               --oos-results loto7_agent_output/shadow_oos_results.csv \
               --source-report loto7_agent_output/source_validation.json \
               --challengers 6
+
+            # Whenever the provisional Research Winner changes (or data changes),
+            # replay that model over every eligible historical draw. Only a replay-
+            # validated model is kept as research_parent_config for the next generation.
+            python research_feedback.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --research-state loto7_agent_output/v4_research_state.json \
+              --evaluation loto7_agent_output/v4_research_evaluation.json \
+              --champion-file loto7_agent_output/model_champion.json \
+              --feedback-state loto7_agent_output/research_feedback_state.json \
+              --min-train 100 \
+              --pool-size 350 \
+              --random-reps 8
+
             END=$(date +%s)
             DURATION=$((END - START))
 
@@ -220,6 +236,13 @@ jobs:
             echo
             echo '## Nested Champion / Research / Random comparison'
             cat loto7_agent_output/nested_replay_report.md
+            echo
+            echo '## Latest Research Winner full-history feedback'
+            if [ -f loto7_agent_output/research_feedback_report.md ]; then
+              cat loto7_agent_output/research_feedback_report.md
+            else
+              echo 'Research feedback has not been generated yet.'
+            fi
             echo
             echo '## Production prediction'
             echo '```text'
