@@ -9,7 +9,7 @@ import json
 import re
 import sys
 import time
-import urllib.error
+import unicodedata
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -19,6 +19,7 @@ import scrapingloto7
 
 MIZUHO_URL = "https://www.mizuhobank.co.jp/takarakuji/check/loto/loto7/index.html"
 RAKUTEN_BANK_URL = "https://www.rakuten-bank.co.jp/takarakuji/backnumber/"
+RAKUTEN_BANK_RESULT_URL = "https://sfes.rakuten-bank.co.jp/MS/main/fis?PageID=WinNumberLoto7PresentationLogicBean"
 OFFICIAL_URL = "https://www.takarakuji-official.jp/ec/loto7/?knyschm=0&kujiprdShbt=61"
 JST = dt.timezone(dt.timedelta(hours=9))
 
@@ -31,12 +32,21 @@ def http_get(url: str, timeout: int = 30) -> str:
     req = urllib.request.Request(
         url,
         headers={
-            "User-Agent": "Mozilla/5.0 LOTO7_AI_AGENT/4.1",
+            "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124 Safari/537.36 LOTO7_AI_AGENT/4.2",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
             "Accept-Language": "ja,en;q=0.8",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
+            "Referer": "https://www.rakuten-bank.co.jp/takarakuji/",
         },
     )
     with urllib.request.urlopen(req, timeout=timeout) as resp:
-        return resp.read().decode("utf-8", errors="replace")
+        raw = resp.read()
+        charset = resp.headers.get_content_charset() or "utf-8"
+        try:
+            return raw.decode(charset, errors="replace")
+        except LookupError:
+            return raw.decode("utf-8", errors="replace")
 
 
 def strip_html(value: str) -> str:
@@ -44,6 +54,7 @@ def strip_html(value: str) -> str:
     value = re.sub(r"(?is)<style.*?>.*?</style>", " ", value)
     value = re.sub(r"(?s)<[^>]+>", " ", value)
     value = html_lib.unescape(value).replace("\u3000", " ").replace("\xa0", " ")
+    value = unicodedata.normalize("NFKC", value)
     return re.sub(r"\s+", " ", value).strip()
 
 
@@ -90,16 +101,10 @@ def validate_row(row: Dict[str, str]) -> Dict[str, object]:
     main = parse_nums(row.get("本数字", ""))
     bonus = parse_nums(row.get("ボーナス数字", ""))
     validate_numbers(main, bonus)
-    return {
-        "round": round_no,
-        "date": date.isoformat(),
-        "main": list(main),
-        "bonus": list(bonus),
-    }
+    return {"round": round_no, "date": date.isoformat(), "main": list(main), "bonus": list(bonus)}
 
 
 def expected_new_round(before: Optional[Dict[str, str]], now: Optional[dt.datetime] = None) -> Optional[Tuple[int, str]]:
-    """Require a new result only when the repository is exactly one weekly draw behind on Friday evening."""
     if before is None:
         return None
     now = now or now_jst()
@@ -117,36 +122,48 @@ def expected_new_round(before: Optional[Dict[str, str]], now: Optional[dt.dateti
     return None
 
 
-def parse_result_text(text: str, target_round: Optional[int] = None) -> Optional[Dict[str, object]]:
-    if target_round is not None:
-        locators = [f"第{target_round}回", f"第 {target_round} 回", f"{target_round}回", f"{target_round} 回"]
-        positions = [text.find(x) for x in locators if text.find(x) >= 0]
-        if not positions:
-            return None
-        pos = min(positions)
-        segment = text[max(0, pos - 200): pos + 3500]
-    else:
-        segment = text
+def _round_segments(text: str, target_round: Optional[int]) -> List[str]:
+    if target_round is None:
+        return [text]
+    pat = re.compile(rf"第\s*0*{int(target_round)}\s*回")
+    matches = list(pat.finditer(text))
+    if not matches:
+        return []
+    return [text[max(0, m.start() - 120): m.start() + 2200] for m in reversed(matches)]
 
-    mr = re.search(r"(?:第\s*)?(\d{1,6})\s*回", segment)
-    md = re.search(r"(20\d{2})\s*[年/]\s*(\d{1,2})\s*[月/]\s*(\d{1,2})\s*日?", segment)
-    mm = re.search(r"本数字\s*[:：]?\s*([0-9\s()（）]+?)\s*ボーナス数字", segment)
-    mb = re.search(r"ボーナス数字\s*[:：]?\s*([0-9\s()（）]+?)(?:等級|1等|販売実績額|キャリーオーバー|次回|$)", segment)
-    if not (mr and mm and mb):
-        return None
-    main = tuple(int(x) for x in re.findall(r"\d{1,2}", mm.group(1)))[:7]
-    bonus = tuple(int(x) for x in re.findall(r"\d{1,2}", mb.group(1)))[:2]
-    try:
-        validate_numbers(main, bonus)
-    except ValueError:
-        return None
-    round_no = int(mr.group(1))
-    if target_round is not None and round_no != int(target_round):
-        return None
-    date_text = ""
-    if md:
-        date_text = f"{int(md.group(1)):04d}-{int(md.group(2)):02d}-{int(md.group(3)):02d}"
-    return {"round": round_no, "date": date_text, "main": list(main), "bonus": list(bonus)}
+
+def parse_result_text(text: str, target_round: Optional[int] = None) -> Optional[Dict[str, object]]:
+    text = unicodedata.normalize("NFKC", text)
+    for segment in _round_segments(text, target_round):
+        if target_round is not None:
+            mr = re.search(rf"第\s*0*({int(target_round)})\s*回", segment)
+        else:
+            mr = re.search(r"(?:第\s*)?0*(\d{1,6})\s*回", segment)
+        md = re.search(r"(20\d{2})\s*(?:年|/)\s*(\d{1,2})\s*(?:月|/)\s*(\d{1,2})\s*日?", segment)
+        mm = re.search(
+            r"本\s*数字\s*[:：]?\s*([0-9\s\-‐‑–—ー－()（）]+?)\s*ボーナス\s*数字",
+            segment,
+        )
+        mb = re.search(
+            r"ボーナス\s*数字\s*[:：]?\s*([0-9\s\-‐‑–—ー－()（）]+?)(?:1\s*等|等級|販売実績額|キャリー|次回|開催回|$)",
+            segment,
+        )
+        if not (mr and mm and mb):
+            continue
+        main = tuple(int(x) for x in re.findall(r"\d{1,2}", mm.group(1)))[:7]
+        bonus = tuple(int(x) for x in re.findall(r"\d{1,2}", mb.group(1)))[:2]
+        try:
+            validate_numbers(main, bonus)
+        except ValueError:
+            continue
+        round_no = int(mr.group(1))
+        if target_round is not None and round_no != int(target_round):
+            continue
+        date_text = ""
+        if md:
+            date_text = f"{int(md.group(1)):04d}-{int(md.group(2)):02d}-{int(md.group(3)):02d}"
+        return {"round": round_no, "date": date_text, "main": list(main), "bonus": list(bonus)}
+    return None
 
 
 def parse_mizuho(html: str, target_round: Optional[int] = None) -> Optional[Dict[str, object]]:
@@ -163,9 +180,7 @@ def iframe_urls(html: str, base_url: str) -> List[str]:
     for src in re.findall(r"(?is)<iframe[^>]+src\s*=\s*[\"']([^\"']+)[\"']", html):
         url = urllib.parse.urljoin(base_url, html_lib.unescape(src).strip())
         parsed = urllib.parse.urlparse(url)
-        if parsed.scheme not in {"http", "https"}:
-            continue
-        if url in seen:
+        if parsed.scheme not in {"http", "https"} or url in seen:
             continue
         seen.add(url)
         urls.append(url)
@@ -173,10 +188,19 @@ def iframe_urls(html: str, base_url: str) -> List[str]:
 
 
 def fetch_rakuten_bank_result(target_round: int) -> Dict[str, object]:
+    try:
+        direct_html = http_get(RAKUTEN_BANK_RESULT_URL)
+        direct = parse_rakuten_bank(direct_html, target_round)
+        if direct is not None:
+            return {**direct, "transport": "direct_public_result_page", "url": RAKUTEN_BANK_RESULT_URL}
+        direct_status: Dict[str, object] = {"status": "target_not_on_direct_page"}
+    except Exception as exc:
+        direct_status = {"status": "direct_unavailable", "error": str(exc)[:300]}
+
     root = http_get(RAKUTEN_BANK_URL)
-    direct = parse_rakuten_bank(root, target_round)
-    if direct is not None:
-        return {**direct, "transport": "root_page"}
+    direct_root = parse_rakuten_bank(root, target_round)
+    if direct_root is not None:
+        return {**direct_root, "transport": "root_page", "url": RAKUTEN_BANK_URL}
 
     checked: List[str] = []
     queue = iframe_urls(root, RAKUTEN_BANK_URL)
@@ -192,7 +216,7 @@ def fetch_rakuten_bank_result(target_round: int) -> Dict[str, object]:
         for nested in iframe_urls(child, url):
             if nested not in queue and len(queue) < 20:
                 queue.append(nested)
-    return {"status": "target_not_parseable", "iframes_checked": len(checked)}
+    return {"status": "target_not_parseable", "direct": direct_status, "iframes_checked": len(checked)}
 
 
 def parse_official_schedule(html: str) -> Optional[Dict[str, object]]:
@@ -245,7 +269,9 @@ def compare_sources(primary: Dict[str, object], sources: Dict[str, object]) -> T
         if not result_matches(primary, candidate):
             return "mismatch", [f"Rakuten primary and {label} results disagree"]
         verified.append(label)
-        notes.append(f"{label} result matches Rakuten primary main/bonus numbers")
+        transport = candidate.get("transport")
+        suffix = f" via {transport}" if transport else ""
+        notes.append(f"{label} result matches Rakuten primary main/bonus numbers{suffix}")
 
     official = sources.get("official_schedule", {})
     if isinstance(official, dict) and "round" in official:
@@ -283,9 +309,7 @@ def main() -> int:
         print(f"[FETCH] attempt {attempt}/{args.max_attempts}")
         try:
             scrapingloto7.update_loto7_csv(
-                str(args.csv),
-                months=max(1, args.months),
-                all_history=not args.csv.exists() or not before_rows,
+                str(args.csv), months=max(1, args.months), all_history=not args.csv.exists() or not before_rows
             )
             rows = read_rows(args.csv)
             latest = latest_row(rows)
@@ -314,7 +338,7 @@ def main() -> int:
                 "status": "ok" if verification == "verified_two_result_sources" else "degraded",
                 "verification": verification,
                 "primary_source": "Rakuten backnumber via scrapingloto7.py",
-                "secondary_policy": "Mizuho preferred; Rakuten Bank public winning-number page is accepted as fallback",
+                "secondary_policy": "Mizuho preferred; Rakuten Bank direct public winning-number endpoint is accepted as fallback",
                 "latest": primary,
                 "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None,
                 "sources": sources,
@@ -332,10 +356,11 @@ def main() -> int:
     write_report(args.report, {
         "checked_at_jst": now_jst().isoformat(timespec="seconds"),
         "status": "failed",
+        "verification": "failed",
         "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None,
         "error": last_error,
     })
-    return 2
+    return 1
 
 
 if __name__ == "__main__":
