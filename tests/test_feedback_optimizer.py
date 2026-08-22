@@ -1,3 +1,5 @@
+import pytest
+
 import feedback_optimizer as fo
 import loto7_v2_runner as v2
 
@@ -67,4 +69,4 @@ def test_summary_reuses_same_random_reference_for_comparability():
     ref = summary(-0.1)
     got = fo.summary_with_reference(cfg, model_windows, ref, "sha", 100, 350)
     assert got["windows"]["full"]["random_score"] == ref["windows"]["full"]["random_score"]
-    assert got["windows"]["full"]["score_delta_vs_random"] == 0.15
+    assert got["windows"]["full"]["score_delta_vs_random"] == pytest.approx(0.15)
