@@ -10,6 +10,7 @@ on:
       - "research_feedback_bootstrap.py"
       - "feedback_optimizer.py"
       - "formal_challenger.py"
+      - "model_history_reconcile.py"
       - "historical_replay.py"
       - "historical_reconcile.py"
       - "nested_replay.py"
@@ -204,6 +205,18 @@ jobs:
               --pool-size 350 \
               --random-reps 8
 
+            # After the accepted Research Parent is finalized, regenerate all historical
+            # five-ticket predictions and independently reconcile them against loto7.csv.
+            # The full result is emitted as UTF-8 text. Same model+data is cache-skipped.
+            python model_history_reconcile.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --feedback-state loto7_agent_output/research_feedback_state.json \
+              --research-state loto7_agent_output/v4_research_state.json \
+              --min-train 100 \
+              --pool-size 350 \
+              --if-stale
+
             END=$(date +%s)
             DURATION=$((END - START))
 
@@ -241,6 +254,14 @@ jobs:
             echo
             echo '## Historical prediction reconciliation'
             cat loto7_agent_output/historical_reconciliation_report.md
+            echo
+            echo '## Latest accepted model historical reconciliation'
+            if [ -f loto7_agent_output/latest_model_historical_reconciliation.txt ]; then
+              sed -n '1,35p' loto7_agent_output/latest_model_historical_reconciliation.txt
+              echo '(full round-by-round text is stored in loto7_agent_output/latest_model_historical_reconciliation.txt)'
+            else
+              echo 'Latest-model historical reconciliation has not been generated yet.'
+            fi
             echo
             echo '## Nested Champion / Research / Random comparison'
             cat loto7_agent_output/nested_replay_report.md
