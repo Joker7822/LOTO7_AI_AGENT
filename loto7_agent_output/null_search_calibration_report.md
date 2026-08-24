@@ -1,12 +1,12 @@
 # Bounded Null-Search Calibration
 
-- completed null worlds: **28/64**
+- completed null worlds: **38/64**
 - search steps/world: **16** (2 signal candidates/step)
 - observed real Signal objective: **-0.04410**
-- null median best: **-0.06010**
-- null 95th percentile best: **-0.03424**
-- null 99th percentile best: **-0.02882**
-- empirical upper-tail p: **0.1724**
+- null median best: **-0.06115**
+- null 95th percentile best: **-0.03537**
+- null 99th percentile best: **-0.02930**
+- empirical upper-tail p: **0.1795**
 - calibration complete: **NO**
 
 > 完全ランダムな7/37履歴に同じSignal探索手順をかけ、探索そのものが作る見かけの改善幅を測ります。
