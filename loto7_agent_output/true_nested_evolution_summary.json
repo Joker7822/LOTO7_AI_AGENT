@@ -1,0 +1,40 @@
+{
+  "report_version": "true-nested-evolution-v1",
+  "evaluation_type": "prequential_online_evolution_strict_prior_only",
+  "data_sha256": "12e55f5d26e25b243d0ad754ce4886fed189ae1bc89901d367d8f6aa89ea7403",
+  "min_train": 100,
+  "evaluated_rounds": 60,
+  "last_n": 60,
+  "warmup_evolution_steps": 60,
+  "inner_signal_candidates_per_step": 2,
+  "portfolio_pool_size": 180,
+  "random_portfolios_per_round": 4096,
+  "starting_model": "baseline-5fdb8dc2ad",
+  "leakage_control": "At target t, the evolutionary parent, candidate mutation seed, candidate scoring, and model selection use x[:t] only. The current v4 Research Winner is never injected. Target x[t] is read only after selection.",
+  "signal": {
+    "mean_top7_hits": 1.5,
+    "top7_delta_vs_uniform": 0.17567567567567566,
+    "mean_actual_mass": 0.1920453705985963,
+    "mean_log_edge_vs_uniform": -0.013831060547648917,
+    "mean_brier_edge_vs_uniform": -0.0010721853423059286
+  },
+  "portfolio": {
+    "mean_max_hits": 2.533333333333333,
+    "random_mean_max_hits": 2.438720703125,
+    "ge3_round_rate": 0.55,
+    "random_ge3_rate": 0.438232421875,
+    "ge4_round_rate": 0.1,
+    "random_ge4_rate": 0.0703125,
+    "mean_score": 2.9398333333333335,
+    "random_mean_score": 2.7772143554687494,
+    "score_delta_vs_random": {
+      "mean": 0.1626189778645836,
+      "low95": -0.12126852213541635,
+      "high95": 0.45896064453125024
+    },
+    "round_win_rate_vs_random": 0.55
+  },
+  "independent_evidence": false,
+  "promotion_eligible": false,
+  "interpretation": "This is substantially stricter historical evidence than applying today's winner to old draws, but only frozen future OOS can promote Production."
+}
