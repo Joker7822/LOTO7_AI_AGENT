@@ -14,7 +14,7 @@ import loto7_v2_runner as v2
 import loto7_v3_runner as v3
 from loto7_evolving_agent import fingerprint_file, make_history, read_csv_flexible
 
-REPORT_VERSION = "precision-random-baseline-v1"
+REPORT_VERSION = "precision-random-baseline-v2-symmetric"
 FIELDS = [
     "round_index", "random_reps", "mean_max_hits", "mean_ticket_hits",
     "ge3_rate", "ge4_rate", "mean_score", "score_se",
@@ -79,11 +79,17 @@ def aggregate(rows: Sequence[Dict[str, object]]) -> Dict[str, float]:
 def build(csv_path: Path, min_train: int, reps: int) -> tuple[Dict[str, object], List[Dict[str, object]]]:
     df = read_csv_flexible(csv_path)
     x, _ = make_history(df)
-    rows: List[Dict[str, object]] = []
-    for t in range(min_train, len(x)):
-        actual_set = set((np.flatnonzero(x[t]) + 1).tolist())
-        m = random_round(actual_set, t, reps)
-        rows.append({"round_index": t + 1, "random_reps": reps, **m})
+
+    # Under a uniformly random 7-of-37 draw and uniformly random five-ticket portfolio,
+    # the metric distribution is invariant to the labels of the seven actual numbers.
+    # Therefore one high-precision Monte Carlo sample against {1..7} is statistically
+    # identical to resampling separately for every historical draw, without multiplying
+    # runtime by the number of rounds.
+    shared = random_round(set(range(1, 8)), t=0, reps=reps)
+    rows: List[Dict[str, object]] = [
+        {"round_index": t + 1, "random_reps": reps, **shared}
+        for t in range(min_train, len(x))
+    ]
 
     windows: Dict[str, Dict[str, float]] = {"full": aggregate(rows)}
     for n in (120, 60, 30):
@@ -93,11 +99,17 @@ def build(csv_path: Path, min_train: int, reps: int) -> tuple[Dict[str, object],
         "csv_sha256": fingerprint_file(csv_path),
         "min_train": int(min_train),
         "random_portfolios_per_round": int(reps),
+        "monte_carlo_portfolios_generated_total": int(reps),
+        "symmetry_reused_across_rounds": True,
         "evaluated_rounds": len(rows),
         "first_round": rows[0]["round_index"] if rows else None,
         "last_round": rows[-1]["round_index"] if rows else None,
         "windows": windows,
         "purpose": "shared cached portfolio null reference for Research-only evaluation",
+        "symmetry_note": (
+            "For random 5-ticket portfolios, relabeling the seven actual numbers leaves the hit/score distribution unchanged; "
+            "one Monte Carlo null distribution is therefore reused across historical rounds."
+        ),
         "independent_evidence": False,
         "promotion_eligible": False,
     }
@@ -132,7 +144,8 @@ def ensure(csv_path: Path, out_dir: Path, min_train: int = 100, reps: int = 4096
         "# High-Precision Random Portfolio Baseline",
         "",
         f"- evaluated rounds: **{summary['evaluated_rounds']}**",
-        f"- random portfolios per round: **{reps:,}**",
+        f"- Monte Carlo random portfolios: **{reps:,}**",
+        "- symmetry reuse across rounds: **YES**",
         "- cache key: **data SHA + min_train + reps**",
         "",
         "| Window | max hits | mean hits | >=3 | >=4 | score |",
@@ -144,7 +157,12 @@ def ensure(csv_path: Path, out_dir: Path, min_train: int = 100, reps: int = 4096
             f"| {name} | {w['random_max_hits']:.4f} | {w['random_mean_hits']:.4f} | "
             f"{w['random_ge3']*100:.2f}% | {w['random_ge4']*100:.2f}% | {w['random_score']:.4f} |"
         )
-    report += ["", "> Research comparison only; this does not create Future OOS evidence.", ""]
+    report += [
+        "",
+        "> 7/37の数字ラベル対称性により、同じNull分布を全履歴回へ再利用しています。",
+        "> Research comparison only; this does not create Future OOS evidence.",
+        "",
+    ]
     (out_dir / "precision_random_baseline_report.md").write_text("\n".join(report), encoding="utf-8")
     return summary
 
@@ -163,7 +181,10 @@ def main() -> int:
         print("[PRECISION-RANDOM] fresh; skipped")
         return 0
     summary = ensure(args.csv, args.out_dir, args.min_train, args.reps)
-    print(f"[PRECISION-RANDOM] rounds={summary['evaluated_rounds']} reps={summary['random_portfolios_per_round']}")
+    print(
+        f"[PRECISION-RANDOM] rounds={summary['evaluated_rounds']} reps={summary['random_portfolios_per_round']} "
+        f"generated_total={summary['monte_carlo_portfolios_generated_total']}"
+    )
     return 0
 
 
