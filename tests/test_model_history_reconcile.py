@@ -111,7 +111,7 @@ def all_loss_round() -> dict:
 
 def test_full_text_contains_round_ticket_actual_and_grade():
     text = mhr.render_full_text(base_summary(), [winning_round()], "data-sha")
-    assert "第691回" in text
+    assert "第691回  抽せん日:" in text
     assert "実本数字: 08 10 20 22 23 27 37" in text
     assert "本6 / B0" in text
     assert "2等" in text
@@ -125,15 +125,15 @@ def test_full_text_omits_round_when_all_five_tickets_lose():
     assert mhr.round_has_prize(win)
 
     text = mhr.render_full_text(base_summary(), [loss, win], "data-sha")
-    assert "第690回" not in text
-    assert "第691回" in text
+    assert "第690回  抽せん日:" not in text
+    assert "第691回  抽せん日:" in text
     assert "5口全外れ回は非掲載" in text
     assert "回別掲載: 1回" in text
 
 
 def test_full_text_reports_when_no_round_is_publishable():
     text = mhr.render_full_text(base_summary(), [all_loss_round()], "data-sha")
-    assert "第690回" not in text
+    assert "第690回  抽せん日:" not in text
     assert "当選回なし（5口全外れ回は非掲載）" in text
 
 
