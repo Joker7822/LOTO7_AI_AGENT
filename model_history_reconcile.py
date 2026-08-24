@@ -34,7 +34,7 @@ from loto7_evolving_agent import (
     read_csv_flexible,
 )
 
-REPORT_VERSION = "model-history-reconcile-v1"
+REPORT_VERSION = "model-history-reconcile-v2-hide-all-loss-rounds"
 JST = timezone(timedelta(hours=9))
 
 
@@ -101,6 +101,14 @@ def update_run_events(path: Path, model_version: str) -> None:
     obj["model_history_reconciled_version"] = model_version
     obj["force_checkpoint"] = True
     write_json(path, obj)
+
+
+def round_has_prize(row: Dict[str, object]) -> bool:
+    """Return True when at least one of the five tickets won any grade."""
+    return any(
+        isinstance(ticket, dict) and str(ticket.get("grade", "")) != "はずれ"
+        for ticket in (row.get("tickets", []) or [])
+    )
 
 
 def replay_and_reconcile(
@@ -210,6 +218,7 @@ def replay_and_reconcile(
 
     evaluated_rounds = len(round_rows)
     evaluated_tickets = evaluated_rounds * 5
+    listed_rounds = sum(1 for row in round_rows if round_has_prize(row))
     purchase_cost = evaluated_tickets * PURCHASE_COST_YEN
     net = None if unknown_payouts else total_payout - purchase_cost
     roi = None if unknown_payouts or purchase_cost == 0 else total_payout / purchase_cost
@@ -221,6 +230,8 @@ def replay_and_reconcile(
         "evaluated_tickets": evaluated_tickets,
         "first_round": round_rows[0]["target_round"] if round_rows else None,
         "last_round": round_rows[-1]["target_round"] if round_rows else None,
+        "listed_rounds_with_any_prize": listed_rounds,
+        "omitted_all_loss_rounds": evaluated_rounds - listed_rounds,
         "winning_tickets": winning_tickets,
         "winning_ticket_rate": winning_tickets / max(1, evaluated_tickets),
         "grade_counts": grade_counts,
@@ -251,6 +262,7 @@ def render_full_text(summary: Dict[str, object], rounds: Sequence[Dict[str, obje
     grade_text = " / ".join(f"{k}:{v}" for k, v in sorted(grades.items())) or "なし"
     roi = summary.get("published_reference_roi")
     net = summary.get("published_reference_net_yen")
+    published_rounds = [row for row in rounds if round_has_prize(row)]
     lines = [
         "LOTO7 最新モデル 過去予測・照合レポート",
         "=" * 78,
@@ -262,6 +274,7 @@ def render_full_text(summary: Dict[str, object], rounds: Sequence[Dict[str, obje
         "[総合集計]",
         f"評価回数: {summary.get('evaluated_rounds')}回 ({summary.get('first_round')}〜{summary.get('last_round')})",
         f"照合口数: {summary.get('evaluated_tickets')}口",
+        f"回別掲載: {len(published_rounds)}回（1口以上当選した回のみ。5口全外れ回は非掲載）",
         f"平均Top7一致: {float(summary.get('mean_top7_hits', 0.0)):.4f}",
         f"5口平均最大一致: {float(summary.get('mean_portfolio_max_hits', 0.0)):.4f}",
         f"5口平均score: {float(summary.get('mean_portfolio_score', 0.0)):.4f}",
@@ -286,7 +299,10 @@ def render_full_text(summary: Dict[str, object], rounds: Sequence[Dict[str, obje
         "[回別照合]",
     ]
 
-    for row in rounds:
+    if not published_rounds:
+        lines.append("当選回なし（5口全外れ回は非掲載）")
+
+    for row in published_rounds:
         lines += [
             "-" * 78,
             f"第{row['target_round']}回  抽せん日:{row['draw_date']}  学習行数:{row['training_rows']}  基準回:第{row['base_round']}回",
@@ -313,6 +329,7 @@ def render_history_entry(summary: Dict[str, object], data_sha: str) -> str:
         f"[{summary.get('generated_at_jst')}] model={summary.get('model_version')}",
         f"data_sha={data_sha}",
         f"rounds={summary.get('evaluated_rounds')} tickets={summary.get('evaluated_tickets')} wins={summary.get('winning_tickets')}",
+        f"listed_rounds={summary.get('listed_rounds_with_any_prize', 0)} omitted_all_loss_rounds={summary.get('omitted_all_loss_rounds', 0)}",
         f"mean_top7_hits={float(summary.get('mean_top7_hits',0.0)):.4f} mean_max_hits={float(summary.get('mean_portfolio_max_hits',0.0)):.4f} mean_score={float(summary.get('mean_portfolio_score',0.0)):.4f}",
         f"ge3={float(summary.get('ge3_round_rate',0.0))*100:.2f}% ge4={float(summary.get('ge4_round_rate',0.0))*100:.2f}% grades={grade_text}",
         f"cost={int(summary.get('purchase_cost_yen',0)):,} payout={int(summary.get('published_reference_payout_yen',0)):,} roi={'N/A' if roi is None else f'{float(roi)*100:.2f}%'}",
