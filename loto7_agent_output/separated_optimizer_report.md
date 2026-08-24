@@ -1,6 +1,6 @@
 # Signal-Primary / Portfolio-Separate Optimizer
 
-- generation: **2403**
+- generation: **2411**
 - incumbent: **signal-g02253-c01-b6030e66c9**
 - signal candidate accepted: **NO**
 - selected parent: **signal-g02253-c01-b6030e66c9**
@@ -10,8 +10,8 @@
 - Portfolio最適化で Signal候補を変更: **NO**
 - Production昇格証拠: **使用しない**
 
-- signal-g02403-c01-bf82ec7d3e: signal gain **-0.00009** / accepted **NO**
-- signal-g02403-c02-19cf554b66: signal gain **-0.25470** / accepted **NO**
+- signal-g02411-c01-a6db22eb42: signal gain **-0.00130** / accepted **NO**
+- signal-g02411-c02-c42e9d1176: signal gain **-0.01069** / accepted **NO**
 
 > Signalパラメータを先に確定し、その後に5口分散ポリシーだけを最適化します。
 > 過去Researchであり、Future OOS Champion昇格には使用しません。
