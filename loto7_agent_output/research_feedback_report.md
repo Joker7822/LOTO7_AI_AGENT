@@ -1,20 +1,20 @@
 # Research Winner Full-History Replay Feedback
 
-- generation: **2248**
-- provisional winner: **signal-g02247-c01-b35c6f70ab**
-- incumbent research parent: **signal-g02247-c01-b35c6f70ab**
-- accepted research parent: **signal-g02247-c01-b35c6f70ab**
+- generation: **2252**
+- provisional winner: **signal-g02251-c01-14a223885f**
+- incumbent research parent: **signal-g02251-c01-14a223885f**
+- accepted research parent: **signal-g02251-c01-14a223885f**
 - candidate accepted: **NO**
 - replay cache used: **YES**
 - 用途: **Research探索の親選択専用。Production昇格証拠には使用しない**
 
 | 指標 | Candidate | Incumbent |
 |---|---:|---:|
-| feedback objective | 0.1127 | 0.1127 |
-| full score Δ vs random | +0.0989 | +0.0989 |
-| 120 score Δ vs random | +0.1273 | +0.1273 |
-| 60 score Δ vs random | +0.0512 | +0.0512 |
-| 30 score Δ vs random | +0.2327 | +0.2327 |
+| feedback objective | 0.0877 | 0.0877 |
+| full score Δ vs random | +0.1415 | +0.1415 |
+| 120 score Δ vs random | +0.0977 | +0.0977 |
+| 60 score Δ vs random | +0.0772 | +0.0772 |
+| 30 score Δ vs random | -0.1150 | -0.1150 |
 
 - objective gain: **+0.0000**
 - checks: `{"same_model": true}`
