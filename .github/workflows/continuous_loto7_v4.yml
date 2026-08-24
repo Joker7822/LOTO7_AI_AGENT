@@ -9,6 +9,10 @@ on:
       - "research_feedback.py"
       - "research_feedback_bootstrap.py"
       - "feedback_optimizer.py"
+      - "separated_optimizer.py"
+      - "precision_random_baseline.py"
+      - "null_search_calibration.py"
+      - "true_nested_evolution.py"
       - "formal_challenger.py"
       - "model_history_reconcile.py"
       - "historical_replay.py"
@@ -184,16 +188,11 @@ jobs:
               --source-report loto7_agent_output/source_validation.json \
               --challengers 6
 
-            # Apply one Formal Challenger policy, then run the Research-only
-            # full-history optimizer. Neither retrospective path can promote Production.
             python research_feedback_bootstrap.py \
               --evaluation loto7_agent_output/v4_research_evaluation.json \
               --champion-file loto7_agent_output/model_champion.json \
               --feedback-state loto7_agent_output/research_feedback_state.json
 
-            # Whenever the provisional Research Winner changes (or data changes),
-            # replay that model over every eligible historical draw. Only a replay-
-            # validated model is kept as research_parent_config for the next generation.
             python research_feedback.py \
               --csv loto7.csv \
               --out-dir loto7_agent_output \
@@ -205,9 +204,53 @@ jobs:
               --pool-size 350 \
               --random-reps 8
 
-            # After the accepted Research Parent is finalized, regenerate all historical
-            # five-ticket predictions and independently reconcile them against loto7.csv.
-            # The full result is emitted as UTF-8 text. Same model+data is cache-skipped.
+            # Build one shared high-precision random reference. It is regenerated only
+            # when the data SHA or parameters change, not for every model candidate.
+            python precision_random_baseline.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --min-train 100 \
+              --reps 4096 \
+              --if-stale
+
+            # First optimize probability Signal without overlap_penalty. Only after a
+            # Signal candidate is accepted is the five-ticket overlap policy optimized.
+            python separated_optimizer.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --feedback-state loto7_agent_output/research_feedback_state.json \
+              --research-state loto7_agent_output/v4_research_state.json \
+              --min-train 100 \
+              --pool-size 350 \
+              --random-reps 4096 \
+              --trials 2
+
+            # Strict historical diagnostic: at each target, evolve/select using only
+            # prior rows and read the target result only after model selection.
+            python true_nested_evolution.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --min-train 100 \
+              --last-n 60 \
+              --warmup-steps 60 \
+              --inner-candidates 2 \
+              --pool-size 180 \
+              --random-reps 4096 \
+              --if-stale
+
+            # Incremental bounded null-search calibration. It runs the first world
+            # immediately and then one world every 50 research generations.
+            python null_search_calibration.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --feedback-state loto7_agent_output/research_feedback_state.json \
+              --research-state loto7_agent_output/v4_research_state.json \
+              --min-train 100 \
+              --target-worlds 64 \
+              --search-steps 16
+
+            # Reconcile the final accepted Research Parent after all Research-only
+            # optimizers have finished. Same model+data is cache-skipped.
             python model_history_reconcile.py \
               --csv loto7.csv \
               --out-dir loto7_agent_output \
@@ -261,6 +304,26 @@ jobs:
               echo '(full round-by-round text is stored in loto7_agent_output/latest_model_historical_reconciliation.txt)'
             else
               echo 'Latest-model historical reconciliation has not been generated yet.'
+            fi
+            echo
+            echo '## High-precision Random baseline'
+            if [ -f loto7_agent_output/precision_random_baseline_report.md ]; then
+              cat loto7_agent_output/precision_random_baseline_report.md
+            fi
+            echo
+            echo '## Signal / Portfolio separated optimizer'
+            if [ -f loto7_agent_output/separated_optimizer_report.md ]; then
+              cat loto7_agent_output/separated_optimizer_report.md
+            fi
+            echo
+            echo '## True Nested Evolution'
+            if [ -f loto7_agent_output/true_nested_evolution_report.md ]; then
+              cat loto7_agent_output/true_nested_evolution_report.md
+            fi
+            echo
+            echo '## Null-search calibration'
+            if [ -f loto7_agent_output/null_search_calibration_report.md ]; then
+              cat loto7_agent_output/null_search_calibration_report.md
             fi
             echo
             echo '## Nested Champion / Research / Random comparison'
