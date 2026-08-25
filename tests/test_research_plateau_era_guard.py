@@ -1,3 +1,5 @@
+import json
+
 import research_cycle_guard as guard
 import robust_signal_optimizer as robust
 
@@ -21,11 +23,54 @@ def test_guard_pauses_after_parent_plateau():
     )
     assert result["search_enabled"] is False
     assert result["mode"] == "VALIDATION_ONLY"
+    assert result["signal_trials_this_data"] == 700
     assert "signal_parent_plateau" in result["reasons"]
 
 
-def test_guard_reopens_on_new_data_sha():
+def test_guard_waits_after_matched_validation_complete():
     result = guard.decide_guard(
+        data_sha="sha-a",
+        generation=2600,
+        last_data_change_generation=1,
+        parent_version="signal-g02253-c01-b6030e66c9",
+        signal_trials_total=700,
+        previous={"data_sha256": "sha-a"},
+        max_trials=800,
+        max_stale_generations=300,
+        validation_complete=True,
+    )
+    assert result["search_enabled"] is False
+    assert result["mode"] == "WAIT_FOR_NEW_DATA"
+    assert "matched_null_calibration_complete" in result["reasons"]
+
+
+def test_guard_reopens_new_data_with_fresh_budget_and_plateau_clock():
+    result = guard.decide_guard(
+        data_sha="sha-b",
+        generation=2600,
+        last_data_change_generation=1,
+        parent_version="signal-g02253-c01-b6030e66c9",
+        signal_trials_total=900,
+        previous={
+            "data_sha256": "sha-a",
+            "trial_counter_at_data_start": 0,
+            "data_start_generation": 1,
+        },
+        max_trials=800,
+        max_stale_generations=300,
+        validation_complete=True,
+    )
+    assert result["search_enabled"] is True
+    assert result["mode"] == "SEARCH"
+    assert result["reasons"] == ["new_data_reopens_search"]
+    assert result["trial_counter_at_data_start"] == 900
+    assert result["signal_trials_this_data"] == 0
+    assert result["plateau_anchor_generation"] == 2600
+    assert result["generations_since_plateau_anchor"] == 0
+
+
+def test_guard_new_data_budget_remains_open_on_following_generation():
+    first = guard.decide_guard(
         data_sha="sha-b",
         generation=2600,
         last_data_change_generation=1,
@@ -35,8 +80,32 @@ def test_guard_reopens_on_new_data_sha():
         max_trials=800,
         max_stale_generations=300,
     )
-    assert result["search_enabled"] is True
-    assert result["reasons"] == ["new_data_reopens_search"]
+    second = guard.decide_guard(
+        data_sha="sha-b",
+        generation=2602,
+        last_data_change_generation=2601,
+        parent_version="signal-g02253-c01-b6030e66c9",
+        signal_trials_total=904,
+        previous=first,
+        max_trials=800,
+        max_stale_generations=300,
+    )
+    assert second["search_enabled"] is True
+    assert second["signal_trials_this_data"] == 4
+    assert second["plateau_anchor_generation"] == 2601
+    assert second["generations_since_plateau_anchor"] == 1
+
+
+def test_matched_validation_complete_requires_same_sha_and_budget(tmp_path):
+    p = tmp_path / "matched_budget_null_calibration_summary.json"
+    p.write_text(json.dumps({
+        "data_sha256": "sha-a",
+        "matched_signal_trial_budget": 708,
+        "calibration_complete": True,
+    }), encoding="utf-8")
+    assert guard.matched_validation_complete(tmp_path, "sha-a", 708) is True
+    assert guard.matched_validation_complete(tmp_path, "sha-b", 708) is False
+    assert guard.matched_validation_complete(tmp_path, "sha-a", 700) is False
 
 
 def _eras(values):

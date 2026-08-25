@@ -14,7 +14,7 @@ import loto7_v2_runner as v2
 import separated_optimizer as so
 from loto7_evolving_agent import expert_probabilities, fingerprint_file, make_history, read_csv_flexible
 
-REPORT_VERSION = "research-cycle-guard-v1"
+REPORT_VERSION = "research-cycle-guard-v2-data-scoped"
 MAX_SIGNAL_TRIALS_PER_DATA = 800
 MAX_STALE_GENERATIONS = 300
 ERA_RANGES = ((101, 250), (251, 400), (401, 550), (551, 10**9))
@@ -127,44 +127,93 @@ def decide_guard(
     previous: Dict[str, object],
     max_trials: int = MAX_SIGNAL_TRIALS_PER_DATA,
     max_stale_generations: int = MAX_STALE_GENERATIONS,
+    validation_complete: bool = False,
 ) -> Dict[str, object]:
+    previous_sha = str(previous.get("data_sha256", ""))
+    data_changed_since_guard = bool(previous_sha) and previous_sha != data_sha
+
+    # Trial budgets are scoped to one immutable data SHA. On a new draw, record the
+    # current cumulative counter as the new baseline instead of carrying the old
+    # exhausted budget into the next research cycle.
+    if data_changed_since_guard:
+        trial_counter_at_data_start = int(signal_trials_total)
+        data_start_generation = int(generation)
+    else:
+        trial_counter_at_data_start = int(previous.get("trial_counter_at_data_start", 0))
+        data_start_generation = int(previous.get("data_start_generation", last_data_change_generation))
+
+    signal_trials_this_data = max(0, int(signal_trials_total) - trial_counter_at_data_start)
+
     parent_generation = parse_generation_from_model(parent_version)
     if parent_generation is None:
-        parent_generation = max(last_data_change_generation, generation)
-    stale_generations = max(0, generation - parent_generation)
-    data_changed_since_guard = bool(previous.get("data_sha256")) and str(previous.get("data_sha256")) != data_sha
+        parent_generation = data_start_generation
+
+    # A model selected on the previous data receives a fresh plateau clock after a
+    # genuinely new draw arrives. This prevents SEARCH from reopening for only one
+    # generation and then immediately re-pausing because the model name is old.
+    plateau_anchor_generation = max(
+        int(parent_generation),
+        int(last_data_change_generation),
+        int(data_start_generation),
+    )
+    stale_generations = max(0, int(generation) - plateau_anchor_generation)
 
     reasons: List[str] = []
-    if signal_trials_total >= max_trials:
+    if signal_trials_this_data >= max_trials:
         reasons.append("signal_trial_budget_exhausted")
     if stale_generations >= max_stale_generations:
         reasons.append("signal_parent_plateau")
 
-    # A genuinely new data SHA re-opens research regardless of the previous plateau.
     search_enabled = bool(data_changed_since_guard or not reasons)
     if data_changed_since_guard:
         reasons = ["new_data_reopens_search"]
+
+    if search_enabled:
+        mode = "SEARCH"
+    elif validation_complete:
+        mode = "WAIT_FOR_NEW_DATA"
+        reasons = [*reasons, "matched_null_calibration_complete"]
+    else:
+        mode = "VALIDATION_ONLY"
 
     return {
         "report_version": REPORT_VERSION,
         "data_sha256": data_sha,
         "generation": int(generation),
         "last_data_change_generation": int(last_data_change_generation),
+        "data_start_generation": int(data_start_generation),
+        "trial_counter_at_data_start": int(trial_counter_at_data_start),
         "parent_version": parent_version,
         "parent_generation": int(parent_generation),
+        "plateau_anchor_generation": int(plateau_anchor_generation),
+        "generations_since_plateau_anchor": int(stale_generations),
+        # Backward-compatible alias retained for existing status consumers.
         "generations_since_parent_change": int(stale_generations),
         "signal_trials_total": int(signal_trials_total),
+        "signal_trials_this_data": int(signal_trials_this_data),
         "max_signal_trials_per_data": int(max_trials),
         "max_stale_generations": int(max_stale_generations),
         "data_changed_since_guard": bool(data_changed_since_guard),
         "search_enabled": bool(search_enabled),
-        "mode": "SEARCH" if search_enabled else "VALIDATION_ONLY",
+        "validation_complete": bool(validation_complete),
+        "mode": mode,
         "reasons": reasons,
     }
 
 
+def matched_validation_complete(out_dir: Path, data_sha: str, expected_trial_budget: int) -> bool:
+    obj = load_json(out_dir / "matched_budget_null_calibration_summary.json", {})
+    if not obj:
+        return False
+    return bool(
+        obj.get("data_sha256") == data_sha
+        and int(obj.get("matched_signal_trial_budget", -1)) == int(expected_trial_budget)
+        and obj.get("calibration_complete") is True
+    )
+
+
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Pause same-data Research search after a bounded budget/plateau and emit era robustness")
+    ap = argparse.ArgumentParser(description="Pause same-data Research after a scoped budget/plateau, emit era robustness, and wait after matched validation")
     ap.add_argument("--csv", type=Path, default=Path("loto7.csv"))
     ap.add_argument("--out-dir", type=Path, default=Path("loto7_agent_output"))
     ap.add_argument("--research-state", type=Path, default=Path("loto7_agent_output/v4_research_state.json"))
@@ -191,9 +240,18 @@ def main() -> int:
     )
     signal_trials_total = int(feedback.get("separated_optimizer_trials_total", 0))
 
+    provisional = decide_guard(
+        data_sha, generation, last_data_change_generation, parent_version,
+        signal_trials_total, previous, args.max_trials, args.max_stale_generations,
+        validation_complete=False,
+    )
+    validation_complete = matched_validation_complete(
+        args.out_dir, data_sha, int(provisional.get("signal_trials_this_data", 0))
+    )
     guard = decide_guard(
         data_sha, generation, last_data_change_generation, parent_version,
         signal_trials_total, previous, args.max_trials, args.max_stale_generations,
+        validation_complete=validation_complete,
     )
 
     parent = cfg_from_obj(feedback.get("accepted_parent_config") or research.get("research_parent_config"))
@@ -225,7 +283,7 @@ def main() -> int:
         guard["era_worst_signal_objective"] = era_summary["worst_era_signal_objective"]
 
     write_json(state_path, guard)
-    print(f"[RESEARCH-GUARD] mode={guard['mode']} generation={generation} reasons={','.join(guard['reasons']) or 'none'}")
+    print(f"[RESEARCH-GUARD] mode={guard['mode']} generation={generation} trials_this_data={guard['signal_trials_this_data']} reasons={','.join(guard['reasons']) or 'none'}")
     return 0
 
 
