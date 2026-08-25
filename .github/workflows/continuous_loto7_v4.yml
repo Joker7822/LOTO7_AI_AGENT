@@ -14,6 +14,7 @@ on:
       - "research_cycle_guard.py"
       - "precision_random_baseline.py"
       - "null_search_calibration.py"
+      - "matched_budget_null_calibration.py"
       - "true_nested_evolution.py"
       - "formal_challenger.py"
       - "model_history_reconcile.py"
@@ -27,6 +28,9 @@ on:
   schedule:
     # Daily recovery/bootstrap at 02:00 JST (17:00 UTC previous day).
     - cron: "0 17 * * *"
+    # While WAIT_FOR_NEW_DATA, also check around Friday's draw/result window.
+    # 09:00-13:00 UTC = 18:00-22:00 JST.
+    - cron: "0 9-13 * * 5"
   workflow_dispatch:
 
 permissions:
@@ -93,6 +97,7 @@ jobs:
               max_attempts=10
               retry_seconds=600
             fi
+
             python fetch_validate.py \
               --csv loto7.csv \
               --report loto7_agent_output/source_validation.json \
@@ -123,7 +128,29 @@ jobs:
               --pool-size 350 \
               --random-reps 32 \
               --if-stale
+
             LAST_FETCH=$(date +%s)
+          }
+
+          update_guard() {
+            python research_cycle_guard.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --research-state loto7_agent_output/v4_research_state.json \
+              --feedback-state loto7_agent_output/research_feedback_state.json \
+              --min-train 100 \
+              --max-trials 800 \
+              --max-stale-generations 300
+          }
+
+          current_mode() {
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("loto7_agent_output/research_cycle_guard.json")
+          obj = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+          print(obj.get("mode", "SEARCH"))
+          PY
           }
 
           checkpoint() {
@@ -176,32 +203,21 @@ jobs:
               refresh_sources
             fi
 
-            # Decide whether the current data SHA still deserves more model search.
-            # If the signal parent has plateaued or the search budget is exhausted,
-            # stop reusing the same history for selection and spend compute on validation.
-            python research_cycle_guard.py \
-              --csv loto7.csv \
-              --out-dir loto7_agent_output \
-              --research-state loto7_agent_output/v4_research_state.json \
-              --feedback-state loto7_agent_output/research_feedback_state.json \
-              --min-train 100 \
-              --max-trials 800 \
-              --max-stale-generations 300
+            update_guard
+            MODE=$(current_mode)
+            echo "[MODE] $MODE"
 
-            SEARCH_ENABLED=$(python - <<'PY'
-          import json
-          from pathlib import Path
-          p = Path("loto7_agent_output/research_cycle_guard.json")
-          obj = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
-          print("1" if obj.get("search_enabled", True) else "0")
-          PY
-            )
+            # WAIT mode does no retrospective model selection or validation. Source
+            # refresh above is sufficient; a new CSV SHA automatically reopens SEARCH.
+            if [ "$MODE" = "WAIT_FOR_NEW_DATA" ]; then
+              checkpoint
+              break
+            fi
 
             ITERATION=$((ITERATION + 1))
             START=$(date +%s)
 
-            # Shared high-precision Random reference and strict nested diagnostic are
-            # data-SHA cached, so they are safe in both modes.
+            # Shared diagnostics are data-SHA cached.
             python precision_random_baseline.py \
               --csv loto7.csv \
               --out-dir loto7_agent_output \
@@ -220,7 +236,7 @@ jobs:
               --random-reps 4096 \
               --if-stale
 
-            if [ "$SEARCH_ENABLED" = "1" ]; then
+            if [ "$MODE" = "SEARCH" ]; then
               GITHUB_SHA="$(git rev-parse HEAD)" python loto7_v4_runner.py \
                 --csv loto7.csv \
                 --out-dir loto7_agent_output \
@@ -249,8 +265,6 @@ jobs:
                 --pool-size 350 \
                 --random-reps 8
 
-              # Signal is selected first, with an additional four-era robustness gate.
-              # overlap_penalty is optimized only after a Signal candidate passes.
               python robust_signal_optimizer.py \
                 --csv loto7.csv \
                 --out-dir loto7_agent_output \
@@ -262,16 +276,6 @@ jobs:
                 --random-reps 4096 \
                 --trials 2
 
-              # In SEARCH mode keep null calibration bounded: one world periodically.
-              python null_search_calibration.py \
-                --csv loto7.csv \
-                --out-dir loto7_agent_output \
-                --feedback-state loto7_agent_output/research_feedback_state.json \
-                --research-state loto7_agent_output/v4_research_state.json \
-                --min-train 100 \
-                --target-worlds 64 \
-                --search-steps 16
-
               python model_history_reconcile.py \
                 --csv loto7.csv \
                 --out-dir loto7_agent_output \
@@ -281,17 +285,22 @@ jobs:
                 --pool-size 350 \
                 --if-stale
             else
-              # VALIDATION_ONLY: no new candidate is selected on this unchanged data.
-              # Use the freed compute to fill the bounded null calibration quickly.
-              python null_search_calibration.py \
+              # VALIDATION_ONLY: freeze the accepted parent and calibrate it against
+              # synthetic 7/37 histories using exactly this data SHA's real Signal
+              # trial budget plus the same Signal gate, era gate, and plateau rule.
+              python matched_budget_null_calibration.py \
                 --csv loto7.csv \
                 --out-dir loto7_agent_output \
                 --feedback-state loto7_agent_output/research_feedback_state.json \
-                --research-state loto7_agent_output/v4_research_state.json \
+                --guard loto7_agent_output/research_cycle_guard.json \
                 --min-train 100 \
                 --target-worlds 64 \
-                --search-steps 16 \
-                --force
+                --worlds-per-run 1
+
+              # Re-evaluate the guard immediately. The 64th matched world transitions
+              # VALIDATION_ONLY -> WAIT_FOR_NEW_DATA without another research cycle.
+              update_guard
+              MODE=$(current_mode)
             fi
 
             END=$(date +%s)
@@ -303,35 +312,27 @@ jobs:
               --state loto7_agent_output/v4_research_state.json \
               --metrics loto7_agent_output/execution_metrics.csv
 
-            FORCE=$(python - <<'PY'
+            if [ "$MODE" = "VALIDATION_ONLY" ] || [ "$MODE" = "WAIT_FOR_NEW_DATA" ]; then
+              # Matched worlds are expensive; persist every completed world so a runner
+              # cancellation never loses validation progress.
+              checkpoint
+            else
+              FORCE=$(python - <<'PY'
           import json
           from pathlib import Path
           p = Path("loto7_agent_output/run_events.json")
           obj = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
           print("1" if obj.get("force_checkpoint") else "0")
           PY
-            )
-            if [ "$SEARCH_ENABLED" = "0" ]; then
-              FORCE=0
-            fi
-
-            NOW=$(date +%s)
-            if [ "$FORCE" = "1" ] || [ $((ITERATION % CHECKPOINT_EVERY)) -eq 0 ] || [ $((NOW - LAST_CHECKPOINT)) -ge "$MAX_CHECKPOINT_SECONDS" ]; then
-              checkpoint
-            fi
-
-            if [ "$SEARCH_ENABLED" = "0" ]; then
-              NULL_COMPLETE=$(python - <<'PY'
-          import json
-          from pathlib import Path
-          p = Path("loto7_agent_output/null_search_calibration_summary.json")
-          obj = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
-          print("1" if obj.get("calibration_complete") else "0")
-          PY
               )
-              if [ "$NULL_COMPLETE" = "1" ]; then
-                sleep 300
+              NOW=$(date +%s)
+              if [ "$FORCE" = "1" ] || [ $((ITERATION % CHECKPOINT_EVERY)) -eq 0 ] || [ $((NOW - LAST_CHECKPOINT)) -ge "$MAX_CHECKPOINT_SECONDS" ]; then
+                checkpoint
               fi
+            fi
+
+            if [ "$MODE" = "WAIT_FOR_NEW_DATA" ]; then
+              break
             fi
           done
 
@@ -369,9 +370,16 @@ jobs:
               cat loto7_agent_output/true_nested_evolution_report.md
             fi
             echo
-            echo '## Null-search calibration'
+            echo '## Legacy bounded Null calibration'
             if [ -f loto7_agent_output/null_search_calibration_report.md ]; then
               cat loto7_agent_output/null_search_calibration_report.md
+            fi
+            echo
+            echo '## Matched-Budget Null calibration'
+            if [ -f loto7_agent_output/matched_budget_null_calibration_report.md ]; then
+              cat loto7_agent_output/matched_budget_null_calibration_report.md
+            else
+              echo 'Matched-Budget Null calibration has not started yet.'
             fi
             echo
             echo '## Latest accepted model historical reconciliation'
@@ -399,5 +407,18 @@ jobs:
         if: ${{ success() && github.ref == 'refs/heads/main' }}
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
+          MODE=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("loto7_agent_output/research_cycle_guard.json")
+          obj = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+          print(obj.get("mode", "SEARCH"))
+          PY
+          )
+          if [ "$MODE" = "WAIT_FOR_NEW_DATA" ]; then
+            echo "WAIT_FOR_NEW_DATA: successor dispatch suppressed. Scheduled source checks remain active."
+            exit 0
+          fi
           gh workflow run continuous_loto7_v4.yml --repo "$GITHUB_REPOSITORY" --ref main
