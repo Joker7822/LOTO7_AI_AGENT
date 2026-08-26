@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/continuous_loto7_v4.yml"
       - "loto7_v4_runner.py"
+      - "research_v4_no_production.py"
+      - "weekly_production_prediction.py"
       - "research_feedback.py"
       - "research_feedback_bootstrap.py"
       - "feedback_optimizer.py"
@@ -28,7 +30,10 @@ on:
   schedule:
     # Daily recovery/bootstrap at 02:00 JST (17:00 UTC previous day).
     - cron: "0 17 * * *"
-    # While WAIT_FOR_NEW_DATA, also check around Friday's draw/result window.
+    # Publish the frozen weekly Production prediction every Friday at 17:00 JST.
+    # 08:00 UTC = 17:00 JST.
+    - cron: "0 8 * * 5"
+    # While WAIT_FOR_NEW_DATA, continue result checks after the Friday draw.
     # 09:00-13:00 UTC = 18:00-22:00 JST.
     - cron: "0 9-13 * * 5"
   workflow_dispatch:
@@ -86,6 +91,18 @@ jobs:
           LAST_FETCH=0
           LAST_CHECKPOINT=$RUNNER_START
           ITERATION=0
+          EVENT_SCHEDULE=$(python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p = Path(os.environ.get("GITHUB_EVENT_PATH", ""))
+          obj = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
+          print(obj.get("schedule", ""))
+          PY
+          )
+          WEEKLY_PRODUCTION_RUN=0
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ] && [ "$EVENT_SCHEDULE" = "0 8 * * 5" ]; then
+            WEEKLY_PRODUCTION_RUN=1
+          fi
 
           refresh_sources() {
             local dow hour max_attempts retry_seconds
@@ -203,6 +220,19 @@ jobs:
               refresh_sources
             fi
 
+            # Production publication is isolated from Research/OOS processing and runs
+            # only in the dedicated Friday 17:00 JST schedule slot.
+            if [ "$WEEKLY_PRODUCTION_RUN" = "1" ]; then
+              GITHUB_SHA="$(git rev-parse HEAD)" python weekly_production_prediction.py \
+                --csv loto7.csv \
+                --out-dir loto7_agent_output \
+                --champion-file loto7_agent_output/model_champion.json \
+                --research-state loto7_agent_output/v4_research_state.json \
+                --min-train 100
+              WEEKLY_PRODUCTION_RUN=0
+              checkpoint
+            fi
+
             update_guard
             MODE=$(current_mode)
             echo "[MODE] $MODE"
@@ -237,7 +267,9 @@ jobs:
               --if-stale
 
             if [ "$MODE" = "SEARCH" ]; then
-              GITHUB_SHA="$(git rev-parse HEAD)" python loto7_v4_runner.py \
+              # Research/OOS processing must never publish or overwrite Production.
+              # Weekly Production publication is owned exclusively by the Friday 17 JST publisher.
+              GITHUB_SHA="$(git rev-parse HEAD)" python research_v4_no_production.py \
                 --csv loto7.csv \
                 --out-dir loto7_agent_output \
                 --champion-file loto7_agent_output/model_champion.json \
@@ -348,6 +380,11 @@ jobs:
             echo '## Research cycle guard'
             if [ -f loto7_agent_output/research_cycle_guard.json ]; then
               cat loto7_agent_output/research_cycle_guard.json
+            fi
+            echo
+            echo '## Weekly Production publisher'
+            if [ -f loto7_agent_output/weekly_production_prediction_state.json ]; then
+              cat loto7_agent_output/weekly_production_prediction_state.json
             fi
             echo
             echo '## Era Signal robustness'
