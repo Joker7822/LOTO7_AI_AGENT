@@ -11,9 +11,13 @@ CREATE TABLE IF NOT EXISTS loto7_predictions (
   git_sha VARCHAR(64) NULL,
   data_sha256 VARCHAR(64) NULL,
   strategy_weights_json JSON NULL,
+  is_active TINYINT(1) NOT NULL DEFAULT 1,
+  invalidated_at_jst VARCHAR(40) NULL,
+  invalidation_reason VARCHAR(255) NULL,
   synced_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_target_ticket (target_round, ticket),
+  UNIQUE KEY uq_prediction_id (prediction_id),
   KEY idx_target_round (target_round),
+  KEY idx_target_active (target_round, is_active),
   KEY idx_model_version (model_version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
