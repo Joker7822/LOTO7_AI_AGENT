@@ -1,0 +1,71 @@
+{
+  "report_version": "joint-set-true-nested-v1",
+  "evaluation_type": "strict_prior_only_prequential_config_selection_joint_set",
+  "data_sha256": "0fdce483829f37c88226c3d0ebeb0321bec34ed144afd986af5f81a8fb7347d0",
+  "metadata_sha256": "522807cecfea4cae2562e138cf59e417aa283c60ce2635826c61d9aa3b02d2cb",
+  "min_train": 100,
+  "last_n": 60,
+  "evaluated_rounds": 60,
+  "selection_window": 120,
+  "predeclared_config_count": 5,
+  "config_versions": [
+    "joint-conservative-f04b2b8b49",
+    "joint-balanced-ccbd9586b0",
+    "joint-structural-2da6b133da",
+    "joint-fast-regime-eb79eb934d",
+    "joint-slow-regime-61d575a245"
+  ],
+  "validation_scenarios": 256,
+  "validation_candidates": 64,
+  "components": {
+    "dynamic_marginal": true,
+    "low_rank_pair_interaction": true,
+    "hidden_regime_filter": true,
+    "dynamic_uniform_gate": true,
+    "leakage_safe_external_metadata": true,
+    "expected_utility_portfolio": true
+  },
+  "metadata": {
+    "report_version": "research-metadata-v1-leakage-safe",
+    "path": "loto7_agent_output/research_external_metadata.csv",
+    "records": 0,
+    "trusted_records": 0,
+    "issues": [],
+    "cutoff_hour_jst": 18,
+    "same_draw_post_cutoff_is_rejected": true,
+    "policy": "Research-only. A feature is usable only when its effective_round matches the target and available_at_jst is at or before the conservative draw cutoff.",
+    "feature_names": [],
+    "rows_with_any_feature": 0
+  },
+  "selected_config_counts": {
+    "joint-fast-regime-eb79eb934d": 8,
+    "joint-slow-regime-61d575a245": 52
+  },
+  "signal": {
+    "mean_top7_hits": 1.5,
+    "mean_actual_mass": 0.18970077677931485,
+    "mean_log_edge_vs_uniform": -0.00012575810590912024,
+    "mean_brier_edge_vs_uniform": -5.334023168162653e-06,
+    "mean_gate": 0.46085022793805985
+  },
+  "portfolio": {
+    "mean_max_hits": 2.533333333333333,
+    "random_mean_max_hits": 2.438720703125,
+    "ge3_round_rate": 0.48333333333333334,
+    "random_ge3_rate": 0.438232421875,
+    "ge4_round_rate": 0.1,
+    "random_ge4_rate": 0.0703125,
+    "mean_score": 2.910833333333334,
+    "random_mean_score": 2.7772143554687494,
+    "score_delta_vs_random": {
+      "mean": 0.13361897786458363,
+      "low95": -0.1347143554687497,
+      "high95": 0.4102856445312503
+    },
+    "round_win_rate_vs_random": 0.48333333333333334
+  },
+  "independent_evidence": false,
+  "promotion_eligible": false,
+  "leakage_control": "At target t, config selection, gate calibration, pair/regime estimation, metadata regression, and portfolio construction use only draws before t. Metadata must additionally have available_at_jst before the conservative target cutoff.",
+  "interpretation": "Research-only structural challenger. Production can change only through frozen Future OOS governance."
+}
