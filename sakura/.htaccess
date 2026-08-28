@@ -1,0 +1,9 @@
+Options -Indexes
+
+<FilesMatch "^(prediction_ingest_config\.php|prediction_ingest_config\.php\.example|README\.md)$">
+  Require all denied
+</FilesMatch>
+
+<DirectoryMatch "sql">
+  Require all denied
+</DirectoryMatch>
