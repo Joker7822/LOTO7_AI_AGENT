@@ -35,14 +35,38 @@ def test_render_latest_prediction_has_expected_fields():
     assert "5. 29 30 31 32 33 34 35" in text
 
 
-def test_current_frozen_production_is_preserved(tmp_path):
+def test_current_production_outputs_are_current_with_five_tickets(tmp_path):
     out = tmp_path / "out"
     out.mkdir()
     (out / "agent_state.json").write_text(
         '{"model_version":"baseline-test","data_sha256":"sha-a"}',
         encoding="utf-8",
     )
-    (out / "candidate_tickets.csv").write_text("ticket,numbers\n", encoding="utf-8")
-    (out / "latest_prediction.txt").write_text("frozen", encoding="utf-8")
+    (out / "candidate_tickets.csv").write_text(
+        "ticket,numbers\n"
+        "1,01 02 03 04 05 06 07\n"
+        "2,08 09 10 11 12 13 14\n"
+        "3,15 16 17 18 19 20 21\n"
+        "4,22 23 24 25 26 27 28\n"
+        "5,29 30 31 32 33 34 35\n",
+        encoding="utf-8",
+    )
+    # latest_prediction.txt is deliberately not required: it is the publication
+    # artifact that the Friday publisher must be able to regenerate.
+    assert weekly.current_production_outputs_are_current(out, "sha-a", "baseline-test") is True
     assert weekly.current_production_is_frozen_and_current(out, "sha-a", "baseline-test") is True
-    assert weekly.current_production_is_frozen_and_current(out, "sha-b", "baseline-test") is False
+    assert weekly.current_production_outputs_are_current(out, "sha-b", "baseline-test") is False
+
+
+def test_current_production_outputs_reject_incomplete_ticket_set(tmp_path):
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / "agent_state.json").write_text(
+        '{"model_version":"baseline-test","data_sha256":"sha-a"}',
+        encoding="utf-8",
+    )
+    (out / "candidate_tickets.csv").write_text(
+        "ticket,numbers\n1,01 02 03 04 05 06 07\n",
+        encoding="utf-8",
+    )
+    assert weekly.current_production_outputs_are_current(out, "sha-a", "baseline-test") is False
