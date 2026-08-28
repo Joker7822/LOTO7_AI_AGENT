@@ -13,7 +13,7 @@ import loto7_v2_runner as v2
 import loto7_v4_runner as v4
 from loto7_evolving_agent import fingerprint_file, make_history, read_csv_flexible
 
-REPORT_VERSION = "weekly-production-publisher-v1"
+REPORT_VERSION = "weekly-production-publisher-v2-republish-current"
 
 
 def read_tickets(path: Path) -> List[str]:
@@ -43,16 +43,25 @@ def render_latest_prediction(state: Dict[str, object], tickets: List[str], gener
     return "\n".join(lines) + "\n"
 
 
-def current_production_is_frozen_and_current(
+def current_production_outputs_are_current(
     out_dir: Path, data_sha: str, champion_version: str
 ) -> bool:
     state = v4.load_json(out_dir / "agent_state.json", {})
+    tickets = read_tickets(out_dir / "candidate_tickets.csv")
     return bool(
         state.get("model_version") == champion_version
         and state.get("data_sha256") == data_sha
-        and (out_dir / "candidate_tickets.csv").exists()
-        and (out_dir / "latest_prediction.txt").exists()
+        and len(tickets) == 5
     )
+
+
+# Backward-compatible alias for older tests/callers. "Current" now means the
+# canonical Production state and five tickets are current; latest_prediction.txt
+# is a publication artifact and is intentionally regenerated at the weekly slot.
+def current_production_is_frozen_and_current(
+    out_dir: Path, data_sha: str, champion_version: str
+) -> bool:
+    return current_production_outputs_are_current(out_dir, data_sha, champion_version)
 
 
 def publish(
@@ -71,33 +80,30 @@ def publish(
     generation = int(research.get("generation", 0))
     checked_at = v4.now_jst()
 
-    # Preserve an already-frozen Production artifact byte-for-byte. This is
-    # especially important for the legacy v1 round-692 Production forecast.
-    if current_production_is_frozen_and_current(out_dir, data_sha, champion.version()):
-        result = {
-            "report_version": REPORT_VERSION,
-            "checked_at_jst": checked_at,
-            "published": False,
-            "reason": "current_frozen_production_preserved",
-            "data_sha256": data_sha,
-            "model_version": champion.version(),
-        }
-        v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
-        return result
-
-    production = v4.ensure_production_outputs(
-        x,
-        clean,
-        champion,
-        out_dir,
-        min_train,
-        data_sha,
-        os.environ.get("GITHUB_SHA", "local"),
-        generation,
-        force=False,
-        promotion=None,
+    reused_current_outputs = current_production_outputs_are_current(
+        out_dir, data_sha, champion.version()
     )
-    state = production.get("state") if isinstance(production.get("state"), dict) else {}
+
+    if reused_current_outputs:
+        # The model/data/tickets are already the canonical Production outputs.
+        # Re-publish only the human-facing latest_prediction.txt so its weekly
+        # timestamp and numbers cannot drift away from candidate_tickets.csv.
+        state = v4.load_json(out_dir / "agent_state.json", {})
+    else:
+        production = v4.ensure_production_outputs(
+            x,
+            clean,
+            champion,
+            out_dir,
+            min_train,
+            data_sha,
+            os.environ.get("GITHUB_SHA", "local"),
+            generation,
+            force=False,
+            promotion=None,
+        )
+        state = production.get("state") if isinstance(production.get("state"), dict) else {}
+
     tickets = read_tickets(out_dir / "candidate_tickets.csv")
     if len(tickets) != 5:
         raise RuntimeError(f"expected exactly 5 Production tickets, got {len(tickets)}")
@@ -106,15 +112,21 @@ def publish(
     (out_dir / "latest_prediction.txt").write_text(
         render_latest_prediction(state, tickets, generated_at), encoding="utf-8"
     )
+
     result = {
         "report_version": REPORT_VERSION,
         "checked_at_jst": checked_at,
         "published_at_jst": generated_at,
         "published": True,
+        "reason": (
+            "republished_current_production_outputs"
+            if reused_current_outputs
+            else "generated_current_production_outputs"
+        ),
         "data_sha256": data_sha,
         "model_version": champion.version(),
         "target_round": state.get("target_round"),
-        "schedule_policy": "Friday 17:00 JST only",
+        "schedule_policy": "Friday 15:00 JST",
         "production_promotion_method": "future_oos_only",
     }
     v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
@@ -122,7 +134,7 @@ def publish(
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Publish frozen Production prediction at the weekly Friday 17:00 JST slot")
+    ap = argparse.ArgumentParser(description="Publish Production prediction at the weekly Friday 15:00 JST slot")
     ap.add_argument("--csv", type=Path, default=Path("loto7.csv"))
     ap.add_argument("--out-dir", type=Path, default=Path("loto7_agent_output"))
     ap.add_argument("--champion-file", type=Path, default=Path("loto7_agent_output/model_champion.json"))
