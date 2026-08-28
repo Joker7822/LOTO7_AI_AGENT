@@ -2,10 +2,6 @@ name: Publish LOTO7 Production Now
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/publish_production_now.yml"
 
 permissions:
   contents: write
@@ -36,7 +32,7 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
-      - name: Refresh source and publish Production
+      - name: Refresh source and republish frozen Production
         shell: bash
         run: |
           set -euo pipefail
@@ -56,11 +52,18 @@ jobs:
             --out-dir loto7_agent_output \
             --champion-file loto7_agent_output/model_champion.json \
             --research-state loto7_agent_output/v4_research_state.json \
-            --min-train 100
+            --min-train 100 \
+            --republish-only
 
-          git add -- loto7.csv loto7_agent_output
-          if [ -n "$(git status --porcelain -- loto7.csv loto7_agent_output)" ]; then
-            git commit -m "chore: publish Production prediction"
+          python audit_ledger.py \
+            --loto-csv loto7.csv \
+            --tickets-csv loto7_agent_output/candidate_tickets.csv \
+            --out-dir loto7_agent_output \
+            --status-md STATUS.md
+
+          git add -- loto7.csv STATUS.md loto7_agent_output
+          if [ -n "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
+            git commit -m "chore: republish frozen Production prediction"
             git pull --rebase
             git push
           fi

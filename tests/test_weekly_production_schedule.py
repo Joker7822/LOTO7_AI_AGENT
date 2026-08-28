@@ -39,7 +39,7 @@ def test_current_production_outputs_are_current_with_five_tickets(tmp_path):
     out = tmp_path / "out"
     out.mkdir()
     (out / "agent_state.json").write_text(
-        '{"model_version":"baseline-test","data_sha256":"sha-a"}',
+        '{"model_version":"baseline-test","data_sha256":"sha-a","latest_round":"第692回","target_round":"第693回"}',
         encoding="utf-8",
     )
     (out / "candidate_tickets.csv").write_text(
@@ -51,10 +51,14 @@ def test_current_production_outputs_are_current_with_five_tickets(tmp_path):
         "5,29 30 31 32 33 34 35\n",
         encoding="utf-8",
     )
-    # latest_prediction.txt is deliberately not required: it is the publication
-    # artifact that the Friday publisher must be able to regenerate.
     assert weekly.current_production_outputs_are_current(out, "sha-a", "baseline-test") is True
     assert weekly.current_production_is_frozen_and_current(out, "sha-a", "baseline-test") is True
+    assert weekly.current_production_outputs_are_current(
+        out, "sha-a", "baseline-test", expected_latest_round=692, expected_target_round=693
+    ) is True
+    assert weekly.current_production_outputs_are_current(
+        out, "sha-a", "baseline-test", expected_latest_round=691, expected_target_round=693
+    ) is False
     assert weekly.current_production_outputs_are_current(out, "sha-b", "baseline-test") is False
 
 
@@ -70,3 +74,10 @@ def test_current_production_outputs_reject_incomplete_ticket_set(tmp_path):
         encoding="utf-8",
     )
     assert weekly.current_production_outputs_are_current(out, "sha-a", "baseline-test") is False
+
+
+def test_publish_now_is_manual_republish_only():
+    text = Path(".github/workflows/publish_production_now.yml").read_text(encoding="utf-8")
+    assert "workflow_dispatch:" in text
+    assert "\n  push:" not in text
+    assert "--republish-only" in text
