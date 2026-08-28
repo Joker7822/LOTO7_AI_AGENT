@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS loto7_predictions (
   model_version VARCHAR(128) NOT NULL,
   git_sha VARCHAR(64) NULL,
   data_sha256 VARCHAR(64) NULL,
-  strategy_weights_json JSON NULL,
+  strategy_weights_json LONGTEXT NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   invalidated_at_jst VARCHAR(40) NULL,
   invalidation_reason VARCHAR(255) NULL,
