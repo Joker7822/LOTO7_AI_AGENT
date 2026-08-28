@@ -64,11 +64,13 @@ try {
 INSERT INTO loto7_predictions (
   prediction_id, prediction_created_at_jst, base_round, base_draw_date,
   target_round, target_draw_date_estimate, ticket, predicted_numbers,
-  model_version, git_sha, data_sha256, strategy_weights_json
+  model_version, git_sha, data_sha256, strategy_weights_json,
+  is_active, invalidated_at_jst, invalidation_reason
 ) VALUES (
   :prediction_id, :prediction_created_at_jst, :base_round, :base_draw_date,
   :target_round, :target_draw_date_estimate, :ticket, :predicted_numbers,
-  :model_version, :git_sha, :data_sha256, :strategy_weights_json
+  :model_version, :git_sha, :data_sha256, :strategy_weights_json,
+  :is_active, :invalidated_at_jst, :invalidation_reason
 )
 ON DUPLICATE KEY UPDATE
   prediction_created_at_jst=VALUES(prediction_created_at_jst),
@@ -76,7 +78,9 @@ ON DUPLICATE KEY UPDATE
   target_round=VALUES(target_round), target_draw_date_estimate=VALUES(target_draw_date_estimate),
   ticket=VALUES(ticket), predicted_numbers=VALUES(predicted_numbers),
   model_version=VALUES(model_version), git_sha=VALUES(git_sha),
-  data_sha256=VALUES(data_sha256), strategy_weights_json=VALUES(strategy_weights_json)
+  data_sha256=VALUES(data_sha256), strategy_weights_json=VALUES(strategy_weights_json),
+  is_active=VALUES(is_active), invalidated_at_jst=VALUES(invalidated_at_jst),
+  invalidation_reason=VALUES(invalidation_reason)
 SQL;
     $predictionStmt = $pdo->prepare($predictionSql);
 
@@ -97,6 +101,9 @@ SQL;
             ':git_sha' => $row['git_sha'] ?: null,
             ':data_sha256' => $row['data_sha256'] ?: null,
             ':strategy_weights_json' => json_encode($row['strategy_weights'] ?? new stdClass(), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+            ':is_active' => !empty($row['is_active']) ? 1 : 0,
+            ':invalidated_at_jst' => $row['invalidated_at_jst'] ?: null,
+            ':invalidation_reason' => $row['invalidation_reason'] ?: null,
         ]);
     }
 
