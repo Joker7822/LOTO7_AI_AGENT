@@ -1,0 +1,80 @@
+name: Publish LOTO7 Production Now
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish_production_now.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: loto7-production-publisher
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Refresh source and publish Production
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          python fetch_validate.py \
+            --csv loto7.csv \
+            --report loto7_agent_output/source_validation.json \
+            --max-attempts 1 \
+            --interval-seconds 0 \
+            --months 3
+
+          GITHUB_SHA="$(git rev-parse HEAD)" python weekly_production_prediction.py \
+            --csv loto7.csv \
+            --out-dir loto7_agent_output \
+            --champion-file loto7_agent_output/model_champion.json \
+            --research-state loto7_agent_output/v4_research_state.json \
+            --min-train 100
+
+          git add -- loto7.csv loto7_agent_output
+          if [ -n "$(git status --porcelain -- loto7.csv loto7_agent_output)" ]; then
+            git commit -m "chore: publish Production prediction"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Show published prediction
+        if: success()
+        shell: bash
+        run: |
+          {
+            echo '## Weekly Production publisher'
+            cat loto7_agent_output/weekly_production_prediction_state.json
+            echo
+            echo '## Production prediction'
+            echo '```text'
+            cat loto7_agent_output/latest_prediction.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
