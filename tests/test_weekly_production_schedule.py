@@ -3,9 +3,9 @@ from pathlib import Path
 import weekly_production_prediction as weekly
 
 
-def test_weekly_prediction_cron_is_friday_17_jst():
+def test_weekly_prediction_cron_is_friday_15_jst():
     text = Path(".github/workflows/continuous_loto7_v4.yml").read_text(encoding="utf-8")
-    assert '- cron: "0 8 * * 5"' in text
+    assert '- cron: "0 6 * * 5"' in text
     assert "weekly_production_prediction.py" in text
     assert "research_v4_no_production.py" in text
 
@@ -26,11 +26,11 @@ def test_render_latest_prediction_has_expected_fields():
             "22 23 24 25 26 27 28",
             "29 30 31 32 33 34 35",
         ],
-        "2026-09-04T17:00:00+09:00",
+        "2026-09-04T15:00:00+09:00",
     )
     assert "対象回: 第693回" in text
     assert "予測基準: 第692回 / 2026-08-28" in text
-    assert "予測作成(JST): 2026-09-04T17:00:00+09:00" in text
+    assert "予測作成(JST): 2026-09-04T15:00:00+09:00" in text
     assert "モデル: baseline-test" in text
     assert "5. 29 30 31 32 33 34 35" in text
 

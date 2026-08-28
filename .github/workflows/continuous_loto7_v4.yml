@@ -30,8 +30,8 @@ on:
   schedule:
     # Daily recovery/bootstrap at 02:00 JST (17:00 UTC previous day).
     - cron: "0 17 * * *"
-    # Publish the frozen weekly Production prediction every Friday at 17:00 JST.
-    # 08:00 UTC = 17:00 JST.
+    # Publish the frozen weekly Production prediction every Friday at 15:00 JST.
+    # 06:00 UTC = 15:00 JST.
     - cron: "0 6 * * 5"
     # While WAIT_FOR_NEW_DATA, continue result checks after the Friday draw.
     # 09:00-13:00 UTC = 18:00-22:00 JST.
@@ -100,7 +100,7 @@ jobs:
           PY
           )
           WEEKLY_PRODUCTION_RUN=0
-          if [ "$GITHUB_EVENT_NAME" = "schedule" ] && [ "$EVENT_SCHEDULE" = "0 8 * * 5" ]; then
+          if [ "$GITHUB_EVENT_NAME" = "schedule" ] && [ "$EVENT_SCHEDULE" = "0 6 * * 5" ]; then
             WEEKLY_PRODUCTION_RUN=1
           fi
 
@@ -221,7 +221,7 @@ jobs:
             fi
 
             # Production publication is isolated from Research/OOS processing and runs
-            # only in the dedicated Friday 17:00 JST schedule slot.
+            # only in the dedicated Friday 15:00 JST schedule slot.
             if [ "$WEEKLY_PRODUCTION_RUN" = "1" ]; then
               GITHUB_SHA="$(git rev-parse HEAD)" python weekly_production_prediction.py \
                 --csv loto7.csv \
@@ -268,7 +268,7 @@ jobs:
 
             if [ "$MODE" = "SEARCH" ]; then
               # Research/OOS processing must never publish or overwrite Production.
-              # Weekly Production publication is owned exclusively by the Friday 17 JST publisher.
+              # Weekly Production publication is owned exclusively by the Friday 15 JST publisher.
               GITHUB_SHA="$(git rev-parse HEAD)" python research_v4_no_production.py \
                 --csv loto7.csv \
                 --out-dir loto7_agent_output \
