@@ -1,0 +1,61 @@
+name: Sync Production Predictions to Sakura DB
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "loto7_agent_output/predictions.csv"
+      - "loto7_agent_output/prediction_corrections.csv"
+      - "loto7_agent_output/reconciliation.csv"
+      - "prediction_db_sync.py"
+      - "sakura/**"
+      - ".github/workflows/sync_sakura_prediction_db.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-sakura-prediction-db
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate sync payload
+        run: |
+          python -m py_compile prediction_db_sync.py
+          python prediction_db_sync.py --dry-run --output /tmp/sakura_payload.json
+          python - <<'PY'
+          import json
+          p = json.load(open('/tmp/sakura_payload.json', encoding='utf-8'))
+          assert p['schema_version'] == 'loto7-db-sync-v1'
+          assert isinstance(p['predictions'], list)
+          assert isinstance(p['results'], list)
+          print(f"payload predictions={len(p['predictions'])} results={len(p['results'])}")
+          PY
+
+      - name: Validate Sakura PHP endpoint syntax
+        run: php -l sakura/prediction_ingest.php
+
+      - name: Sync to Sakura MySQL
+        env:
+          SAKURA_PREDICTION_API_URL: ${{ secrets.SAKURA_PREDICTION_API_URL }}
+          SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${SAKURA_PREDICTION_API_URL:-}" ] || [ -z "${SAKURA_PREDICTION_HMAC_SECRET:-}" ]; then
+            echo "Sakura DB sync is not configured yet; payload validation succeeded and network sync is skipped."
+            exit 0
+          fi
+          python prediction_db_sync.py
