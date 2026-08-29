@@ -53,11 +53,25 @@ try {
         $latestRound = (int)$roundRow['latest_round'];
 
         $stmt = $pdo->prepare(<<<'SQL'
-SELECT ticket, predicted_numbers
-FROM loto7_predictions
-WHERE is_active = 1
-  AND CAST(target_round AS UNSIGNED) = :target_round
-ORDER BY ticket ASC
+SELECT p.ticket, p.predicted_numbers
+FROM loto7_predictions p
+WHERE p.is_active = 1
+  AND CAST(p.target_round AS UNSIGNED) = :target_round
+  AND NOT EXISTS (
+      SELECT 1
+      FROM loto7_predictions newer
+      WHERE newer.is_active = 1
+        AND CAST(newer.target_round AS UNSIGNED) = CAST(p.target_round AS UNSIGNED)
+        AND newer.ticket = p.ticket
+        AND (
+            newer.prediction_created_at_jst > p.prediction_created_at_jst
+            OR (
+                newer.prediction_created_at_jst = p.prediction_created_at_jst
+                AND newer.prediction_id > p.prediction_id
+            )
+        )
+  )
+ORDER BY p.ticket ASC
 SQL
         );
         $stmt->execute(array(':target_round' => $latestRound));
@@ -181,7 +195,7 @@ h1 {
     <?php endif; ?>
   </section>
 
-  <div class="note">最新回の有効予測のみ表示・5分ごとに自動更新</div>
+  <div class="note">最新回のみ表示・5分ごとに自動更新</div>
 </main>
 </body>
 </html>
