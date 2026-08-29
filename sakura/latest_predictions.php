@@ -46,7 +46,7 @@ try {
 
     $roundExpr = "CAST(REPLACE(REPLACE(target_round, '第', ''), '回', '') AS UNSIGNED)";
     $roundStmt = $pdo->query(
-        'SELECT MAX(' . $roundExpr . ') AS latest_round FROM loto7_predictions WHERE is_active = 1'
+        'SELECT MAX(' . $roundExpr . ') AS latest_round FROM loto7_predictions'
     );
     $roundRow = $roundStmt->fetch();
 
@@ -185,8 +185,10 @@ h1 {
 
     <?php if ($error !== null): ?>
       <div class="message error"><?= h($error) ?></div>
+    <?php elseif ($latestRound === null): ?>
+      <div class="message">対象回がありません。</div>
     <?php elseif (count($rows) === 0): ?>
-      <div class="message">表示できる予測はありません。</div>
+      <div class="message">この回の予測は未発行です。</div>
     <?php else: ?>
       <?php foreach ($rows as $row): ?>
         <div class="row">
@@ -197,7 +199,7 @@ h1 {
     <?php endif; ?>
   </section>
 
-  <div class="note">最新回のみ表示・5分ごとに自動更新</div>
+  <div class="note">最新対象回のみ表示・5分ごとに自動更新</div>
 </main>
 </body>
 </html>
