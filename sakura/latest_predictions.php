@@ -20,6 +20,7 @@ header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: no-referrer');
 
 const VIEW_PASSWORD_HASH = '$2y$12$HFmUIa7fjckS6fI2YqX77OzWr4RRFScJtD3RbtN/NrJsWNTU4jLzK';
+const SESSION_TTL_SECONDS = 300;
 
 function h($value) {
     return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -35,15 +36,43 @@ function number_badges($numbers) {
     return $html;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
+function clear_auth_session() {
     $_SESSION = array();
     if (ini_get('session.use_cookies')) {
         $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'] ?? '', $params['secure'], $params['httponly']);
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params['path'],
+            isset($params['domain']) ? $params['domain'] : '',
+            $params['secure'],
+            $params['httponly']
+        );
     }
     session_destroy();
-    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+}
+
+function self_path() {
+    return strtok($_SERVER['REQUEST_URI'], '?');
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
+    clear_auth_session();
+    header('Location: ' . self_path());
     exit;
+}
+
+if (!empty($_SESSION['loto7_view_authenticated'])) {
+    $authenticatedAt = isset($_SESSION['loto7_view_authenticated_at'])
+        ? (int)$_SESSION['loto7_view_authenticated_at']
+        : 0;
+
+    if ($authenticatedAt <= 0 || (time() - $authenticatedAt) >= SESSION_TTL_SECONDS) {
+        clear_auth_session();
+        header('Location: ' . self_path() . '?expired=1');
+        exit;
+    }
 }
 
 $loginError = null;
@@ -53,13 +82,15 @@ if (empty($_SESSION['loto7_view_authenticated'])) {
         if (password_verify($password, VIEW_PASSWORD_HASH)) {
             session_regenerate_id(true);
             $_SESSION['loto7_view_authenticated'] = true;
-            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+            $_SESSION['loto7_view_authenticated_at'] = time();
+            header('Location: ' . self_path());
             exit;
         }
         usleep(500000);
         $loginError = 'パスワードが違います。';
     }
 
+    $expired = isset($_GET['expired']);
     ?>
 <!doctype html>
 <html lang="ja">
@@ -68,9 +99,9 @@ if (empty($_SESSION['loto7_view_authenticated'])) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>LOTO7 Login</title>
 <style>
-:root{--bg:#07111f;--panel:#0d1b2a;--line:rgba(255,255,255,.1);--text:#eef6ff;--muted:#8ca3ba;--cyan:#55e6d7;--danger:#ff8896;--shadow:0 24px 70px rgba(0,0,0,.34)}
+:root{--bg:#07111f;--line:rgba(255,255,255,.1);--text:#eef6ff;--muted:#8ca3ba;--cyan:#55e6d7;--danger:#ff8896;--shadow:0 24px 70px rgba(0,0,0,.34)}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:radial-gradient(circle at 15% 0%,rgba(46,123,255,.2),transparent 34%),radial-gradient(circle at 85% 10%,rgba(50,220,199,.13),transparent 30%),linear-gradient(180deg,#07111f 0%,#091521 100%)}
-.login{width:min(430px,100%);background:linear-gradient(145deg,rgba(16,38,64,.97),rgba(8,24,41,.97));border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:30px}.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:800}h1{font-size:32px;margin:10px 0 8px}.sub{margin:0 0 24px;color:var(--muted);line-height:1.6}.field{display:grid;gap:8px}.field label{font-size:12px;color:#a9bed0;font-weight:700}.field input{width:100%;border:1px solid var(--line);border-radius:14px;background:#081827;color:var(--text);padding:14px 15px;font-size:16px;outline:none}.field input:focus{border-color:rgba(85,230,215,.65);box-shadow:0 0 0 3px rgba(85,230,215,.1)}button{width:100%;margin-top:14px;border:0;border-radius:14px;padding:14px 16px;background:linear-gradient(135deg,#2979ff,#38cfc1);color:white;font-weight:900;font-size:15px;cursor:pointer}.error{margin-top:14px;padding:11px 12px;border-radius:12px;border:1px solid rgba(255,112,129,.24);background:rgba(255,112,129,.08);color:var(--danger);font-size:13px}.note{margin-top:18px;color:#667f96;font-size:11px;text-align:center}
+.login{width:min(430px,100%);background:linear-gradient(145deg,rgba(16,38,64,.97),rgba(8,24,41,.97));border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:30px}.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:800}h1{font-size:32px;margin:10px 0 8px}.sub{margin:0 0 24px;color:var(--muted);line-height:1.6}.field{display:grid;gap:8px}.field label{font-size:12px;color:#a9bed0;font-weight:700}.field input{width:100%;border:1px solid var(--line);border-radius:14px;background:#081827;color:var(--text);padding:14px 15px;font-size:16px;outline:none}.field input:focus{border-color:rgba(85,230,215,.65);box-shadow:0 0 0 3px rgba(85,230,215,.1)}button{width:100%;margin-top:14px;border:0;border-radius:14px;padding:14px 16px;background:linear-gradient(135deg,#2979ff,#38cfc1);color:white;font-weight:900;font-size:15px;cursor:pointer}.notice,.error{margin-top:14px;padding:11px 12px;border-radius:12px;font-size:13px}.notice{border:1px solid rgba(85,230,215,.2);background:rgba(85,230,215,.08);color:#8ee9df}.error{border:1px solid rgba(255,112,129,.24);background:rgba(255,112,129,.08);color:var(--danger)}.note{margin-top:18px;color:#667f96;font-size:11px;text-align:center}
 </style>
 </head>
 <body>
@@ -83,14 +114,18 @@ if (empty($_SESSION['loto7_view_authenticated'])) {
     <input id="password" name="password" type="password" required autofocus autocomplete="current-password">
   </div>
   <button type="submit">アクセス</button>
+  <?php if ($expired): ?><div class="notice">5分経過したため自動ログアウトしました。</div><?php endif; ?>
   <?php if ($loginError !== null): ?><div class="error"><?= h($loginError) ?></div><?php endif; ?>
-  <div class="note">認証後のみ予測データを表示します</div>
+  <div class="note">ログイン後5分で自動ログアウトします</div>
 </form>
 </body>
 </html>
 <?php
     exit;
 }
+
+$authenticatedAt = (int)$_SESSION['loto7_view_authenticated_at'];
+$sessionRemainingSeconds = max(1, SESSION_TTL_SECONDS - (time() - $authenticatedAt));
 
 $configPath = __DIR__ . '/prediction_ingest_config.php';
 $error = null;
@@ -156,13 +191,13 @@ SQL
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="refresh" content="300">
+<meta http-equiv="refresh" content="<?= h($sessionRemainingSeconds) ?>">
 <title>LOTO7 最新予測</title>
 <style>
 :root{--bg:#07111f;--panel:#0d1b2a;--line:rgba(255,255,255,.09);--text:#eef6ff;--muted:#8ca3ba;--cyan:#55e6d7;--shadow:0 24px 70px rgba(0,0,0,.28)}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:radial-gradient(circle at 12% 0%,rgba(46,123,255,.17),transparent 30%),radial-gradient(circle at 88% 12%,rgba(50,220,199,.11),transparent 28%),linear-gradient(180deg,#07111f 0%,#091521 100%)}
 .wrap{width:min(1080px,calc(100% - 28px));margin:28px auto 56px}.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(16,38,64,.96),rgba(8,24,41,.96));border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:28px;margin-bottom:18px}.hero:after{content:"";position:absolute;width:260px;height:260px;border-radius:50%;right:-80px;top:-120px;background:radial-gradient(circle,rgba(85,230,215,.24),transparent 65%)}
-.topline{position:relative;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:800}h1{font-size:clamp(28px,4vw,44px);margin:8px 0 6px;letter-spacing:-.03em}.subtitle{color:var(--muted);margin:0}.latest-round{margin-top:22px;font-size:clamp(24px,4vw,38px);font-weight:900;letter-spacing:-.02em}.logout{position:relative;z-index:3}.logout button{border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:rgba(255,255,255,.05);color:#aac0d4;cursor:pointer;font-weight:700}
+.topline{position:relative;z-index:2;display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:800}h1{font-size:clamp(28px,4vw,44px);margin:8px 0 6px;letter-spacing:-.03em}.subtitle{color:var(--muted);margin:0}.latest-round{margin-top:22px;font-size:clamp(24px,4vw,38px);font-weight:900;letter-spacing:-.02em}.logout{position:relative;z-index:3}.logout button{border:1px solid var(--line);border-radius:12px;padding:9px 12px;background:rgba(255,255,255,.05);color:#aac0d4;cursor:pointer;font-weight:700}.timeout{position:relative;z-index:2;margin-top:10px;color:#718aa2;font-size:11px}
 .panel{border:1px solid var(--line);border-radius:20px;background:rgba(12,27,42,.88);box-shadow:var(--shadow);overflow:hidden}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:780px}thead th{padding:13px 14px;background:#102238;color:#9eb5cb;font-size:11px;letter-spacing:.07em;text-transform:uppercase;text-align:left;border-bottom:1px solid var(--line)}tbody td{padding:16px 14px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:middle;font-size:13px}tbody tr:hover{background:rgba(90,167,255,.055)}tbody tr:last-child td{border-bottom:0}
 .round{font-size:16px;font-weight:900;white-space:nowrap}.ticket{display:inline-flex;align-items:center;justify-content:center;min-width:38px;height:30px;padding:0 10px;border-radius:999px;background:rgba(90,167,255,.11);border:1px solid rgba(90,167,255,.24);color:#9dccff;font-weight:800}.balls{display:flex;gap:6px;flex-wrap:wrap;min-width:310px}.ball{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#173b62,#102b49);border:1px solid rgba(112,185,255,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 4px 12px rgba(0,0,0,.16);color:#dff1ff;font-weight:900}.model{max-width:220px;word-break:break-word;color:#c9d9e8}.date{white-space:nowrap;color:#aac0d4}
 .mobile-list{display:none}.card{padding:16px;border-bottom:1px solid var(--line)}.card:last-child{border-bottom:0}.card-top{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px}.card-meta{margin-top:12px;color:var(--muted);font-size:12px;display:grid;gap:4px}.empty,.error{padding:28px;color:var(--muted)}.error{color:#ff9ca8}.footer{color:#617990;font-size:11px;text-align:center;margin-top:12px}
@@ -179,6 +214,7 @@ SQL
         <h1>LOTO7 最新予測</h1>
         <p class="subtitle">loto7_predictions の最新回のみ表示</p>
         <div class="latest-round"><?= $latestTargetRound !== null ? h($latestTargetRound) : '—' ?></div>
+        <div class="timeout">ログインから5分後に自動ログアウト</div>
       </div>
       <form class="logout" method="post"><button type="submit" name="logout" value="1">ログアウト</button></form>
     </div>
@@ -221,7 +257,12 @@ SQL
       <?php endif; ?>
     </section>
   <?php endif; ?>
-  <div class="footer">最新対象回のみ・5分ごとに自動更新</div>
+  <div class="footer">最新対象回のみ表示</div>
 </main>
+<script>
+setTimeout(function () {
+    window.location.replace(<?= json_encode(self_path() . '?expired=1', JSON_UNESCAPED_SLASHES) ?>);
+}, <?= (int)$sessionRemainingSeconds * 1000 ?>);
+</script>
 </body>
 </html>
