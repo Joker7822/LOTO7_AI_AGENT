@@ -44,8 +44,9 @@ try {
         )
     );
 
+    $roundExpr = "CAST(REPLACE(REPLACE(target_round, '第', ''), '回', '') AS UNSIGNED)";
     $roundStmt = $pdo->query(
-        'SELECT MAX(CAST(target_round AS UNSIGNED)) AS latest_round FROM loto7_predictions WHERE is_active = 1'
+        'SELECT MAX(' . $roundExpr . ') AS latest_round FROM loto7_predictions WHERE is_active = 1'
     );
     $roundRow = $roundStmt->fetch();
 
@@ -56,12 +57,13 @@ try {
 SELECT p.ticket, p.predicted_numbers
 FROM loto7_predictions p
 WHERE p.is_active = 1
-  AND CAST(p.target_round AS UNSIGNED) = :target_round
+  AND CAST(REPLACE(REPLACE(p.target_round, '第', ''), '回', '') AS UNSIGNED) = :target_round
   AND NOT EXISTS (
       SELECT 1
       FROM loto7_predictions newer
       WHERE newer.is_active = 1
-        AND CAST(newer.target_round AS UNSIGNED) = CAST(p.target_round AS UNSIGNED)
+        AND CAST(REPLACE(REPLACE(newer.target_round, '第', ''), '回', '') AS UNSIGNED)
+            = CAST(REPLACE(REPLACE(p.target_round, '第', ''), '回', '') AS UNSIGNED)
         AND newer.ticket = p.ticket
         AND (
             newer.prediction_created_at_jst > p.prediction_created_at_jst
