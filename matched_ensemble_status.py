@@ -82,6 +82,53 @@ def _rank_lines(rec, holdout, size: int):
     return lines
 
 
+def _audit_lines(registry, oos, rec, holdout, holdout_registry, candidate: str):
+    ref_hashes = registry.get("matched_ensemble_reference_sha256_by_candidate")
+    ref_hashes = ref_hashes if isinstance(ref_hashes, dict) else {}
+    ref_hash = str(ref_hashes.get(candidate, ""))
+    holdout_ref = str(holdout_registry.get("matched_ensemble_reference_sha256", ""))
+    audit_status = str(
+        rec.get(
+            "matched_ensemble_score_vector_audit_status",
+            oos.get("matched_ensemble_score_vector_audit_status", "未初期化"),
+        )
+    )
+    lines = [
+        "",
+        "### Ensemble Score Vector Audit",
+        "",
+        f"- Score vector監査版: **{oos.get('matched_ensemble_score_vector_audit_version', registry.get('matched_ensemble_score_vector_audit_version', '未初期化'))}**",
+        f"- Hash: **{oos.get('matched_ensemble_score_vector_hash_algorithm', registry.get('matched_ensemble_score_vector_hash_algorithm', '未設定'))}**",
+        f"- canonical float: **{oos.get('matched_ensemble_score_vector_canonical_float', registry.get('matched_ensemble_score_vector_canonical_float', '未設定'))} binary64 round-trip decimal string**",
+        "- 用途: **diagnostic only。Promotion e-process / 閾値は変更しない**",
+        f"- Formal 32-member reference SHA-256事前確定: **{'YES' if ref_hash else 'NO'}**",
+        f"- Formal reference SHA-256: **{ref_hash or '未確定'}**",
+        f"- Holdout 32-member reference SHA-256事前確定: **{'YES' if holdout_ref else 'NO'}**",
+        f"- Holdout reference SHA-256: **{holdout_ref or '未確定'}**",
+        f"- Formal score vector audit status: **{audit_status}**",
+    ]
+    last_vector = str(rec.get("last_matched_ensemble_score_vector_sha256", ""))
+    last_record = str(rec.get("last_matched_ensemble_audit_record_sha256", ""))
+    last_round = rec.get("last_matched_ensemble_score_vector_audit_round")
+    if last_vector:
+        lines += [
+            f"- 直近score vector: **第{last_round}回 / SHA-256 {last_vector}**",
+            f"- 直近audit record SHA-256: **{last_record or '確認できません'}**",
+            f"- 直近rank/p replay一致: **{'YES' if rec.get('last_matched_ensemble_score_vector_replay_verified') else 'NO'}**",
+        ]
+    else:
+        lines.append("- 直近score vector / audit record: **未採点**")
+    hlast_vector = str(holdout.get("last_matched_ensemble_score_vector_sha256", ""))
+    if hlast_vector:
+        lines += [
+            f"- Holdout直近score vector SHA-256: **{hlast_vector}**",
+            f"- Holdout直近rank/p replay一致: **{'YES' if holdout.get('last_matched_ensemble_score_vector_replay_verified') else 'NO'}**",
+        ]
+    else:
+        lines.append("- Holdout score vector / audit record: **未採点**")
+    return lines
+
+
 def render(registry, oos, formal, holdout, holdout_registry):
     size = int(registry.get("matched_ensemble_size", 0) or 0)
     candidate = str(formal.get("candidate_version", ""))
@@ -135,6 +182,7 @@ def render(registry, oos, formal, holdout, holdout_registry):
         "- 定義: **percentileはnull内mid-rank、MC p=(1 + #null score ≥ Challenger score)/(32 + 1)**",
     ]
     lines += _rank_lines(rec, holdout, size or 32)
+    lines += _audit_lines(registry, oos, rec, holdout, holdout_registry, candidate)
     lines.append("")
     return lines
 
