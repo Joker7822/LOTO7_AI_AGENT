@@ -75,7 +75,7 @@
 - 必要raw e-value: **40.00**
 - 現在の凍結対象回: **第693回**
 - Promotion候補数: **1**
-- ポリシー: **同一Challengerを8 trusted drawsまで固定し、Champion・事前凍結Random・geometry-matched permutation nullの全てに勝つことを要求**
+- ポリシー: **同一Challengerを8 trusted drawsまで固定し、Champion・事前凍結Random・32-member geometry-matched permutation ensembleの全てに勝つことを要求**
 
 ## Strict Future OOS Governance
 
@@ -86,8 +86,30 @@
 - 最終OOS採点回: **692**
 - 累積Champion昇格数: **0**
 - Uniform Random凍結: **YES** / Matched凍結: **YES**
-- strict昇格条件: **8 paired trusted draws / adjusted e-value ≥ 20 / 平均score差 ≥ +0.05 / 勝率 ≥ 55% をChampion・Random・Matched permutationの全てで満たす**
+- strict昇格条件: **8 paired trusted draws / adjusted e-value ≥ 20 / 平均score差 ≥ +0.05 / 勝率 ≥ 55% をChampion・Random・Matched Ensemble(32)の全てで満たす**
 - Formal OOS証拠: **まだ蓄積なし**
+
+## Matched Permutation Ensemble
+
+- Ensemble版: **matched-permutation-ensemble-v1**
+- Ensemble size: **32**
+- Promotionで使用: **YES**
+- 第693回事前凍結: **YES**
+- Ensemble凍結日時(JST): **2026-08-31T20:08:29+09:00**
+- member 0（旧single comparator）凍結日時(JST): **2026-08-31T15:59:33+09:00**
+- Null構造: **32個の共通数字ラベル置換。各memberは5口のticket overlap / union coverage / portfolio geometryを元Challengerと同一に保持**
+- 集約方法: **32 memberのportfolio score平均を1回のMatched Ensemble基準scoreとして使用**
+- 旧single Matched: **監査・telemetry用として保持。Production昇格のMatchedゲートはEnsemble平均を使用**
+- Ensemble trusted OOS: **0/8回**
+- 平均score差 vs Matched Ensemble: **+0.0000**
+- 勝率 vs Matched Ensemble: **0.0%**
+- raw e-value vs Matched Ensemble: **1.0000**
+- family-adjusted intersection e-value: **0.0000** / threshold **20.0000**
+- Holdout Ensemble進捗: **0/26 trusted draws**
+- Holdout平均score差 vs Matched Ensemble: **+0.0000**
+- Holdout勝率 vs Matched Ensemble: **0.0%**
+- Holdout e-value vs Matched Ensemble: **1.0000**
+- Holdout Ensemble凍結: **YES**
 
 ## Fixed Prospective Holdout
 
