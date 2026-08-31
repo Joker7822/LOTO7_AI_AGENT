@@ -121,6 +121,20 @@
 - 直近 percentile / MC p / rank: **未採点**
 - Holdout Rank診断: **0/26 trusted draws（未採点）**
 
+### Ensemble Score Vector Audit
+
+- Score vector監査版: **matched-ensemble-score-vector-audit-v1**
+- Hash: **sha256**
+- canonical float: **.17g binary64 round-trip decimal string**
+- 用途: **diagnostic only。Promotion e-process / 閾値は変更しない**
+- Formal 32-member reference SHA-256事前確定: **YES**
+- Formal reference SHA-256: **10acfcebe367591306f9a974b21a153663362f3c915549d522b8f9ee3077444e**
+- Holdout 32-member reference SHA-256事前確定: **YES**
+- Holdout reference SHA-256: **10acfcebe367591306f9a974b21a153663362f3c915549d522b8f9ee3077444e**
+- Formal score vector audit status: **active**
+- 直近score vector / audit record: **未採点**
+- Holdout score vector / audit record: **未採点**
+
 ## Fixed Prospective Holdout
 
 - 状態: **active**
