@@ -48,18 +48,15 @@ jobs:
           python -m compileall -q .
           python -m pytest -q
 
-      - name: Freeze strict Future-OOS references
+      - name: Persist strict Future-OOS boundary
+        shell: bash
         run: |
-          python strict_oos_bootstrap.py \
-            --csv loto7.csv \
-            --out-dir loto7_agent_output \
-            --shadow-registry loto7_agent_output/shadow_registry.json \
-            --min-train 100 \
-            --portfolio-backtest-pool 650
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Refresh STATUS dashboard
-        run: |
-          python - <<'PY'
+          refresh_status() {
+            python - <<'PY'
           from pathlib import Path
           p = Path("STATUS.md")
           if p.exists():
@@ -67,35 +64,59 @@ jobs:
               base = text.split("\n## Continuous Research v4", 1)[0].rstrip()
               p.write_text(base + "\n", encoding="utf-8")
           PY
-          python v4_status.py \
-            --status STATUS.md \
-            --state loto7_agent_output/v4_research_state.json \
-            --pool loto7_agent_output/candidate_pool.json \
-            --registry loto7_agent_output/shadow_registry.json \
-            --oos loto7_agent_output/oos_candidate_state.json \
-            --metrics loto7_agent_output/execution_metrics.csv \
-            --historical loto7_agent_output/historical_replay_summary.json \
-            --reconciliation loto7_agent_output/historical_reconciliation_summary.json \
-            --nested loto7_agent_output/nested_replay_summary.json \
-            --feedback loto7_agent_output/research_feedback_state.json \
-            --formal loto7_agent_output/formal_challenger_state.json \
-            --holdout-state loto7_agent_output/future_holdout_state.json \
-            --holdout-registry loto7_agent_output/future_holdout_registry.json
+            python v4_status.py \
+              --status STATUS.md \
+              --state loto7_agent_output/v4_research_state.json \
+              --pool loto7_agent_output/candidate_pool.json \
+              --registry loto7_agent_output/shadow_registry.json \
+              --oos loto7_agent_output/oos_candidate_state.json \
+              --metrics loto7_agent_output/execution_metrics.csv \
+              --historical loto7_agent_output/historical_replay_summary.json \
+              --reconciliation loto7_agent_output/historical_reconciliation_summary.json \
+              --nested loto7_agent_output/nested_replay_summary.json \
+              --feedback loto7_agent_output/research_feedback_state.json \
+              --formal loto7_agent_output/formal_challenger_state.json \
+              --holdout-state loto7_agent_output/future_holdout_state.json \
+              --holdout-registry loto7_agent_output/future_holdout_registry.json
+          }
 
-      - name: Commit frozen evidence boundary
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "loto7-ai-agent[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- STATUS.md loto7_agent_output
-          if [ -z "$(git status --porcelain -- STATUS.md loto7_agent_output)" ]; then
-            echo "No strict OOS bootstrap changes."
-            exit 0
-          fi
-          git commit -m "chore: freeze strict OOS references"
-          git pull --rebase
-          git push
+          for ATTEMPT in 1 2 3; do
+            echo "[STRICT-OOS] persist attempt ${ATTEMPT}/3"
+            git fetch origin main
+            git reset --hard origin/main
+
+            python strict_oos_bootstrap.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --shadow-registry loto7_agent_output/shadow_registry.json \
+              --min-train 100 \
+              --portfolio-backtest-pool 650
+            refresh_status
+
+            git add -- \
+              STATUS.md \
+              loto7_agent_output/shadow_registry.json \
+              loto7_agent_output/formal_challenger_state.json \
+              loto7_agent_output/oos_candidate_state.json \
+              loto7_agent_output/future_holdout_registry.json \
+              loto7_agent_output/future_holdout_state.json \
+              loto7_agent_output/strict_oos_bootstrap_state.json
+
+            if [ -z "$(git status --porcelain -- STATUS.md loto7_agent_output/shadow_registry.json loto7_agent_output/formal_challenger_state.json loto7_agent_output/oos_candidate_state.json loto7_agent_output/future_holdout_registry.json loto7_agent_output/future_holdout_state.json loto7_agent_output/strict_oos_bootstrap_state.json)" ]; then
+              echo "No strict OOS bootstrap changes."
+              exit 0
+            fi
+
+            git commit -m "chore: freeze strict OOS references"
+            if git push origin HEAD:main; then
+              echo "[STRICT-OOS] persisted successfully"
+              exit 0
+            fi
+            echo "[STRICT-OOS] main moved during push; retrying from latest origin/main"
+          done
+
+          echo "Strict OOS state could not be persisted after 3 race-safe attempts." >&2
+          exit 1
 
       - name: Show strict OOS state
         if: always()
