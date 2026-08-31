@@ -75,27 +75,30 @@
 - 必要raw e-value: **40.00**
 - 現在の凍結対象回: **第693回**
 - Promotion候補数: **1**
-- ポリシー: **同一Challengerを8 trusted drawsまで固定し、Championと事前凍結Randomの両方に勝つことを要求**
+- ポリシー: **同一Challengerを8 trusted drawsまで固定し、Champion・事前凍結Random・geometry-matched permutation nullの全てに勝つことを要求**
 
 ## Strict Future OOS Governance
 
 - ガバナンス版: **strict-oos-governance-v1**
+- Matched null版: **matched-permutation-null-v1**
 - 凍結済みshadow対象回: **第693回**
 - Promotion対象shadow候補数: **1**
 - 最終OOS採点回: **692**
 - 累積Champion昇格数: **0**
-- strict昇格条件: **8 paired trusted draws / adjusted e-value ≥ 20 / 平均score差 ≥ +0.05 / 勝率 ≥ 55% をChampion・Random両方で満たす**
+- Uniform Random凍結: **YES** / Matched凍結: **YES**
+- strict昇格条件: **8 paired trusted draws / adjusted e-value ≥ 20 / 平均score差 ≥ +0.05 / 勝率 ≥ 55% をChampion・Random・Matched permutationの全てで満たす**
 - Formal OOS証拠: **まだ蓄積なし**
 
 ## Fixed Prospective Holdout
 
 - 状態: **active**
 - 固定モデル: **global-g00001-c01-2ac3662ad1**
-- 進捗: **0/26 trusted draws**
+- 進捗: **0/26 trusted draws** / Matched **0/26**
 - 現在の事前凍結対象回: **第693回**
-- 平均score差 vs Champion / Random: **+0.0000 / +0.0000**
-- 勝率 vs Champion / Random: **0.0% / 0.0%**
-- e-value vs Champion / Random: **1.0000 / 1.0000**
+- 平均score差 vs Champion / Random / Matched: **+0.0000 / +0.0000 / +0.0000**
+- 勝率 vs Champion / Random / Matched: **0.0% / 0.0% / 0.0%**
+- e-value vs Champion / Random / Matched: **1.0000 / 1.0000 / 1.0000**
+- Matched reference frozen: **YES**
 - 用途: **26 trusted draws固定のprospective診断。途中でconfig変更しない**
 
 ## Continuous Runtime
