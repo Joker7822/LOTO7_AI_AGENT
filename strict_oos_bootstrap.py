@@ -9,6 +9,7 @@ from typing import Optional, Sequence
 
 import loto7_v4_runner as v4
 import matched_ensemble_rank_diagnostics as matched_rank
+import matched_ensemble_score_vector_audit as matched_audit
 import matched_permutation_ensemble as matched_ensemble
 import matched_permutation_oos as matched
 import strict_oos_governance as strict
@@ -22,6 +23,7 @@ def run(argv: Optional[Sequence[str]] = None) -> dict:
     matched_bootstrap = matched.bootstrap_before_main(v4, argv)
     ensemble_bootstrap = matched_ensemble.bootstrap_before_main(v4, argv)
     rank_bootstrap = matched_rank.bootstrap_before_main(v4, argv)
+    audit_bootstrap = matched_audit.bootstrap_before_main(v4, argv)
 
     registry = strict.load_json(args.shadow_registry, {})
     target_round = int(registry.get("target_round", -1)) if registry else -1
@@ -39,6 +41,9 @@ def run(argv: Optional[Sequence[str]] = None) -> dict:
     if future_registry_ready and not ensemble_bootstrap.get("matched_ensemble_ready"):
         status = "failed"
         reasons.append("future_matched_permutation_ensemble_not_frozen")
+    if future_registry_ready and not audit_bootstrap.get("registry_reference_hash_ready"):
+        status = "failed"
+        reasons.append("future_matched_ensemble_reference_hash_not_precommitted")
     if future_registry_ready and not bootstrap.get("holdout_ready"):
         status = "failed"
         reasons.append("future_holdout_not_frozen")
@@ -48,6 +53,9 @@ def run(argv: Optional[Sequence[str]] = None) -> dict:
     if future_registry_ready and not ensemble_bootstrap.get("holdout_matched_ensemble_ready"):
         status = "failed"
         reasons.append("future_holdout_matched_ensemble_not_frozen")
+    if future_registry_ready and not audit_bootstrap.get("holdout_reference_hash_ready"):
+        status = "failed"
+        reasons.append("future_holdout_matched_ensemble_reference_hash_not_precommitted")
 
     result = {
         "version": strict.VERSION,
@@ -57,6 +65,12 @@ def run(argv: Optional[Sequence[str]] = None) -> dict:
         "matched_ensemble_rank_diagnostics_version": matched_rank.VERSION,
         "matched_ensemble_rank_minimum_possible_p": rank_bootstrap.get("minimum_possible_p"),
         "matched_ensemble_rank_promotion_role": rank_bootstrap.get("promotion_role"),
+        "matched_ensemble_score_vector_audit_version": matched_audit.VERSION,
+        "matched_ensemble_score_vector_hash_algorithm": audit_bootstrap.get("hash_algorithm"),
+        "matched_ensemble_score_vector_canonical_float": audit_bootstrap.get("canonical_float"),
+        "matched_ensemble_score_vector_audit_promotion_role": audit_bootstrap.get("promotion_role"),
+        "matched_ensemble_reference_hash_ready": bool(audit_bootstrap.get("registry_reference_hash_ready")),
+        "holdout_matched_ensemble_reference_hash_ready": bool(audit_bootstrap.get("holdout_reference_hash_ready")),
         "status": status,
         "latest_round": latest_round,
         "target_round": target_round,
