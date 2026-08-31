@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 import loto7_v4_runner as v4
+import matched_permutation_ensemble as matched_ensemble
 import matched_permutation_oos as matched
 import strict_oos_governance as strict
 import strict_oos_migration
@@ -18,6 +19,7 @@ def run(argv: Optional[Sequence[str]] = None) -> dict:
     migration = strict_oos_migration.migrate(v4, argv)
     bootstrap = strict.bootstrap_before_main(v4, argv)
     matched_bootstrap = matched.bootstrap_before_main(v4, argv)
+    ensemble_bootstrap = matched_ensemble.bootstrap_before_main(v4, argv)
 
     registry = strict.load_json(args.shadow_registry, {})
     target_round = int(registry.get("target_round", -1)) if registry else -1
@@ -32,25 +34,35 @@ def run(argv: Optional[Sequence[str]] = None) -> dict:
     if future_registry_ready and not matched_bootstrap.get("matched_ready"):
         status = "failed"
         reasons.append("future_matched_permutation_reference_not_frozen")
+    if future_registry_ready and not ensemble_bootstrap.get("matched_ensemble_ready"):
+        status = "failed"
+        reasons.append("future_matched_permutation_ensemble_not_frozen")
     if future_registry_ready and not bootstrap.get("holdout_ready"):
         status = "failed"
         reasons.append("future_holdout_not_frozen")
     if future_registry_ready and not matched_bootstrap.get("holdout_matched_ready"):
         status = "failed"
         reasons.append("future_holdout_matched_reference_not_frozen")
+    if future_registry_ready and not ensemble_bootstrap.get("holdout_matched_ensemble_ready"):
+        status = "failed"
+        reasons.append("future_holdout_matched_ensemble_not_frozen")
 
     result = {
         "version": strict.VERSION,
         "matched_reference_version": matched.VERSION,
+        "matched_ensemble_version": matched_ensemble.VERSION,
+        "matched_ensemble_size": matched_ensemble.ENSEMBLE_SIZE,
         "status": status,
         "latest_round": latest_round,
         "target_round": target_round,
         "future_registry_ready": future_registry_ready,
         "random_ready": bool(bootstrap.get("random_ready")),
         "matched_ready": bool(matched_bootstrap.get("matched_ready")),
+        "matched_ensemble_ready": bool(ensemble_bootstrap.get("matched_ensemble_ready")),
         "holdout_ready": bool(bootstrap.get("holdout_ready")),
         "holdout_matched_ready": bool(matched_bootstrap.get("holdout_matched_ready")),
-        "promotion_intersection": "champion_and_uniform_random_and_matched_permutation",
+        "holdout_matched_ensemble_ready": bool(ensemble_bootstrap.get("holdout_matched_ensemble_ready")),
+        "promotion_intersection": "champion_and_uniform_random_and_matched_ensemble32",
         "migration": migration,
         "reasons": reasons,
         "checked_at_jst": v4.now_jst(),

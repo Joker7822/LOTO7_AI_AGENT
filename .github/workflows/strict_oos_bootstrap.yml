@@ -8,6 +8,8 @@ on:
       - "strict_oos_migration.py"
       - "strict_oos_bootstrap.py"
       - "matched_permutation_oos.py"
+      - "matched_permutation_ensemble.py"
+      - "matched_ensemble_status.py"
       - "v4_status.py"
       - ".github/workflows/strict_oos_bootstrap.yml"
   workflow_dispatch:
@@ -76,6 +78,13 @@ jobs:
               --reconciliation loto7_agent_output/historical_reconciliation_summary.json \
               --nested loto7_agent_output/nested_replay_summary.json \
               --feedback loto7_agent_output/research_feedback_state.json \
+              --formal loto7_agent_output/formal_challenger_state.json \
+              --holdout-state loto7_agent_output/future_holdout_state.json \
+              --holdout-registry loto7_agent_output/future_holdout_registry.json
+            python matched_ensemble_status.py \
+              --status STATUS.md \
+              --registry loto7_agent_output/shadow_registry.json \
+              --oos loto7_agent_output/oos_candidate_state.json \
               --formal loto7_agent_output/formal_challenger_state.json \
               --holdout-state loto7_agent_output/future_holdout_state.json \
               --holdout-registry loto7_agent_output/future_holdout_registry.json
