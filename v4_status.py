@@ -121,14 +121,70 @@ def signal_lines(feedback):
 def formal_lines(formal, registry):
     if not formal:
         return ["- Formal Challenger: **初回固定待ち**"]
+    block_index = int(formal.get("formal_block_index", registry.get("formal_block_index", 1)) or 1)
+    required_raw = float(formal.get("required_raw_e_value", registry.get("required_raw_e_value", 20.0)) or 20.0)
+    family_weight = float(formal.get("family_weight", registry.get("family_weight", 1.0)) or 1.0)
     return [
         f"- Formal Challenger: **{formal.get('candidate_version', '確認できません')}**",
         f"- block id: **{formal.get('block_id', '確認できません')}**",
+        f"- strict block index: **{block_index}**",
         f"- block開始対象回: **第{formal.get('block_start_target_round', '?')}回**",
         f"- trusted Future OOS: **{int(formal.get('trusted_draws_so_far', 0))}/{int(formal.get('minimum_trusted_draws', 8))}回**",
+        f"- family weight: **{family_weight:.8f}**",
+        f"- 必要raw e-value: **{required_raw:.2f}**",
         f"- 現在の凍結対象回: **第{registry.get('target_round', '?')}回**",
         f"- Promotion候補数: **{int(registry.get('promotion_candidate_count', len(registry.get('candidates', []) or [])))}**",
-        "- ポリシー: **同一Challengerを8 trusted drawsまで固定。他shadowはResearch-only**",
+        "- ポリシー: **同一Challengerを8 trusted drawsまで固定し、Championと事前凍結Randomの両方に勝つことを要求**",
+    ]
+
+
+def strict_evidence_lines(rec):
+    if not rec:
+        return ["- Strict paired OOS: **証拠蓄積待ち**"]
+    champion_draws = int(rec.get("trusted_draws", 0) or 0)
+    random_draws = int(rec.get("random_trusted_draws", 0) or 0)
+    champion_mean = float(rec.get("sum_delta", 0.0) or 0.0) / max(1, champion_draws) if champion_draws else 0.0
+    random_mean = float(rec.get("random_sum_delta", 0.0) or 0.0) / max(1, random_draws) if random_draws else 0.0
+    champion_win = float(rec.get("wins", 0) or 0) / max(1, champion_draws) if champion_draws else 0.0
+    random_win = float(rec.get("random_wins", 0) or 0) / max(1, random_draws) if random_draws else 0.0
+    strict_ready = bool(rec.get("strict_random_valid")) and random_draws > 0
+    if not strict_ready:
+        return [
+            f"- Strict paired OOS: **移行済み・次回採点待ち**",
+            f"- Champion比較 trusted: **{champion_draws}回** / Random比較 trusted: **{random_draws}回**",
+            "- 事前凍結Random証拠: **まだstrict採点なし**",
+        ]
+    return [
+        f"- Champion比較 trusted: **{champion_draws}回** / Random比較 trusted: **{random_draws}回**",
+        f"- 平均score差 vs Champion / Random: **{champion_mean:+.4f} / {random_mean:+.4f}**",
+        f"- 勝率 vs Champion / Random: **{champion_win*100:.1f}% / {random_win*100:.1f}%**",
+        f"- raw e-value vs Champion: **{float(rec.get('champion_e_value_raw', 1.0)):.4f}**",
+        f"- raw e-value vs Random: **{float(rec.get('random_e_value_raw', 1.0)):.4f}**",
+        f"- family-adjusted intersection e-value: **{float(rec.get('family_adjusted_e_value', rec.get('e_value', 0.0))):.4f}** / threshold **20.0000**",
+        f"- 現block必要raw e-value: **{float(rec.get('required_raw_e_value', 0.0)):.2f}**",
+        f"- Random reference valid: **{'YES' if rec.get('strict_random_valid') else 'NO'}**",
+    ]
+
+
+def holdout_lines(holdout, holdout_registry):
+    if not holdout:
+        return ["- Prospective holdout: **初回凍結待ち**"]
+    trusted = int(holdout.get("trusted_draws", 0) or 0)
+    horizon = int(holdout.get("horizon_trusted_draws", 26) or 26)
+    dc = float(holdout.get("sum_delta_vs_champion", 0.0) or 0.0) / max(1, trusted) if trusted else 0.0
+    dr = float(holdout.get("sum_delta_vs_random", 0.0) or 0.0) / max(1, trusted) if trusted else 0.0
+    wc = float(holdout.get("wins_vs_champion", 0) or 0) / max(1, trusted) if trusted else 0.0
+    wr = float(holdout.get("wins_vs_random", 0) or 0) / max(1, trusted) if trusted else 0.0
+    target = holdout_registry.get("target_round", "未凍結") if holdout_registry else "未凍結"
+    return [
+        f"- 状態: **{holdout.get('status', '確認できません')}**",
+        f"- 固定モデル: **{holdout.get('locked_candidate_version', '確認できません')}**",
+        f"- 進捗: **{trusted}/{horizon} trusted draws**",
+        f"- 現在の事前凍結対象回: **第{target}回**",
+        f"- 平均score差 vs Champion / Random: **{dc:+.4f} / {dr:+.4f}**",
+        f"- 勝率 vs Champion / Random: **{wc*100:.1f}% / {wr*100:.1f}%**",
+        f"- e-value vs Champion / Random: **{float(holdout.get('champion_e_value', 1.0)):.4f} / {float(holdout.get('random_e_value', 1.0)):.4f}**",
+        "- 用途: **26 trusted draws固定のprospective診断。途中でconfig変更しない**",
     ]
 
 
@@ -145,6 +201,8 @@ def main() -> int:
     ap.add_argument("--nested", type=Path, default=Path("loto7_agent_output/nested_replay_summary.json"))
     ap.add_argument("--feedback", type=Path, default=Path("loto7_agent_output/research_feedback_state.json"))
     ap.add_argument("--formal", type=Path, default=Path("loto7_agent_output/formal_challenger_state.json"))
+    ap.add_argument("--holdout-state", type=Path, default=Path("loto7_agent_output/future_holdout_state.json"))
+    ap.add_argument("--holdout-registry", type=Path, default=Path("loto7_agent_output/future_holdout_registry.json"))
     args = ap.parse_args()
 
     state = load(args.state)
@@ -156,6 +214,8 @@ def main() -> int:
     nested = load(args.nested)
     feedback = load(args.feedback)
     formal = load(args.formal)
+    holdout = load(args.holdout_state)
+    holdout_registry = load(args.holdout_registry)
     champion = str(state.get("champion_version", ""))
     pool_n = len(pool.get("candidates", []) or [])
     shadow_n = len(registry.get("candidates", []) or [])
@@ -188,25 +248,24 @@ def main() -> int:
     lines += formal_lines(formal, registry)
     lines += [
         "",
-        "## OOS Governance v4",
+        "## Strict Future OOS Governance",
         "",
+        f"- ガバナンス版: **{oos.get('strict_governance_version', 'strict移行待ち')}**",
         f"- 凍結済みshadow対象回: **第{registry.get('target_round', '確認できません')}回**",
         f"- Promotion対象shadow候補数: **{shadow_n}**",
         f"- 最終OOS採点回: **{oos.get('last_graded_round', 'なし')}**",
         f"- 累積Champion昇格数: **{state.get('total_promotions', 0)}**",
-        "- 昇格条件: **信頼済み未来OOS 8回以上 / e-value ≥ 20 / 平均score差 ≥ 0.05 / 勝率 ≥ 55%**",
+        "- strict昇格条件: **8 paired trusted draws / adjusted e-value ≥ 20 / 平均score差 ≥ +0.05 / 勝率 ≥ 55% をChampion・Random両方で満たす**",
     ]
     if best:
-        evalue, draws, mean_delta, win_rate, rec = best
-        lines += [
-            f"- 現Championに対するFormal OOS候補: **{rec.get('candidate_version', '')}**",
-            f"- 信頼済みOOS回数: **{draws}**",
-            f"- e-value: **{evalue:.4f}**",
-            f"- 平均score差: **{mean_delta:.4f}**",
-            f"- OOS勝率: **{win_rate*100:.1f}%**",
-        ]
+        _, _, _, _, rec = best
+        lines += [f"- Formal OOS候補: **{rec.get('candidate_version', '')}**"]
+        lines += strict_evidence_lines(rec)
     else:
-        lines.append("- 現Championに対するOOS証拠: **まだ蓄積なし**")
+        lines.append("- Formal OOS証拠: **まだ蓄積なし**")
+
+    lines += ["", "## Fixed Prospective Holdout", ""]
+    lines += holdout_lines(holdout, holdout_registry)
 
     lines += ["", "## Continuous Runtime", ""]
     if latest is None:
