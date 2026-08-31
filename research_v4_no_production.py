@@ -5,6 +5,7 @@ from __future__ import annotations
 import formal_challenger
 import loto7_v4_runner as v4
 import strict_oos_governance as strict_oos
+import strict_oos_migration
 
 
 def _skip_production_outputs(*args, **kwargs):
@@ -21,10 +22,12 @@ def main() -> int:
     v4.ensure_production_outputs = _skip_production_outputs
 
     # Tighten Future-OOS governance without changing retrospective Research ranking:
+    # - archive legacy one-sided OOS evidence at the migration boundary,
     # - compare each formal challenger with a pre-frozen equal-budget Random reference,
     # - spend e-capital across sequential challenger blocks,
     # - maintain a separate fixed 26-trusted-draw prospective holdout.
     strict_oos.install(v4)
+    strict_oos_migration.migrate(v4)
     strict_oos.bootstrap_before_main(v4)
     rc = v4.main()
     strict_oos.finalize_after_main(v4, formal_challenger)
