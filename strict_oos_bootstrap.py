@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 import loto7_v4_runner as v4
+import matched_ensemble_rank_diagnostics as matched_rank
 import matched_permutation_ensemble as matched_ensemble
 import matched_permutation_oos as matched
 import strict_oos_governance as strict
@@ -20,6 +21,7 @@ def run(argv: Optional[Sequence[str]] = None) -> dict:
     bootstrap = strict.bootstrap_before_main(v4, argv)
     matched_bootstrap = matched.bootstrap_before_main(v4, argv)
     ensemble_bootstrap = matched_ensemble.bootstrap_before_main(v4, argv)
+    rank_bootstrap = matched_rank.bootstrap_before_main(v4, argv)
 
     registry = strict.load_json(args.shadow_registry, {})
     target_round = int(registry.get("target_round", -1)) if registry else -1
@@ -52,6 +54,9 @@ def run(argv: Optional[Sequence[str]] = None) -> dict:
         "matched_reference_version": matched.VERSION,
         "matched_ensemble_version": matched_ensemble.VERSION,
         "matched_ensemble_size": matched_ensemble.ENSEMBLE_SIZE,
+        "matched_ensemble_rank_diagnostics_version": matched_rank.VERSION,
+        "matched_ensemble_rank_minimum_possible_p": rank_bootstrap.get("minimum_possible_p"),
+        "matched_ensemble_rank_promotion_role": rank_bootstrap.get("promotion_role"),
         "status": status,
         "latest_round": latest_round,
         "target_round": target_round,
