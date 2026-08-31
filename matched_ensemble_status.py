@@ -29,6 +29,59 @@ def find_evidence(oos, candidate_version: str, champion_version: str):
     return {}
 
 
+def _rank_lines(rec, holdout, size: int):
+    draws = int(rec.get("matched_ensemble_rank_trusted_draws", 0) or 0)
+    hdraws = int(holdout.get("matched_ensemble_rank_trusted_draws", 0) or 0)
+    minimum_p = float(
+        rec.get(
+            "matched_ensemble_rank_minimum_possible_p",
+            holdout.get("matched_ensemble_rank_minimum_possible_p", 1.0 / (max(1, size) + 1.0)),
+        )
+        or (1.0 / (max(1, size) + 1.0))
+    )
+    lines = [
+        "- Rank診断用途: **diagnostic only（Production昇格判定には未使用。sequential e-processを維持）**",
+        f"- 単回Monte-Carlo permutation p最小値: **{minimum_p:.4f}** (= 1/{max(1, size) + 1})",
+    ]
+    if draws:
+        mean_pct = float(rec.get("matched_ensemble_rank_percentile_sum", 0.0) or 0.0) / draws
+        mean_p = float(rec.get("matched_ensemble_rank_permutation_p_sum", 0.0) or 0.0) / draws
+        last_pct = float(rec.get("last_matched_ensemble_rank_percentile_midrank", 0.0) or 0.0)
+        last_p = float(rec.get("last_matched_ensemble_rank_permutation_p_upper", 1.0) or 1.0)
+        last_rank = float(rec.get("last_matched_ensemble_rank_midrank_from_top", 0.0) or 0.0)
+        last_round = rec.get("last_matched_ensemble_rank_rank_round", "?")
+        below = int(rec.get("last_matched_ensemble_rank_null_below", 0) or 0)
+        equal = int(rec.get("last_matched_ensemble_rank_null_equal", 0) or 0)
+        above = int(rec.get("last_matched_ensemble_rank_null_above", 0) or 0)
+        lines += [
+            f"- Rank診断 trusted OOS: **{draws}/8回**",
+            f"- 直近(第{last_round}回) percentile / MC p: **{last_pct:.2f}% / {last_p:.4f}**",
+            f"- 直近 observed+null rank: **{last_rank:.1f}/{size + 1}位相当** (null below/equal/above = {below}/{equal}/{above})",
+            f"- trusted平均 percentile / 単回MC p平均: **{mean_pct:.2f}% / {mean_p:.4f}**",
+        ]
+    else:
+        lines += [
+            "- Rank診断 trusted OOS: **0/8回**",
+            "- 直近 percentile / MC p / rank: **未採点**",
+        ]
+
+    if hdraws:
+        hmean_pct = float(holdout.get("matched_ensemble_rank_percentile_sum", 0.0) or 0.0) / hdraws
+        hmean_p = float(holdout.get("matched_ensemble_rank_permutation_p_sum", 0.0) or 0.0) / hdraws
+        hlast_pct = float(holdout.get("last_matched_ensemble_rank_percentile_midrank", 0.0) or 0.0)
+        hlast_p = float(holdout.get("last_matched_ensemble_rank_permutation_p_upper", 1.0) or 1.0)
+        hlast_rank = float(holdout.get("last_matched_ensemble_rank_midrank_from_top", 0.0) or 0.0)
+        hlast_round = holdout.get("last_matched_ensemble_rank_rank_round", "?")
+        lines += [
+            f"- Holdout Rank診断: **{hdraws}/26 trusted draws**",
+            f"- Holdout直近(第{hlast_round}回) percentile / MC p / rank: **{hlast_pct:.2f}% / {hlast_p:.4f} / {hlast_rank:.1f}/{size + 1}位相当**",
+            f"- Holdout平均 percentile / 単回MC p平均: **{hmean_pct:.2f}% / {hmean_p:.4f}**",
+        ]
+    else:
+        lines.append("- Holdout Rank診断: **0/26 trusted draws（未採点）**")
+    return lines
+
+
 def render(registry, oos, formal, holdout, holdout_registry):
     size = int(registry.get("matched_ensemble_size", 0) or 0)
     candidate = str(formal.get("candidate_version", ""))
@@ -53,7 +106,7 @@ def render(registry, oos, formal, holdout, holdout_registry):
         float(holdout.get("wins_vs_matched_ensemble", 0) or 0) / max(1, hdraws)
         if hdraws else 0.0
     )
-    return [
+    lines = [
         "## Matched Permutation Ensemble",
         "",
         f"- Ensemble版: **{registry.get('matched_ensemble_version', oos.get('matched_ensemble_version', '未凍結'))}**",
@@ -76,7 +129,14 @@ def render(registry, oos, formal, holdout, holdout_registry):
         f"- Holdout e-value vs Matched Ensemble: **{float(holdout.get('matched_ensemble_e_value', 1.0)):.4f}**",
         f"- Holdout Ensemble凍結: **{'YES' if holdout_registry.get('matched_ensemble_frozen_at_jst') else 'NO'}**",
         "",
+        "### Ensemble Rank Diagnostics",
+        "",
+        f"- Rank診断版: **{oos.get('matched_ensemble_rank_diagnostics_version', holdout.get('matched_ensemble_rank_diagnostics_version', '未初期化'))}**",
+        "- 定義: **percentileはnull内mid-rank、MC p=(1 + #null score ≥ Challenger score)/(32 + 1)**",
     ]
+    lines += _rank_lines(rec, holdout, size or 32)
+    lines.append("")
+    return lines
 
 
 def main() -> int:
