@@ -92,4 +92,4 @@ def test_formal_lines_show_multiplicity_threshold():
     assert "strict block index: **2**" in text
     assert "0/8回" in text
     assert "120.00" in text
-    assert "Matched" in text
+    assert "matched permutation" in text
