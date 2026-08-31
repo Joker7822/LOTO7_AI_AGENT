@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 
+import formal_challenger
 import loto7_v4_runner as v4
+import strict_oos_governance as strict_oos
 
 
 def _skip_production_outputs(*args, **kwargs):
@@ -14,11 +16,19 @@ def _skip_production_outputs(*args, **kwargs):
 
 
 def main() -> int:
-    # Keep OOS grading, promotion governance, shadow freezing, Research search,
-    # and state updates intact while preventing post-draw Research runs from
-    # overwriting the frozen weekly Production forecast.
+    # Research/OOS processing may update the Champion state, but must never publish
+    # or overwrite the frozen weekly Production forecast.
     v4.ensure_production_outputs = _skip_production_outputs
-    return v4.main()
+
+    # Tighten Future-OOS governance without changing retrospective Research ranking:
+    # - compare each formal challenger with a pre-frozen equal-budget Random reference,
+    # - spend e-capital across sequential challenger blocks,
+    # - maintain a separate fixed 26-trusted-draw prospective holdout.
+    strict_oos.install(v4)
+    strict_oos.bootstrap_before_main(v4)
+    rc = v4.main()
+    strict_oos.finalize_after_main(v4, formal_challenger)
+    return rc
 
 
 if __name__ == "__main__":
