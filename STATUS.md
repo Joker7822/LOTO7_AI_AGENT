@@ -70,29 +70,33 @@
 - block id: **36d2ec03cdf5da70**
 - strict block index: **1**
 - block開始対象回: **第692回**
-- trusted Future OOS: **1/8回**
-- family weight: **1.00000000**
-- 必要raw e-value: **20.00**
+- trusted Future OOS: **0/8回**
+- family weight: **0.50000000**
+- 必要raw e-value: **40.00**
 - 現在の凍結対象回: **第693回**
 - Promotion候補数: **1**
 - ポリシー: **同一Challengerを8 trusted drawsまで固定し、Championと事前凍結Randomの両方に勝つことを要求**
 
 ## Strict Future OOS Governance
 
-- ガバナンス版: **strict移行待ち**
+- ガバナンス版: **strict-oos-governance-v1**
 - 凍結済みshadow対象回: **第693回**
 - Promotion対象shadow候補数: **1**
 - 最終OOS採点回: **692**
 - 累積Champion昇格数: **0**
 - strict昇格条件: **8 paired trusted draws / adjusted e-value ≥ 20 / 平均score差 ≥ +0.05 / 勝率 ≥ 55% をChampion・Random両方で満たす**
-- Formal OOS候補: **global-g00001-c01-2ac3662ad1**
-- Strict paired OOS: **移行済み・次回採点待ち**
-- Champion比較 trusted: **1回** / Random比較 trusted: **0回**
-- 事前凍結Random証拠: **まだstrict採点なし**
+- Formal OOS証拠: **まだ蓄積なし**
 
 ## Fixed Prospective Holdout
 
-- Prospective holdout: **初回凍結待ち**
+- 状態: **active**
+- 固定モデル: **global-g00001-c01-2ac3662ad1**
+- 進捗: **0/26 trusted draws**
+- 現在の事前凍結対象回: **第693回**
+- 平均score差 vs Champion / Random: **+0.0000 / +0.0000**
+- 勝率 vs Champion / Random: **0.0% / 0.0%**
+- e-value vs Champion / Random: **1.0000 / 1.0000**
+- 用途: **26 trusted draws固定のprospective診断。途中でconfig変更しない**
 
 ## Continuous Runtime
 
