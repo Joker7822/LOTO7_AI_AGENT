@@ -134,7 +134,7 @@ def formal_lines(formal, registry):
         f"- 必要raw e-value: **{required_raw:.2f}**",
         f"- 現在の凍結対象回: **第{registry.get('target_round', '?')}回**",
         f"- Promotion候補数: **{int(registry.get('promotion_candidate_count', len(registry.get('candidates', []) or [])))}**",
-        "- ポリシー: **同一Challengerを8 trusted drawsまで固定し、Championと事前凍結Randomの両方に勝つことを要求**",
+        "- ポリシー: **同一Challengerを8 trusted drawsまで固定し、Champion・事前凍結Random・geometry-matched permutation nullの全てに勝つことを要求**",
     ]
 
 
@@ -143,26 +143,36 @@ def strict_evidence_lines(rec):
         return ["- Strict paired OOS: **証拠蓄積待ち**"]
     champion_draws = int(rec.get("trusted_draws", 0) or 0)
     random_draws = int(rec.get("random_trusted_draws", 0) or 0)
+    matched_draws = int(rec.get("matched_trusted_draws", 0) or 0)
     champion_mean = float(rec.get("sum_delta", 0.0) or 0.0) / max(1, champion_draws) if champion_draws else 0.0
     random_mean = float(rec.get("random_sum_delta", 0.0) or 0.0) / max(1, random_draws) if random_draws else 0.0
+    matched_mean = float(rec.get("matched_sum_delta", 0.0) or 0.0) / max(1, matched_draws) if matched_draws else 0.0
     champion_win = float(rec.get("wins", 0) or 0) / max(1, champion_draws) if champion_draws else 0.0
     random_win = float(rec.get("random_wins", 0) or 0) / max(1, random_draws) if random_draws else 0.0
-    strict_ready = bool(rec.get("strict_random_valid")) and random_draws > 0
+    matched_win = float(rec.get("matched_wins", 0) or 0) / max(1, matched_draws) if matched_draws else 0.0
+    strict_ready = (
+        bool(rec.get("strict_random_valid"))
+        and bool(rec.get("strict_matched_valid"))
+        and random_draws > 0
+        and matched_draws > 0
+    )
     if not strict_ready:
         return [
-            f"- Strict paired OOS: **移行済み・次回採点待ち**",
-            f"- Champion比較 trusted: **{champion_draws}回** / Random比較 trusted: **{random_draws}回**",
-            "- 事前凍結Random証拠: **まだstrict採点なし**",
+            "- Strict paired OOS: **移行済み・次回採点待ち**",
+            f"- Champion比較 trusted: **{champion_draws}回** / Random比較 trusted: **{random_draws}回** / Matched比較 trusted: **{matched_draws}回**",
+            "- 事前凍結Random/Matched証拠: **まだ3-way strict採点なし**",
         ]
     return [
-        f"- Champion比較 trusted: **{champion_draws}回** / Random比較 trusted: **{random_draws}回**",
-        f"- 平均score差 vs Champion / Random: **{champion_mean:+.4f} / {random_mean:+.4f}**",
-        f"- 勝率 vs Champion / Random: **{champion_win*100:.1f}% / {random_win*100:.1f}%**",
+        f"- Champion比較 trusted: **{champion_draws}回** / Random比較 trusted: **{random_draws}回** / Matched比較 trusted: **{matched_draws}回**",
+        f"- 平均score差 vs Champion / Random / Matched: **{champion_mean:+.4f} / {random_mean:+.4f} / {matched_mean:+.4f}**",
+        f"- 勝率 vs Champion / Random / Matched: **{champion_win*100:.1f}% / {random_win*100:.1f}% / {matched_win*100:.1f}%**",
         f"- raw e-value vs Champion: **{float(rec.get('champion_e_value_raw', 1.0)):.4f}**",
         f"- raw e-value vs Random: **{float(rec.get('random_e_value_raw', 1.0)):.4f}**",
+        f"- raw e-value vs Matched: **{float(rec.get('matched_e_value_raw', 1.0)):.4f}**",
         f"- family-adjusted intersection e-value: **{float(rec.get('family_adjusted_e_value', rec.get('e_value', 0.0))):.4f}** / threshold **20.0000**",
         f"- 現block必要raw e-value: **{float(rec.get('required_raw_e_value', 0.0)):.2f}**",
         f"- Random reference valid: **{'YES' if rec.get('strict_random_valid') else 'NO'}**",
+        f"- Matched reference valid: **{'YES' if rec.get('strict_matched_valid') else 'NO'}**",
     ]
 
 
@@ -170,20 +180,24 @@ def holdout_lines(holdout, holdout_registry):
     if not holdout:
         return ["- Prospective holdout: **初回凍結待ち**"]
     trusted = int(holdout.get("trusted_draws", 0) or 0)
+    matched_trusted = int(holdout.get("matched_trusted_draws", 0) or 0)
     horizon = int(holdout.get("horizon_trusted_draws", 26) or 26)
     dc = float(holdout.get("sum_delta_vs_champion", 0.0) or 0.0) / max(1, trusted) if trusted else 0.0
     dr = float(holdout.get("sum_delta_vs_random", 0.0) or 0.0) / max(1, trusted) if trusted else 0.0
+    dm = float(holdout.get("sum_delta_vs_matched", 0.0) or 0.0) / max(1, matched_trusted) if matched_trusted else 0.0
     wc = float(holdout.get("wins_vs_champion", 0) or 0) / max(1, trusted) if trusted else 0.0
     wr = float(holdout.get("wins_vs_random", 0) or 0) / max(1, trusted) if trusted else 0.0
+    wm = float(holdout.get("wins_vs_matched", 0) or 0) / max(1, matched_trusted) if matched_trusted else 0.0
     target = holdout_registry.get("target_round", "未凍結") if holdout_registry else "未凍結"
     return [
         f"- 状態: **{holdout.get('status', '確認できません')}**",
         f"- 固定モデル: **{holdout.get('locked_candidate_version', '確認できません')}**",
-        f"- 進捗: **{trusted}/{horizon} trusted draws**",
+        f"- 進捗: **{trusted}/{horizon} trusted draws** / Matched **{matched_trusted}/{horizon}**",
         f"- 現在の事前凍結対象回: **第{target}回**",
-        f"- 平均score差 vs Champion / Random: **{dc:+.4f} / {dr:+.4f}**",
-        f"- 勝率 vs Champion / Random: **{wc*100:.1f}% / {wr*100:.1f}%**",
-        f"- e-value vs Champion / Random: **{float(holdout.get('champion_e_value', 1.0)):.4f} / {float(holdout.get('random_e_value', 1.0)):.4f}**",
+        f"- 平均score差 vs Champion / Random / Matched: **{dc:+.4f} / {dr:+.4f} / {dm:+.4f}**",
+        f"- 勝率 vs Champion / Random / Matched: **{wc*100:.1f}% / {wr*100:.1f}% / {wm*100:.1f}%**",
+        f"- e-value vs Champion / Random / Matched: **{float(holdout.get('champion_e_value', 1.0)):.4f} / {float(holdout.get('random_e_value', 1.0)):.4f} / {float(holdout.get('matched_e_value', 1.0)):.4f}**",
+        f"- Matched reference frozen: **{'YES' if holdout_registry.get('matched_reference_frozen_at_jst') else 'NO'}**",
         "- 用途: **26 trusted draws固定のprospective診断。途中でconfig変更しない**",
     ]
 
@@ -251,11 +265,13 @@ def main() -> int:
         "## Strict Future OOS Governance",
         "",
         f"- ガバナンス版: **{oos.get('strict_governance_version', 'strict移行待ち')}**",
+        f"- Matched null版: **{oos.get('matched_reference_version', registry.get('matched_reference_version', '未凍結'))}**",
         f"- 凍結済みshadow対象回: **第{registry.get('target_round', '確認できません')}回**",
         f"- Promotion対象shadow候補数: **{shadow_n}**",
         f"- 最終OOS採点回: **{oos.get('last_graded_round', 'なし')}**",
         f"- 累積Champion昇格数: **{state.get('total_promotions', 0)}**",
-        "- strict昇格条件: **8 paired trusted draws / adjusted e-value ≥ 20 / 平均score差 ≥ +0.05 / 勝率 ≥ 55% をChampion・Random両方で満たす**",
+        f"- Uniform Random凍結: **{'YES' if registry.get('random_reference_frozen_at_jst') else 'NO'}** / Matched凍結: **{'YES' if registry.get('matched_reference_frozen_at_jst') else 'NO'}**",
+        "- strict昇格条件: **8 paired trusted draws / adjusted e-value ≥ 20 / 平均score差 ≥ +0.05 / 勝率 ≥ 55% をChampion・Random・Matched permutationの全てで満たす**",
     ]
     if best:
         _, _, _, _, rec = best
