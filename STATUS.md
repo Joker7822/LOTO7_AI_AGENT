@@ -111,6 +111,16 @@
 - Holdout e-value vs Matched Ensemble: **1.0000**
 - Holdout Ensemble凍結: **YES**
 
+### Ensemble Rank Diagnostics
+
+- Rank診断版: **matched-ensemble-rank-diagnostics-v1**
+- 定義: **percentileはnull内mid-rank、MC p=(1 + #null score ≥ Challenger score)/(32 + 1)**
+- Rank診断用途: **diagnostic only（Production昇格判定には未使用。sequential e-processを維持）**
+- 単回Monte-Carlo permutation p最小値: **0.0303** (= 1/33)
+- Rank診断 trusted OOS: **0/8回**
+- 直近 percentile / MC p / rank: **未採点**
+- Holdout Rank診断: **0/26 trusted draws（未採点）**
+
 ## Fixed Prospective Holdout
 
 - 状態: **active**
