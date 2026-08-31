@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import formal_challenger
 import loto7_v4_runner as v4
+import matched_permutation_oos as matched_oos
 import strict_oos_governance as strict_oos
 import strict_oos_migration
 
@@ -23,14 +24,18 @@ def main() -> int:
 
     # Tighten Future-OOS governance without changing retrospective Research ranking:
     # - archive legacy one-sided OOS evidence at the migration boundary,
-    # - compare each formal challenger with a pre-frozen equal-budget Random reference,
+    # - compare each formal challenger with pre-frozen Champion and equal-budget Random,
+    # - add a geometry-matched label-permutation null to isolate number-selection signal,
     # - spend e-capital across sequential challenger blocks,
     # - maintain a separate fixed 26-trusted-draw prospective holdout.
     strict_oos.install(v4)
+    matched_oos.install(v4)
     strict_oos_migration.migrate(v4)
     strict_oos.bootstrap_before_main(v4)
+    matched_oos.bootstrap_before_main(v4)
     rc = v4.main()
     strict_oos.finalize_after_main(v4, formal_challenger)
+    matched_oos.finalize_after_main(v4)
     return rc
 
 
