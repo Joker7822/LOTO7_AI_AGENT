@@ -1,0 +1,104 @@
+name: Champion Ranking Calibration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "champion_ranking_calibration.py"
+      - "loto7.csv"
+      - "loto7_evolving_agent.py"
+      - "loto7_v2_runner.py"
+      - "separated_optimizer.py"
+      - "signal_meta_model.py"
+      - ".github/workflows/champion_ranking_calibration.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: champion-ranking-calibration
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Verify
+        run: |
+          python -m compileall -q champion_ranking_calibration.py tests
+          python -m pytest -q tests/test_champion_ranking_calibration.py tests/test_signal_governance.py tests/test_signal_meta_model.py
+
+      - name: Run and persist calibration replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for ATTEMPT in 1 2 3 4 5; do
+            echo "[CALIBRATION] persist attempt ${ATTEMPT}/5"
+            git fetch origin main
+            git reset --hard origin/main
+
+            python champion_ranking_calibration.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --min-train 100 \
+              --last-n 120 \
+              --bootstrap-reps 4000
+
+            git add -- \
+              loto7_agent_output/champion_ranking_calibration_summary.json \
+              loto7_agent_output/champion_ranking_calibration_report.md \
+              loto7_agent_output/champion_ranking_calibration_rounds.csv \
+              loto7_agent_output/champion_ranking_calibration_next_ranking.csv
+
+            if [ -z "$(git status --porcelain -- loto7_agent_output/champion_ranking_calibration_summary.json loto7_agent_output/champion_ranking_calibration_report.md loto7_agent_output/champion_ranking_calibration_rounds.csv loto7_agent_output/champion_ranking_calibration_next_ranking.csv)" ]; then
+              echo "No calibration replay changes."
+              exit 0
+            fi
+
+            git commit -m "chore: update Champion ranking calibration replay"
+            if git push origin HEAD:main; then
+              echo "[CALIBRATION] persisted successfully"
+              exit 0
+            fi
+            echo "[CALIBRATION] main moved during push; recomputing from latest main"
+          done
+
+          echo "Calibration replay could not be persisted after 5 race-safe attempts." >&2
+          exit 1
+
+      - name: Show summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Champion ranking calibration replay'
+            cat loto7_agent_output/champion_ranking_calibration_report.md 2>/dev/null || true
+            echo
+            echo '## Summary JSON'
+            cat loto7_agent_output/champion_ranking_calibration_summary.json 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
