@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "champion_calibration_oos.py"
+      - "champion_calibration_exact_eprocess.py"
       - "champion_ranking_calibration.py"
       - "loto7.csv"
       - "loto7_evolving_agent.py"
@@ -50,8 +51,8 @@ jobs:
 
       - name: Verify protocol
         run: |
-          python -m compileall -q champion_calibration_oos.py champion_ranking_calibration.py tests
-          python -m pytest -q tests/test_champion_calibration_oos.py tests/test_champion_ranking_calibration.py
+          python -m compileall -q champion_calibration_oos.py champion_calibration_exact_eprocess.py champion_ranking_calibration.py tests
+          python -m pytest -q tests/test_champion_calibration_oos.py tests/test_champion_calibration_exact_eprocess.py tests/test_champion_ranking_calibration.py
 
       - name: Freeze grade and persist
         shell: bash
@@ -72,16 +73,22 @@ jobs:
               --source-report loto7_agent_output/source_validation.json \
               --min-train 100
 
+            python champion_calibration_exact_eprocess.py \
+              --out-dir loto7_agent_output
+
             git add -A -- \
               loto7_agent_output/champion_calibration_oos_registry.json \
               loto7_agent_output/champion_calibration_oos_state.json \
               loto7_agent_output/champion_calibration_oos_freeze_history.jsonl \
-              loto7_agent_output/champion_calibration_oos_report.md
+              loto7_agent_output/champion_calibration_oos_report.md \
+              loto7_agent_output/champion_calibration_exact_eprocess_registration.json \
+              loto7_agent_output/champion_calibration_exact_eprocess_state.json \
+              loto7_agent_output/champion_calibration_exact_eprocess_report.md
             if [ -e loto7_agent_output/champion_calibration_oos_results.csv ]; then
               git add -A -- loto7_agent_output/champion_calibration_oos_results.csv
             fi
 
-            if [ -z "$(git status --porcelain -- loto7_agent_output/champion_calibration_oos_registry.json loto7_agent_output/champion_calibration_oos_state.json loto7_agent_output/champion_calibration_oos_results.csv loto7_agent_output/champion_calibration_oos_freeze_history.jsonl loto7_agent_output/champion_calibration_oos_report.md)" ]; then
+            if [ -z "$(git status --porcelain -- loto7_agent_output/champion_calibration_oos_registry.json loto7_agent_output/champion_calibration_oos_state.json loto7_agent_output/champion_calibration_oos_results.csv loto7_agent_output/champion_calibration_oos_freeze_history.jsonl loto7_agent_output/champion_calibration_oos_report.md loto7_agent_output/champion_calibration_exact_eprocess_registration.json loto7_agent_output/champion_calibration_exact_eprocess_state.json loto7_agent_output/champion_calibration_exact_eprocess_report.md)" ]; then
               echo "No Champion calibration OOS changes."
               exit 0
             fi
@@ -104,6 +111,9 @@ jobs:
           {
             echo '## Champion calibration Future-OOS'
             cat loto7_agent_output/champion_calibration_oos_report.md 2>/dev/null || true
+            echo
+            echo '## Exact Uniform-null e-process'
+            cat loto7_agent_output/champion_calibration_exact_eprocess_report.md 2>/dev/null || true
             echo
             echo '## Registry'
             cat loto7_agent_output/champion_calibration_oos_registry.json 2>/dev/null || true
