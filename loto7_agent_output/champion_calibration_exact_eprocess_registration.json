@@ -1,0 +1,36 @@
+{
+  "version": "champion-calibration-exact-eprocess-v1",
+  "registered_at_jst": "2026-09-01T12:31:54+09:00",
+  "starts_target_round": 693,
+  "initial_calibration_q_sha256": "3c3016036147a9174b0fe58e2ec83c7a03d84ddc0f3cbaad932b33e232473da7",
+  "initial_base_q_sha256": "e0c96f42547169da34c0f1935fe9597e06cf6cedd31f5a4f412db46ab5eb60db",
+  "shadow_protocol_version": "champion-calibration-oos-v1",
+  "horizon_trusted_draws": 26,
+  "null_hypothesis": "conditional_on_the_past_each_future_winning_7_set_is_uniform_over_all_C(37,7)_subsets",
+  "endpoint_family": [
+    "log_score",
+    "brier_improvement"
+  ],
+  "family_alpha": 0.05,
+  "endpoint_alpha": 0.025,
+  "e_value_threshold_each": 40.0,
+  "lambda_mixture": [
+    0.25,
+    0.5,
+    1.0,
+    2.0,
+    4.0
+  ],
+  "mgf_method": "exact_without_replacement_elementary_symmetric_dp_on_each_prefrozen_q",
+  "primary_claim": "robust_uniform_proper_score_edge",
+  "claim_rule": {
+    "trusted_draws_equal_horizon": true,
+    "rank_preserved_all_trusted_draws": true,
+    "mean_log_edge_vs_uniform_positive": true,
+    "mean_brier_improvement_vs_uniform_positive": true,
+    "log_score_mixture_e_value_at_least": 40.0,
+    "brier_improvement_mixture_e_value_at_least": 40.0
+  },
+  "interim_claims_allowed": false,
+  "promotion_role": "diagnostic_only"
+}
