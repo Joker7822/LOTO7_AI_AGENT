@@ -75,9 +75,11 @@ jobs:
             git add -A -- \
               loto7_agent_output/champion_calibration_oos_registry.json \
               loto7_agent_output/champion_calibration_oos_state.json \
-              loto7_agent_output/champion_calibration_oos_results.csv \
               loto7_agent_output/champion_calibration_oos_freeze_history.jsonl \
               loto7_agent_output/champion_calibration_oos_report.md
+            if [ -e loto7_agent_output/champion_calibration_oos_results.csv ]; then
+              git add -A -- loto7_agent_output/champion_calibration_oos_results.csv
+            fi
 
             if [ -z "$(git status --porcelain -- loto7_agent_output/champion_calibration_oos_registry.json loto7_agent_output/champion_calibration_oos_state.json loto7_agent_output/champion_calibration_oos_results.csv loto7_agent_output/champion_calibration_oos_freeze_history.jsonl loto7_agent_output/champion_calibration_oos_report.md)" ]; then
               echo "No Champion calibration OOS changes."
