@@ -1,0 +1,108 @@
+name: Champion Calibration Future OOS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "champion_calibration_oos.py"
+      - "champion_ranking_calibration.py"
+      - "loto7.csv"
+      - "loto7_evolving_agent.py"
+      - "loto7_v2_runner.py"
+      - "separated_optimizer.py"
+      - "loto7_agent_output/source_validation.json"
+      - ".github/workflows/champion_calibration_oos.yml"
+  schedule:
+    - cron: "35 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: champion-calibration-future-oos
+  cancel-in-progress: false
+
+jobs:
+  freeze-grade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Verify protocol
+        run: |
+          python -m compileall -q champion_calibration_oos.py champion_ranking_calibration.py tests
+          python -m pytest -q tests/test_champion_calibration_oos.py tests/test_champion_ranking_calibration.py
+
+      - name: Freeze grade and persist
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for ATTEMPT in 1 2 3 4 5; do
+            echo "[CAL-OOS] persist attempt ${ATTEMPT}/5"
+            git fetch origin main
+            git reset --hard origin/main
+
+            python champion_calibration_oos.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --champion-file loto7_agent_output/model_champion.json \
+              --source-report loto7_agent_output/source_validation.json \
+              --min-train 100
+
+            git add -A -- \
+              loto7_agent_output/champion_calibration_oos_registry.json \
+              loto7_agent_output/champion_calibration_oos_state.json \
+              loto7_agent_output/champion_calibration_oos_results.csv \
+              loto7_agent_output/champion_calibration_oos_freeze_history.jsonl \
+              loto7_agent_output/champion_calibration_oos_report.md
+
+            if [ -z "$(git status --porcelain -- loto7_agent_output/champion_calibration_oos_registry.json loto7_agent_output/champion_calibration_oos_state.json loto7_agent_output/champion_calibration_oos_results.csv loto7_agent_output/champion_calibration_oos_freeze_history.jsonl loto7_agent_output/champion_calibration_oos_report.md)" ]; then
+              echo "No Champion calibration OOS changes."
+              exit 0
+            fi
+
+            git commit -m "chore: update Champion calibration Future-OOS shadow"
+            if git push origin HEAD:main; then
+              echo "[CAL-OOS] persisted successfully"
+              exit 0
+            fi
+            echo "[CAL-OOS] main moved during push; recomputing from latest main"
+          done
+
+          echo "Champion calibration OOS state could not be persisted after 5 attempts." >&2
+          exit 1
+
+      - name: Show status
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Champion calibration Future-OOS'
+            cat loto7_agent_output/champion_calibration_oos_report.md 2>/dev/null || true
+            echo
+            echo '## Registry'
+            cat loto7_agent_output/champion_calibration_oos_registry.json 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
