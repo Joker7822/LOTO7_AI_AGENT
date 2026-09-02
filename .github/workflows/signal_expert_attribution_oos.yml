@@ -107,19 +107,6 @@ jobs:
             echo '## Signal expert attribution Future-OOS'
             cat loto7_agent_output/signal_expert_attribution_report.md 2>/dev/null || true
             echo
-            echo '## Registry summary'
-            python - <<'PY'
-          import json
-          from pathlib import Path
-          p = Path('loto7_agent_output/signal_expert_attribution_registry.json')
-          if p.exists():
-              r = json.loads(p.read_text(encoding='utf-8'))
-              print(json.dumps({
-                  'target_round': r.get('target_round'),
-                  'frozen_at_jst': r.get('frozen_at_jst'),
-                  'expert_count': r.get('expert_count'),
-                  'final_q_sha256': r.get('final_q_sha256'),
-                  'calibration_shadow_crosscheck': r.get('calibration_shadow_crosscheck'),
-              }, ensure_ascii=False, indent=2))
-          PY
+            echo '## Registry'
+            cat loto7_agent_output/signal_expert_attribution_registry.json 2>/dev/null || true
           } >> "$GITHUB_STEP_SUMMARY"
