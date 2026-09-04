@@ -1,0 +1,61 @@
+name: Friday Result Check Watchdog
+
+on:
+  schedule:
+    # GitHub scheduled workflows can be delayed around minute 00.
+    # Check seven minutes after each primary Friday draw-time slot.
+    # 09:07-13:07 UTC = 18:07-22:07 JST.
+    - cron: "7 9-13 * * 5"
+    # Extra fallback for the important 20:00 JST result-check window.
+    # 11:27 UTC = 20:27 JST.
+    - cron: "27 11 * * 5"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/friday_result_check_watchdog.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: friday-result-check-watchdog
+  cancel-in-progress: false
+
+jobs:
+  ensure-result-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Dispatch continuous result check when missing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_WORKFLOW: continuous_loto7_v4.yml
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # A push of this watchdog (including this initial deployment) and a manual
+          # dispatch are explicit requests, so run the target immediately. Scheduled
+          # watchdogs only dispatch when the target has not started in the last 20 min.
+          if [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            echo "[WATCHDOG] explicit trigger; dispatching ${TARGET_WORKFLOW}"
+            gh workflow run "${TARGET_WORKFLOW}" --ref main
+            exit 0
+          fi
+
+          CUTOFF=$(date -u -d '20 minutes ago' +%Y-%m-%dT%H:%M:%SZ)
+          RECENT=$(gh api \
+            -H 'Accept: application/vnd.github+json' \
+            "/repos/${GITHUB_REPOSITORY}/actions/workflows/${TARGET_WORKFLOW}/runs?per_page=20" \
+            --jq "[.workflow_runs[] | select(.created_at >= \"${CUTOFF}\")] | length")
+
+          echo "[WATCHDOG] recent target runs since ${CUTOFF}: ${RECENT}"
+          if [ "${RECENT}" -gt 0 ]; then
+            echo "[WATCHDOG] target already ran recently; no duplicate dispatch"
+            exit 0
+          fi
+
+          echo "[WATCHDOG] scheduled target run missing; dispatching ${TARGET_WORKFLOW}"
+          gh workflow run "${TARGET_WORKFLOW}" --ref main
