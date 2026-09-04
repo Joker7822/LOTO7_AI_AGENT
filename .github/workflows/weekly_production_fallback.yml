@@ -1,11 +1,6 @@
 name: Weekly Production Fallback
 
 on:
-  # Temporary recovery trigger for today's missed 15:00 run.
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/weekly_production_fallback.yml"
   schedule:
     # Fallback for the primary 15:00 JST publisher.
     # 06:12 UTC = 15:12 JST. The canonical publisher is idempotent by target round.
@@ -26,42 +21,22 @@ jobs:
       TZ: Asia/Tokyo
 
     steps:
-      - name: Guard temporary push recovery
-        id: guard
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
-            DOW=$(TZ=Asia/Tokyo date +%u)
-            HM=$(TZ=Asia/Tokyo date +%H%M)
-            if [ "$DOW" != "5" ] || [ "$HM" -lt 1500 ] || [ "$HM" -ge 1800 ]; then
-              echo "run=false" >> "$GITHUB_OUTPUT"
-              echo "[PRODUCTION-FALLBACK] push outside Friday 15:00-18:00 JST; skip"
-              exit 0
-            fi
-          fi
-          echo "run=true" >> "$GITHUB_OUTPUT"
-
       - name: Checkout
-        if: steps.guard.outputs.run == 'true'
         uses: actions/checkout@v4
         with:
           persist-credentials: true
           fetch-depth: 0
 
       - name: Set up Python
-        if: steps.guard.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
-        if: steps.guard.outputs.run == 'true'
         run: python -m pip install -r requirements.txt
 
       - name: Refresh trusted source
-        if: steps.guard.outputs.run == 'true'
         run: |
           python fetch_validate.py \
             --csv loto7.csv \
@@ -71,7 +46,6 @@ jobs:
             --months 3
 
       - name: Freeze or safely republish canonical Production
-        if: steps.guard.outputs.run == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -83,7 +57,6 @@ jobs:
             --min-train 100
 
       - name: Reconcile canonical ledger
-        if: steps.guard.outputs.run == 'true'
         run: |
           python audit_ledger.py \
             --loto-csv loto7.csv \
@@ -92,7 +65,6 @@ jobs:
             --status-md STATUS.md
 
       - name: Commit Production checkpoint
-        if: steps.guard.outputs.run == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -117,7 +89,6 @@ jobs:
           fi
 
       - name: Validate Sakura sync payload
-        if: steps.guard.outputs.run == 'true'
         run: |
           python -m py_compile prediction_db_sync.py
           python prediction_db_sync.py --dry-run --output /tmp/sakura_payload.json
@@ -129,7 +100,6 @@ jobs:
           PY
 
       - name: Sync Production to Sakura MySQL
-        if: steps.guard.outputs.run == 'true'
         env:
           SAKURA_PREDICTION_API_URL: https://www.epic-creation.com/Epic/Epic-Creation/sakura_loto7_php/prediction_ingest.php
           SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}
@@ -143,7 +113,7 @@ jobs:
           python prediction_db_sync.py
 
       - name: Show Production state
-        if: steps.guard.outputs.run == 'true' && always()
+        if: always()
         run: |
           if [ -f loto7_agent_output/weekly_production_prediction_state.json ]; then
             cat loto7_agent_output/weekly_production_prediction_state.json
