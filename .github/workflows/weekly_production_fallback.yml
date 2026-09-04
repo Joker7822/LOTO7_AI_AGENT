@@ -1,14 +1,8 @@
 name: Weekly Production Fallback
 
 on:
-  # Temporary push trigger enables recovery if this workflow is introduced
-  # during the Friday pre-draw window. It is guarded below by JST day/time.
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/weekly_production_fallback.yml"
   schedule:
-    # Fallback for the primary 15:00 JST publisher. GitHub cron is best-effort;
+    # Fallback for the primary 15:00 JST publisher.
     # 06:12 UTC = 15:12 JST. The canonical publisher is idempotent by target round.
     - cron: "12 6 * * 5"
 
@@ -27,42 +21,22 @@ jobs:
       TZ: Asia/Tokyo
 
     steps:
-      - name: Guard recovery window
-        id: guard
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
-            DOW=$(TZ=Asia/Tokyo date +%u)
-            HM=$(TZ=Asia/Tokyo date +%H%M)
-            if [ "$DOW" != "5" ] || [ "$HM" -lt 1500 ] || [ "$HM" -ge 1800 ]; then
-              echo "run=false" >> "$GITHUB_OUTPUT"
-              echo "[PRODUCTION-FALLBACK] push is outside Friday 15:00-18:00 JST; skip"
-              exit 0
-            fi
-          fi
-          echo "run=true" >> "$GITHUB_OUTPUT"
-
       - name: Checkout
-        if: steps.guard.outputs.run == 'true'
         uses: actions/checkout@v4
         with:
           persist-credentials: true
           fetch-depth: 0
 
       - name: Set up Python
-        if: steps.guard.outputs.run == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
-        if: steps.guard.outputs.run == 'true'
         run: python -m pip install -r requirements.txt
 
       - name: Refresh trusted source
-        if: steps.guard.outputs.run == 'true'
         run: |
           python fetch_validate.py \
             --csv loto7.csv \
@@ -72,7 +46,6 @@ jobs:
             --months 3
 
       - name: Freeze or safely republish canonical Production
-        if: steps.guard.outputs.run == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -84,7 +57,6 @@ jobs:
             --min-train 100
 
       - name: Reconcile canonical ledger
-        if: steps.guard.outputs.run == 'true'
         run: |
           python audit_ledger.py \
             --loto-csv loto7.csv \
@@ -93,7 +65,6 @@ jobs:
             --status-md STATUS.md
 
       - name: Commit Production checkpoint
-        if: steps.guard.outputs.run == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -114,12 +85,12 @@ jobs:
           print(obj.get('target_round', 'unknown'))
           PY
           )
-          git commit -m "chore: freeze weekly Production ${TARGET}"
+          git commit -m "chore: weekly Production fallback ${TARGET}"
           git pull --rebase
           git push
 
       - name: Show Production state
-        if: steps.guard.outputs.run == 'true' && always()
+        if: always()
         run: |
           if [ -f loto7_agent_output/weekly_production_prediction_state.json ]; then
             cat loto7_agent_output/weekly_production_prediction_state.json
