@@ -8,17 +8,17 @@
 - Portfolio overlap during this test: **predeclared starting policy, not retrospectively optimized**
 
 ## Signal
-- mean Top7 hits: **1.5000** (delta vs uniform +0.1757)
-- mean actual mass: **0.192386**
-- mean log edge vs uniform: **-0.011924**
-- mean Brier edge vs uniform: **-0.000989**
+- mean Top7 hits: **1.5500** (delta vs uniform +0.2257)
+- mean actual mass: **0.193075**
+- mean log edge vs uniform: **-0.009214**
+- mean Brier edge vs uniform: **-0.000765**
 
 ## Five-ticket Portfolio
-- mean max hits: **2.5167** / precision random **2.4387**
+- mean max hits: **2.5000** / precision random **2.4387**
 - >=3 round rate: **48.33%** / random **43.82%**
 - >=4 round rate: **6.67%** / random **7.03%**
-- score: **2.8795** / random **2.7772**
-- score delta: **+0.1023** (bootstrap 95% CI -0.1425〜+0.3576)
+- score: **2.8645** / random **2.7772**
+- score delta: **+0.0873** (bootstrap 95% CI -0.1571〜+0.3473)
 - round win rate vs random: **48.3%**
 
 > 各対象回で、その回より前の履歴だけを使って進化・選択してから1回だけ予測するprequential評価です。
