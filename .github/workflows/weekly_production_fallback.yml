@@ -1,0 +1,126 @@
+name: Weekly Production Fallback
+
+on:
+  # Temporary push trigger enables recovery if this workflow is introduced
+  # during the Friday pre-draw window. It is guarded below by JST day/time.
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/weekly_production_fallback.yml"
+  schedule:
+    # Fallback for the primary 15:00 JST publisher. GitHub cron is best-effort;
+    # 06:12 UTC = 15:12 JST. The canonical publisher is idempotent by target round.
+    - cron: "12 6 * * 5"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: weekly-production-fallback
+  cancel-in-progress: false
+
+jobs:
+  publish-production-fallback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Guard recovery window
+        id: guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            DOW=$(TZ=Asia/Tokyo date +%u)
+            HM=$(TZ=Asia/Tokyo date +%H%M)
+            if [ "$DOW" != "5" ] || [ "$HM" -lt 1500 ] || [ "$HM" -ge 1800 ]; then
+              echo "run=false" >> "$GITHUB_OUTPUT"
+              echo "[PRODUCTION-FALLBACK] push is outside Friday 15:00-18:00 JST; skip"
+              exit 0
+            fi
+          fi
+          echo "run=true" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Set up Python
+        if: steps.guard.outputs.run == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        if: steps.guard.outputs.run == 'true'
+        run: python -m pip install -r requirements.txt
+
+      - name: Refresh trusted source
+        if: steps.guard.outputs.run == 'true'
+        run: |
+          python fetch_validate.py \
+            --csv loto7.csv \
+            --report loto7_agent_output/source_validation.json \
+            --max-attempts 1 \
+            --interval-seconds 0 \
+            --months 3
+
+      - name: Freeze or safely republish canonical Production
+        if: steps.guard.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          GITHUB_SHA="$(git rev-parse HEAD)" python weekly_production_prediction.py \
+            --csv loto7.csv \
+            --out-dir loto7_agent_output \
+            --champion-file loto7_agent_output/model_champion.json \
+            --research-state loto7_agent_output/v4_research_state.json \
+            --min-train 100
+
+      - name: Reconcile canonical ledger
+        if: steps.guard.outputs.run == 'true'
+        run: |
+          python audit_ledger.py \
+            --loto-csv loto7.csv \
+            --tickets-csv loto7_agent_output/candidate_tickets.csv \
+            --out-dir loto7_agent_output \
+            --status-md STATUS.md
+
+      - name: Commit Production checkpoint
+        if: steps.guard.outputs.run == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -z "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
+            echo "[PRODUCTION-FALLBACK] canonical Production already current; nothing to commit"
+            exit 0
+          fi
+
+          git add -- loto7.csv STATUS.md loto7_agent_output
+          TARGET=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('loto7_agent_output/weekly_production_prediction_state.json')
+          obj = json.loads(p.read_text(encoding='utf-8')) if p.exists() else {}
+          print(obj.get('target_round', 'unknown'))
+          PY
+          )
+          git commit -m "chore: freeze weekly Production ${TARGET}"
+          git pull --rebase
+          git push
+
+      - name: Show Production state
+        if: steps.guard.outputs.run == 'true' && always()
+        run: |
+          if [ -f loto7_agent_output/weekly_production_prediction_state.json ]; then
+            cat loto7_agent_output/weekly_production_prediction_state.json
+          fi
