@@ -36,12 +36,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          # A push of this watchdog (including this initial deployment) and a manual
-          # dispatch are explicit requests, so run the target immediately. Scheduled
-          # watchdogs only dispatch when the target has not started in the last 20 min.
+          # A push of this watchdog (including this deployment) and a manual dispatch
+          # are explicit requests, so run the target immediately. Scheduled watchdogs
+          # only dispatch when the target has not started in the last 20 minutes.
           if [ "${GITHUB_EVENT_NAME}" = "push" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             echo "[WATCHDOG] explicit trigger; dispatching ${TARGET_WORKFLOW}"
-            gh workflow run "${TARGET_WORKFLOW}" --ref main
+            gh workflow run "${TARGET_WORKFLOW}" --repo "${GITHUB_REPOSITORY}" --ref main
             exit 0
           fi
 
@@ -58,4 +58,4 @@ jobs:
           fi
 
           echo "[WATCHDOG] scheduled target run missing; dispatching ${TARGET_WORKFLOW}"
-          gh workflow run "${TARGET_WORKFLOW}" --ref main
+          gh workflow run "${TARGET_WORKFLOW}" --repo "${GITHUB_REPOSITORY}" --ref main
