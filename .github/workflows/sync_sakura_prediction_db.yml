@@ -49,13 +49,13 @@ jobs:
 
       - name: Sync to Sakura MySQL
         env:
-          SAKURA_PREDICTION_API_URL: https://www.epic-creation.com/Epic/Epic-Creation/sakura_loto7_php/prediction_ingest.php
+          SAKURA_PREDICTION_API_URL: ${{ secrets.SAKURA_PREDICTION_API_URL }}
           SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${SAKURA_PREDICTION_HMAC_SECRET:-}" ]; then
-            echo "SAKURA_PREDICTION_HMAC_SECRET is not configured yet; payload validation succeeded and network sync is skipped."
+          if [ -z "${SAKURA_PREDICTION_API_URL:-}" ] || [ -z "${SAKURA_PREDICTION_HMAC_SECRET:-}" ]; then
+            echo "Sakura sync secrets are not fully configured; payload validation succeeded and network sync is skipped."
             exit 0
           fi
           python prediction_db_sync.py
