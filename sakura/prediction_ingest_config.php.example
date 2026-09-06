@@ -1,0 +1,11 @@
+<?php
+// Copy this file to prediction_ingest_config.php on Sakura.
+// IMPORTANT: prediction_ingest_config.php is gitignored. Never commit real credentials.
+// Use unique credentials and a long random HMAC secret; do not reuse the DB password.
+return [
+    'db_dsn' => 'mysql:host=YOUR_DB_HOST;dbname=YOUR_DB_NAME;charset=utf8mb4',
+    'db_user' => 'YOUR_DB_USER',
+    'db_password' => 'REPLACE_WITH_DB_PASSWORD',
+    'hmac_secret' => 'REPLACE_WITH_LONG_RANDOM_HMAC_SECRET',
+    'max_clock_skew_seconds' => 300,
+];
