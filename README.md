@@ -106,12 +106,25 @@ historical replay / reconciliation / nested replayはすべて**精度確認用�
 
 `loto7.csv` または関連予測ファイルのSHA・評価条件が変わった時だけ再計算し、同じデータではcache判定でスキップします。
 
-## 連続GitHub Actions
+## GitHub Actions構成
 
-使用するworkflowは2本だけです。
+現在 `.github/workflows/` には **12本**のworkflowがあります。継続研究とCIの中核は次の2本です。
 
 - `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・過去回精度replay・独立照合・nested比較・監査
-- `.github/workflows/ci.yml` — コード変更時のcompile / pytest
+- `.github/workflows/ci.yml` — コード変更時のcompile / pytest / Sakura secret-file guard
+
+補助・診断・本番運用workflowとして、以下も存在します。
+
+- `.github/workflows/champion_calibration_oos.yml`
+- `.github/workflows/champion_ranking_calibration.yml`
+- `.github/workflows/friday_result_check_watchdog.yml`
+- `.github/workflows/joint_set_research.yml`
+- `.github/workflows/publish_production_now.yml`
+- `.github/workflows/signal_expert_attribution_oos.yml`
+- `.github/workflows/signal_meta_research.yml`
+- `.github/workflows/strict_oos_bootstrap.yml`
+- `.github/workflows/sync_sakura_prediction_db.yml`
+- `.github/workflows/weekly_production_fallback.yml`
 
 旧v3の `weekly_loto7.yml` と、一回性の `start_continuous_now.yml` は削除しています。
 
@@ -128,6 +141,7 @@ CIは以下の変更時だけ起動します。
 - Pythonコード
 - `tests/**`
 - `requirements.txt`
+- `sakura/**`
 - workflow定義
 
 `STATUS.md` や `loto7_agent_output/**` だけの自動checkpointではCIを起動しません。
