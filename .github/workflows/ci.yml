@@ -8,6 +8,7 @@ on:
       - "*.py"
       - "tests/**"
       - "requirements.txt"
+      - "sakura/**"
       - ".github/workflows/**"
 
 permissions:
@@ -19,6 +20,16 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+
+      - name: Guard uncommitted Sakura secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f sakura/prediction_ingest_config.php ]; then
+            echo "ERROR: sakura/prediction_ingest_config.php must never be committed."
+            exit 1
+          fi
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
