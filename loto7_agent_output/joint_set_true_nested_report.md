@@ -9,17 +9,17 @@
 
 ## Signal + Dynamic Uniform Gate
 - mean Top7 hits: **1.5000**
-- mean actual mass: **0.189644**
-- mean log edge vs uniform: **-0.000489**
-- mean Brier edge vs uniform: **-0.000024**
-- mean model gate: **0.467**
+- mean actual mass: **0.189632**
+- mean log edge vs uniform: **-0.000586**
+- mean Brier edge vs uniform: **-0.000029**
+- mean model gate: **0.473**
 
 ## Expected-Utility Five-Ticket Portfolio
 - mean max hits: **2.5500** / random **2.4387**
 - >=3 round rate: **50.00%** / random **43.82%**
 - >=4 round rate: **10.00%** / random **7.03%**
-- score: **2.9340** / random **2.7772**
-- score delta: **+0.1568** (bootstrap 95% CI -0.1106〜+0.4333)
+- score: **2.9337** / random **2.7772**
+- score delta: **+0.1565** (bootstrap 95% CI -0.1041〜+0.4350)
 
 ## External metadata
 - trusted records: **0**
