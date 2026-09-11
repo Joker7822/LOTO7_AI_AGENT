@@ -6,11 +6,6 @@ on:
     # 06:12 UTC = 15:12 JST. The canonical publisher is idempotent by target round.
     - cron: "12 6 * * 5"
   workflow_dispatch:
-  # Emergency self-trigger. Remove after the missed Production slot is recovered.
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/weekly_production_fallback.yml"
 
 permissions:
   contents: write
