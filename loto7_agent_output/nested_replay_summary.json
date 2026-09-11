@@ -2,15 +2,15 @@
   "report_version": "nested-replay-v1",
   "evaluation_type": "nested_walk_forward_predeclared_model_family",
   "leakage_control": "All four candidate model configurations were predeclared before v4 research. At target row t, model selection uses only scored predictions from rows < t; the target result is excluded from selection.",
-  "csv_sha256": "f953932efc3172345055886a24303e803019f8bd08ee666cbeb6539dfa545e64",
-  "source_rows": 693,
+  "csv_sha256": "aa1a6f4e0f443e78be4e68fa79fbbb24f0df862d47726b9afeaef13b8f0d9fcb",
+  "source_rows": 694,
   "min_train": 100,
   "last_n": 120,
   "portfolio_pool_size": 350,
   "random_portfolios_per_round": 32,
   "evaluated_rounds": 120,
-  "first_round": 574,
-  "last_round": 693,
+  "first_round": 575,
+  "last_round": 694,
   "predeclared_models": [
     "baseline-5fdb8dc2ad",
     "stable-9892a39bad",
@@ -18,43 +18,43 @@
     "adaptive-56ece3c481"
   ],
   "selected_model_counts": {
-    "balanced-ac45a2d3fd": 71,
-    "stable-9892a39bad": 44,
+    "balanced-ac45a2d3fd": 70,
+    "stable-9892a39bad": 45,
     "adaptive-56ece3c481": 5
   },
   "champion_reference": {
     "model": "baseline-5fdb8dc2ad",
-    "mean_max_hits": 2.2583333333333333,
-    "mean_ticket_hits": 1.3833333333333333,
+    "mean_max_hits": 2.25,
+    "mean_ticket_hits": 1.3799999999999997,
     "ge3_round_rate": 0.325,
     "ge4_round_rate": 0.05,
-    "mean_score": 2.5479166666666666
+    "mean_score": 2.53925
   },
   "nested_research": {
     "mean_max_hits": 2.3333333333333335,
-    "mean_ticket_hits": 1.4133333333333333,
+    "mean_ticket_hits": 1.4116666666666666,
     "ge3_round_rate": 0.35833333333333334,
     "ge4_round_rate": 0.10833333333333334,
-    "mean_score": 2.681333333333334,
+    "mean_score": 2.681166666666667,
     "score_delta_vs_champion": {
-      "mean": 0.13341666666666666,
-      "low95": -0.05318125,
-      "high95": 0.32250208333333324
+      "mean": 0.14191666666666666,
+      "low95": -0.044339583333333335,
+      "high95": 0.3217729166666663
     },
     "score_delta_vs_random": {
-      "mean": -0.08006510000000003,
-      "low95": -0.3045316060416666,
-      "high95": 0.14808426645833325
+      "mean": -0.08223958333333335,
+      "low95": -0.3031098672916666,
+      "high95": 0.1572015208333333
     },
-    "round_win_rate_vs_champion": 0.44166666666666665,
+    "round_win_rate_vs_champion": 0.45,
     "round_win_rate_vs_random": 0.35833333333333334
   },
   "random_reference": {
-    "mean_max_hits": 2.4244791666666665,
-    "mean_ticket_hits": 1.3201041666666669,
+    "mean_max_hits": 2.42578125,
+    "mean_ticket_hits": 1.3213020833333333,
     "ge3_round_rate": 0.42864583333333334,
-    "ge4_round_rate": 0.07317708333333334,
-    "mean_score": 2.761398491666667
+    "ge4_round_rate": 0.07395833333333333,
+    "mean_score": 2.7634063083333333
   },
   "interpretation": "This is diagnostic nested backtesting. It is stronger than retrospectively testing the current Research Winner, but it remains historical evidence and never contributes to v4 future-OOS Champion promotion."
 }
