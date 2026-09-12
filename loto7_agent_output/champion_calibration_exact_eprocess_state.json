@@ -4,34 +4,35 @@
   "registered_at_jst": "2026-09-01T12:31:54+09:00",
   "starts_target_round": 693,
   "horizon_trusted_draws": 26,
-  "trusted_draws_processed": 1,
+  "trusted_draws_processed": 2,
   "processed_rounds": [
-    693
+    693,
+    694
   ],
-  "rank_preserved_trusted_draws": 1,
-  "mean_log_edge_vs_uniform": 0.03454943752818318,
-  "mean_brier_improvement_vs_uniform": 0.0020789144336149923,
-  "mean_actual_mass_delta_vs_uniform": 0.007612006845866853,
+  "rank_preserved_trusted_draws": 2,
+  "mean_log_edge_vs_uniform": 0.005119323949571042,
+  "mean_brier_improvement_vs_uniform": 0.0003284089680409552,
+  "mean_actual_mass_delta_vs_uniform": 0.001542275726277853,
   "component_log_e_values": {
     "log_score": {
-      "0.25": 0.45128719773913906,
-      "0.5": 0.8256115925115521,
-      "1.0": 1.3089981295253441,
-      "2.0": 1.368500551601354,
-      "4.0": -0.2929788684563448
+      "0.25": 0.14882331968323603,
+      "0.5": 0.1410054653922428,
+      "1.0": -0.413585622016198,
+      "2.0": -3.258355416178631,
+      "4.0": -11.952441293649638
     },
     "brier_improvement": {
-      "0.25": 0.45532427681366233,
-      "0.5": 0.8325662556036618,
-      "1.0": 1.317540586063407,
-      "2.0": 1.39892180122007,
-      "4.0": -0.06401771502629483
+      "0.25": 0.16938715931025078,
+      "0.5": 0.1797055545361027,
+      "1.0": -0.34754464034327603,
+      "2.0": -3.0995701199706747,
+      "4.0": -11.28956660953018
     }
   },
-  "log_score_mixture_log_e_value": 0.8945818802459414,
-  "log_score_mixture_e_value": 2.446312723920783,
-  "brier_mixture_log_e_value": 0.9241748173363562,
-  "brier_mixture_e_value": 2.519788116756961,
+  "log_score_mixture_log_e_value": -0.5069558480531086,
+  "log_score_mixture_e_value": 0.6023263637776131,
+  "brier_mixture_log_e_value": -0.46746441610300626,
+  "brier_mixture_e_value": 0.6265890247967464,
   "e_value_threshold_each": 40.0,
   "family_alpha": 0.05,
   "endpoint_alpha": 0.025,
@@ -158,8 +159,125 @@
           "observed_metric": 0.0020789144336149923
         }
       }
+    },
+    {
+      "round": 694,
+      "calibrated_q_sha256": "da99b03e19d3e8cef55ddd3dd0d78645934dfc86571dceec2157949c7f4e096b",
+      "observed_log_edge_vs_uniform": -0.024310789629041096,
+      "observed_brier_improvement_vs_uniform": -0.0014220964975330819,
+      "observed_actual_mass_delta_vs_uniform": -0.004527455393311147,
+      "rank_preserved": true,
+      "log_factors": {
+        "0.25": {
+          "null_mean_without_constant": -0.0019863170461439385,
+          "metric_sd": 0.020809795656360954,
+          "standardized_observed": -1.0727867275368084,
+          "log_mgf": 0.03426719617170093,
+          "log_factor": -0.302463878055903,
+          "factor": 0.7389951817194735,
+          "null_mean": -0.0019863170461439385,
+          "observed_metric": -0.024310789629041096
+        },
+        "0.5": {
+          "null_mean_without_constant": -0.0019863170461439385,
+          "metric_sd": 0.020809795656360954,
+          "standardized_observed": -1.0727867275368084,
+          "log_mgf": 0.14821276335090516,
+          "log_factor": -0.6846061271193093,
+          "factor": 0.5042888161520425,
+          "null_mean": -0.0019863170461439385,
+          "observed_metric": -0.024310789629041096
+        },
+        "1.0": {
+          "null_mean_without_constant": -0.0019863170461439385,
+          "metric_sd": 0.020809795656360954,
+          "standardized_observed": -1.0727867275368084,
+          "log_mgf": 0.6497970240047337,
+          "log_factor": -1.722583751541542,
+          "factor": 0.17860408266374048,
+          "null_mean": -0.0019863170461439385,
+          "observed_metric": -0.024310789629041096
+        },
+        "2.0": {
+          "null_mean_without_constant": -0.0019863170461439385,
+          "metric_sd": 0.020809795656360954,
+          "standardized_observed": -1.0727867275368084,
+          "log_mgf": 2.4812825127063682,
+          "log_factor": -4.626855967779985,
+          "factor": 0.009785476642423607,
+          "null_mean": -0.0019863170461439385,
+          "observed_metric": -0.024310789629041096
+        },
+        "4.0": {
+          "null_mean_without_constant": -0.0019863170461439385,
+          "metric_sd": 0.020809795656360954,
+          "standardized_observed": -1.0727867275368084,
+          "log_mgf": 7.36831551504606,
+          "log_factor": -11.659462425193293,
+          "factor": 8.636938094289706e-06,
+          "null_mean": -0.0019863170461439385,
+          "observed_metric": -0.024310789629041096
+        }
+      },
+      "brier_factors": {
+        "0.25": {
+          "null_mean_without_constant": 0.054054054054054064,
+          "metric_sd": 0.001286189456101685,
+          "standardized_observed": -1.005729504052864,
+          "log_mgf": 0.034504741490195556,
+          "log_factor": -0.28593711750341155,
+          "factor": 0.751309858701126,
+          "constant": -0.05418259186778397,
+          "null_mean": -0.00012853781372991133,
+          "observed_metric": -0.0014220964975330819
+        },
+        "0.5": {
+          "null_mean_without_constant": 0.054054054054054064,
+          "metric_sd": 0.001286189456101685,
+          "standardized_observed": -1.005729504052864,
+          "log_mgf": 0.14999594904112712,
+          "log_factor": -0.6528607010675591,
+          "factor": 0.520554493924329,
+          "constant": -0.05418259186778397,
+          "null_mean": -0.00012853781372991133,
+          "observed_metric": -0.0014220964975330819
+        },
+        "1.0": {
+          "null_mean_without_constant": 0.054054054054054064,
+          "metric_sd": 0.001286189456101685,
+          "standardized_observed": -1.005729504052864,
+          "log_mgf": 0.6593557223538191,
+          "log_factor": -1.665085226406683,
+          "factor": 0.1891745346291017,
+          "constant": -0.05418259186778397,
+          "null_mean": -0.00012853781372991133,
+          "observed_metric": -0.0014220964975330819
+        },
+        "2.0": {
+          "null_mean_without_constant": 0.054054054054054064,
+          "metric_sd": 0.001286189456101685,
+          "standardized_observed": -1.005729504052864,
+          "log_mgf": 2.4870329130850166,
+          "log_factor": -4.498491921190745,
+          "factor": 0.011125762419471266,
+          "constant": -0.05418259186778397,
+          "null_mean": -0.00012853781372991133,
+          "observed_metric": -0.0014220964975330819
+        },
+        "4.0": {
+          "null_mean_without_constant": 0.054054054054054064,
+          "metric_sd": 0.001286189456101685,
+          "standardized_observed": -1.005729504052864,
+          "log_mgf": 7.202630878292428,
+          "log_factor": -11.225548894503884,
+          "factor": 1.3329260595673908e-05,
+          "constant": -0.05418259186778397,
+          "null_mean": -0.00012853781372991133,
+          "observed_metric": -0.0014220964975330819
+        }
+      }
     }
   ],
-  "updated_at_jst": "2026-09-11T14:04:35+09:00",
+  "updated_at_jst": "2026-09-12T13:54:58+09:00",
   "promotion_role": "diagnostic_only"
 }
