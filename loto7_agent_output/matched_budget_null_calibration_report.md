@@ -1,15 +1,15 @@
 # Matched-Budget Null-Search Calibration
 
-- completed null worlds: **56/64**
+- completed null worlds: **57/64**
 - matched candidate-trial budget/world: **602**
 - matched plateau limit: **300 generations**
 - Signal gate matched: **YES**
 - four-era gate matched: **YES**
 - observed real Signal objective: **-0.03810**
-- null median best: **-0.05413**
-- null 95th percentile best: **-0.03099**
-- null 99th percentile best: **-0.02282**
-- empirical upper-tail p: **0.1754**
+- null median best: **-0.05434**
+- null 95th percentile best: **-0.03122**
+- null 99th percentile best: **-0.02290**
+- empirical upper-tail p: **0.1724**
 - calibration complete: **NO**
 
 > 実データ側で消費したSignal trial数と同じ候補budgetを各Null worldへ与え、現在のSignal/era採用ルールとplateau停止を同じように適用します。
