@@ -1,13 +1,13 @@
 # LOTO7 AI Agent Status
 
-- 更新日時 (JST): **2026-09-13T07:05:25+09:00**
+- 更新日時 (JST): **2026-09-14T04:10:17+09:00**
 - 最新取得回: **第694回 / 2026-09-11**
 - 最新Production対象: **第695回（未発行）**
 - 未照合予測: **0口**
 - モデル: **baseline-5fdb8dc2ad**
 - データSHA256: `f953932efc3172345055886a24303e803019f8bd08ee666cbeb6539dfa545e64`
-- ソース検証: **verified_two_result_sources**
-- 取得状態: **ok**
+- ソース検証: **degraded_single_result_source**
+- 取得状態: **degraded**
 
 > Productionの凍結は金曜15:00 JST publisherのみが行います。通常checkpointは既存の凍結台帳を照合・表示するだけです。
 
