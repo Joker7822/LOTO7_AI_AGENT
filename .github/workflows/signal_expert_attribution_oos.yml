@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "signal_expert_attribution_oos.py"
+      - "signal_expert_attribution_oos_stable.py"
       - "loto7.csv"
       - "loto7_evolving_agent.py"
       - "loto7_v2_runner.py"
@@ -51,8 +52,8 @@ jobs:
 
       - name: Verify protocol
         run: |
-          python -m compileall -q signal_expert_attribution_oos.py tests/test_signal_expert_attribution_oos.py
-          python -m pytest -q tests/test_signal_expert_attribution_oos.py
+          python -m compileall -q signal_expert_attribution_oos.py signal_expert_attribution_oos_stable.py tests/test_signal_expert_attribution_oos.py tests/test_signal_expert_attribution_stable.py
+          python -m pytest -q tests/test_signal_expert_attribution_oos.py tests/test_signal_expert_attribution_stable.py
 
       - name: Freeze grade and persist
         shell: bash
@@ -66,7 +67,7 @@ jobs:
             git fetch origin main
             git reset --hard origin/main
 
-            python signal_expert_attribution_oos.py \
+            python signal_expert_attribution_oos_stable.py \
               --csv loto7.csv \
               --out-dir loto7_agent_output \
               --champion-file loto7_agent_output/model_champion.json \
