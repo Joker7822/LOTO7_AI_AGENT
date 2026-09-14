@@ -1,8 +1,8 @@
 {
-  "checked_at_jst": "2026-09-14T04:10:13+09:00",
+  "checked_at_jst": "2026-09-15T05:42:58+09:00",
   "attempt": 1,
-  "status": "degraded",
-  "verification": "degraded_single_result_source",
+  "status": "ok",
+  "verification": "verified_two_result_sources",
   "primary_source": "Rakuten backnumber via scrapingloto7.py",
   "secondary_policy": "Mizuho preferred; Rakuten Bank direct public winning-number endpoint is accepted as fallback",
   "latest": {
@@ -29,11 +29,23 @@
       "error": "HTTP Error 403: Forbidden"
     },
     "rakuten_bank": {
-      "status": "target_not_parseable",
-      "direct": {
-        "status": "target_not_on_direct_page"
-      },
-      "iframes_checked": 1
+      "round": 694,
+      "date": "2026-09-11",
+      "main": [
+        3,
+        13,
+        24,
+        26,
+        30,
+        31,
+        36
+      ],
+      "bonus": [
+        23,
+        34
+      ],
+      "transport": "direct_public_result_page",
+      "url": "https://sfes.rakuten-bank.co.jp/MS/main/fis?PageID=WinNumberLoto7PresentationLogicBean"
     },
     "official_schedule": {
       "round": 695,
@@ -41,7 +53,8 @@
     }
   },
   "notes": [
+    "Rakuten Bank result matches Rakuten primary main/bonus numbers via direct_public_result_page",
     "official schedule visible: round=695 date=2026-09-18",
-    "No secondary result endpoint was parseable for this round; operating in degraded single-result-source mode"
+    "result verification succeeded using at least two published result endpoints"
   ]
 }
