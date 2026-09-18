@@ -5,12 +5,6 @@ on:
     # Primary Production publisher: Friday 15:00 JST (06:00 UTC).
     - cron: "0 6 * * 5"
   workflow_dispatch:
-  # Temporary recovery trigger for the missed 2026-09-18 publication.
-  # Remove after the recovery run succeeds.
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/weekly_production_publisher.yml"
 
 permissions:
   contents: write
