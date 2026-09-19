@@ -3,11 +3,24 @@ from pathlib import Path
 import weekly_production_prediction as weekly
 
 
-def test_weekly_prediction_cron_is_friday_15_jst():
-    text = Path(".github/workflows/continuous_loto7_v4.yml").read_text(encoding="utf-8")
-    assert '- cron: "0 6 * * 5"' in text
-    assert "weekly_production_prediction.py" in text
-    assert "research_v4_no_production.py" in text
+def test_weekly_prediction_cron_is_owned_by_dedicated_publisher():
+    publisher = Path(".github/workflows/weekly_production_publisher.yml").read_text(encoding="utf-8")
+    continuous = Path(".github/workflows/continuous_loto7_v4.yml").read_text(encoding="utf-8")
+
+    assert '- cron: "0 6 * * 5"' in publisher
+    assert "weekly_production_prediction.py" in publisher
+    assert '- cron: "0 6 * * 5"' not in continuous
+    assert "weekly_production_prediction.py" not in continuous
+    assert "research_v4_no_production.py" in continuous
+
+
+def test_primary_and_fallback_share_production_concurrency_group():
+    publisher = Path(".github/workflows/weekly_production_publisher.yml").read_text(encoding="utf-8")
+    fallback = Path(".github/workflows/weekly_production_fallback.yml").read_text(encoding="utf-8")
+
+    assert "group: loto7-production-publisher" in publisher
+    assert "group: loto7-production-publisher" in fallback
+    assert '- cron: "12 6 * * 5"' in fallback
 
 
 def test_render_latest_prediction_has_expected_fields():
