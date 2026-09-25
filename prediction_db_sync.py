@@ -16,6 +16,16 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Sequence
 
 SCHEMA_VERSION = "loto7-db-sync-v1"
+DEFAULT_CREDENTIAL_GENERATION_FILE = Path("sakura/credential_generation.txt")
+
+
+def configured_credential_generation() -> str:
+    env = os.environ.get("SAKURA_CREDENTIAL_GENERATION", "").strip()
+    if env:
+        return env
+    if DEFAULT_CREDENTIAL_GENERATION_FILE.exists():
+        return DEFAULT_CREDENTIAL_GENERATION_FILE.read_text(encoding="utf-8").strip()
+    return ""
 
 
 def read_csv(path: Path) -> List[Dict[str, str]]:
@@ -194,7 +204,7 @@ def main() -> int:
     ap.add_argument("--secret", default=os.environ.get("SAKURA_PREDICTION_HMAC_SECRET", ""))
     ap.add_argument(
         "--credential-generation",
-        default=os.environ.get("SAKURA_CREDENTIAL_GENERATION", ""),
+        default=configured_credential_generation(),
         help="Non-secret rotation generation identifier expected from the Sakura endpoint.",
     )
     ap.add_argument("--dry-run", action="store_true")
