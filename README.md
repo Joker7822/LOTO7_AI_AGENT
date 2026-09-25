@@ -108,7 +108,7 @@ historical replay / reconciliation / nested replayはすべて**精度確認用�
 
 ## GitHub Actions構成
 
-現在 `.github/workflows/` には **12本**のworkflowがあります。継続研究とCIの中核は次の2本です。
+現在 `.github/workflows/` には **13本**のworkflowがあります。継続研究とCIの中核は次の2本です。
 
 - `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・過去回精度replay・独立照合・nested比較・監査
 - `.github/workflows/ci.yml` — コード変更時のcompile / pytest / Sakura secret-file guard
@@ -124,7 +124,8 @@ historical replay / reconciliation / nested replayはすべて**精度確認用�
 - `.github/workflows/signal_meta_research.yml`
 - `.github/workflows/strict_oos_bootstrap.yml`
 - `.github/workflows/sync_sakura_prediction_db.yml`
-- `.github/workflows/weekly_production_fallback.yml`
+- `.github/workflows/weekly_production_publisher.yml` — 金曜13:00 JSTのProduction発行。OOS完了イベントでも13:00〜14:59 JSTに回復起動
+- `.github/workflows/weekly_production_fallback.yml` — 金曜14:00 JSTのProduction fallback。15:00 JST以降は新規freezeをfail closed
 
 旧v3の `weekly_loto7.yml` と、一回性の `start_continuous_now.yml` は削除しています。
 
