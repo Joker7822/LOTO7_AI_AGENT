@@ -116,7 +116,8 @@ jobs:
             --report loto7_agent_output/source_validation.json \
             --max-attempts 1 \
             --interval-seconds 0 \
-            --months 3
+            --months 3 \
+            --production-snapshot
 
       - name: Freeze or safely republish canonical Production
         if: steps.publication_gate.outputs.publish == 'true'
