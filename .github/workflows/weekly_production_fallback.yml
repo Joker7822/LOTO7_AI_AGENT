@@ -2,9 +2,9 @@ name: Weekly Production Fallback
 
 on:
   schedule:
-    # Fallback for the primary 15:00 JST publisher.
-    # 06:12 UTC = 15:12 JST. The canonical publisher is idempotent by target round.
-    - cron: "12 6 * * 5"
+    # Fallback inside the Friday 13:00-15:00 JST publication window.
+    # 05:00 UTC = 14:00 JST. The canonical publisher is idempotent by target round.
+    - cron: "0 5 * * 5"
   workflow_dispatch:
 
 permissions:
@@ -65,20 +65,20 @@ jobs:
             exit 0
           fi
 
-          if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1500 ]; then
+          if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1300 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
             echo "::error::Production fallback triggered outside Friday publication window"
             exit 1
           fi
 
-          if [ "${HM}" -ge 2000 ]; then
+          if [ "${HM}" -ge 1500 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
-            echo "::error::Production was not published before the 20:00 JST fail-closed cutoff"
+            echo "::error::Production was not published before the 15:00 JST fail-closed cutoff"
             exit 1
           fi
 
           echo "publish=true" >> "${GITHUB_OUTPUT}"
-          echo "[PRODUCTION-FALLBACK] publication allowed inside Friday 15:00-19:59 JST"
+          echo "[PRODUCTION-FALLBACK] publication allowed inside Friday 13:00-14:59 JST"
 
       - name: Set up Python
         if: steps.publication_gate.outputs.publish == 'true'
