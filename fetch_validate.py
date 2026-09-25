@@ -122,6 +122,17 @@ def expected_new_round(before: Optional[Dict[str, str]], now: Optional[dt.dateti
     return None
 
 
+def freshness_expected(
+    before: Optional[Dict[str, str]],
+    production_snapshot: bool = False,
+    now: Optional[dt.datetime] = None,
+) -> Optional[Tuple[int, str]]:
+    """Return a required fresh round unless Production is validating a pre-draw snapshot."""
+    if production_snapshot:
+        return None
+    return expected_new_round(before, now)
+
+
 def _round_segments(text: str, target_round: Optional[int]) -> List[str]:
     if target_round is None:
         return [text]
@@ -298,11 +309,19 @@ def main() -> int:
     ap.add_argument("--interval-seconds", type=int, default=600)
     ap.add_argument("--months", type=int, default=3)
     ap.add_argument("--require-two-result-sources", action="store_true")
+    ap.add_argument(
+        "--production-snapshot",
+        action="store_true",
+        help=(
+            "Validate the latest completed draw as the immutable Production input snapshot "
+            "without requiring the current Friday draw result to exist."
+        ),
+    )
     args = ap.parse_args()
 
     before_rows = read_rows(args.csv)
     before = latest_row(before_rows)
-    expected = expected_new_round(before)
+    expected = freshness_expected(before, production_snapshot=args.production_snapshot)
     last_error = ""
 
     for attempt in range(1, max(1, args.max_attempts) + 1):
@@ -341,6 +360,11 @@ def main() -> int:
                 "secondary_policy": "Mizuho preferred; Rakuten Bank direct public winning-number endpoint is accepted as fallback",
                 "latest": primary,
                 "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None,
+                "freshness_policy": (
+                    "production_snapshot_latest_completed_draw"
+                    if args.production_snapshot
+                    else "require_current_draw_after_friday_20_jst"
+                ),
                 "sources": sources,
                 "notes": notes,
             }
@@ -358,6 +382,11 @@ def main() -> int:
         "status": "failed",
         "verification": "failed",
         "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None,
+        "freshness_policy": (
+            "production_snapshot_latest_completed_draw"
+            if args.production_snapshot
+            else "require_current_draw_after_friday_20_jst"
+        ),
         "error": last_error,
     })
     return 1
