@@ -180,7 +180,8 @@ jobs:
               --feedback loto7_agent_output/research_feedback_state.json \
               --formal loto7_agent_output/formal_challenger_state.json \
               --holdout-state loto7_agent_output/future_holdout_state.json \
-              --holdout-registry loto7_agent_output/future_holdout_registry.json
+              --holdout-registry loto7_agent_output/future_holdout_registry.json \
+              --credential-rotation-status loto7_agent_output/sakura_credential_rotation_status.json
 
             python matched_ensemble_status.py \
               --status STATUS.md \
