@@ -34,28 +34,14 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
-      - name: Gate event-driven recovery
-        id: recovery_gate
+      - name: Gate Production publication window
+        id: publication_gate
         shell: bash
         run: |
           set -euo pipefail
 
-          # Direct schedule/manual runs are always allowed. workflow_run is only a
-          # recovery wake-up and must never publish before Friday 15:00 JST.
-          if [ "${GITHUB_EVENT_NAME}" != "workflow_run" ]; then
-            echo "publish=true" >> "${GITHUB_OUTPUT}"
-            echo "[PRODUCTION] direct trigger; publication allowed"
-            exit 0
-          fi
-
           DOW=$(TZ=Asia/Tokyo date +%u)
           HM=$(TZ=Asia/Tokyo date +%H%M)
-          TODAY=$(TZ=Asia/Tokyo date +%F)
-          if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1500 ]; then
-            echo "publish=false" >> "${GITHUB_OUTPUT}"
-            echo "[PRODUCTION] workflow_run recovery ignored outside Friday >=15:00 JST"
-            exit 0
-          fi
 
           ALREADY_PUBLISHED=$(python3 - <<'PY'
           import json
@@ -79,28 +65,51 @@ jobs:
           PY
           )
 
+          # Any delayed duplicate after a successful publication is a clean no-op.
+          # This keeps heavily delayed GitHub schedule runs from failing later on
+          # the post-draw freshness gate.
           if [ "${ALREADY_PUBLISHED}" = "true" ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
-            echo "[PRODUCTION] today's Production is already published; recovery is a no-op"
+            echo "[PRODUCTION] today's Production is already published; clean no-op"
             exit 0
           fi
 
+          # Automatic publication is only valid in the pre-draw recovery window.
+          # workflow_run events outside Friday 15:00-19:59 JST are routine noise.
+          if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1500 ]; then
+            echo "publish=false" >> "${GITHUB_OUTPUT}"
+            if [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
+              echo "[PRODUCTION] recovery wake-up ignored outside Friday 15:00-19:59 JST"
+              exit 0
+            fi
+            echo "::error::Production publisher triggered outside Friday publication window"
+            exit 1
+          fi
+
+          # Fail closed once the result-check window begins. Creating a new
+          # Production forecast after this point could become post-outcome leakage.
+          if [ "${HM}" -ge 2000 ]; then
+            echo "publish=false" >> "${GITHUB_OUTPUT}"
+            echo "::error::Production was not published before the 20:00 JST fail-closed cutoff"
+            exit 1
+          fi
+
           echo "publish=true" >> "${GITHUB_OUTPUT}"
-          echo "[PRODUCTION] delayed-scheduler recovery activated"
+          echo "[PRODUCTION] publication/recovery allowed inside Friday 15:00-19:59 JST"
 
       - name: Set up Python
-        if: steps.recovery_gate.outputs.publish == 'true'
+        if: steps.publication_gate.outputs.publish == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
-        if: steps.recovery_gate.outputs.publish == 'true'
+        if: steps.publication_gate.outputs.publish == 'true'
         run: python -m pip install -r requirements.txt
 
       - name: Refresh trusted source
-        if: steps.recovery_gate.outputs.publish == 'true'
+        if: steps.publication_gate.outputs.publish == 'true'
         run: |
           python fetch_validate.py \
             --csv loto7.csv \
@@ -110,7 +119,7 @@ jobs:
             --months 3
 
       - name: Freeze or safely republish canonical Production
-        if: steps.recovery_gate.outputs.publish == 'true'
+        if: steps.publication_gate.outputs.publish == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -122,7 +131,7 @@ jobs:
             --min-train 100
 
       - name: Reconcile canonical ledger
-        if: steps.recovery_gate.outputs.publish == 'true'
+        if: steps.publication_gate.outputs.publish == 'true'
         run: |
           python audit_ledger.py \
             --loto-csv loto7.csv \
@@ -131,7 +140,7 @@ jobs:
             --status-md STATUS.md
 
       - name: Commit Production checkpoint
-        if: steps.recovery_gate.outputs.publish == 'true'
+        if: steps.publication_gate.outputs.publish == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -156,7 +165,7 @@ jobs:
           fi
 
       - name: Validate Sakura sync payload
-        if: steps.recovery_gate.outputs.publish == 'true'
+        if: steps.publication_gate.outputs.publish == 'true'
         run: |
           python -m py_compile prediction_db_sync.py
           python prediction_db_sync.py --dry-run --output /tmp/sakura_payload.json
@@ -168,7 +177,7 @@ jobs:
           PY
 
       - name: Sync Production to Sakura MySQL
-        if: steps.recovery_gate.outputs.publish == 'true'
+        if: steps.publication_gate.outputs.publish == 'true'
         env:
           SAKURA_PREDICTION_API_URL: https://www.epic-creation.com/Epic/Epic-Creation/sakura_loto7_php/prediction_ingest.php
           SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}
@@ -182,7 +191,7 @@ jobs:
           python prediction_db_sync.py
 
       - name: Show Production state
-        if: always() && steps.recovery_gate.outputs.publish == 'true'
+        if: always() && steps.publication_gate.outputs.publish == 'true'
         run: |
           if [ -f loto7_agent_output/weekly_production_prediction_state.json ]; then
             cat loto7_agent_output/weekly_production_prediction_state.json
