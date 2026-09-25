@@ -8,6 +8,7 @@ on:
       - "loto7_v4_runner.py"
       - "research_v4_no_production.py"
       - "strict_oos_governance.py"
+      - "future_holdout_evidence.py"
       - "strict_oos_migration.py"
       - "matched_permutation_oos.py"
       - "matched_permutation_ensemble.py"
@@ -188,6 +189,11 @@ jobs:
               --formal loto7_agent_output/formal_challenger_state.json \
               --holdout-state loto7_agent_output/future_holdout_state.json \
               --holdout-registry loto7_agent_output/future_holdout_registry.json
+
+            python future_holdout_evidence.py \
+              --state loto7_agent_output/future_holdout_state.json \
+              --json-output loto7_agent_output/future_holdout_evidence.json \
+              --md-output loto7_agent_output/future_holdout_evidence.md
 
             if [ -z "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
               LAST_CHECKPOINT=$(date +%s)
@@ -408,6 +414,11 @@ jobs:
             echo '## Latest accepted model historical reconciliation'
             if [ -f loto7_agent_output/latest_model_historical_reconciliation.txt ]; then
               sed -n '1,35p' loto7_agent_output/latest_model_historical_reconciliation.txt
+            fi
+            echo
+            echo '## Fixed Future OOS evidence claim'
+            if [ -f loto7_agent_output/future_holdout_evidence.md ]; then
+              cat loto7_agent_output/future_holdout_evidence.md
             fi
             echo
             echo '## Formal Challenger state'
