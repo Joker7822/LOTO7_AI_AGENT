@@ -20,11 +20,23 @@ def test_event_driven_recovery_wakes_publisher_after_delayed_scheduler():
     assert "workflow_run:" in publisher
     assert '"Champion Calibration Future OOS"' in publisher
     assert '"Signal Expert Attribution Future OOS"' in publisher
-    assert "Gate event-driven recovery" in publisher
+    assert "Gate Production publication window" in publisher
     assert 'TZ=Asia/Tokyo date +%u' in publisher
     assert '[ "${HM}" -lt 1500 ]' in publisher
-    assert "today's Production is already published; recovery is a no-op" in publisher
-    assert "steps.recovery_gate.outputs.publish == 'true'" in publisher
+    assert '[ "${HM}" -ge 2000 ]' in publisher
+    assert "today's Production is already published; clean no-op" in publisher
+    assert "fail-closed cutoff" in publisher
+    assert "steps.publication_gate.outputs.publish == 'true'" in publisher
+
+
+def test_fallback_noops_after_success_and_fails_closed_after_cutoff():
+    fallback = Path(".github/workflows/weekly_production_fallback.yml").read_text(encoding="utf-8")
+
+    assert "Gate Production publication window" in fallback
+    assert "today's Production is already published; clean no-op" in fallback
+    assert '[ "${HM}" -ge 2000 ]' in fallback
+    assert "fail-closed cutoff" in fallback
+    assert "steps.publication_gate.outputs.publish == 'true'" in fallback
 
 
 def test_primary_and_fallback_share_production_concurrency_group():
