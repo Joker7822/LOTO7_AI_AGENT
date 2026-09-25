@@ -1,6 +1,6 @@
 # LOTO7 AI Agent Status
 
-- 更新日時 (JST): **2026-09-26T08:10:07+09:00**
+- 更新日時 (JST): **2026-09-26T08:38:02+09:00**
 - 最新取得回: **第696回 / 2026-09-25**
 - 最新Production対象: **第697回（未発行）**
 - 未照合予測: **0口**
@@ -13,11 +13,11 @@
 
 ## Continuous Research v4
 
-- 研究世代: **3989**
+- 研究世代: **3996**
 - Production Champion: **baseline-5fdb8dc2ad**
 - 最新Research Winner: **signal-g02253-c01-b6030e66c9**
 - 候補プール: **17モデル**
-- 累積研究評価数: **27922**
+- 累積研究評価数: **27971**
 - 過去データの研究スコアから本番昇格: **無効（禁止）**
 - 現在ソース検証: **verified_two_result_sources**
 - 本番昇格に利用可能なソース: **YES**
@@ -174,7 +174,16 @@
 ## Continuous Runtime
 
 - 最新1回の研究実行時間: **130秒**
-- 直近20回平均: **129.1秒**
-- 累積実測回数: **5125回**
+- 直近20回平均: **128.9秒**
+- 累積実測回数: **5132回**
 - 実行方式: **終了後、待ち時間なしで次の研究世代へ**
 - Git checkpoint: **10世代ごと、または重要イベント発生時**
+
+## Fixed Future OOS Evidence Claim
+
+- Claim status: **not_confirmed_holdout_incomplete**
+- 進捗: **4/26 trusted** / Matched **4/26**
+- Protocol lock verified: **True**
+- vs Random: mean delta **+0.0350** / win **50.0%** / e **0.9938**
+- vs Matched Ensemble(32): mean delta **-0.0486** / win **50.0%** / e **0.9837**
+- 26/26完了前は confirmed を出さない。
