@@ -114,3 +114,54 @@ def test_e_process_update_is_neutral_at_zero_delta():
     updated = strict.update_e_components(comps, 0.0, v4.E_LAMBDAS)
     assert updated == comps
     assert strict.e_value_from_components(updated, v4.E_LAMBDAS) == 1.0
+
+
+def test_holdout_protocol_lock_detects_immutable_config_change(tmp_path: Path):
+    state_path = tmp_path / "future_holdout_state.json"
+    state = {
+        "version": "future-holdout-v1",
+        "status": "active",
+        "locked_candidate_version": "candidate-a",
+        "locked_config": {
+            "name": "candidate-a",
+            "eta": 1.0,
+            "decay": 0.99,
+            "expert_uniform_mix": 0.2,
+            "final_uniform_mix": 0.2,
+            "overlap_penalty": 0.7,
+        },
+        "locked_at_jst": "2026-08-31T13:43:47+09:00",
+        "start_target_round": 693,
+        "horizon_trusted_draws": 26,
+        "all_draws": 4,
+        "trusted_draws": 4,
+        "graded_rounds": [693, 694, 695, 696],
+    }
+
+    assert strict.ensure_holdout_protocol_lock(v4, state, state_path) is True
+    assert state["protocol_lock_status"] == "locked"
+    assert state["confirmation_policy_registered_at_trusted_draws"] == 4
+    locked_sha = state["protocol_lock_sha256"]
+
+    state["locked_config"]["eta"] = 1.5
+    assert strict.ensure_holdout_protocol_lock(v4, state, state_path) is False
+    assert state["status"] == "invalid_protocol_drift"
+    assert state["protocol_lock_sha256"] == locked_sha
+    assert state["protocol_lock_observed_sha256"] != locked_sha
+
+
+def test_holdout_registry_must_match_locked_candidate_and_config():
+    state = {
+        "locked_candidate_version": "candidate-a",
+        "locked_config": {"eta": 1.0},
+    }
+    good = {
+        "locked_candidate_version": "candidate-a",
+        "locked_config": {"eta": 1.0},
+    }
+    bad = {
+        "locked_candidate_version": "candidate-b",
+        "locked_config": {"eta": 1.0},
+    }
+    assert strict.holdout_registry_matches_lock(state, good) is True
+    assert strict.holdout_registry_matches_lock(state, bad) is False
