@@ -7,9 +7,9 @@ def test_weekly_prediction_cron_is_owned_by_dedicated_publisher():
     publisher = Path(".github/workflows/weekly_production_publisher.yml").read_text(encoding="utf-8")
     continuous = Path(".github/workflows/continuous_loto7_v4.yml").read_text(encoding="utf-8")
 
-    assert '- cron: "0 6 * * 5"' in publisher
+    assert '- cron: "0 4 * * 5"' in publisher
     assert "weekly_production_prediction.py" in publisher
-    assert '- cron: "0 6 * * 5"' not in continuous
+    assert '- cron: "0 4 * * 5"' not in continuous
     assert "weekly_production_prediction.py" not in continuous
     assert "research_v4_no_production.py" in continuous
 
@@ -22,8 +22,8 @@ def test_event_driven_recovery_wakes_publisher_after_delayed_scheduler():
     assert '"Signal Expert Attribution Future OOS"' in publisher
     assert "Gate Production publication window" in publisher
     assert 'TZ=Asia/Tokyo date +%u' in publisher
-    assert '[ "${HM}" -lt 1500 ]' in publisher
-    assert '[ "${HM}" -ge 2000 ]' in publisher
+    assert '[ "${HM}" -lt 1300 ]' in publisher
+    assert '[ "${HM}" -ge 1500 ]' in publisher
     assert "today's Production is already published; clean no-op" in publisher
     assert "fail-closed cutoff" in publisher
     assert "steps.publication_gate.outputs.publish == 'true'" in publisher
@@ -34,7 +34,7 @@ def test_fallback_noops_after_success_and_fails_closed_after_cutoff():
 
     assert "Gate Production publication window" in fallback
     assert "today's Production is already published; clean no-op" in fallback
-    assert '[ "${HM}" -ge 2000 ]' in fallback
+    assert '[ "${HM}" -ge 1500 ]' in fallback
     assert "fail-closed cutoff" in fallback
     assert "steps.publication_gate.outputs.publish == 'true'" in fallback
 
@@ -45,7 +45,7 @@ def test_primary_and_fallback_share_production_concurrency_group():
 
     assert "group: loto7-production-publisher" in publisher
     assert "group: loto7-production-publisher" in fallback
-    assert '- cron: "12 6 * * 5"' in fallback
+    assert '- cron: "0 5 * * 5"' in fallback
 
 
 def test_render_latest_prediction_has_expected_fields():
