@@ -3,6 +3,7 @@ import datetime as dt
 from fetch_validate import (
     compare_sources,
     expected_new_round,
+    freshness_expected,
     iframe_urls,
     parse_mizuho,
     parse_rakuten_bank,
@@ -14,6 +15,13 @@ def test_expected_round_friday_20_jst():
     before = {"回別": "第690回", "抽せん日": "2026-08-14"}
     now = dt.datetime(2026, 8, 21, 20, 0, tzinfo=dt.timezone(dt.timedelta(hours=9)))
     assert expected_new_round(before, now) == (691, "2026-08-21")
+
+
+def test_production_snapshot_does_not_require_same_day_result():
+    before = {"回別": "第690回", "抽せん日": "2026-08-14"}
+    now = dt.datetime(2026, 8, 21, 21, 30, tzinfo=dt.timezone(dt.timedelta(hours=9)))
+    assert expected_new_round(before, now) == (691, "2026-08-21")
+    assert freshness_expected(before, production_snapshot=True, now=now) is None
 
 
 def test_validate_latest_numbers():
