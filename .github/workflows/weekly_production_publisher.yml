@@ -4,6 +4,13 @@ on:
   schedule:
     # Primary Production publisher: Friday 15:00 JST (06:00 UTC).
     - cron: "0 6 * * 5"
+  # Event-driven recovery path: if GitHub's scheduler is delayed, the first
+  # OOS workflow completing after Friday 15:00 JST wakes the publisher.
+  workflow_run:
+    workflows:
+      - "Champion Calibration Future OOS"
+      - "Signal Expert Attribution Future OOS"
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -27,16 +34,73 @@ jobs:
           persist-credentials: true
           fetch-depth: 0
 
+      - name: Gate event-driven recovery
+        id: recovery_gate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Direct schedule/manual runs are always allowed. workflow_run is only a
+          # recovery wake-up and must never publish before Friday 15:00 JST.
+          if [ "${GITHUB_EVENT_NAME}" != "workflow_run" ]; then
+            echo "publish=true" >> "${GITHUB_OUTPUT}"
+            echo "[PRODUCTION] direct trigger; publication allowed"
+            exit 0
+          fi
+
+          DOW=$(TZ=Asia/Tokyo date +%u)
+          HM=$(TZ=Asia/Tokyo date +%H%M)
+          TODAY=$(TZ=Asia/Tokyo date +%F)
+          if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1500 ]; then
+            echo "publish=false" >> "${GITHUB_OUTPUT}"
+            echo "[PRODUCTION] workflow_run recovery ignored outside Friday >=15:00 JST"
+            exit 0
+          fi
+
+          ALREADY_PUBLISHED=$(python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone, timedelta
+          from pathlib import Path
+
+          path = Path("loto7_agent_output/weekly_production_prediction_state.json")
+          if not path.exists():
+              print("false")
+              raise SystemExit
+
+          try:
+              state = json.loads(path.read_text(encoding="utf-8"))
+          except Exception:
+              print("false")
+              raise SystemExit
+
+          today = datetime.now(timezone(timedelta(hours=9))).date().isoformat()
+          published_at = str(state.get("published_at_jst", ""))
+          print("true" if state.get("published") is True and published_at.startswith(today) else "false")
+          PY
+          )
+
+          if [ "${ALREADY_PUBLISHED}" = "true" ]; then
+            echo "publish=false" >> "${GITHUB_OUTPUT}"
+            echo "[PRODUCTION] today's Production is already published; recovery is a no-op"
+            exit 0
+          fi
+
+          echo "publish=true" >> "${GITHUB_OUTPUT}"
+          echo "[PRODUCTION] delayed-scheduler recovery activated"
+
       - name: Set up Python
+        if: steps.recovery_gate.outputs.publish == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
+        if: steps.recovery_gate.outputs.publish == 'true'
         run: python -m pip install -r requirements.txt
 
       - name: Refresh trusted source
+        if: steps.recovery_gate.outputs.publish == 'true'
         run: |
           python fetch_validate.py \
             --csv loto7.csv \
@@ -46,6 +110,7 @@ jobs:
             --months 3
 
       - name: Freeze or safely republish canonical Production
+        if: steps.recovery_gate.outputs.publish == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -57,6 +122,7 @@ jobs:
             --min-train 100
 
       - name: Reconcile canonical ledger
+        if: steps.recovery_gate.outputs.publish == 'true'
         run: |
           python audit_ledger.py \
             --loto-csv loto7.csv \
@@ -65,6 +131,7 @@ jobs:
             --status-md STATUS.md
 
       - name: Commit Production checkpoint
+        if: steps.recovery_gate.outputs.publish == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -89,6 +156,7 @@ jobs:
           fi
 
       - name: Validate Sakura sync payload
+        if: steps.recovery_gate.outputs.publish == 'true'
         run: |
           python -m py_compile prediction_db_sync.py
           python prediction_db_sync.py --dry-run --output /tmp/sakura_payload.json
@@ -100,6 +168,7 @@ jobs:
           PY
 
       - name: Sync Production to Sakura MySQL
+        if: steps.recovery_gate.outputs.publish == 'true'
         env:
           SAKURA_PREDICTION_API_URL: https://www.epic-creation.com/Epic/Epic-Creation/sakura_loto7_php/prediction_ingest.php
           SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}
@@ -113,7 +182,7 @@ jobs:
           python prediction_db_sync.py
 
       - name: Show Production state
-        if: always()
+        if: always() && steps.recovery_gate.outputs.publish == 'true'
         run: |
           if [ -f loto7_agent_output/weekly_production_prediction_state.json ]; then
             cat loto7_agent_output/weekly_production_prediction_state.json
