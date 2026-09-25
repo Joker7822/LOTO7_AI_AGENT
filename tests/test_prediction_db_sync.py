@@ -101,3 +101,58 @@ def test_post_payload_requires_https():
         assert "HTTPS" in str(exc)
     else:
         raise AssertionError("HTTP endpoint should have been rejected")
+
+
+def test_post_payload_checks_credential_generation(monkeypatch):
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return b'{"ok":true,"credential_generation":"gen-2"}'
+
+    captured = {}
+
+    def fake_urlopen(request, timeout=30):
+        captured["generation"] = request.headers.get("X-loto7-credential-generation")
+        return FakeResponse()
+
+    monkeypatch.setattr(dbs.urllib.request, "urlopen", fake_urlopen)
+    payload = {"schema_version": dbs.SCHEMA_VERSION, "predictions": [], "results": []}
+    got = dbs.post_payload(
+        "https://example.invalid/api",
+        "x" * 32,
+        payload,
+        credential_generation="gen-2",
+    )
+    assert got["credential_generation"] == "gen-2"
+    assert captured["generation"] == "gen-2"
+
+
+def test_post_payload_rejects_credential_generation_mismatch(monkeypatch):
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return b'{"ok":true,"credential_generation":"old-gen"}'
+
+    monkeypatch.setattr(dbs.urllib.request, "urlopen", lambda request, timeout=30: FakeResponse())
+    payload = {"schema_version": dbs.SCHEMA_VERSION, "predictions": [], "results": []}
+    try:
+        dbs.post_payload(
+            "https://example.invalid/api",
+            "x" * 32,
+            payload,
+            credential_generation="new-gen",
+        )
+    except RuntimeError as exc:
+        assert "generation mismatch" in str(exc)
+    else:
+        raise AssertionError("credential generation mismatch must fail closed")
