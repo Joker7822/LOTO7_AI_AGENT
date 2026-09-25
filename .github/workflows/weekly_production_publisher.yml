@@ -2,10 +2,10 @@ name: Weekly Production Publisher
 
 on:
   schedule:
-    # Primary Production publisher: Friday 15:00 JST (06:00 UTC).
-    - cron: "0 6 * * 5"
+    # Primary Production publisher: Friday 13:00 JST (04:00 UTC).
+    - cron: "0 4 * * 5"
   # Event-driven recovery path: if GitHub's scheduler is delayed, the first
-  # OOS workflow completing after Friday 15:00 JST wakes the publisher.
+  # OOS workflow completing during Friday 13:00-14:59 JST wakes the publisher.
   workflow_run:
     workflows:
       - "Champion Calibration Future OOS"
@@ -75,11 +75,11 @@ jobs:
           fi
 
           # Automatic publication is only valid in the pre-draw recovery window.
-          # workflow_run events outside Friday 15:00-19:59 JST are routine noise.
-          if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1500 ]; then
+          # workflow_run events outside Friday 13:00-14:59 JST are routine noise.
+          if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1300 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
             if [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
-              echo "[PRODUCTION] recovery wake-up ignored outside Friday 15:00-19:59 JST"
+              echo "[PRODUCTION] recovery wake-up ignored outside Friday 13:00-14:59 JST"
               exit 0
             fi
             echo "::error::Production publisher triggered outside Friday publication window"
@@ -88,14 +88,14 @@ jobs:
 
           # Fail closed once the result-check window begins. Creating a new
           # Production forecast after this point could become post-outcome leakage.
-          if [ "${HM}" -ge 2000 ]; then
+          if [ "${HM}" -ge 1500 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
-            echo "::error::Production was not published before the 20:00 JST fail-closed cutoff"
+            echo "::error::Production was not published before the 15:00 JST fail-closed cutoff"
             exit 1
           fi
 
           echo "publish=true" >> "${GITHUB_OUTPUT}"
-          echo "[PRODUCTION] publication/recovery allowed inside Friday 15:00-19:59 JST"
+          echo "[PRODUCTION] publication/recovery allowed inside Friday 13:00-14:59 JST"
 
       - name: Set up Python
         if: steps.publication_gate.outputs.publish == 'true'
