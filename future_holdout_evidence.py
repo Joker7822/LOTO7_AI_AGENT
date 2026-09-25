@@ -193,6 +193,11 @@ def main() -> int:
         type=Path,
         default=Path("loto7_agent_output/future_holdout_evidence.md"),
     )
+    ap.add_argument(
+        "--status",
+        type=Path,
+        help="Optional STATUS.md to append a compact evidence-claim section to.",
+    )
     args = ap.parse_args()
 
     state = load_json(args.state)
@@ -203,6 +208,27 @@ def main() -> int:
     args.json_output.parent.mkdir(parents=True, exist_ok=True)
     args.json_output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     args.md_output.write_text(render_markdown(report), encoding="utf-8")
+    if args.status:
+        progress = report["progress"]
+        random = report["comparators"]["uniform_random"]
+        matched = report["comparators"]["matched_ensemble32"]
+        with args.status.open("a", encoding="utf-8") as fh:
+            fh.write("\n## Fixed Future OOS Evidence Claim\n\n")
+            fh.write(f"- Claim status: **{report['claim_status']}**\n")
+            fh.write(
+                f"- 進捗: **{progress['trusted_draws']}/{progress['horizon_trusted_draws']} trusted** "
+                f"/ Matched **{progress['matched_ensemble_trusted_draws']}/{progress['horizon_trusted_draws']}**\n"
+            )
+            fh.write(f"- Protocol lock verified: **{report['protocol_lock']['verified']}**\n")
+            fh.write(
+                f"- vs Random: mean delta **{random['mean_score_delta']:+.4f}** / "
+                f"win **{random['win_rate']:.1%}** / e **{random['e_value']:.4f}**\n"
+            )
+            fh.write(
+                f"- vs Matched Ensemble(32): mean delta **{matched['mean_score_delta']:+.4f}** / "
+                f"win **{matched['win_rate']:.1%}** / e **{matched['e_value']:.4f}**\n"
+            )
+            fh.write("- 26/26完了前は confirmed を出さない。\n")
     print(json.dumps(report, ensure_ascii=False, sort_keys=True))
     return 0 if lock_ok else 2
 
