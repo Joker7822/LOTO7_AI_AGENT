@@ -106,6 +106,12 @@ def main() -> int:
         type=Path,
         default=Path("loto7_agent_output/sakura_credential_rotation_status.json"),
     )
+    ap.add_argument(
+        "--generation-file",
+        type=Path,
+        default=Path("sakura/credential_generation.txt"),
+        help="Public non-secret generation pin written only after live verification succeeds.",
+    )
     args = ap.parse_args()
 
     if not args.endpoint or not args.secret:
@@ -120,6 +126,11 @@ def main() -> int:
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(status, ensure_ascii=False, indent=2), encoding="utf-8")
+    args.generation_file.parent.mkdir(parents=True, exist_ok=True)
+    args.generation_file.write_text(
+        str(status["credential_generation"]).strip() + "\n",
+        encoding="utf-8",
+    )
     print(json.dumps(status, ensure_ascii=False, sort_keys=True))
     return 0
 
