@@ -1,0 +1,57 @@
+{
+  "version": "future-holdout-evidence-report-v1",
+  "claim_status": "not_confirmed_holdout_incomplete",
+  "confirmed": false,
+  "locked_candidate_version": "global-g00001-c01-2ac3662ad1",
+  "holdout_status": "active",
+  "progress": {
+    "trusted_draws": 4,
+    "matched_ensemble_trusted_draws": 4,
+    "horizon_trusted_draws": 26,
+    "full_horizon_complete": false,
+    "graded_rounds": [693, 694, 695, 696],
+    "matched_ensemble_graded_rounds": [693, 694, 695, 696]
+  },
+  "protocol_lock": {
+    "version": "future-holdout-protocol-lock-v1",
+    "stored_sha256": "16078f8c4958b0d49fc05ac24b50e92b683cf5e4030b23dc177608077fefd0a2",
+    "observed_sha256": "16078f8c4958b0d49fc05ac24b50e92b683cf5e4030b23dc177608077fefd0a2",
+    "verified": true
+  },
+  "confirmation_policy": {
+    "version": "future-holdout-confirmation-policy-v1",
+    "claim_requires_full_horizon": true,
+    "horizon_trusted_draws": 26,
+    "comparators": ["uniform_random", "matched_ensemble32"],
+    "minimum_mean_score_delta": 0.05,
+    "minimum_win_rate": 0.55,
+    "minimum_e_value": 20.0,
+    "threshold_source": "existing_production_gate",
+    "statistical_semantics": "operational_prospective_confirmation; not a standalone mathematical proof of the portfolio e-process"
+  },
+  "confirmation_policy_registered_at_trusted_draws": 4,
+  "comparators": {
+    "uniform_random": {
+      "trusted_draws": 4,
+      "mean_score_delta": 0.03500000000000003,
+      "win_rate": 0.5,
+      "e_value": 0.9937689224956338,
+      "passes_mean_delta": false,
+      "passes_win_rate": false,
+      "passes_e_value": false,
+      "passes_all": false
+    },
+    "matched_ensemble32": {
+      "trusted_draws": 4,
+      "mean_score_delta": -0.0485937500000001,
+      "win_rate": 0.5,
+      "e_value": 0.9836785191750742,
+      "passes_mean_delta": false,
+      "passes_win_rate": false,
+      "passes_e_value": false,
+      "passes_all": false
+    }
+  },
+  "claim_rule": "No confirmation before the full fixed holdout horizon. At completion, both Uniform Random and the prefrozen 32-member geometry-matched ensemble must meet every inherited Production threshold.",
+  "statistical_scope": "This is an operational prospective confirmation rule. It does not by itself constitute a mathematical proof that the portfolio e-process is valid under every possible null model."
+}
