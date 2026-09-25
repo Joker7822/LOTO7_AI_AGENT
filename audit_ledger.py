@@ -356,7 +356,7 @@ def render_latest(
         lines=["LOTO7 最新予測","="*56]
         if next_round is not None:
             lines.append(f"対象回: 第{next_round}回")
-        lines += ["Production: 未発行","発行予定: 金曜15:00 JST",""]
+        lines += ["Production: 未発行","発行予定: 金曜13:00〜15:00 JST",""]
         return "\n".join(lines)
     target=max(rno(p.get("target_round","")) or -1 for p in ps)
     rr=sorted(
@@ -472,7 +472,7 @@ def render_status(
 - ソース検証: **{source.get('verification',source.get('status','確認できません'))}**
 - 取得状態: **{source.get('status','確認できません')}**
 
-> Productionの凍結は金曜15:00 JST publisherのみが行います。通常checkpointは既存の凍結台帳を照合・表示するだけです。
+> Productionの凍結は金曜13:00〜15:00 JSTのProduction publisher系統のみが行います。通常checkpointは既存の凍結台帳を照合・表示するだけです。
 """
 
 
