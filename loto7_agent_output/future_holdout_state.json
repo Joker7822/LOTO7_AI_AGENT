@@ -111,5 +111,25 @@
   "last_matched_ensemble_audit_record_sha256": "abd9c56f1c094d69df7fb1e651bdd9c65d42aa1107c9b7f163bc1ff531509673",
   "last_matched_ensemble_reference_sha256": "d9d1fc2a4d18f2faad9cbcc49bd53738ffbbdd6fce8b809b9919f2d8a17472d0",
   "last_matched_ensemble_score_vector_replay_verified": true,
-  "matched_ensemble_score_vector_audit_trusted_draws": 4
+  "matched_ensemble_score_vector_audit_trusted_draws": 4,
+  "confirmation_policy": {
+    "version": "future-holdout-confirmation-policy-v1",
+    "claim_requires_full_horizon": true,
+    "horizon_trusted_draws": 26,
+    "comparators": [
+      "uniform_random",
+      "matched_ensemble32"
+    ],
+    "minimum_mean_score_delta": 0.05,
+    "minimum_win_rate": 0.55,
+    "minimum_e_value": 20.0,
+    "threshold_source": "existing_production_gate",
+    "statistical_semantics": "operational_prospective_confirmation; not a standalone mathematical proof of the portfolio e-process"
+  },
+  "confirmation_policy_registered_at_trusted_draws": 4,
+  "confirmation_policy_registration_note": "Existing Production thresholds inherited without restarting the original 26-draw holdout.",
+  "protocol_lock_version": "future-holdout-protocol-lock-v1",
+  "protocol_lock_sha256": "16078f8c4958b0d49fc05ac24b50e92b683cf5e4030b23dc177608077fefd0a2",
+  "protocol_lock_initialized_at_jst": "2026-09-26T08:15:35+09:00",
+  "protocol_lock_status": "locked"
 }
