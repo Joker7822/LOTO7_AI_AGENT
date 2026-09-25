@@ -164,6 +164,13 @@
 - Matched reference frozen: **YES**
 - 用途: **26 trusted draws固定のprospective診断。途中でconfig変更しない**
 
+## Sakura Credential Rotation
+
+- 状態: **pending_external_rotation_verification**
+- Verification version: **sakura-credential-rotation-verification-v1**
+- Credential generation: **未検証**
+- secret値をSTATUS/Gitへ記録: **NO**
+
 ## Continuous Runtime
 
 - 最新1回の研究実行時間: **130秒**
