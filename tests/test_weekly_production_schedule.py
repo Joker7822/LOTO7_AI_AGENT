@@ -14,6 +14,19 @@ def test_weekly_prediction_cron_is_owned_by_dedicated_publisher():
     assert "research_v4_no_production.py" in continuous
 
 
+def test_event_driven_recovery_wakes_publisher_after_delayed_scheduler():
+    publisher = Path(".github/workflows/weekly_production_publisher.yml").read_text(encoding="utf-8")
+
+    assert "workflow_run:" in publisher
+    assert '"Champion Calibration Future OOS"' in publisher
+    assert '"Signal Expert Attribution Future OOS"' in publisher
+    assert "Gate event-driven recovery" in publisher
+    assert 'TZ=Asia/Tokyo date +%u' in publisher
+    assert '[ "${HM}" -lt 1500 ]' in publisher
+    assert "today's Production is already published; recovery is a no-op" in publisher
+    assert "steps.recovery_gate.outputs.publish == 'true'" in publisher
+
+
 def test_primary_and_fallback_share_production_concurrency_group():
     publisher = Path(".github/workflows/weekly_production_publisher.yml").read_text(encoding="utf-8")
     fallback = Path(".github/workflows/weekly_production_fallback.yml").read_text(encoding="utf-8")
