@@ -108,7 +108,7 @@ historical replay / reconciliation / nested replayはすべて**精度確認用�
 
 ## GitHub Actions構成
 
-現在 `.github/workflows/` には **13本**のworkflowがあります。継続研究とCIの中核は次の2本です。
+現在 `.github/workflows/` には **14本**のworkflowがあります。継続研究とCIの中核は次の2本です。
 
 - `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・過去回精度replay・独立照合・nested比較・監査
 - `.github/workflows/ci.yml` — コード変更時のcompile / pytest / Sakura secret-file guard
@@ -126,12 +126,54 @@ historical replay / reconciliation / nested replayはすべて**精度確認用�
 - `.github/workflows/sync_sakura_prediction_db.yml`
 - `.github/workflows/weekly_production_publisher.yml` — 金曜13:00 JSTのProduction発行。OOS完了イベントでも13:00〜14:59 JSTに回復起動
 - `.github/workflows/weekly_production_fallback.yml` — 金曜14:00 JSTのProduction fallback。15:00 JST以降は新規freezeをfail closed
+- `.github/workflows/verify_sakura_credential_rotation.yml` — Sakura DB/HMAC rotationをattestation + live HMAC/DB transactionで検証し、非secret generationを固定
 
 旧v3の `weekly_loto7.yml` と、一回性の `start_continuous_now.yml` は削除しています。
 
 `Continuous LOTO7 Research v4` は1ランナー内で約4時間研究を繰り返し、正常終了時に次のランナーを起動します。毎日02:00 JSTのスケジュールは回復用です。
 
 公開結果サイトへのアクセスは研究世代ごとには行わず、通常は最大1時間間隔です。金曜日20〜21時台は新結果待ちのため10分間隔・最大90分再試行します。
+
+
+## Production source snapshot / credential rotation / fixed holdout
+
+### Production source snapshot
+
+金曜13:00〜14:59 JSTのProduction publisherは `fetch_validate.py --production-snapshot` を使用します。
+このモードは**直前の確定済み抽せん回を2ソースで検証**しますが、当日のまだ存在しない抽せん結果をfreshness要件として要求しません。
+したがってGitHub Actionsが13:00から遅延して起動しても、15:00 JSTより前なら同じ事前データで安全にProductionをfreezeできます。
+15:00 JST以降に未発行の場合はpost-outcome leakageを避けるためfail closedです。
+
+### Sakura credential rotation verification
+
+過去のcredential exposureに対する完了状態は
+`loto7_agent_output/sakura_credential_rotation_status.json` を正本とします。
+`pending_external_rotation_verification` の間はrotation完了とは扱いません。
+
+Sakura側でMySQL passwordとHMAC secretを変更し、`credential_generation` を新しい非secret IDへ変更した後、
+`Verify Sakura Credential Rotation` workflowを手動実行します。成功条件は以下です。
+
+- rotation timestampが2026-09-06のexposureより後であること
+- 新HMACでSakura endpointの認証に成功すること
+- GitHub側とSakura側の `credential_generation` が一致すること
+- Sakuraが実DB transactionを成功させること
+- secret値をGitへ保存しないこと
+
+成功後は `sakura/credential_generation.txt` をcommitし、以後のsyncはgeneration mismatchをfail closedします。
+旧DB password/HMACが実際に拒否されること自体は秘密値を再使用して試験せず、rotation timestampのattestationとして記録します。
+
+### Fixed Future OOS holdout
+
+26 trusted drawsの固定holdoutは途中でリセットしません。
+`locked_candidate_version`、`locked_config`、開始回、26回horizon、confirmation policyをcanonical JSON化し、
+SHA-256を `future_holdout_state.json` の `protocol_lock_sha256` に固定します。
+途中変更を検知すると `invalid_protocol_drift` となり、holdout採点を継続しません。
+
+`future_holdout_evidence.py` はRandomと32-member Matched Ensembleを別々に追跡します。
+**26/26 trusted drawsが完了するまでは必ず `not_confirmed_holdout_incomplete`** とし、
+完了後に両比較が既存Production閾値（平均score差 >= +0.05、勝率 >= 55%、e-value telemetry >= 20）をすべて満たした場合だけ
+`confirmed_operational_future_oos_edge` とします。
+これは運用上のprospective confirmation ruleであり、portfolio e-processの数学的妥当性そのものを証明する主張ではありません。
 
 ## Git checkpointとCI負荷
 
