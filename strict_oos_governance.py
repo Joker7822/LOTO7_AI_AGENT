@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
 import sys
@@ -15,6 +16,8 @@ import numpy as np
 VERSION = "strict-oos-governance-v1"
 FAMILY_ALPHA = 0.05
 HOLDOUT_TRUSTED_DRAWS = 26
+HOLDOUT_LOCK_VERSION = "future-holdout-protocol-lock-v1"
+HOLDOUT_CONFIRMATION_POLICY_VERSION = "future-holdout-confirmation-policy-v1"
 
 PAIRED_FIELDS = [
     "round", "draw_date", "candidate_version", "champion_version", "formal_block_index",
@@ -62,6 +65,126 @@ def append_csv(path: Path, rows: Iterable[Dict[str, object]], fields: Sequence[s
             writer.writeheader()
         for row in rows:
             writer.writerow({k: row.get(k, "") for k in fields})
+
+
+def holdout_confirmation_policy(v4) -> Dict[str, object]:
+    """Predeclared operational claim rule inherited from the existing Production gate."""
+    return {
+        "version": HOLDOUT_CONFIRMATION_POLICY_VERSION,
+        "claim_requires_full_horizon": True,
+        "horizon_trusted_draws": HOLDOUT_TRUSTED_DRAWS,
+        "comparators": ["uniform_random", "matched_ensemble32"],
+        "minimum_mean_score_delta": float(v4.MIN_MEAN_SCORE_DELTA),
+        "minimum_win_rate": float(v4.MIN_OOS_WIN_RATE),
+        "minimum_e_value": float(v4.E_VALUE_THRESHOLD),
+        "threshold_source": "existing_production_gate",
+        "statistical_semantics": (
+            "operational_prospective_confirmation; not a standalone mathematical proof "
+            "of the portfolio e-process"
+        ),
+    }
+
+
+def holdout_lock_payload(state: Dict[str, object]) -> Dict[str, object]:
+    return {
+        "version": state.get("version"),
+        "locked_candidate_version": state.get("locked_candidate_version"),
+        "locked_config": state.get("locked_config"),
+        "locked_at_jst": state.get("locked_at_jst"),
+        "start_target_round": state.get("start_target_round"),
+        "horizon_trusted_draws": state.get("horizon_trusted_draws"),
+        "confirmation_policy": state.get("confirmation_policy"),
+        "confirmation_policy_registered_at_trusted_draws": state.get(
+            "confirmation_policy_registered_at_trusted_draws"
+        ),
+    }
+
+
+def holdout_lock_sha256(state: Dict[str, object]) -> str:
+    raw = json.dumps(
+        holdout_lock_payload(state),
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
+
+def ensure_holdout_protocol_lock(v4, state: Dict[str, object], state_path: Path) -> bool:
+    if not state:
+        return False
+
+    if int(state.get("horizon_trusted_draws", 0) or 0) != HOLDOUT_TRUSTED_DRAWS:
+        state["status"] = "invalid_protocol_drift"
+        state["protocol_lock_error"] = "horizon_trusted_draws_changed"
+        write_json(state_path, state)
+        return False
+
+    if not state.get("locked_candidate_version") or not isinstance(state.get("locked_config"), dict):
+        state["status"] = "invalid_protocol_drift"
+        state["protocol_lock_error"] = "locked_candidate_or_config_missing"
+        write_json(state_path, state)
+        return False
+
+    if not isinstance(state.get("confirmation_policy"), dict):
+        state["confirmation_policy"] = holdout_confirmation_policy(v4)
+        state["confirmation_policy_registered_at_trusted_draws"] = int(
+            state.get("trusted_draws", 0) or 0
+        )
+        state["confirmation_policy_registration_note"] = (
+            "Existing Production thresholds inherited without restarting the original 26-draw holdout."
+        )
+
+    trusted = int(state.get("trusted_draws", 0) or 0)
+    if trusted > HOLDOUT_TRUSTED_DRAWS:
+        state["status"] = "invalid_protocol_drift"
+        state["protocol_lock_error"] = "trusted_draws_exceeds_horizon"
+        write_json(state_path, state)
+        return False
+
+    graded = state.get("graded_rounds")
+    if isinstance(graded, list):
+        normalized = [int(x) for x in graded]
+        if normalized != sorted(set(normalized)):
+            state["status"] = "invalid_protocol_drift"
+            state["protocol_lock_error"] = "graded_rounds_not_strictly_unique_and_sorted"
+            write_json(state_path, state)
+            return False
+        if trusted > len(normalized):
+            state["status"] = "invalid_protocol_drift"
+            state["protocol_lock_error"] = "trusted_draws_exceeds_graded_rounds"
+            write_json(state_path, state)
+            return False
+
+    observed = holdout_lock_sha256(state)
+    locked = str(state.get("protocol_lock_sha256", "") or "")
+    if not locked:
+        state["protocol_lock_version"] = HOLDOUT_LOCK_VERSION
+        state["protocol_lock_sha256"] = observed
+        state["protocol_lock_initialized_at_jst"] = v4.now_jst()
+        state["protocol_lock_status"] = "locked"
+        write_json(state_path, state)
+        return True
+
+    if locked != observed:
+        state["status"] = "invalid_protocol_drift"
+        state["protocol_lock_status"] = "mismatch"
+        state["protocol_lock_error"] = "immutable_holdout_fields_changed"
+        state["protocol_lock_observed_sha256"] = observed
+        write_json(state_path, state)
+        return False
+
+    state["protocol_lock_version"] = HOLDOUT_LOCK_VERSION
+    state["protocol_lock_status"] = "verified"
+    return True
+
+
+def holdout_registry_matches_lock(state: Dict[str, object], registry: Dict[str, object]) -> bool:
+    return (
+        str(registry.get("locked_candidate_version", ""))
+        == str(state.get("locked_candidate_version", ""))
+        and registry.get("locked_config") == state.get("locked_config")
+    )
 
 
 def block_weight(block_index: int) -> float:
