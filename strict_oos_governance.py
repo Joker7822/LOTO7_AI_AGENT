@@ -318,6 +318,13 @@ def _grade_holdout(v4, out_dir: Path, latest_round: int, draw_date: str,
     state = load_json(state_path, {})
     if not registry or not state or int(registry.get("target_round", -1)) != int(latest_round):
         return
+    if not ensure_holdout_protocol_lock(v4, state, state_path):
+        return
+    if not holdout_registry_matches_lock(state, registry):
+        state["status"] = "invalid_protocol_drift"
+        state["protocol_lock_error"] = "holdout_registry_candidate_or_config_changed"
+        write_json(state_path, state)
+        return
     graded = state.setdefault("graded_rounds", [])
     if latest_round in graded:
         return
@@ -641,13 +648,25 @@ def ensure_holdout_for_current_target(v4, args, latest_round: int, x: np.ndarray
             "champion_e_value": 1.0,
             "random_e_value": 1.0,
             "graded_rounds": [],
+            "confirmation_policy": holdout_confirmation_policy(v4),
+            "confirmation_policy_registered_at_trusted_draws": 0,
+            "confirmation_policy_registration_note": (
+                "Existing Production thresholds inherited at holdout creation."
+            ),
         }
         write_json(state_path, state)
 
+    if not ensure_holdout_protocol_lock(v4, state, state_path):
+        return False
     if state.get("status") != "active":
         return False
     old_registry = load_json(holdout_registry_path, {})
     if int(old_registry.get("target_round", -1)) == target_round:
+        if not holdout_registry_matches_lock(state, old_registry):
+            state["status"] = "invalid_protocol_drift"
+            state["protocol_lock_error"] = "existing_holdout_registry_candidate_or_config_changed"
+            write_json(state_path, state)
+            return False
         return True
     cfg = v4.cfg_from_obj(state.get("locked_config"))
     if cfg is None:
