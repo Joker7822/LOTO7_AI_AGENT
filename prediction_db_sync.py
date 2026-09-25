@@ -137,23 +137,32 @@ def signature(secret: str, timestamp: int, body: bytes) -> str:
     return hmac.new(secret.encode("utf-8"), message, hashlib.sha256).hexdigest()
 
 
-def post_payload(endpoint: str, secret: str, payload: Mapping[str, object], timeout: int = 30) -> Dict[str, object]:
+def post_payload(
+    endpoint: str,
+    secret: str,
+    payload: Mapping[str, object],
+    timeout: int = 30,
+    credential_generation: str = "",
+) -> Dict[str, object]:
     if not endpoint.lower().startswith("https://"):
         raise ValueError("Sakura endpoint must use HTTPS")
     if len(secret) < 24:
         raise ValueError("HMAC secret must be at least 24 characters")
     body = encode_payload(payload)
     ts = int(time.time())
+    headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "User-Agent": "LOTO7-AI-Agent/1.0",
+        "X-LOTO7-Timestamp": str(ts),
+        "X-LOTO7-Signature": signature(secret, ts, body),
+    }
+    if credential_generation:
+        headers["X-LOTO7-Credential-Generation"] = credential_generation
     request = urllib.request.Request(
         endpoint,
         data=body,
         method="POST",
-        headers={
-            "Content-Type": "application/json; charset=utf-8",
-            "User-Agent": "LOTO7-AI-Agent/1.0",
-            "X-LOTO7-Timestamp": str(ts),
-            "X-LOTO7-Signature": signature(secret, ts, body),
-        },
+        headers=headers,
     )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
@@ -166,6 +175,13 @@ def post_payload(endpoint: str, secret: str, payload: Mapping[str, object], time
     obj = json.loads(raw)
     if not isinstance(obj, dict) or not obj.get("ok"):
         raise RuntimeError(f"Sakura API rejected payload: {raw[:500]}")
+    if credential_generation:
+        remote_generation = str(obj.get("credential_generation", ""))
+        if remote_generation != credential_generation:
+            raise RuntimeError(
+                "Sakura credential generation mismatch: "
+                f"expected={credential_generation!r} got={remote_generation!r}"
+            )
     return obj
 
 
@@ -176,6 +192,11 @@ def main() -> int:
     ap.add_argument("--reconciliation", type=Path, default=Path("loto7_agent_output/reconciliation.csv"))
     ap.add_argument("--endpoint", default=os.environ.get("SAKURA_PREDICTION_API_URL", ""))
     ap.add_argument("--secret", default=os.environ.get("SAKURA_PREDICTION_HMAC_SECRET", ""))
+    ap.add_argument(
+        "--credential-generation",
+        default=os.environ.get("SAKURA_CREDENTIAL_GENERATION", ""),
+        help="Non-secret rotation generation identifier expected from the Sakura endpoint.",
+    )
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--output", type=Path)
     args = ap.parse_args()
@@ -193,7 +214,12 @@ def main() -> int:
         return 0
     if not args.endpoint or not args.secret:
         raise SystemExit("SAKURA_PREDICTION_API_URL and SAKURA_PREDICTION_HMAC_SECRET are required")
-    result = post_payload(args.endpoint, args.secret, payload)
+    result = post_payload(
+        args.endpoint,
+        args.secret,
+        payload,
+        credential_generation=args.credential_generation,
+    )
     print(f"[SAKURA-DB] {json.dumps(result, ensure_ascii=False, sort_keys=True)}")
     return 0
 
