@@ -217,6 +217,11 @@ def main() -> int:
     ap.add_argument("--formal", type=Path, default=Path("loto7_agent_output/formal_challenger_state.json"))
     ap.add_argument("--holdout-state", type=Path, default=Path("loto7_agent_output/future_holdout_state.json"))
     ap.add_argument("--holdout-registry", type=Path, default=Path("loto7_agent_output/future_holdout_registry.json"))
+    ap.add_argument(
+        "--credential-rotation-status",
+        type=Path,
+        default=Path("loto7_agent_output/sakura_credential_rotation_status.json"),
+    )
     args = ap.parse_args()
 
     state = load(args.state)
@@ -230,6 +235,7 @@ def main() -> int:
     formal = load(args.formal)
     holdout = load(args.holdout_state)
     holdout_registry = load(args.holdout_registry)
+    credential_rotation = load(args.credential_rotation_status)
     champion = str(state.get("champion_version", ""))
     pool_n = len(pool.get("candidates", []) or [])
     shadow_n = len(registry.get("candidates", []) or [])
@@ -282,6 +288,17 @@ def main() -> int:
 
     lines += ["", "## Fixed Prospective Holdout", ""]
     lines += holdout_lines(holdout, holdout_registry)
+
+    lines += ["", "## Sakura Credential Rotation", ""]
+    if credential_rotation:
+        lines += [
+            f"- 状態: **{credential_rotation.get('status', '確認できません')}**",
+            f"- Verification version: **{credential_rotation.get('version', '確認できません')}**",
+            f"- Credential generation: **{credential_rotation.get('credential_generation', '未検証')}**",
+            "- secret値をSTATUS/Gitへ記録: **NO**",
+        ]
+    else:
+        lines.append("- 状態: **確認できません**")
 
     lines += ["", "## Continuous Runtime", ""]
     if latest is None:
