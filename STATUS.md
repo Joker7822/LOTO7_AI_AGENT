@@ -9,4 +9,4 @@
 - ソース検証: **verified_two_result_sources**
 - 取得状態: **ok**
 
-> Productionの凍結は金曜15:00 JST publisherのみが行います。通常checkpointは既存の凍結台帳を照合・表示するだけです。
+> Productionの凍結は金曜13:00〜15:00 JSTのProduction publisher系統のみが行います。通常checkpointは既存の凍結台帳を照合・表示するだけです。
