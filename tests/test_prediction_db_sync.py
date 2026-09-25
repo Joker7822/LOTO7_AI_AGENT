@@ -156,3 +156,19 @@ def test_post_payload_rejects_credential_generation_mismatch(monkeypatch):
         assert "generation mismatch" in str(exc)
     else:
         raise AssertionError("credential generation mismatch must fail closed")
+
+
+def test_configured_credential_generation_uses_public_pin(monkeypatch, tmp_path):
+    pin = tmp_path / "credential_generation.txt"
+    pin.write_text("gen-verified\n", encoding="utf-8")
+    monkeypatch.delenv("SAKURA_CREDENTIAL_GENERATION", raising=False)
+    monkeypatch.setattr(dbs, "DEFAULT_CREDENTIAL_GENERATION_FILE", pin)
+    assert dbs.configured_credential_generation() == "gen-verified"
+
+
+def test_configured_credential_generation_env_overrides_pin(monkeypatch, tmp_path):
+    pin = tmp_path / "credential_generation.txt"
+    pin.write_text("gen-file\n", encoding="utf-8")
+    monkeypatch.setattr(dbs, "DEFAULT_CREDENTIAL_GENERATION_FILE", pin)
+    monkeypatch.setenv("SAKURA_CREDENTIAL_GENERATION", "gen-env")
+    assert dbs.configured_credential_generation() == "gen-env"
