@@ -193,7 +193,8 @@ jobs:
             python future_holdout_evidence.py \
               --state loto7_agent_output/future_holdout_state.json \
               --json-output loto7_agent_output/future_holdout_evidence.json \
-              --md-output loto7_agent_output/future_holdout_evidence.md
+              --md-output loto7_agent_output/future_holdout_evidence.md \
+              --status STATUS.md
 
             if [ -z "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
               LAST_CHECKPOINT=$(date +%s)
