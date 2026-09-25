@@ -55,7 +55,11 @@ jobs:
         run: |
           set -euo pipefail
           if [ -z "${SAKURA_PREDICTION_API_URL:-}" ] || [ -z "${SAKURA_PREDICTION_HMAC_SECRET:-}" ]; then
-            echo "Sakura sync secrets are not fully configured; payload validation succeeded and network sync is skipped."
+            if [ -f sakura/credential_generation.txt ]; then
+              echo "::error::Verified credential generation is pinned; Sakura sync secrets must be configured"
+              exit 1
+            fi
+            echo "Sakura rotation is not yet verified; payload validation succeeded and network sync is skipped."
             exit 0
           fi
           python prediction_db_sync.py
