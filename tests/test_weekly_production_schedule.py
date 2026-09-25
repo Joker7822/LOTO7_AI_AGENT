@@ -9,6 +9,7 @@ def test_weekly_prediction_cron_is_owned_by_dedicated_publisher():
 
     assert '- cron: "0 4 * * 5"' in publisher
     assert "weekly_production_prediction.py" in publisher
+    assert "--production-snapshot" in publisher
     assert '- cron: "0 4 * * 5"' not in continuous
     assert "weekly_production_prediction.py" not in continuous
     assert "research_v4_no_production.py" in continuous
@@ -46,6 +47,7 @@ def test_primary_and_fallback_share_production_concurrency_group():
     assert "group: loto7-production-publisher" in publisher
     assert "group: loto7-production-publisher" in fallback
     assert '- cron: "0 5 * * 5"' in fallback
+    assert "--production-snapshot" in fallback
 
 
 def test_render_latest_prediction_has_expected_fields():
