@@ -127,7 +127,7 @@ def publish(
             "data_sha256": data_sha,
             "model_version": frozen[0].get("model_version", ""),
             "target_round": f"第{target_round}回",
-            "schedule_policy": "Friday 15:00 JST",
+            "schedule_policy": "Friday 13:00-15:00 JST",
             "production_promotion_method": "future_oos_only",
         }
         v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
@@ -146,7 +146,7 @@ def publish(
             "data_sha256": data_sha,
             "model_version": champion.version(),
             "target_round": f"第{target_round}回",
-            "schedule_policy": "Friday 15:00 JST",
+            "schedule_policy": "Friday 13:00-15:00 JST",
             "production_promotion_method": "future_oos_only",
         }
         v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
@@ -213,7 +213,7 @@ def publish(
         "data_sha256": data_sha,
         "model_version": frozen[0].get("model_version", champion.version()),
         "target_round": f"第{target_round}回",
-        "schedule_policy": "Friday 15:00 JST",
+        "schedule_policy": "Friday 13:00-15:00 JST",
         "production_promotion_method": "future_oos_only",
     }
     v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
@@ -222,7 +222,7 @@ def publish(
 
 def main() -> int:
     ap = argparse.ArgumentParser(
-        description="Publish Production prediction at the weekly Friday 15:00 JST slot"
+        description="Publish Production prediction during the weekly Friday 13:00-15:00 JST window"
     )
     ap.add_argument("--csv", type=Path, default=Path("loto7.csv"))
     ap.add_argument("--out-dir", type=Path, default=Path("loto7_agent_output"))
