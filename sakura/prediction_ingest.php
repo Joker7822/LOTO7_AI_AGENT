@@ -19,6 +19,12 @@ if (!is_file($configPath)) {
 }
 $config = require $configPath;
 
+$credentialGeneration = trim((string)($config['credential_generation'] ?? ''));
+$requestGeneration = trim((string)($_SERVER['HTTP_X_LOTO7_CREDENTIAL_GENERATION'] ?? ''));
+if ($credentialGeneration !== '' && $requestGeneration !== $credentialGeneration) {
+    fail_json(401, 'credential generation mismatch');
+}
+
 $raw = file_get_contents('php://input');
 if ($raw === false || $raw === '' || strlen($raw) > 1048576) {
     fail_json(400, 'invalid request body');
@@ -154,6 +160,7 @@ SQL;
         'ok' => true,
         'predictions_upserted' => count($predictions),
         'results_upserted' => count($results),
+        'credential_generation' => $credentialGeneration,
     ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 } catch (Throwable $e) {
     if (isset($pdo) && $pdo instanceof PDO && $pdo->inTransaction()) {
