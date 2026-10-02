@@ -1,10 +1,6 @@
 name: Weekly Production Publisher
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/weekly_production_publisher.yml"
   schedule:
     # Primary Production publisher: Friday 13:00 JST (04:00 UTC).
     - cron: "0 4 * * 5"
