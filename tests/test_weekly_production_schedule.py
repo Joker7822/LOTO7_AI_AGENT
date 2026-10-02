@@ -24,9 +24,10 @@ def test_event_driven_recovery_wakes_publisher_after_delayed_scheduler():
     assert "Gate Production publication window" in publisher
     assert 'TZ=Asia/Tokyo date +%u' in publisher
     assert '[ "${HM}" -lt 1300 ]' in publisher
-    assert '[ "${HM}" -ge 1500 ]' in publisher
+    assert '[ "${HM}" -ge 2000 ]' in publisher
     assert "today's Production is already published; clean no-op" in publisher
     assert "fail-closed cutoff" in publisher
+    assert "delayed GitHub recovery allowed until 19:59 JST" in publisher
     assert "steps.publication_gate.outputs.publish == 'true'" in publisher
 
 
@@ -35,8 +36,9 @@ def test_fallback_noops_after_success_and_fails_closed_after_cutoff():
 
     assert "Gate Production publication window" in fallback
     assert "today's Production is already published; clean no-op" in fallback
-    assert '[ "${HM}" -ge 1500 ]' in fallback
+    assert '[ "${HM}" -ge 2000 ]' in fallback
     assert "fail-closed cutoff" in fallback
+    assert "delayed GitHub recovery allowed until 19:59 JST" in fallback
     assert "steps.publication_gate.outputs.publish == 'true'" in fallback
 
 
