@@ -141,8 +141,8 @@ historical replay / reconciliation / nested replayはすべて**精度確認用�
 
 金曜13:00〜14:59 JSTのProduction publisherは `fetch_validate.py --production-snapshot` を使用します。
 このモードは**直前の確定済み抽せん回を2ソースで検証**しますが、当日のまだ存在しない抽せん結果をfreshness要件として要求しません。
-したがってGitHub Actionsが13:00から遅延して起動しても、15:00 JSTより前なら同じ事前データで安全にProductionをfreezeできます。
-15:00 JST以降に未発行の場合はpost-outcome leakageを避けるためfail closedです。
+通常発行は金曜13:00〜15:00 JSTを目標にします。GitHub Actions自体が遅延した場合は、同じ事前snapshotを使って19:59 JSTまでRecoveryを許可します。
+20:00 JST以降に未発行の場合は当日結果の取得時間帯に入るため、post-outcome leakageを避けてfail closedです。
 
 ### Sakura credential rotation verification
 
