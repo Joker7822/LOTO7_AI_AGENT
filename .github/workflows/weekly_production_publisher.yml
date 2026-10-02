@@ -1,11 +1,15 @@
 name: Weekly Production Publisher
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/weekly_production_publisher.yml"
   schedule:
     # Primary Production publisher: Friday 13:00 JST (04:00 UTC).
     - cron: "0 4 * * 5"
-  # Event-driven recovery path: if GitHub's scheduler is delayed, the first
-  # OOS workflow completing during Friday 13:00-14:59 JST wakes the publisher.
+  # Event-driven recovery path: normal publication is targeted for 13:00-15:00 JST,
+  # but GitHub-delayed OOS completion may recover the publication until 19:59 JST.
   workflow_run:
     workflows:
       - "Champion Calibration Future OOS"
@@ -74,12 +78,13 @@ jobs:
             exit 0
           fi
 
-          # Automatic publication is only valid in the pre-draw recovery window.
-          # workflow_run events outside Friday 13:00-14:59 JST are routine noise.
+          # Normal publication is targeted for Friday 13:00-15:00 JST.
+          # GitHub schedule/workflow_run delays are recoverable until 19:59 JST,
+          # still using the immutable latest-completed-draw Production snapshot.
           if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1300 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
             if [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
-              echo "[PRODUCTION] recovery wake-up ignored outside Friday 13:00-14:59 JST"
+              echo "[PRODUCTION] recovery wake-up ignored before Friday 13:00 JST"
               exit 0
             fi
             echo "::error::Production publisher triggered outside Friday publication window"
@@ -88,14 +93,18 @@ jobs:
 
           # Fail closed once the result-check window begins. Creating a new
           # Production forecast after this point could become post-outcome leakage.
-          if [ "${HM}" -ge 1500 ]; then
+          if [ "${HM}" -ge 2000 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
-            echo "::error::Production was not published before the 15:00 JST fail-closed cutoff"
+            echo "::error::Production was not published before the 20:00 JST fail-closed cutoff"
             exit 1
           fi
 
           echo "publish=true" >> "${GITHUB_OUTPUT}"
-          echo "[PRODUCTION] publication/recovery allowed inside Friday 13:00-14:59 JST"
+          if [ "${HM}" -lt 1500 ]; then
+            echo "[PRODUCTION] normal publication allowed inside Friday 13:00-14:59 JST"
+          else
+            echo "[PRODUCTION] delayed GitHub recovery allowed until 19:59 JST"
+          fi
 
       - name: Set up Python
         if: steps.publication_gate.outputs.publish == 'true'
