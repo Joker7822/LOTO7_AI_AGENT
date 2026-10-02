@@ -71,14 +71,18 @@ jobs:
             exit 1
           fi
 
-          if [ "${HM}" -ge 1500 ]; then
+          if [ "${HM}" -ge 2000 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
-            echo "::error::Production was not published before the 15:00 JST fail-closed cutoff"
+            echo "::error::Production was not published before the 20:00 JST fail-closed cutoff"
             exit 1
           fi
 
           echo "publish=true" >> "${GITHUB_OUTPUT}"
-          echo "[PRODUCTION-FALLBACK] publication allowed inside Friday 13:00-14:59 JST"
+          if [ "${HM}" -lt 1500 ]; then
+            echo "[PRODUCTION-FALLBACK] normal publication allowed inside Friday 13:00-14:59 JST"
+          else
+            echo "[PRODUCTION-FALLBACK] delayed GitHub recovery allowed until 19:59 JST"
+          fi
 
       - name: Set up Python
         if: steps.publication_gate.outputs.publish == 'true'
