@@ -3,25 +3,25 @@
 - protocol: **champion-calibration-oos-v1**
 - role: **Research diagnostic only; no Production authority**
 - locked base model: **baseline-5fdb8dc2ad**
-- fixed prospective horizon: **4/26 trusted draws**
+- fixed prospective horizon: **5/26 trusted draws**
 - status: **active**
-- current target: **round 697**
+- current target: **round 698**
 - pre-frozen: **YES**
 - current calibration: **shrink-0p93-1209c16b93** (T=1.00, uniform_mix=0.93)
-- frozen at JST: **2026-09-26T14:21:52+09:00**
-- base q SHA-256: `28573e6959080a59788ba6e8f9d9160fd61ae4e1869ce8475f0416304e6887b8`
-- calibrated q SHA-256: `cb3905c6cb5cef807c62255fbf5eaf139fa1cfe030c07b013667a32730e07464`
+- frozen at JST: **2026-10-03T14:38:27+09:00**
+- base q SHA-256: `1715ebee90c5994c7d96ae94da37fe17833e910ce90e3272684ffebe30bddfcc`
+- calibrated q SHA-256: `8077cb7d0c354ec22cd7d9390302d33412c3d9075d0c3805ffe5a4d8b4602303`
 - rank preserved: **true**
 
 ## Trusted cumulative diagnostics
 
-- mean log delta vs locked base: **+0.09721673**
-- mean Brier improvement vs locked base: **+0.01595954**
-- mean log delta vs Uniform: **+0.01090630**
-- mean Brier improvement vs Uniform: **+0.00064434**
-- mean actual-mass delta vs Uniform: **+0.00270737**
+- mean log delta vs locked base: **+0.11334242**
+- mean Brier improvement vs locked base: **+0.01819310**
+- mean log delta vs Uniform: **+0.00708921**
+- mean Brier improvement vs Uniform: **+0.00040948**
+- mean actual-mass delta vs Uniform: **+0.00186901**
 - mean Top-7 delta vs locked base: **+0.00000000**
-- rank preserved trusted draws: **4/4**
+- rank preserved trusted draws: **5/5**
 
 ## Claim policy
 
