@@ -1,6 +1,10 @@
 name: Weekly Production Publisher
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/weekly_production_publisher.yml"
   schedule:
     # Primary Production publisher: Friday 13:00 JST (04:00 UTC).
     - cron: "0 4 * * 5"
@@ -65,18 +69,12 @@ jobs:
           PY
           )
 
-          # Any delayed duplicate after a successful publication is a clean no-op.
-          # This keeps heavily delayed GitHub schedule runs from failing later on
-          # the post-draw freshness gate.
           if [ "${ALREADY_PUBLISHED}" = "true" ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
             echo "[PRODUCTION] today's Production is already published; clean no-op"
             exit 0
           fi
 
-          # Normal publication is targeted for Friday 13:00-15:00 JST.
-          # GitHub schedule/workflow_run delays are recoverable until 19:59 JST,
-          # still using the immutable latest-completed-draw Production snapshot.
           if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1300 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
             if [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
@@ -87,8 +85,6 @@ jobs:
             exit 1
           fi
 
-          # Fail closed once the result-check window begins. Creating a new
-          # Production forecast after this point could become post-outcome leakage.
           if [ "${HM}" -ge 2000 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
             echo "::error::Production was not published before the 20:00 JST fail-closed cutoff"
