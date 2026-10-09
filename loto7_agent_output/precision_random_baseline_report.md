@@ -1,6 +1,6 @@
 # High-Precision Random Portfolio Baseline
 
-- evaluated rounds: **597**
+- evaluated rounds: **598**
 - Monte Carlo random portfolios: **4,096**
 - symmetry reuse across rounds: **YES**
 - cache key: **data SHA + min_train + reps**
