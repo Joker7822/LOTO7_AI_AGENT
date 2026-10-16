@@ -1,15 +1,15 @@
 {
-  "report_version": "joint-set-v2-matched-null-v1",
+  "report_version": "joint-set-v2.1-matched-null-v1",
   "data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
   "completed_worlds": 2,
   "target_worlds": 64,
   "calibration_complete": false,
-  "observed_true_nested_score_delta": 0.11745231119791691,
+  "observed_true_nested_score_delta": 0.08378564453125024,
   "empirical_tail_p": 0.3333333333333333,
-  "null_median": -0.0365476888020831,
-  "null_p95": -0.018247688802083148,
-  "null_p99": -0.016621022135416483,
-  "null_max": -0.016214355468749816,
+  "null_median": -0.0632143554687497,
+  "null_p95": -0.04701435546874973,
+  "null_p99": -0.045574355468749723,
+  "null_max": -0.045214355468749724,
   "matched_budget": {
     "predeclared_config_count": 5,
     "selection_window": 120,
@@ -18,11 +18,12 @@
     "validation_candidates": 64,
     "same_inclusion_probability_model": true,
     "same_config_selection_rule": true,
-    "same_dynamic_gate": true,
+    "same_dynamic_probability_gate": true,
+    "same_prior_only_portfolio_rank_gate": "joint-set-v2.1-rank-gate-v1",
     "same_regime_and_pair_model": true,
     "same_expected_utility_portfolio": true
   },
   "independent_evidence": false,
   "promotion_eligible": false,
-  "interpretation": "Matched-budget fair 7/37 null calibration for Joint Set v2. Research-only; not Future OOS evidence."
+  "interpretation": "Matched-budget fair 7/37 null calibration for Joint Set v2.1. Research-only; not Future OOS evidence."
 }

@@ -1,6 +1,6 @@
 {
-  "report_version": "joint-set-v2-true-nested-v1",
-  "evaluation_type": "strict_prior_only_prequential_inclusion_probability_joint_set_v2",
+  "report_version": "joint-set-v2.1-true-nested-v1",
+  "evaluation_type": "strict_prior_only_prequential_inclusion_probability_joint_set_v2_1",
   "data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
   "min_train": 100,
   "last_n": 60,
@@ -22,7 +22,8 @@
     "proper_brier_score_all_37_numbers": true,
     "low_rank_pair_interaction": true,
     "hidden_regime_filter": true,
-    "dynamic_uniform_gate": true,
+    "dynamic_uniform_probability_gate": true,
+    "separate_prior_only_portfolio_rank_gate": "joint-set-v2.1-rank-gate-v1",
     "expected_utility_portfolio": true,
     "external_metadata": false
   },
@@ -34,26 +35,29 @@
     "mean_actual_inclusion_probability": 0.18924511999761545,
     "mean_log_edge_vs_uniform": 2.6495587925302416e-05,
     "mean_brier_edge_vs_uniform": 6.72075277474334e-06,
-    "mean_gate": 0.06235639759106723
+    "mean_probability_gate": 0.06235639759106723
   },
   "portfolio": {
-    "mean_max_hits": 2.5166666666666666,
+    "mean_portfolio_gate": 0.19892961411888482,
+    "mean_rank_edge_prior": 0.22706456456456453,
+    "mean_rank_z_prior": 2.484589015998907,
+    "mean_max_hits": 2.5,
     "random_mean_max_hits": 2.438720703125,
-    "ge3_round_rate": 0.5,
+    "ge3_round_rate": 0.48333333333333334,
     "random_ge3_rate": 0.438232421875,
-    "ge4_round_rate": 0.1,
+    "ge4_round_rate": 0.08333333333333333,
     "random_ge4_rate": 0.0703125,
-    "mean_score": 2.8946666666666667,
+    "mean_score": 2.8609999999999998,
     "random_mean_score": 2.7772143554687494,
     "score_delta_vs_random": {
-      "mean": 0.11745231119791691,
-      "low95": -0.1635601888020831,
-      "high95": 0.3916356445312501
+      "mean": 0.08378564453125024,
+      "low95": -0.18005185546874977,
+      "high95": 0.3583023111979166
     },
-    "round_win_rate_vs_random": 0.5
+    "round_win_rate_vs_random": 0.48333333333333334
   },
   "independent_evidence": false,
   "promotion_eligible": false,
-  "leakage_control": "At target t all config selection, calibration, pair/regime estimation, and portfolio construction use only draws before t.",
-  "interpretation": "Research-only v2 challenger. Production remains governed by frozen Future OOS evidence."
+  "leakage_control": "At target t all config selection, calibration, rank-gate evidence, pair/regime estimation, and portfolio construction use only draws before t.",
+  "interpretation": "Research-only v2.1 challenger. Probability calibration and portfolio ordinal evidence are separated; Production remains governed by frozen Future OOS evidence."
 }
