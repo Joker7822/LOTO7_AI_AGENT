@@ -13,9 +13,10 @@ import numpy as np
 import joint_set_v2_research as jsr
 import precision_random_baseline as prb
 from joint_set_v2_model import candidate_configs, expected_utility_portfolio, forecast, portfolio_metrics
+from joint_set_v21_portfolio import PORTFOLIO_RANK_GATE_VERSION, portfolio_forecast_bundle
 from loto7_evolving_agent import fingerprint_file, make_history, read_csv_flexible
 
-REPORT_VERSION = "joint-set-v2-matched-null-v1"
+REPORT_VERSION = "joint-set-v2.1-matched-null-v1"
 
 
 def write_json(path: Path, obj: Dict[str, object]) -> None:
@@ -50,23 +51,34 @@ def run_world(
     preq = {cfg.version(): jsr.build_prequential_signal(x, cfg, min_train) for cfg in configs}
     eval_start = max(min_train + 30, len(x) - int(last_n))
     deltas: List[float] = []
-    gates: List[float] = []
+    probability_gates: List[float] = []
+    portfolio_gates: List[float] = []
+    rank_edges: List[float] = []
+    rank_zs: List[float] = []
     selected_scores: List[float] = []
     for t in range(eval_start, len(x)):
         prior_count = t - min_train
         cfg, selected_score = jsr.select_config(configs, preq, prior_count, selection_window)
-        bundle = forecast(x[:t], cfg, preq[cfg.version()][:prior_count])
+        calibration_rows = preq[cfg.version()][:prior_count]
+        bundle = forecast(x[:t], cfg, calibration_rows)
+        portfolio_bundle, portfolio_diag = portfolio_forecast_bundle(bundle, calibration_rows, cfg)
         tickets, _ = expected_utility_portfolio(
-            bundle, seed=int(seed + t * 1009),
+            portfolio_bundle, seed=int(seed + t * 1009),
             scenarios=validation_scenarios, candidate_count=validation_candidates,
         )
         pm = portfolio_metrics(tickets, set((np.flatnonzero(x[t]) + 1).tolist()))
         deltas.append(float(pm["score"] - random_score))
-        gates.append(float(bundle.gate))
+        probability_gates.append(float(bundle.gate))
+        portfolio_gates.append(float(portfolio_bundle.gate))
+        rank_edges.append(float(portfolio_diag["rank_edge"]))
+        rank_zs.append(float(portfolio_diag["rank_z"]))
         selected_scores.append(float(selected_score))
     return {
         "score_delta_vs_random": float(np.mean(deltas)) if deltas else 0.0,
-        "mean_gate": float(np.mean(gates)) if gates else 0.0,
+        "mean_probability_gate": float(np.mean(probability_gates)) if probability_gates else 0.0,
+        "mean_portfolio_gate": float(np.mean(portfolio_gates)) if portfolio_gates else 0.0,
+        "mean_rank_edge": float(np.mean(rank_edges)) if rank_edges else 0.0,
+        "mean_rank_z": float(np.mean(rank_zs)) if rank_zs else 0.0,
         "mean_selected_prior_score": float(np.mean(selected_scores)) if selected_scores else 0.0,
     }
 
@@ -115,13 +127,14 @@ def summarize(state: Dict[str, object], observed_delta: float) -> Dict[str, obje
             "validation_candidates": int(state["validation_candidates"]),
             "same_inclusion_probability_model": True,
             "same_config_selection_rule": True,
-            "same_dynamic_gate": True,
+            "same_dynamic_probability_gate": True,
+            "same_prior_only_portfolio_rank_gate": PORTFOLIO_RANK_GATE_VERSION,
             "same_regime_and_pair_model": True,
             "same_expected_utility_portfolio": True,
         },
         "independent_evidence": False,
         "promotion_eligible": False,
-        "interpretation": "Matched-budget fair 7/37 null calibration for Joint Set v2. Research-only; not Future OOS evidence.",
+        "interpretation": "Matched-budget fair 7/37 null calibration for Joint Set v2.1. Research-only; not Future OOS evidence.",
     }
 
 
@@ -129,7 +142,7 @@ def render_report(summary: Dict[str, object]) -> str:
     p = summary.get("empirical_tail_p")
     p_text = "not available" if p is None else f"{float(p):.6f}"
     return "\n".join([
-        "# Joint Set v2 Matched-Budget Null Calibration",
+        "# Joint Set v2.1 Matched-Budget Null Calibration",
         "",
         f"- worlds: **{summary['completed_worlds']} / {summary['target_worlds']}**",
         f"- observed strict True Nested score delta: **{summary['observed_true_nested_score_delta']:+.6f}**",
@@ -139,7 +152,7 @@ def render_report(summary: Dict[str, object]) -> str:
         f"- null p99: **{summary['null_p99']:+.6f}**",
         f"- calibration complete: **{str(summary['calibration_complete']).lower()}**",
         "",
-        "> 完全ランダム7/37世界でもv2と同じ探索・Gate・pair/regime・5口最適化予算を再実行します。",
+        "> 完全ランダム7/37世界でもv2.1と同じ探索・Probability Gate・Rank Gate・pair/regime・5口最適化予算を再実行します。",
         "> Research-only。Production昇格証拠ではありません。",
         "",
     ])
@@ -205,7 +218,7 @@ def run(
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Matched-budget synthetic-null calibration for Joint Set v2")
+    ap = argparse.ArgumentParser(description="Matched-budget synthetic-null calibration for Joint Set v2.1")
     ap.add_argument("--csv", type=Path, default=Path("loto7.csv"))
     ap.add_argument("--out-dir", type=Path, default=Path("loto7_agent_output"))
     ap.add_argument("--min-train", type=int, default=100)
