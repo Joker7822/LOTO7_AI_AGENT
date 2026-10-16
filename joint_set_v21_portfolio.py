@@ -19,6 +19,7 @@ PORTFOLIO_RANK_GATE_VERSION = "joint-set-v2.1-rank-gate-v1"
 PORTFOLIO_RANK_GATE_CEILING = 0.35
 PORTFOLIO_RANK_EDGE_SCALE = 0.20
 PORTFOLIO_RANK_Z_SCALE = 2.0
+ZERO_VARIANCE_Z = 8.0
 
 
 def portfolio_rank_gate(
@@ -44,8 +45,15 @@ def portfolio_rank_gate(
     hits = np.asarray([float(r["top7_hits"]) for r in rows], dtype=float)
     edge = float(hits.mean() - UNIFORM_TOP7_HITS)
     sd = float(hits.std(ddof=1)) if len(hits) > 1 else 0.0
-    se = sd / math.sqrt(len(hits)) if sd > 1e-12 else float("inf")
-    z = edge / se if math.isfinite(se) and se > 0 else 0.0
+    if sd > 1e-12:
+        se = sd / math.sqrt(len(hits))
+        z = edge / se
+    elif edge > 0.0:
+        z = ZERO_VARIANCE_Z
+    elif edge < 0.0:
+        z = -ZERO_VARIANCE_Z
+    else:
+        z = 0.0
 
     if edge <= 0.0 or z <= 0.0:
         gate = 0.0
