@@ -8,8 +8,12 @@ on:
       - "joint_set_model.py"
       - "joint_set_research.py"
       - "joint_set_null_calibration.py"
+      - "joint_set_v2_model.py"
+      - "joint_set_v2_research.py"
+      - "joint_set_v2_null_calibration.py"
       - "research_metadata.py"
       - "tests/test_joint_set_research.py"
+      - "tests/test_joint_set_v2_research.py"
   schedule:
     # Daily Research-only continuation at 03:20 JST (18:20 UTC previous day).
     - cron: "20 18 * * *"
@@ -47,10 +51,13 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install pytest
 
-      - name: Verify Joint Set suite
+      - name: Verify Joint Set suites
         run: |
-          python -m compileall -q joint_set_model.py joint_set_research.py joint_set_null_calibration.py research_metadata.py
-          python -m pytest -q tests/test_joint_set_research.py
+          python -m compileall -q \
+            joint_set_model.py joint_set_research.py joint_set_null_calibration.py \
+            joint_set_v2_model.py joint_set_v2_research.py joint_set_v2_null_calibration.py \
+            research_metadata.py
+          python -m pytest -q tests/test_joint_set_research.py tests/test_joint_set_v2_research.py
 
       - name: Validate pre-draw metadata policy
         run: |
@@ -59,7 +66,7 @@ jobs:
             --report loto7_agent_output/research_metadata_summary.json \
             --cutoff-hour-jst 18
 
-      - name: Run strict Joint Set True Nested
+      - name: Run strict Joint Set v1 True Nested
         run: |
           python joint_set_research.py \
             --csv loto7.csv \
@@ -76,7 +83,7 @@ jobs:
             --cutoff-hour-jst 18 \
             --if-stale
 
-      - name: Advance matched-budget Joint Null
+      - name: Advance matched-budget Joint v1 Null
         run: |
           python joint_set_null_calibration.py \
             --csv loto7.csv \
@@ -91,6 +98,20 @@ jobs:
             --target-worlds 64 \
             --worlds-per-run 2 \
             --cutoff-hour-jst 18
+
+      - name: Run Joint Set v2 and advance matched-budget null
+        run: |
+          python joint_set_v2_null_calibration.py \
+            --csv loto7.csv \
+            --out-dir loto7_agent_output \
+            --min-train 100 \
+            --last-n 60 \
+            --selection-window 120 \
+            --validation-scenarios 256 \
+            --validation-candidates 64 \
+            --random-reps 4096 \
+            --target-worlds 64 \
+            --worlds-per-run 2
 
       - name: Commit Research-only outputs
         shell: bash
@@ -109,7 +130,15 @@ jobs:
             loto7_agent_output/joint_set_latest_prediction.txt \
             loto7_agent_output/joint_set_null_calibration_state.json \
             loto7_agent_output/joint_set_null_calibration_summary.json \
-            loto7_agent_output/joint_set_null_calibration_report.md
+            loto7_agent_output/joint_set_null_calibration_report.md \
+            loto7_agent_output/joint_set_v2_true_nested_summary.json \
+            loto7_agent_output/joint_set_v2_true_nested.csv \
+            loto7_agent_output/joint_set_v2_true_nested_report.md \
+            loto7_agent_output/joint_set_v2_current_research.json \
+            loto7_agent_output/joint_set_v2_candidate_tickets.csv \
+            loto7_agent_output/joint_set_v2_null_calibration_state.json \
+            loto7_agent_output/joint_set_v2_null_calibration_summary.json \
+            loto7_agent_output/joint_set_v2_null_calibration_report.md
           if [ -n "$(git status --porcelain -- loto7_agent_output)" ]; then
             git commit -m "chore: checkpoint Joint Set research"
             git pull --rebase
@@ -121,13 +150,19 @@ jobs:
         shell: bash
         run: |
           {
-            echo '## Joint Set True Nested'
+            echo '## Joint Set v1 True Nested'
             cat loto7_agent_output/joint_set_true_nested_report.md
             echo
-            echo '## Joint Set Matched-Budget Null'
+            echo '## Joint Set v1 Matched-Budget Null'
             cat loto7_agent_output/joint_set_null_calibration_report.md
             echo
-            echo '## Current Joint Set Research prediction'
+            echo '## Joint Set v2 True Nested'
+            cat loto7_agent_output/joint_set_v2_true_nested_report.md
+            echo
+            echo '## Joint Set v2 Matched-Budget Null'
+            cat loto7_agent_output/joint_set_v2_null_calibration_report.md
+            echo
+            echo '## Current Joint Set v1 Research prediction'
             echo '```text'
             cat loto7_agent_output/joint_set_latest_prediction.txt
             echo '```'
