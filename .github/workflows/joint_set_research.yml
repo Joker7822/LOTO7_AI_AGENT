@@ -9,6 +9,7 @@ on:
       - "joint_set_research.py"
       - "joint_set_null_calibration.py"
       - "joint_set_v2_model.py"
+      - "joint_set_v21_portfolio.py"
       - "joint_set_v2_research.py"
       - "joint_set_v2_null_calibration.py"
       - "research_metadata.py"
@@ -55,7 +56,7 @@ jobs:
         run: |
           python -m compileall -q \
             joint_set_model.py joint_set_research.py joint_set_null_calibration.py \
-            joint_set_v2_model.py joint_set_v2_research.py joint_set_v2_null_calibration.py \
+            joint_set_v2_model.py joint_set_v21_portfolio.py joint_set_v2_research.py joint_set_v2_null_calibration.py \
             research_metadata.py
           python -m pytest -q tests/test_joint_set_research.py tests/test_joint_set_v2_research.py
 
@@ -99,7 +100,7 @@ jobs:
             --worlds-per-run 2 \
             --cutoff-hour-jst 18
 
-      - name: Run Joint Set v2 and advance matched-budget null
+      - name: Run Joint Set v2.1 and advance matched-budget null
         run: |
           python joint_set_v2_null_calibration.py \
             --csv loto7.csv \
@@ -156,10 +157,10 @@ jobs:
             echo '## Joint Set v1 Matched-Budget Null'
             cat loto7_agent_output/joint_set_null_calibration_report.md
             echo
-            echo '## Joint Set v2 True Nested'
+            echo '## Joint Set v2.1 True Nested'
             cat loto7_agent_output/joint_set_v2_true_nested_report.md
             echo
-            echo '## Joint Set v2 Matched-Budget Null'
+            echo '## Joint Set v2.1 Matched-Budget Null'
             cat loto7_agent_output/joint_set_v2_null_calibration_report.md
             echo
             echo '## Current Joint Set v1 Research prediction'
