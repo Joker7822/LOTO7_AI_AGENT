@@ -1,61 +1,64 @@
 {
-  "checked_at_jst": "2026-10-16T13:54:01+09:00",
+  "checked_at_jst": "2026-10-16T22:53:30+09:00",
   "attempt": 1,
   "status": "ok",
   "verification": "verified_two_result_sources",
   "primary_source": "Rakuten backnumber via scrapingloto7.py",
   "secondary_policy": "Mizuho preferred; Rakuten Bank direct public winning-number endpoint is accepted as fallback",
   "latest": {
-    "round": 698,
-    "date": "2026-10-09",
+    "round": 699,
+    "date": "2026-10-16",
     "main": [
-      10,
-      13,
-      21,
-      24,
-      28,
-      29,
-      34
+      5,
+      6,
+      8,
+      14,
+      15,
+      22,
+      29
     ],
     "bonus": [
-      1,
-      26
+      3,
+      16
     ]
   },
-  "freshness_expected": null,
-  "freshness_policy": "production_snapshot_latest_completed_draw",
+  "freshness_expected": {
+    "round": 699,
+    "date": "2026-10-16"
+  },
+  "freshness_policy": "require_current_draw_after_friday_20_jst",
   "sources": {
     "mizuho": {
       "status": "unavailable",
       "error": "HTTP Error 403: Forbidden"
     },
     "rakuten_bank": {
-      "round": 698,
-      "date": "2026-10-09",
+      "round": 699,
+      "date": "2026-10-16",
       "main": [
-        10,
-        13,
-        21,
-        24,
-        28,
-        29,
-        34
+        5,
+        6,
+        8,
+        14,
+        15,
+        22,
+        29
       ],
       "bonus": [
-        1,
-        26
+        3,
+        16
       ],
       "transport": "direct_public_result_page",
       "url": "https://sfes.rakuten-bank.co.jp/MS/main/fis?PageID=WinNumberLoto7PresentationLogicBean"
     },
     "official_schedule": {
-      "round": 699,
-      "date": "2026-10-16"
+      "round": 700,
+      "date": "2026-10-23"
     }
   },
   "notes": [
     "Rakuten Bank result matches Rakuten primary main/bonus numbers via direct_public_result_page",
-    "official schedule visible: round=699 date=2026-10-16",
+    "official schedule visible: round=700 date=2026-10-23",
     "result verification succeeded using at least two published result endpoints"
   ]
 }

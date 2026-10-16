@@ -1,6 +1,6 @@
 # Research Winner Full-History Replay Feedback
 
-- generation: **4405**
+- generation: **4706**
 - provisional winner: **signal-g02253-c01-b6030e66c9**
 - incumbent research parent: **signal-g02253-c01-b6030e66c9**
 - accepted research parent: **signal-g02253-c01-b6030e66c9**
@@ -10,11 +10,11 @@
 
 | 指標 | Candidate | Incumbent |
 |---|---:|---:|
-| feedback objective | -0.1004 | -0.1004 |
-| full score Δ vs random | -0.1299 | -0.1299 |
-| 120 score Δ vs random | -0.0393 | -0.0393 |
-| 60 score Δ vs random | -0.1245 | -0.1245 |
-| 30 score Δ vs random | -0.1624 | -0.1624 |
+| feedback objective | -0.0887 | -0.0887 |
+| full score Δ vs random | -0.1284 | -0.1284 |
+| 120 score Δ vs random | -0.0307 | -0.0307 |
+| 60 score Δ vs random | -0.1065 | -0.1065 |
+| 30 score Δ vs random | -0.1170 | -0.1170 |
 
 - objective gain: **+0.0000**
 - checks: `{"same_model": true}`
