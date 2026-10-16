@@ -8,18 +8,18 @@
 - Production promotion eligible: **NO**
 
 ## Signal + Dynamic Uniform Gate
-- mean Top7 hits: **1.5333**
-- mean actual mass: **0.189784**
-- mean log edge vs uniform: **+0.000179**
-- mean Brier edge vs uniform: **+0.000013**
-- mean model gate: **0.473**
+- mean Top7 hits: **1.5167**
+- mean actual mass: **0.189615**
+- mean log edge vs uniform: **-0.000710**
+- mean Brier edge vs uniform: **-0.000035**
+- mean model gate: **0.474**
 
 ## Expected-Utility Five-Ticket Portfolio
-- mean max hits: **2.5500** / random **2.4387**
-- >=3 round rate: **50.00%** / random **43.82%**
+- mean max hits: **2.5667** / random **2.4387**
+- >=3 round rate: **51.67%** / random **43.82%**
 - >=4 round rate: **10.00%** / random **7.03%**
-- score: **2.9317** / random **2.7772**
-- score delta: **+0.1545** (bootstrap 95% CI -0.1172〜+0.4340)
+- score: **2.9525** / random **2.7772**
+- score delta: **+0.1753** (bootstrap 95% CI -0.0967〜+0.4496)
 
 ## External metadata
 - trusted records: **0**
