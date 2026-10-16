@@ -21,13 +21,11 @@ from joint_set_v2_model import (
     portfolio_metrics,
     signal_quality,
 )
-from joint_set_v21_portfolio import PORTFOLIO_RANK_GATE_VERSION, portfolio_forecast_bundle
 from loto7_evolving_agent import fingerprint_file, make_history, read_csv_flexible
 
-REPORT_VERSION = "joint-set-v2.1-true-nested-v1"
+REPORT_VERSION = "joint-set-v2-true-nested-v1"
 FIELDS = [
     "round_index", "selected_config", "selected_config_score", "gate",
-    "portfolio_gate", "portfolio_rank_edge", "portfolio_rank_z",
     "regime_stable", "regime_shift", "regime_volatile",
     "signal_top7_hits", "signal_actual_mass", "signal_log_edge", "signal_brier_edge",
     "portfolio_max_hits", "portfolio_mean_hits", "portfolio_ge3", "portfolio_ge4", "portfolio_score",
@@ -133,7 +131,7 @@ def summarize(
     selected = Counter(str(r["selected_config"]) for r in rows)
     return {
         "report_version": REPORT_VERSION,
-        "evaluation_type": "strict_prior_only_prequential_inclusion_probability_joint_set_v2_1",
+        "evaluation_type": "strict_prior_only_prequential_inclusion_probability_joint_set_v2",
         "data_sha256": data_sha,
         "min_train": int(min_train),
         "last_n": int(last_n),
@@ -149,8 +147,7 @@ def summarize(
             "proper_brier_score_all_37_numbers": True,
             "low_rank_pair_interaction": True,
             "hidden_regime_filter": True,
-            "dynamic_uniform_probability_gate": True,
-            "separate_prior_only_portfolio_rank_gate": PORTFOLIO_RANK_GATE_VERSION,
+            "dynamic_uniform_gate": True,
             "expected_utility_portfolio": True,
             "external_metadata": False,
         },
@@ -160,12 +157,9 @@ def summarize(
             "mean_actual_inclusion_probability": float(np.mean([float(r["signal_actual_mass"]) for r in rows])) if rows else 0.0,
             "mean_log_edge_vs_uniform": float(np.mean([float(r["signal_log_edge"]) for r in rows])) if rows else 0.0,
             "mean_brier_edge_vs_uniform": float(np.mean([float(r["signal_brier_edge"]) for r in rows])) if rows else 0.0,
-            "mean_probability_gate": float(np.mean([float(r["gate"]) for r in rows])) if rows else 0.0,
+            "mean_gate": float(np.mean([float(r["gate"]) for r in rows])) if rows else 0.0,
         },
         "portfolio": {
-            "mean_portfolio_gate": float(np.mean([float(r["portfolio_gate"]) for r in rows])) if rows else 0.0,
-            "mean_rank_edge_prior": float(np.mean([float(r["portfolio_rank_edge"]) for r in rows])) if rows else 0.0,
-            "mean_rank_z_prior": float(np.mean([float(r["portfolio_rank_z"]) for r in rows])) if rows else 0.0,
             "mean_max_hits": float(np.mean([float(r["portfolio_max_hits"]) for r in rows])) if rows else 0.0,
             "random_mean_max_hits": float(np.mean([float(r["random_max_hits"]) for r in rows])) if rows else 0.0,
             "ge3_round_rate": float(np.mean([float(r["portfolio_ge3"]) for r in rows])) if rows else 0.0,
@@ -179,8 +173,8 @@ def summarize(
         },
         "independent_evidence": False,
         "promotion_eligible": False,
-        "leakage_control": "At target t all config selection, calibration, rank-gate evidence, pair/regime estimation, and portfolio construction use only draws before t.",
-        "interpretation": "Research-only v2.1 challenger. Probability calibration and portfolio ordinal evidence are separated; Production remains governed by frozen Future OOS evidence.",
+        "leakage_control": "At target t all config selection, calibration, pair/regime estimation, and portfolio construction use only draws before t.",
+        "interpretation": "Research-only v2 challenger. Production remains governed by frozen Future OOS evidence.",
     }
 
 
@@ -188,7 +182,7 @@ def render_report(summary: Dict[str, object]) -> str:
     s, p = summary["signal"], summary["portfolio"]
     ci = p["score_delta_vs_random"]
     return "\n".join([
-        "# Joint Set Research v2.1 — Calibrated Inclusion + Prior-Only Rank Gate",
+        "# Joint Set Research v2 — Inclusion Probability Strict True Nested",
         "",
         f"- evaluated rounds: **{summary['evaluated_rounds']}**",
         f"- predeclared configs: **{summary['predeclared_config_count']}**",
@@ -201,12 +195,7 @@ def render_report(summary: Dict[str, object]) -> str:
         f"- mean actual inclusion probability: **{s['mean_actual_inclusion_probability']:.6f}**",
         f"- mean Bernoulli log edge vs uniform: **{s['mean_log_edge_vs_uniform']:+.6f}**",
         f"- mean Bernoulli Brier edge vs uniform: **{s['mean_brier_edge_vs_uniform']:+.6f}**",
-        f"- mean calibrated probability gate: **{s['mean_probability_gate']:.3f}**",
-        "",
-        "## Prior-Only Portfolio Rank Gate",
-        f"- mean portfolio gate: **{p['mean_portfolio_gate']:.3f}**",
-        f"- mean prior Top7 edge: **{p['mean_rank_edge_prior']:+.4f}**",
-        f"- mean prior rank z: **{p['mean_rank_z_prior']:+.3f}**",
+        f"- mean model gate: **{s['mean_gate']:.3f}**",
         "",
         "## Expected-Utility Five-Ticket Portfolio",
         f"- mean max hits: **{p['mean_max_hits']:.4f}** / random **{p['random_mean_max_hits']:.4f}**",
@@ -215,7 +204,7 @@ def render_report(summary: Dict[str, object]) -> str:
         f"- score: **{p['mean_score']:.4f}** / random **{p['random_mean_score']:.4f}**",
         f"- score delta: **{ci['mean']:+.4f}** (bootstrap 95% CI {ci['low95']:+.4f}〜{ci['high95']:+.4f})",
         "",
-        "> v2.1ではproper-score用の校正確率と、5口構築用のprior-only順位Gateを分離します。",
+        "> v2は37数字を独立カテゴリ確率ではなく、合計7のinclusion probabilityとして校正します。",
         "> Research-only。Future OOS確認前にProductionへ昇格しません。",
         "",
     ])
@@ -245,13 +234,11 @@ def run(
     for t in range(eval_start, len(x)):
         prior_count = t - min_train
         cfg, cfg_score = select_config(configs, preq, prior_count, selection_window)
-        calibration_rows = preq[cfg.version()][:prior_count]
-        bundle = forecast(x[:t], cfg, calibration_rows)
-        portfolio_bundle, portfolio_diag = portfolio_forecast_bundle(bundle, calibration_rows, cfg)
+        bundle = forecast(x[:t], cfg, preq[cfg.version()][:prior_count])
         actual_idx = np.flatnonzero(x[t])
         sig = bernoulli_signal_metrics(bundle.inclusion_p, actual_idx)
         tickets, _ = expected_utility_portfolio(
-            portfolio_bundle, seed=123_000_000 + t * 1009,
+            bundle, seed=123_000_000 + t * 1009,
             scenarios=validation_scenarios, candidate_count=validation_candidates,
         )
         pm = portfolio_metrics(tickets, set((actual_idx + 1).tolist()))
@@ -262,9 +249,6 @@ def run(
             "round_index": t + 1,
             "selected_config": cfg.version(), "selected_config_score": cfg_score,
             "gate": bundle.gate,
-            "portfolio_gate": portfolio_bundle.gate,
-            "portfolio_rank_edge": portfolio_diag["rank_edge"],
-            "portfolio_rank_z": portfolio_diag["rank_z"],
             "regime_stable": float(bundle.regime[0]), "regime_shift": float(bundle.regime[1]), "regime_volatile": float(bundle.regime[2]),
             "signal_top7_hits": sig["top7_hits"], "signal_actual_mass": sig["actual_mass"],
             "signal_log_edge": sig["log_edge"], "signal_brier_edge": sig["brier_edge"],
@@ -280,27 +264,22 @@ def run(
 
     target_t = len(x)
     cfg, cfg_score = select_config(configs, preq, target_t - min_train, selection_window)
-    calibration_rows = preq[cfg.version()]
-    bundle = forecast(x, cfg, calibration_rows)
-    portfolio_bundle, portfolio_diag = portfolio_forecast_bundle(bundle, calibration_rows, cfg)
+    bundle = forecast(x, cfg, preq[cfg.version()])
     latest_round = parse_round(clean["回別"].iloc[-1] if "回別" in clean.columns else len(clean), len(clean))
     target_round = latest_round + 1
     tickets, diagnostics = expected_utility_portfolio(
-        portfolio_bundle, seed=127_000_000 + target_round * 1009,
+        bundle, seed=127_000_000 + target_round * 1009,
         scenarios=current_scenarios, candidate_count=current_candidates,
     )
     current = {
-        "report_version": "joint-set-v2.1-current-research-v1",
+        "report_version": "joint-set-v2-current-research-v1",
         "data_sha256": data_sha,
         "target_round": target_round,
         "selected_config": cfg.version(),
         "selected_config_prior_score": cfg_score,
-        "probability_gate": bundle.gate,
-        "portfolio_gate": portfolio_bundle.gate,
+        "gate": bundle.gate,
         "gate_diagnostics": bundle.gate_diagnostics,
-        "portfolio_gate_diagnostics": portfolio_diag,
         "inclusion_sum": float(bundle.inclusion_p.sum()),
-        "portfolio_inclusion_sum": float(portfolio_bundle.inclusion_p.sum()),
         "regime": {"stable": float(bundle.regime[0]), "shift": float(bundle.regime[1]), "volatile": float(bundle.regime[2])},
         "portfolio_diagnostics": diagnostics,
         "tickets": [[int(n) for n in ticket] for ticket in tickets],
@@ -317,7 +296,7 @@ def run(
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Research-only Joint Set v2.1 calibrated inclusion + ordinal portfolio replay")
+    ap = argparse.ArgumentParser(description="Research-only Joint Set v2 inclusion-probability strict replay")
     ap.add_argument("--csv", type=Path, default=Path("loto7.csv"))
     ap.add_argument("--out-dir", type=Path, default=Path("loto7_agent_output"))
     ap.add_argument("--min-train", type=int, default=100)
