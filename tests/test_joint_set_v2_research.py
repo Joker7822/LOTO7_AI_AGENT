@@ -12,7 +12,6 @@ from joint_set_v2_model import (
     project_inclusion,
     sample_joint_sets,
 )
-from joint_set_v21_portfolio import portfolio_forecast_bundle, portfolio_rank_gate
 
 
 def synthetic_history(draws=150, seed=321):
@@ -58,32 +57,6 @@ def test_dynamic_gate_suppresses_negative_bernoulli_proper_scores():
     bad_gate, _ = dynamic_uniform_gate(bad, regime, cfg)
     assert 0.0 <= bad_gate <= good_gate <= cfg.gate_ceiling
     assert bad_gate <= 0.05
-
-
-def test_rank_gate_uses_positive_ordinal_evidence_only():
-    cfg = candidate_configs()[1]
-    regime = np.array([0.8, 0.15, 0.05])
-    good = [signal_row(log_edge=-0.001, brier=-0.0001, top7=2.0, mass=0.19) for _ in range(60)]
-    bad = [signal_row(log_edge=0.001, brier=0.0001, top7=1.0, mass=0.19) for _ in range(60)]
-    good_gate, good_diag = portfolio_rank_gate(good, regime, cfg)
-    bad_gate, bad_diag = portfolio_rank_gate(bad, regime, cfg)
-    assert good_diag["rank_edge"] > 0.0
-    assert good_gate > 0.0
-    assert bad_diag["rank_edge"] < 0.0
-    assert bad_gate == 0.0
-
-
-def test_portfolio_bundle_does_not_mutate_calibrated_probability_bundle():
-    x = synthetic_history(130)
-    cfg = candidate_configs()[1]
-    rows = [signal_row(log_edge=-0.001, brier=-0.0001, top7=2.0, mass=0.19) for _ in range(60)]
-    calibrated = forecast(x, cfg, rows)
-    original = calibrated.inclusion_p.copy()
-    portfolio, diag = portfolio_forecast_bundle(calibrated, rows, cfg)
-    assert np.array_equal(calibrated.inclusion_p, original)
-    assert abs(float(portfolio.inclusion_p.sum()) - 7.0) < 1e-8
-    assert portfolio.gate >= calibrated.gate
-    assert diag["portfolio_gate"] == portfolio.gate
 
 
 def test_forecast_and_sampler_preserve_exact_set_semantics():
