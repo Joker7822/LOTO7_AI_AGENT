@@ -1,4 +1,4 @@
-# Joint Set Research v2.1 — Calibrated Inclusion + Prior-Only Rank Gate
+# Joint Set Research v2 — Inclusion Probability Strict True Nested
 
 - evaluated rounds: **60**
 - predeclared configs: **5**
@@ -11,19 +11,14 @@
 - mean actual inclusion probability: **0.189245**
 - mean Bernoulli log edge vs uniform: **+0.000026**
 - mean Bernoulli Brier edge vs uniform: **+0.000007**
-- mean calibrated probability gate: **0.062**
-
-## Prior-Only Portfolio Rank Gate
-- mean portfolio gate: **0.199**
-- mean prior Top7 edge: **+0.2271**
-- mean prior rank z: **+2.485**
+- mean model gate: **0.062**
 
 ## Expected-Utility Five-Ticket Portfolio
-- mean max hits: **2.5000** / random **2.4387**
-- >=3 round rate: **48.33%** / random **43.82%**
-- >=4 round rate: **8.33%** / random **7.03%**
-- score: **2.8610** / random **2.7772**
-- score delta: **+0.0838** (bootstrap 95% CI -0.1801〜+0.3583)
+- mean max hits: **2.5167** / random **2.4387**
+- >=3 round rate: **50.00%** / random **43.82%**
+- >=4 round rate: **10.00%** / random **7.03%**
+- score: **2.8947** / random **2.7772**
+- score delta: **+0.1175** (bootstrap 95% CI -0.1636〜+0.3916)
 
-> v2.1ではproper-score用の校正確率と、5口構築用のprior-only順位Gateを分離します。
+> v2は37数字を独立カテゴリ確率ではなく、合計7のinclusion probabilityとして校正します。
 > Research-only。Future OOS確認前にProductionへ昇格しません。
