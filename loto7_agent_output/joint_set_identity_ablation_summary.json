@@ -1,0 +1,70 @@
+{
+  "report_version": "joint-set-identity-ablation-v1",
+  "evaluation_type": "paired_global_number_label_permutation_identity_ablation",
+  "data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "evaluated_rounds": 60,
+  "permutations": 4096,
+  "models": {
+    "v1": {
+      "model": "v1",
+      "evaluated_rounds": 60,
+      "permutations": 4096,
+      "reconstruction_verified": true,
+      "control": "global 1..37 label permutation of the exact observed Top7 and five-ticket portfolios; portfolio geometry and cross-round ticket identity frequencies are preserved",
+      "top7_hits": {
+        "observed": 1.5166666666666666,
+        "permuted_mean": 1.3257486979166666,
+        "identity_edge": 0.19091796875,
+        "permuted_median": 1.3166666666666667,
+        "permuted_p95": 1.5333333333333334,
+        "permuted_p99": 1.6166666666666667,
+        "permuted_sd": 0.11945977252786012,
+        "identity_z": 1.5981779029880085,
+        "empirical_upper_tail_p": 0.06565779838906517
+      },
+      "portfolio_score": {
+        "observed": 2.9525,
+        "permuted_mean": 2.803838907877604,
+        "identity_edge": 0.1486610921223961,
+        "permuted_median": 2.8004999999999995,
+        "permuted_p95": 3.0280416666666663,
+        "permuted_p99": 3.1276999999999995,
+        "permuted_sd": 0.13405626101758428,
+        "identity_z": 1.1089455352099973,
+        "empirical_upper_tail_p": 0.13497681230168415
+      }
+    },
+    "v2": {
+      "model": "v2",
+      "evaluated_rounds": 60,
+      "permutations": 4096,
+      "reconstruction_verified": true,
+      "control": "global 1..37 label permutation of the exact observed Top7 and five-ticket portfolios; portfolio geometry and cross-round ticket identity frequencies are preserved",
+      "top7_hits": {
+        "observed": 1.5833333333333333,
+        "permuted_mean": 1.3254516601562498,
+        "identity_edge": 0.25788167317708344,
+        "permuted_median": 1.3166666666666667,
+        "permuted_p95": 1.5333333333333334,
+        "permuted_p99": 1.6333333333333333,
+        "permuted_sd": 0.12566226460038016,
+        "identity_z": 2.0521806924073474,
+        "empirical_upper_tail_p": 0.027092994874298268
+      },
+      "portfolio_score": {
+        "observed": 2.8946666666666667,
+        "permuted_mean": 2.8092237548828125,
+        "identity_edge": 0.08544291178385421,
+        "permuted_median": 2.8081666666666667,
+        "permuted_p95": 3.030791666666667,
+        "permuted_p99": 3.1281833333333338,
+        "permuted_sd": 0.1347949157109753,
+        "identity_z": 0.6338734019245895,
+        "empirical_upper_tail_p": 0.2589699780327069
+      }
+    }
+  },
+  "independent_evidence": false,
+  "promotion_eligible": false,
+  "interpretation": "Research-only paired control that isolates number-identity alignment from portfolio geometry. Future OOS governance remains unchanged."
+}
