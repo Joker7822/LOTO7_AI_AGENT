@@ -1,0 +1,116 @@
+{
+  "version": "loto7-agent-role-council-v1",
+  "checked_at_jst": "2026-10-18T08:20:06+09:00",
+  "latest_resolved_round": 699,
+  "overall": "watch",
+  "input_snapshot_sha256": "adb53a5bdce1f40bf12ae3090448f710cb65fc89a1e53d5732899da81ab57f6d",
+  "governance": {
+    "authority": "read_only_advisory",
+    "permissions": {
+      "read_repository_inputs": true,
+      "write_own_diagnostic_report": true,
+      "freeze_or_backfill": false,
+      "grade_prospective_outcomes": false,
+      "update_model_or_signal": false,
+      "publish_production_tickets": false,
+      "promote_champion": false
+    },
+    "auto_actions_taken": [],
+    "production_promotion_eligible": false
+  },
+  "roles": {
+    "data_steward": {
+      "status": "ok",
+      "findings": [
+        {
+          "level": "ok",
+          "code": "TRUSTED_RESULT_EXACT_MATCH",
+          "evidence": "round=699; secondary=rakuten_bank",
+          "next_action": "Continue predeclared workflow."
+        }
+      ]
+    },
+    "prospective_signal_custodian": {
+      "status": "ok",
+      "findings": [
+        {
+          "level": "ok",
+          "code": "V2_LOCK_AND_IMMUTABLE_HISTORY",
+          "evidence": "locked_manifest=e38bc090fe5d691f; trusted=0/26; target=None",
+          "next_action": "Continue predeclared workflow."
+        },
+        {
+          "level": "ok",
+          "code": "WAIT_FOR_700",
+          "evidence": "round 700 not resolved; do not freeze 701 yet",
+          "next_action": "Continue predeclared workflow."
+        }
+      ]
+    },
+    "oos_risk_officer": {
+      "status": "watch",
+      "findings": [
+        {
+          "level": "ok",
+          "code": "OOS_REFERENCE_CONSISTENCY",
+          "evidence": "champion=baseline-5fdb8dc2ad; frozen=700; trusted=7/26",
+          "next_action": "Continue predeclared workflow."
+        },
+        {
+          "level": "watch",
+          "code": "NO_EARLY_PORTFOLIO_CLAIM",
+          "evidence": "holdout=7/26",
+          "next_action": "Keep all comparator evidence and wait until 26/26 for independent confirmation."
+        }
+      ]
+    },
+    "research_skeptic": {
+      "status": "watch",
+      "findings": [
+        {
+          "level": "ok",
+          "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
+          "evidence": "history reused; mode=SEARCH; trials=658/800",
+          "next_action": "Continue predeclared workflow."
+        },
+        {
+          "level": "watch",
+          "code": "RESEARCH_TRIAL_LIMIT_APPROACHING",
+          "evidence": "draw-specific exploration consumed 658/800",
+          "next_action": "Honor existing plateau guard, then validate or wait for genuinely new data."
+        }
+      ]
+    },
+    "release_operations": {
+      "status": "ok",
+      "findings": [
+        {
+          "level": "ok",
+          "code": "RELEASE_SCHEDULE_GUARD",
+          "evidence": "next=700 on 2026-10-23; already_published=False",
+          "next_action": "Continue predeclared workflow."
+        }
+      ]
+    }
+  },
+  "handoff_tasks": [
+    {
+      "priority": "watch",
+      "owner": "oos_risk_officer",
+      "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
+      "evidence": "holdout=7/26",
+      "next_action": "Keep all comparator evidence and wait until 26/26 for independent confirmation.",
+      "existing_workflow_or_human_required": true,
+      "autonomous_production_write_allowed": false
+    },
+    {
+      "priority": "watch",
+      "owner": "research_skeptic",
+      "issue_code": "RESEARCH_TRIAL_LIMIT_APPROACHING",
+      "evidence": "draw-specific exploration consumed 658/800",
+      "next_action": "Honor existing plateau guard, then validate or wait for genuinely new data.",
+      "existing_workflow_or_human_required": true,
+      "autonomous_production_write_allowed": false
+    }
+  ]
+}
