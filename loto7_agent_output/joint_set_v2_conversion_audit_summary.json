@@ -1,0 +1,82 @@
+{
+  "version": "joint-set-v2-conversion-audit-v1",
+  "research_only": true,
+  "independent_evidence": false,
+  "promotion_eligible": false,
+  "source_existing_true_nested_data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "historical_rounds": 60,
+  "historical_target_start": 640,
+  "historical_target_end": 699,
+  "min_train": 100,
+  "predeclared_v2_selection_not_retuned": true,
+  "baseline_reconstruction_verified_rounds": 60,
+  "train_scenarios": 256,
+  "independent_simulator_scenarios": 512,
+  "candidate_count": 64,
+  "signal": {
+    "raw_top7_mean_hits": 1.5833333333333333,
+    "gated_top7_mean_hits": 1.5833333333333333,
+    "same_raw_gated_top7_fraction": 1.0,
+    "zero_gate_rounds": 0,
+    "mean_gate": 0.062356397591067224,
+    "mean_raw_log_edge": -0.007084987062404174,
+    "mean_gated_log_edge": 2.649558792530704e-05,
+    "mean_raw_brier_edge": -0.00213851830191566,
+    "mean_gated_brier_edge": 6.720752774741953e-06,
+    "expected_uniform_top7_hits": 1.3243243243243243,
+    "rank_bucket_calibration": [
+      {
+        "raw_rank_bucket": "1-7",
+        "observations": 420,
+        "empirical_inclusion_rate": 0.2261904761904762,
+        "mean_raw_inclusion_probability": 0.2752063389236345,
+        "mean_gated_inclusion_probability": 0.19444278105595583
+      },
+      {
+        "raw_rank_bucket": "8-14",
+        "observations": 420,
+        "empirical_inclusion_rate": 0.1523809523809524,
+        "mean_raw_inclusion_probability": 0.21036379768959818,
+        "mean_gated_inclusion_probability": 0.19035507932762777
+      },
+      {
+        "raw_rank_bucket": "15-21",
+        "observations": 420,
+        "empirical_inclusion_rate": 0.19523809523809524,
+        "mean_raw_inclusion_probability": 0.18513331718554613,
+        "mean_gated_inclusion_probability": 0.18886596922817134
+      },
+      {
+        "raw_rank_bucket": "22-28",
+        "observations": 420,
+        "empirical_inclusion_rate": 0.1738095238095238,
+        "mean_raw_inclusion_probability": 0.16259260586049143,
+        "mean_gated_inclusion_probability": 0.18755769631980515
+      },
+      {
+        "raw_rank_bucket": "29-37",
+        "observations": 540,
+        "empirical_inclusion_rate": 0.1962962962962963,
+        "mean_raw_inclusion_probability": 0.1296586202650123,
+        "mean_gated_inclusion_probability": 0.18571659094211987
+      }
+    ]
+  },
+  "portfolio": {
+    "baseline_mean_realized_score": 2.8946666666666667,
+    "aligned_mean_realized_score": 2.751333333333333,
+    "aligned_minus_baseline_realized_paired": {
+      "mean": -0.14333333333333334,
+      "low95": -0.3288416666666667,
+      "high95": 0.029670833333333316,
+      "rounds": 60
+    },
+    "baseline_mean_training_scenario_score": 3.0229648437500005,
+    "baseline_mean_independent_scenario_score": 2.8153232421875,
+    "aligned_mean_training_scenario_score": 3.0246458333333335,
+    "aligned_mean_independent_scenario_score": 2.814833984375,
+    "baseline_mc_optimism": 0.20764160156249997,
+    "aligned_mc_optimism": 0.2098118489583333
+  },
+  "interpretation_boundary": "Historical exploratory reuse of the same 60 draws; neither aligned objective nor rank/calibration/gate diagnostics are untouched OOS evidence. Independent Monte Carlo scenarios test optimizer stability conditional on the same fitted model, not actual prospective forecasting accuracy. No selection or modification of Production, Champion or prefrozen shadow."
+}
