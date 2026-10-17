@@ -71,6 +71,20 @@ jobs:
           python-version: "3.12"
           cache: pip
 
+      - name: Restore per-run optimizer caches (never Git evidence)
+        uses: actions/cache@v4
+        with:
+          path: |
+            loto7_agent_output/feedback_optimizer_cache.json
+            loto7_agent_output/research_feedback_cache.json
+          # A per-run key allows saving updated caches after each successful run.
+          # Restore only for the same input draw-history hash; unrelated data does
+          # not inherit old optimizer evaluations. Losing cache is safe: the
+          # optimizers initialize empty caches and recompute when necessary.
+          key: v4-ephemeral-research-${{ hashFiles('loto7.csv') }}-${{ github.run_id }}
+          restore-keys: |
+            v4-ephemeral-research-${{ hashFiles('loto7.csv') }}-
+
       - name: Install dependencies
         run: |
           python -m pip install -r requirements.txt
