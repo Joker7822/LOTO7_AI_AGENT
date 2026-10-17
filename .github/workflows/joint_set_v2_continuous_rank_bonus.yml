@@ -1,0 +1,90 @@
+name: Joint Set v2 Continuous Rank Bonus
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/joint_set_v2_continuous_rank_bonus.yml"
+      - "joint_set_v2_continuous_rank_bonus.py"
+      - "joint_set_v2_model.py"
+      - "joint_set_v2_research.py"
+      - "joint_set_identity_ablation.py"
+      - "tests/test_joint_set_v2_continuous_rank_bonus.py"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/joint_set_v2_continuous_rank_bonus.yml"
+      - "joint_set_v2_continuous_rank_bonus.py"
+      - "tests/test_joint_set_v2_continuous_rank_bonus.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: joint-set-v2-continuous-rank-bonus
+  cancel-in-progress: true
+
+jobs:
+  outer-split:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Verify continuous rank bonus
+        run: |
+          python -m compileall -q joint_set_v2_continuous_rank_bonus.py tests/test_joint_set_v2_continuous_rank_bonus.py
+          python -m pytest -q tests/test_joint_set_v2_continuous_rank_bonus.py
+
+      - name: Run outer time-split research
+        run: |
+          python joint_set_v2_continuous_rank_bonus.py \
+            --csv loto7.csv \
+            --out-dir loto7_agent_output \
+            --min-train 100 \
+            --last-n 60 \
+            --train-n 40 \
+            --selection-window 120 \
+            --validation-scenarios 256 \
+            --validation-candidates 64 \
+            --random-reps 4096 \
+            --permutation-reps 4096
+
+      - name: Commit Research-only outputs
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            loto7_agent_output/joint_set_v2_continuous_rank_bonus_summary.json \
+            loto7_agent_output/joint_set_v2_continuous_rank_bonus_holdout.csv \
+            loto7_agent_output/joint_set_v2_continuous_rank_bonus_report.md
+          if [ -n "$(git status --porcelain -- loto7_agent_output)" ]; then
+            git commit -m "chore: update v2 continuous rank bonus research"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Show result
+        if: success()
+        run: cat loto7_agent_output/joint_set_v2_continuous_rank_bonus_report.md >> "$GITHUB_STEP_SUMMARY"
