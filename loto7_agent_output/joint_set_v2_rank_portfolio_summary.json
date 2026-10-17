@@ -1,0 +1,68 @@
+{
+  "report_version": "joint-set-v2-rank-aware-portfolio-v1",
+  "evaluation_type": "strict_prior_only_rank_aware_portfolio_policy_selection",
+  "data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "evaluated_rounds": 60,
+  "predeclared_policy_count": 5,
+  "policies": [
+    {
+      "name": "unrestricted",
+      "min_top7_per_ticket": 0,
+      "min_top10_per_ticket": 0
+    },
+    {
+      "name": "top10-ge2",
+      "min_top7_per_ticket": 0,
+      "min_top10_per_ticket": 2
+    },
+    {
+      "name": "top7-ge2",
+      "min_top7_per_ticket": 2,
+      "min_top10_per_ticket": 2
+    },
+    {
+      "name": "top7-ge2-top10-ge3",
+      "min_top7_per_ticket": 2,
+      "min_top10_per_ticket": 3
+    },
+    {
+      "name": "top7-ge3",
+      "min_top7_per_ticket": 3,
+      "min_top10_per_ticket": 3
+    }
+  ],
+  "policy_selection_window": 120,
+  "config_selection_window": 120,
+  "selected_policy_counts": {
+    "unrestricted": 60
+  },
+  "portfolio": {
+    "mean_score": 2.8946666666666667,
+    "unrestricted_mean_score": 2.8946666666666667,
+    "random_mean_score": 2.7772143554687494,
+    "delta_vs_unrestricted": {
+      "mean": 0.0,
+      "low95": 0.0,
+      "high95": 0.0
+    },
+    "delta_vs_random": {
+      "mean": 0.11745231119791691,
+      "low95": -0.1662185221354164,
+      "high95": 0.4051439778645832
+    },
+    "round_win_rate_vs_unrestricted": 0.0,
+    "mean_top7_slot_rate": 0.19714285714285715,
+    "mean_top10_slot_rate": 0.28238095238095234
+  },
+  "policy_eval_means": {
+    "unrestricted": 2.8946666666666667,
+    "top10-ge2": 2.817,
+    "top7-ge2": 2.8618333333333337,
+    "top7-ge2-top10-ge3": 2.8446666666666673,
+    "top7-ge3": 2.916000000000001
+  },
+  "unrestricted_reconstruction_verified": true,
+  "independent_evidence": false,
+  "promotion_eligible": false,
+  "leakage_control": "At target t, v2 config selection and rank-policy selection use only outcomes before t. Current target rank exposure is derived only from the prior-only forecast bundle."
+}
