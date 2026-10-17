@@ -1,0 +1,43 @@
+{
+  "protocol_version": "joint-set-v2-signal-oos-v1",
+  "registered_at_jst": "2026-10-17T21:29:50+09:00",
+  "registered_latest_resolved_round": 699,
+  "registered_data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "start_target_round": 701,
+  "excluded_already_frozen_target_round": 700,
+  "horizon_trusted_draws": 26,
+  "promotion_role": "diagnostic_only",
+  "claim_policy": "fixed_26_trusted_draw_signal_diagnostic_no_interim_tuning_no_production_authority",
+  "primary_endpoint": "fixed_horizon_mean_bernoulli_log_edge_vs_uniform",
+  "secondary_endpoint": "fixed_horizon_mean_top7_hits",
+  "inference_plan": {
+    "fixed_horizon_only": true,
+    "global_number_label_permutations": 4096,
+    "permutation_map_reused_across_all_26_draws_within_each_replicate": true,
+    "upper_tail_p_correction": "(1 + exceedances) / (reps + 1)",
+    "interim_p_values_authoritative": false
+  },
+  "algorithm_manifest": {
+    "protocol_version": "joint-set-v2-signal-oos-v1",
+    "protocol_file_sha256": "d1c02b567615abf7f6331854a14891f690d94eddaa4f92f91cc47a3eb691dee2",
+    "model_file_sha256": "943eaaf06d99a664f1f667453f208fa73de6f4d4b47fcc4401deb37ad4716a95",
+    "research_file_sha256": "577c02b15710502c41f5c1aa949c48c782f7bc252557e1dfb0f7aed60abc43b6",
+    "config_versions": [
+      "joint-v2-conservative-270cb0c439",
+      "joint-v2-balanced-fddde735a7",
+      "joint-v2-structural-7235bc62cf",
+      "joint-v2-fast-regime-31b993dfe7",
+      "joint-v2-slow-regime-27463bd0dd"
+    ],
+    "config_count": 5,
+    "min_train": 100,
+    "selection_window": 120,
+    "start_target_round": 701,
+    "horizon_trusted_draws": 26,
+    "primary_endpoint": "fixed_horizon_mean_bernoulli_log_edge_vs_uniform",
+    "secondary_endpoint": "fixed_horizon_mean_top7_hits",
+    "permutation_reps": 4096,
+    "manifest_sha256": "e38bc090fe5d691f39173e154336cf00ed25a1ec4d2b6938809b0a3632f889eb"
+  },
+  "interpretation": "Research-only prospective signal shadow. Round 700 is excluded because it was already frozen under existing governance before this protocol was registered. The first eligible vector is round 701 and may be frozen only after round 700 is verified by two result sources."
+}
