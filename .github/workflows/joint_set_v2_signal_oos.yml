@@ -5,6 +5,8 @@ on:
     paths:
       - ".github/workflows/joint_set_v2_signal_oos.yml"
       - "joint_set_v2_signal_oos.py"
+      - "joint_set_v2_signal_oos_guard.py"
+      - "tests/test_joint_set_v2_signal_oos_guard.py"
       - "joint_set_v2_model.py"
       - "joint_set_v2_research.py"
       - "tests/test_joint_set_v2_signal_oos.py"
@@ -14,6 +16,8 @@ on:
     paths:
       - ".github/workflows/joint_set_v2_signal_oos.yml"
       - "joint_set_v2_signal_oos.py"
+      - "joint_set_v2_signal_oos_guard.py"
+      - "tests/test_joint_set_v2_signal_oos_guard.py"
       - "joint_set_v2_model.py"
       - "joint_set_v2_research.py"
       - "loto7.csv"
@@ -60,13 +64,15 @@ jobs:
       - name: Verify prospective signal protocol
         run: |
           python -m compileall -q \
-            joint_set_v2_signal_oos.py joint_set_v2_model.py joint_set_v2_research.py \
-            tests/test_joint_set_v2_signal_oos.py
-          python -m pytest -q tests/test_joint_set_v2_signal_oos.py
+            joint_set_v2_signal_oos.py joint_set_v2_signal_oos_guard.py \
+            joint_set_v2_model.py joint_set_v2_research.py \
+            tests/test_joint_set_v2_signal_oos.py tests/test_joint_set_v2_signal_oos_guard.py
+          python -m pytest -q tests/test_joint_set_v2_signal_oos.py tests/test_joint_set_v2_signal_oos_guard.py
 
       - name: Dry-run registration on pull request
         if: github.event_name == 'pull_request'
         run: |
+          python joint_set_v2_signal_oos_guard.py --csv loto7.csv --source-report loto7_agent_output/source_validation.json --out-dir loto7_agent_output
           rm -rf /tmp/joint-set-v2-signal-oos
           python joint_set_v2_signal_oos.py \
             --csv loto7.csv \
@@ -91,6 +97,11 @@ jobs:
             echo "[V2-SIGNAL-OOS] persist attempt ${ATTEMPT}/5"
             git fetch origin main
             git reset --hard origin/main
+
+            python joint_set_v2_signal_oos_guard.py \
+              --csv loto7.csv \
+              --source-report loto7_agent_output/source_validation.json \
+              --out-dir loto7_agent_output
 
             python joint_set_v2_signal_oos.py \
               --csv loto7.csv \
