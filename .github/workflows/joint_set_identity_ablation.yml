@@ -1,0 +1,78 @@
+name: Joint Set Identity Ablation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/joint_set_identity_ablation.yml"
+      - "joint_set_identity_ablation.py"
+      - "tests/test_joint_set_identity_ablation.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: joint-set-identity-ablation
+  cancel-in-progress: false
+
+jobs:
+  identity-ablation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Verify paired-control implementation
+        run: |
+          python -m compileall -q joint_set_identity_ablation.py
+          python -m pytest -q \
+            tests/test_joint_set_identity_ablation.py \
+            tests/test_joint_set_research.py \
+            tests/test_joint_set_v2_research.py
+
+      - name: Run paired global number-label permutation test
+        run: |
+          python joint_set_identity_ablation.py \
+            --csv loto7.csv \
+            --out-dir loto7_agent_output \
+            --metadata loto7_agent_output/research_external_metadata.csv \
+            --permutations 4096 \
+            --cutoff-hour-jst 18
+
+      - name: Commit Research-only identity-ablation outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            loto7_agent_output/joint_set_identity_ablation_summary.json \
+            loto7_agent_output/joint_set_identity_ablation_report.md
+          if [ -n "$(git status --porcelain -- loto7_agent_output/joint_set_identity_ablation_summary.json loto7_agent_output/joint_set_identity_ablation_report.md)" ]; then
+            git commit -m "chore: checkpoint Joint Set identity ablation"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Show identity-ablation result
+        if: success()
+        run: cat loto7_agent_output/joint_set_identity_ablation_report.md >> "$GITHUB_STEP_SUMMARY"
