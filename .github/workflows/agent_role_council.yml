@@ -1,0 +1,127 @@
+name: LOTO7 Agent Role Council
+
+on:
+  pull_request:
+    paths:
+      - "agent_role_council.py"
+      - "tests/test_agent_role_council.py"
+      - "AGENT_ROLE_COUNCIL.md"
+      - ".github/workflows/agent_role_council.yml"
+  push:
+    branches: [main]
+    paths:
+      - "agent_role_council.py"
+      - "tests/test_agent_role_council.py"
+      - "AGENT_ROLE_COUNCIL.md"
+      - ".github/workflows/agent_role_council.yml"
+      - "loto7.csv"
+      - "loto7_agent_output/future_holdout_state.json"
+      - "loto7_agent_output/joint_set_v2_signal_oos_state.json"
+      - "loto7_agent_output/weekly_production_prediction_state.json"
+  schedule:
+    # 10:45 JST daily; also run when important cross-workflow evidence changes.
+    - cron: "45 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: loto7-agent-role-council
+  cancel-in-progress: false
+
+jobs:
+  role-reviews:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Test read-only role isolation and governance
+        run: |
+          python -m compileall -q agent_role_council.py tests/test_agent_role_council.py
+          python -m pytest -q tests/test_agent_role_council.py
+
+      - name: Read-only pull request review
+        if: github.event_name == 'pull_request'
+        run: |
+          python agent_role_council.py \
+            --repo-root . \
+            --out-dir /tmp/loto7-agent-role-council \
+            --fail-on-blocker
+
+      - name: Publish advisory report only
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for ATTEMPT in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python agent_role_council.py \
+              --repo-root . \
+              --out-dir loto7_agent_output
+
+            git add -- \
+              loto7_agent_output/agent_role_council_summary.json \
+              loto7_agent_output/agent_role_council_report.md
+
+            if [ -z "$(git status --porcelain -- \
+              loto7_agent_output/agent_role_council_summary.json \
+              loto7_agent_output/agent_role_council_report.md)" ]; then
+              echo "No role-council report change."
+              break
+            fi
+
+            git commit -m "chore: refresh role council advisory report"
+            if git push origin HEAD:main; then
+              echo "Role-council report committed."
+              break
+            fi
+            if [ "$ATTEMPT" -eq 5 ]; then
+              echo "Could not persist role-council report" >&2
+              exit 1
+            fi
+          done
+
+          # Report first, then a meaningful red Actions status for a true blocker.
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("loto7_agent_output/agent_role_council_summary.json")
+          report = json.loads(p.read_text(encoding="utf-8"))
+          if report["overall"] == "block":
+              raise SystemExit("Role council BLOCK: investigate high-priority handoffs; no automatic freeze/promotion.")
+          PY
+
+      - name: Always display evidence and prioritized handoffs
+        if: always()
+        run: |
+          {
+            echo "## LOTO7 Agent Role Council"
+            cat loto7_agent_output/agent_role_council_report.md 2>/dev/null || \
+              cat /tmp/loto7-agent-role-council/agent_role_council_report.md 2>/dev/null || true
+            echo
+            echo "Only this advisor's two report files can be written; no Production, Champion or Future-OOS writes."
+          } >> "$GITHUB_STEP_SUMMARY"
