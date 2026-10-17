@@ -1,0 +1,121 @@
+name: Joint Set v2 Rank and Portfolio Conversion Audit
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/joint_set_v2_conversion_audit.yml"
+      - "joint_set_v2_conversion_audit.py"
+      - "tests/test_joint_set_v2_conversion_audit.py"
+      - "JOINT_SET_V2_CONVERSION_AUDIT.md"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/joint_set_v2_conversion_audit.yml"
+      - "joint_set_v2_conversion_audit.py"
+      - "tests/test_joint_set_v2_conversion_audit.py"
+      - "JOINT_SET_V2_CONVERSION_AUDIT.md"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: joint-set-v2-conversion-audit
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Verify audit code and exact portfolio-score invariants
+        run: |
+          python -m compileall -q joint_set_v2_conversion_audit.py tests/test_joint_set_v2_conversion_audit.py
+          python -m pytest -q tests/test_joint_set_v2_conversion_audit.py
+
+      - name: Strict historical reconstruction on pull request
+        if: github.event_name == 'pull_request'
+        run: |
+          python joint_set_v2_conversion_audit.py \
+            --csv loto7.csv \
+            --stored-csv loto7_agent_output/joint_set_v2_true_nested.csv \
+            --stored-summary loto7_agent_output/joint_set_v2_true_nested_summary.json \
+            --out-dir /tmp/joint-set-v2-conversion-audit \
+            --rounds 60 \
+            --independent-scenarios 512 > /tmp/joint-set-v2-conversion-audit-result.json
+          test -s /tmp/joint-set-v2-conversion-audit/joint_set_v2_conversion_audit_summary.json
+
+      - name: Research-only report and persist on main
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for ATTEMPT in 1 2 3 4 5; do
+            echo "[V2-CONVERSION] report attempt $ATTEMPT/5"
+            git fetch origin main
+            git reset --hard origin/main
+
+            python joint_set_v2_conversion_audit.py \
+              --csv loto7.csv \
+              --stored-csv loto7_agent_output/joint_set_v2_true_nested.csv \
+              --stored-summary loto7_agent_output/joint_set_v2_true_nested_summary.json \
+              --out-dir loto7_agent_output \
+              --rounds 60 \
+              --independent-scenarios 512 > /tmp/joint-set-v2-conversion-audit-result.json
+
+            git add -A -- \
+              loto7_agent_output/joint_set_v2_conversion_audit_summary.json \
+              loto7_agent_output/joint_set_v2_conversion_audit_report.md \
+              loto7_agent_output/joint_set_v2_conversion_audit_rows.csv
+
+            if [ -z "$(git status --porcelain -- \
+              loto7_agent_output/joint_set_v2_conversion_audit_summary.json \
+              loto7_agent_output/joint_set_v2_conversion_audit_report.md \
+              loto7_agent_output/joint_set_v2_conversion_audit_rows.csv)" ]; then
+              echo "No research-only conversion audit changes."
+              exit 0
+            fi
+
+            git commit -m "chore: update v2 research-only conversion audit"
+            if git push origin HEAD:main; then
+              echo "[V2-CONVERSION] persisted successfully"
+              exit 0
+            fi
+          done
+          echo "Could not persist research-only conversion audit outputs." >&2
+          exit 1
+
+      - name: Show research findings
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Joint Set v2 conversion audit — Research-only'
+            cat loto7_agent_output/joint_set_v2_conversion_audit_report.md 2>/dev/null || \
+              cat /tmp/joint-set-v2-conversion-audit/joint_set_v2_conversion_audit_report.md 2>/dev/null || true
+            echo
+            echo '> All historical figures are exploratory and reused. Production and the locked 26-draw signal shadow are not changed.'
+          } >> "$GITHUB_STEP_SUMMARY"
