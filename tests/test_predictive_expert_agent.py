@@ -88,7 +88,7 @@ def test_full_budget_matched_fair_null_is_reproducible():
 def test_fail_closed_malformed_data_or_invalid_test_window():
     x = fair(44, 140)
     invalid = x.copy()
-    invalid[99, 0] = 0
+    invalid[99, :] = 0  # guaranteed malformed: no winning numbers at this draw
     with pytest.raises(ValueError, match="exactly seven"):
         a.walk(invalid, 100, 30)
     with pytest.raises(ValueError, match="test window"):
