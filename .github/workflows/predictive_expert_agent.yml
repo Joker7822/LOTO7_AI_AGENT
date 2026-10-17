@@ -1,0 +1,121 @@
+name: Predictive Expert Agent Research
+
+on:
+  pull_request:
+    paths:
+      - "predictive_expert_agent.py"
+      - "tests/test_predictive_expert_agent.py"
+      - "PREDICTIVE_EXPERT_AGENT.md"
+      - ".github/workflows/predictive_expert_agent.yml"
+  push:
+    branches: [main]
+    paths:
+      - "predictive_expert_agent.py"
+      - "tests/test_predictive_expert_agent.py"
+      - "PREDICTIVE_EXPERT_AGENT.md"
+      - ".github/workflows/predictive_expert_agent.yml"
+  schedule:
+    # Saturday 13:30 JST, after the prior Friday's source/replay updates.
+    - cron: "30 4 * * 6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: predictive-expert-research
+  cancel-in-progress: false
+
+jobs:
+  forecast-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Strict prior-only and synthetic-world unit tests
+        run: |
+          python -m compileall -q predictive_expert_agent.py tests/test_predictive_expert_agent.py
+          python -m pytest -q tests/test_predictive_expert_agent.py
+
+      - name: PR independent research audit
+        if: github.event_name == 'pull_request'
+        run: |
+          python predictive_expert_agent.py \
+            --csv loto7.csv \
+            --out-dir /tmp/predictive-expert-agent \
+            --last-n 60 \
+            --null-worlds 64 \
+            --v2-summary loto7_agent_output/joint_set_v2_true_nested_summary.json
+          test -s /tmp/predictive-expert-agent/predictive_expert_agent_summary.json
+          test ! -e /tmp/predictive-expert-agent/joint_set_v2_signal_oos_registry.json
+
+      - name: Persist research-only report
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for ATTEMPT in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python predictive_expert_agent.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --last-n 60 \
+              --null-worlds 64 \
+              --v2-summary loto7_agent_output/joint_set_v2_true_nested_summary.json
+
+            git add -- \
+              loto7_agent_output/predictive_expert_agent_summary.json \
+              loto7_agent_output/predictive_expert_agent_rounds.csv \
+              loto7_agent_output/predictive_expert_agent_report.md
+
+            if [ -z "$(git status --porcelain -- \
+              loto7_agent_output/predictive_expert_agent_summary.json \
+              loto7_agent_output/predictive_expert_agent_rounds.csv \
+              loto7_agent_output/predictive_expert_agent_report.md)" ]; then
+              echo "No predictive research-only changes."
+              exit 0
+            fi
+
+            git commit -m "chore: update predictive expert research evidence"
+            if git push origin HEAD:main; then
+              echo "Research report persisted."
+              exit 0
+            fi
+            if [ "$ATTEMPT" -eq 5 ]; then
+              echo "Failed to persist only research-only report paths" >&2
+              exit 1
+            fi
+          done
+
+      - name: Explain results and limits
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Forecast Expert Research (Never Production)"
+            cat loto7_agent_output/predictive_expert_agent_report.md 2>/dev/null || \
+              cat /tmp/predictive-expert-agent/predictive_expert_agent_report.md 2>/dev/null || true
+            echo
+            echo "> Historical reuse and synthetic-null p-values are exploratory. No auto adoption or changes to frozen Future-OOS."
+          } >> "$GITHUB_STEP_SUMMARY"
