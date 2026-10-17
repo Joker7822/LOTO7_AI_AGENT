@@ -1,0 +1,62 @@
+{
+  "report_version": "joint-set-v2-continuous-rank-bonus-v1",
+  "evaluation_type": "outer_time_split_continuous_rank_bonus_v2",
+  "data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "evaluated_rounds": 60,
+  "train_rounds": 40,
+  "holdout_rounds": 20,
+  "weights": [
+    0.0,
+    0.02,
+    0.04,
+    0.08,
+    0.12
+  ],
+  "selected_weight": 0.0,
+  "selection_diagnostics": {
+    "0": 0.0,
+    "0.02": -0.17231392792729072,
+    "0.04": -0.17132349507919,
+    "0.08": -0.36039105774295854,
+    "0.12": -0.38679837384883575
+  },
+  "train_mean_scores": {
+    "0": 2.8055,
+    "0.02": 2.7637500000000004,
+    "0.04": 2.7647500000000003,
+    "0.08": 2.6582500000000002,
+    "0.12": 2.6332500000000003
+  },
+  "weight_zero_reconstruction_verified": true,
+  "holdout": {
+    "mean_score": 3.073,
+    "unrestricted_mean_score": 3.073,
+    "random_mean_score": 2.77721435546875,
+    "delta_vs_unrestricted": {
+      "mean": 0.0,
+      "low95": 0.0,
+      "high95": 0.0
+    },
+    "delta_vs_random": {
+      "mean": 0.2957856445312503,
+      "low95": -0.15722685546874968,
+      "high95": 0.7442856445312501
+    },
+    "round_win_rate_vs_unrestricted": 0.0,
+    "mean_rank_score": 0.5216666666666667
+  },
+  "identity_permutation": {
+    "reps": 4096,
+    "observed": 3.073,
+    "permuted_mean": 2.8157421874999997,
+    "identity_edge": 0.25725781250000024,
+    "permuted_p95": 3.201625,
+    "permuted_p99": 3.3726,
+    "upper_tail_p": 0.12667805711496216
+  },
+  "independent_evidence": false,
+  "historical_outer_holdout": true,
+  "promotion_eligible": false,
+  "leakage_control": "The rank weight is selected once using only the first 40 evaluation outcomes. The final 20 outcomes are not used to select or change the weight. v2 config selection remains prior-only at every target.",
+  "interpretation": "Research-only outer time-split diagnostic. The holdout is structurally untouched by weight selection, but it is not pristine Future OOS evidence because the research concept was developed after prior analysis of this dataset family."
+}
