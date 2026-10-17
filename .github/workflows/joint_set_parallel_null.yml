@@ -1,6 +1,12 @@
 name: Joint Set Parallel Null Calibration
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/joint_set_parallel_null.yml"
+      - "joint_set_parallel_null.py"
+      - "tests/test_joint_set_parallel_null.py"
   workflow_dispatch:
 
 permissions:
