@@ -1,0 +1,99 @@
+{
+  "version": "predictive-expert-agent-v1",
+  "scope": "research_only",
+  "independent_evidence": false,
+  "promotion_eligible": false,
+  "prospective_shadow_updated": false,
+  "production_changed": false,
+  "model_family_predeclared": [
+    "uniform",
+    "bayes_short40",
+    "bayes_long160",
+    "momentum_shrink"
+  ],
+  "expert_prior_weights": [
+    0.55,
+    0.15,
+    0.15,
+    0.15
+  ],
+  "online_log_edge_rate": 10.0,
+  "online_decay": 0.995,
+  "min_train": 100,
+  "evaluated_rounds": 60,
+  "evaluated_round_start": 640,
+  "evaluated_round_end": 699,
+  "data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "scout": {
+    "mean_log_edge_vs_uniform": 1.753060790740668e-05,
+    "mean_brier_edge_vs_uniform": 6.665014467945504e-06,
+    "mean_top7_hits": 1.4333333333333333,
+    "mean_weights": {
+      "uniform": 0.5945393654267996,
+      "bayes_short40": 0.12107910693902137,
+      "bayes_long160": 0.06212082191831336,
+      "momentum_shrink": 0.22226070571586568
+    },
+    "last_prior_only_weights": {
+      "uniform": 0.6029129511970523,
+      "bayes_short40": 0.11342541261733578,
+      "bayes_long160": 0.05603502730221318,
+      "momentum_shrink": 0.22762660888339864
+    },
+    "rank_bucket_calibration": [
+      {
+        "rank_bucket": "1-7",
+        "realized_frequency": 0.20476190476190476,
+        "predicted_probability": 0.19397958455382946,
+        "observations": 420
+      },
+      {
+        "rank_bucket": "8-14",
+        "realized_frequency": 0.18095238095238095,
+        "predicted_probability": 0.19082972782464427,
+        "observations": 420
+      },
+      {
+        "rank_bucket": "15-37",
+        "realized_frequency": 0.18695652173913044,
+        "predicted_probability": 0.18723194840655147,
+        "observations": 1380
+      }
+    ],
+    "log_edge_paired_bootstrap_95": {
+      "mean": 1.753060790740668e-05,
+      "low95": -0.000366621491569282,
+      "high95": 0.0003825316647030393
+    }
+  },
+  "v2_reference": {
+    "available": true,
+    "same_historical_rounds": true,
+    "mean_log_edge": 2.6495587925302416e-05,
+    "mean_top7_hits": 1.5833333333333333,
+    "mean_brier_edge": 6.72075277474334e-06
+  },
+  "full_budget_fair_draw_null": {
+    "worlds": 64,
+    "matching_algorithm_and_history_length": true,
+    "mean_log_edge": 1.5592305166110767e-05,
+    "log_edge_null_p95": 0.0002933049340581823,
+    "top7_null_mean": 1.3283854166666664,
+    "simulation_seed": 74190329,
+    "synthetic_worlds_not_prospective_evidence": true
+  },
+  "synthetic_null_p_log_edge": 0.4461538461538462,
+  "synthetic_null_p_top7": 0.23076923076923078,
+  "agent_roles": {
+    "hypothesis_engineer": "Construct fixed uniform, shrinkage-frequency and momentum experts.",
+    "online_calibration_specialist": "Update weights using strictly previous outcomes and proper log score.",
+    "skeptical_evaluator": "Compare against fixed uniform, saved v2 and synthetic full-budget fair draws.",
+    "promotion_firewall": "Historical/reused evidence cannot promote, freeze, or overwrite Production."
+  },
+  "handoff": {
+    "research_finding": "exploratory_signal_only",
+    "next_allowed_step": "Pre-register a disjoint prospective test before future target results; do not tune the registered v2 shadow.",
+    "automatic_model_adoption": false
+  },
+  "interpretation": "All real draws in this diagnosis have already been investigated elsewhere, so neither favorable historical values nor a synthetic-null p value are independent proof. Even a lower synthetic p cannot authorize Production promotion. The synthetic null repeats the entire same forecast/online-learning budget under truly uniform 7-of-37 draws; it is not a fresh real-world holdout."
+}
