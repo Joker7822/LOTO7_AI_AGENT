@@ -1,0 +1,270 @@
+name: Joint Set Parallel Null Calibration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/joint_set_parallel_null.yml"
+      - "joint_set_parallel_null.py"
+      - "tests/test_joint_set_parallel_null.py"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: joint-set-parallel-null-calibration
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Verify parallel-null helper
+        run: |
+          python -m compileall -q \
+            joint_set_parallel_null.py \
+            joint_set_null_calibration.py \
+            joint_set_v2_null_calibration.py
+          python -m pytest -q \
+            tests/test_joint_set_parallel_null.py \
+            tests/test_joint_set_research.py \
+            tests/test_joint_set_v2_research.py
+
+      - name: Validate pre-draw metadata policy
+        run: |
+          python research_metadata.py \
+            --metadata loto7_agent_output/research_external_metadata.csv \
+            --report loto7_agent_output/research_metadata_summary.json \
+            --cutoff-hour-jst 18
+
+      - name: Refresh v1 observed replay and compatible null state
+        run: |
+          python joint_set_null_calibration.py \
+            --csv loto7.csv \
+            --out-dir loto7_agent_output \
+            --metadata loto7_agent_output/research_external_metadata.csv \
+            --min-train 100 \
+            --last-n 60 \
+            --selection-window 120 \
+            --validation-scenarios 256 \
+            --validation-candidates 64 \
+            --random-reps 4096 \
+            --target-worlds 64 \
+            --worlds-per-run 0 \
+            --cutoff-hour-jst 18
+
+      - name: Refresh v2 observed replay and compatible null state
+        run: |
+          python joint_set_v2_null_calibration.py \
+            --csv loto7.csv \
+            --out-dir loto7_agent_output \
+            --min-train 100 \
+            --last-n 60 \
+            --selection-window 120 \
+            --validation-scenarios 256 \
+            --validation-candidates 64 \
+            --random-reps 4096 \
+            --target-worlds 64 \
+            --worlds-per-run 0
+
+      - name: Upload prepared research state
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-research-state
+          retention-days: 1
+          path: |
+            loto7_agent_output/research_external_metadata.csv
+            loto7_agent_output/research_metadata_summary.json
+            loto7_agent_output/joint_set_true_nested_summary.json
+            loto7_agent_output/joint_set_true_nested.csv
+            loto7_agent_output/joint_set_true_nested_report.md
+            loto7_agent_output/joint_set_current_research.json
+            loto7_agent_output/joint_set_candidate_tickets.csv
+            loto7_agent_output/joint_set_latest_prediction.txt
+            loto7_agent_output/joint_set_null_calibration_state.json
+            loto7_agent_output/joint_set_null_calibration_summary.json
+            loto7_agent_output/joint_set_null_calibration_report.md
+            loto7_agent_output/joint_set_v2_true_nested_summary.json
+            loto7_agent_output/joint_set_v2_true_nested.csv
+            loto7_agent_output/joint_set_v2_true_nested_report.md
+            loto7_agent_output/joint_set_v2_current_research.json
+            loto7_agent_output/joint_set_v2_candidate_tickets.csv
+            loto7_agent_output/joint_set_v2_null_calibration_state.json
+            loto7_agent_output/joint_set_v2_null_calibration_summary.json
+            loto7_agent_output/joint_set_v2_null_calibration_report.md
+
+  null-worker:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        model: [v1, v2]
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Download prepared state
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-research-state
+          path: loto7_agent_output
+
+      - name: Compute deterministic null shard
+        run: |
+          mkdir -p null_fragments
+          python joint_set_parallel_null.py worker \
+            --model "${{ matrix.model }}" \
+            --csv loto7.csv \
+            --out-dir loto7_agent_output \
+            --metadata loto7_agent_output/research_external_metadata.csv \
+            --min-train 100 \
+            --last-n 60 \
+            --selection-window 120 \
+            --validation-scenarios 256 \
+            --validation-candidates 64 \
+            --target-worlds 64 \
+            --cutoff-hour-jst 18 \
+            --shard-index "${{ matrix.shard }}" \
+            --shard-count 8 \
+            --output "null_fragments/${{ matrix.model }}-${{ matrix.shard }}.json"
+
+      - name: Upload null fragment
+        uses: actions/upload-artifact@v4
+        with:
+          name: null-fragment-${{ matrix.model }}-${{ matrix.shard }}
+          retention-days: 1
+          path: null_fragments/${{ matrix.model }}-${{ matrix.shard }}.json
+
+  aggregate:
+    needs: [prepare, null-worker]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Download prepared state
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-research-state
+          path: loto7_agent_output
+
+      - name: Download all null fragments
+        uses: actions/download-artifact@v4
+        with:
+          pattern: null-fragment-*
+          path: null_fragments
+          merge-multiple: true
+
+      - name: Merge and validate v1/v2 null worlds
+        run: |
+          python joint_set_parallel_null.py merge \
+            --model v1 \
+            --out-dir loto7_agent_output \
+            --fragments-dir null_fragments
+          python joint_set_parallel_null.py merge \
+            --model v2 \
+            --out-dir loto7_agent_output \
+            --fragments-dir null_fragments
+
+      - name: Require complete 64-world calibration
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          for name in ["joint_set_null_calibration_summary.json", "joint_set_v2_null_calibration_summary.json"]:
+              data = json.loads((Path("loto7_agent_output") / name).read_text(encoding="utf-8"))
+              assert data["completed_worlds"] == 64, (name, data["completed_worlds"])
+              assert data["calibration_complete"] is True, name
+          PY
+
+      - name: Commit Research-only outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- \
+            loto7_agent_output/research_external_metadata.csv \
+            loto7_agent_output/research_metadata_summary.json \
+            loto7_agent_output/joint_set_true_nested_summary.json \
+            loto7_agent_output/joint_set_true_nested.csv \
+            loto7_agent_output/joint_set_true_nested_report.md \
+            loto7_agent_output/joint_set_current_research.json \
+            loto7_agent_output/joint_set_candidate_tickets.csv \
+            loto7_agent_output/joint_set_latest_prediction.txt \
+            loto7_agent_output/joint_set_null_calibration_state.json \
+            loto7_agent_output/joint_set_null_calibration_summary.json \
+            loto7_agent_output/joint_set_null_calibration_report.md \
+            loto7_agent_output/joint_set_v2_true_nested_summary.json \
+            loto7_agent_output/joint_set_v2_true_nested.csv \
+            loto7_agent_output/joint_set_v2_true_nested_report.md \
+            loto7_agent_output/joint_set_v2_current_research.json \
+            loto7_agent_output/joint_set_v2_candidate_tickets.csv \
+            loto7_agent_output/joint_set_v2_null_calibration_state.json \
+            loto7_agent_output/joint_set_v2_null_calibration_summary.json \
+            loto7_agent_output/joint_set_v2_null_calibration_report.md
+          if [ -n "$(git status --porcelain -- loto7_agent_output)" ]; then
+            git commit -m "chore: complete 64-world Joint Set null calibration"
+            git pull --rebase
+            git push
+          fi
+
+      - name: Show completed null calibration
+        if: success()
+        run: |
+          {
+            echo '## Joint Set v1 Matched-Budget Null'
+            cat loto7_agent_output/joint_set_null_calibration_report.md
+            echo
+            echo '## Joint Set v2 Matched-Budget Null'
+            cat loto7_agent_output/joint_set_v2_null_calibration_report.md
+          } >> "$GITHUB_STEP_SUMMARY"
