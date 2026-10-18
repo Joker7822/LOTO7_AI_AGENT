@@ -93,7 +93,10 @@ test("null future metrics never become a fictitious zero score",()=>{
 });
 test("no secret, ticket, or raw production predictions in public sources",()=>{
   const sourceNames=Object.values(SOURCES);
-  assert.ok(!sourceNames.some(name=>/ticket|prediction_|secret|password|registry/i.test(name)));
+  // The public weekly_production_prediction_state.json contains only issue status,
+  // not prediction tickets. A name-based blanket prediction_ ban is too broad.
+  assert.ok(!sourceNames.some(name=>/ticket|secret|password|registry|^predictions\./i.test(name)));
+  assert.ok(sourceNames.includes("weekly_production_prediction_state.json"));
   const json=JSON.stringify(buildView(baseline(),{},when));
   assert.ok(!json.includes("predicted_numbers"));
   assert.ok(!json.includes("HMAC"));
