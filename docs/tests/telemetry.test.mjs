@@ -12,6 +12,15 @@ const snapshot = () => ({
      url:"https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/123",recent_failure_count:1},
     {label:"v2 Future OOS",health:"running",status:"in_progress",updated_at:"2026-10-18T12:00:00Z"},
   ],
+  operations_plan: {
+    version:"agent-operations-command-center-v1",
+    source_commit:"a".repeat(40),
+    overall:"ok", counts:{block:0,watch:0,info:0}, tasks:[],
+    authority:{
+      model_promotions:false,forecast_overwrites:false,retroactive_freezes:false,
+      workflow_retries:false,production_publication:false
+    }
+  },
   series:{
     portfolio:[{round:693,date:"2026-09-04",mean_delta_vs_random:.02,mean_delta_vs_champion:-.02},
       {round:694,date:"2026-09-11",mean_delta_vs_random:-.52,mean_delta_vs_champion:.01}],
@@ -60,4 +69,38 @@ test("malformed mixed or invented prospective series is refused",()=>{
 test("untrusted external links cannot be inserted in dashboard DOM",()=>{
   const s=snapshot();s.workflows[0].url="javascript:alert(1)";
   assert.equal(normalizeSnapshot(s,FIXED).workflows[0].url,null);
+});
+
+test("unsafe autonomous repair instructions are rejected by the browser",()=>{
+  const x=snapshot();
+  x.operations_plan.authority.production_publication=true;
+  assert.throws(()=>normalizeSnapshot(x,FIXED),/安全性/);
+  x.operations_plan.authority.production_publication=false;
+  x.operations_plan.tasks=[{
+    id:"a".repeat(16),priority:"block",title:"bad",owner:"intruder",
+    autonomous_mutation_allowed:true,requires_existing_workflow_or_human_review:true
+  }];
+  x.operations_plan.counts.block=1;
+  assert.throws(()=>normalizeSnapshot(x,FIXED),/安全でない/);
+});
+test("incident owner, priority and action URL pass strict sanitized projection",()=>{
+  const x=snapshot();
+  x.operations_plan.tasks=[{
+    id:"b".repeat(16),priority:"block",title:"検証エラー",
+    owner:"リスク担当",detail:"予測は固定",
+    recommended_action:"元の登録台帳を確認する",
+    autonomous_mutation_allowed:false,
+    requires_existing_workflow_or_human_review:true,
+    url:"javascript:alert(1)"
+  }];
+  x.operations_plan.counts.block=1;
+  const y=normalizeSnapshot(x,FIXED);
+  assert.equal(y.operationsPlan.tasks[0].url,null);
+  assert.equal(y.operationsPlan.tasks[0].priority,"block");
+  assert.equal(y.operationsPlan.counts.block,1);
+});
+test("incident count mismatches cannot silently disappear",()=>{
+  const x=snapshot();
+  x.operations_plan.counts.watch=1;
+  assert.throws(()=>normalizeSnapshot(x,FIXED),/件数/);
 });
