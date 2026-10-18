@@ -1,9 +1,9 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-10-18T08:20:06+09:00",
+  "checked_at_jst": "2026-10-18T10:41:42+09:00",
   "latest_resolved_round": 699,
   "overall": "watch",
-  "input_snapshot_sha256": "adb53a5bdce1f40bf12ae3090448f710cb65fc89a1e53d5732899da81ab57f6d",
+  "input_snapshot_sha256": "4f1f9a920eed41249fa502cf0544db20f8686f48d5ad0e2b690ffb9e57fe046d",
   "governance": {
     "authority": "read_only_advisory",
     "permissions": {
@@ -65,19 +65,13 @@
       ]
     },
     "research_skeptic": {
-      "status": "watch",
+      "status": "ok",
       "findings": [
         {
           "level": "ok",
           "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
-          "evidence": "history reused; mode=SEARCH; trials=658/800",
+          "evidence": "history reused; mode=VALIDATION_ONLY; trials=768/800",
           "next_action": "Continue predeclared workflow."
-        },
-        {
-          "level": "watch",
-          "code": "RESEARCH_TRIAL_LIMIT_APPROACHING",
-          "evidence": "draw-specific exploration consumed 658/800",
-          "next_action": "Honor existing plateau guard, then validate or wait for genuinely new data."
         }
       ]
     },
@@ -100,15 +94,6 @@
       "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
       "evidence": "holdout=7/26",
       "next_action": "Keep all comparator evidence and wait until 26/26 for independent confirmation.",
-      "existing_workflow_or_human_required": true,
-      "autonomous_production_write_allowed": false
-    },
-    {
-      "priority": "watch",
-      "owner": "research_skeptic",
-      "issue_code": "RESEARCH_TRIAL_LIMIT_APPROACHING",
-      "evidence": "draw-specific exploration consumed 658/800",
-      "next_action": "Honor existing plateau guard, then validate or wait for genuinely new data.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
     }
