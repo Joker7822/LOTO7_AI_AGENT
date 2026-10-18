@@ -406,7 +406,7 @@ def run(
                 )
                 freezes.append(new_registry)
                 registry = new_registry
-                status = "graded_then_next_prefrozen"
+                status = "active_prefrozen_waiting_result"  # stable on idempotent retries
         else:
             status = "active_prefrozen_waiting_result"
 
