@@ -168,6 +168,35 @@ function renderOperations(v) {
 const NS="http://www.w3.org/2000/svg";
 const metricSelection={portfolio:"mean_delta_vs_random",v2:"mean_log_edge",adaptive:"mean_log_edge"};
 const asJst=s=>s?new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(s))+" JST":"未取得";
+function renderCommandCenter(ops){
+  const plan=ops.operationsPlan;
+  set("command-center-count",plan.counts.block+" 停止 / "+plan.counts.watch+" 要確認 / "+plan.counts.info+" 待機");
+  set("command-center-overall",plan.overall==="block"?"重大な未対応事項があります":plan.overall==="watch"?"要確認事項を優先順位付きで表示":"監視中・重大な未対応なし");
+  const grid=clear("command-center-grid");
+  if(!plan.tasks.length){
+    grid.append(node("p","command-empty","✓ 現在、追加対応が必要な事項はありません。"));return;
+  }
+  for(const task of plan.tasks){
+    const card=node("article","command-card "+task.priority);
+    const head=node("div","command-card-head");
+    head.append(node("b","",task.owner));
+    const tag=task.priority==="block"?"停止":task.priority==="watch"?"要確認":"待機";
+    head.append(pill(task.priority==="info"?"ok":task.priority,tag));
+    card.append(head);
+    card.append(node("h4","",task.title));
+    card.append(node("p","",task.detail));
+    const next=node("div","command-next");
+    next.append(node("strong","","次の安全な対応"));
+    next.append(document.createTextNode(task.recommendedAction));
+    card.append(next);
+    if(task.url){
+      const link=node("a","workflow-link","根拠・実行履歴を見る ↗");
+      link.href=task.url;link.target="_blank";link.rel="noopener noreferrer";
+      card.append(link);
+    }
+    grid.append(card);
+  }
+}
 function renderWorkflowStatus(ops){
   set("monitor-timestamp",asJst(ops.generatedAt));
   set("monitor-commit",ops.sourceCommit.slice(0,12));
@@ -264,9 +293,9 @@ export async function refresh(){
     const ops=normalizeSnapshot(await response.json(),new Date());
     const view=buildView(ops.sources,{},new Date());
     if(ops.outdated&&view.state==="ok"){view.state="watch";view.stateLabel="監視データが古くなっています";}
-    if(ops.alerts.some(a=>a.severity==="block")&&view.state!=="unknown"){view.state="block";view.stateLabel="一部の自動処理で異常を確認";}
+    if((ops.alerts.some(a=>a.severity==="block")||ops.operationsPlan.overall==="block")&&view.state!=="unknown"){view.state="block";view.stateLabel="一部の自動処理で異常を確認";}
     renderOverview(view);renderProgress(view);renderResearch(view);renderOperations(view);
-    renderWorkflowStatus(ops);renderProspective(ops);appendOperationalWarnings(ops);
+    renderWorkflowStatus(ops);renderProspective(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
     set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
     document.title=(view.state==="ok"?"● ":view.state==="watch"?"◐ ":"！ ")+"LOTO7 AI AGENT | 現在の状態";
   }catch(e){
@@ -274,6 +303,8 @@ export async function refresh(){
     const light=el("overall-light");if(light)light.className="status-light unknown";
     set("snapshot-freshness","未取得・通信状況を確認してください");
     const list=clear("alert-list");list.append(node("p","error-line",String(e.message||"監視情報の取得失敗")));
+    set("command-center-overall","司令塔の判定を取得できません");
+    const grid=clear("command-center-grid");grid.append(node("p","error-line","安全な判断のため状態の再取得が必要です。"));
   }finally{clearTimeout(timeout);busy=false;if(button)button.disabled=false;set("refresh-label","更新");}
 }
 el("refresh")?.addEventListener("click",refresh);
