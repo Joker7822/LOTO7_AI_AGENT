@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "dashboard_status_snapshot.py"
+      - "agent_operations_planner.py"
+      - "tests/test_agent_operations_planner.py"
       - "tests/test_dashboard_status_snapshot.py"
       - "docs/**"
       - ".github/workflows/dashboard_ops_snapshot.yml"
@@ -57,8 +59,8 @@ jobs:
       - name: Validate telemetry builder and UI
         run: |
           python -m pip install -r requirements.txt pytest
-          python -m compileall -q dashboard_status_snapshot.py
-          python -m pytest -q tests/test_dashboard_status_snapshot.py tests/test_ephemeral_research_caches.py
+          python -m compileall -q dashboard_status_snapshot.py agent_operations_planner.py
+          python -m pytest -q tests/test_dashboard_status_snapshot.py tests/test_agent_operations_planner.py tests/test_ephemeral_research_caches.py
           node --check docs/app.js
           node --check docs/telemetry.mjs
           node --test docs/tests/*.test.mjs
@@ -75,6 +77,8 @@ jobs:
           assert len(r["series"]["v2"])==r["sources"]["signal"]["trusted_draws"]
           assert len(r["series"]["adaptive"])==r["sources"]["learning"]["trusted_draws"]
           assert len(r["workflows"])==7
+          assert r["operations_plan"]["version"]=="agent-operations-command-center-v1"
+          assert all(t["autonomous_mutation_allowed"] is False for t in r["operations_plan"]["tasks"])
           print("Validated source commit "+r["source_commit"][:12])
           PY
       - name: Update only public snapshot on main

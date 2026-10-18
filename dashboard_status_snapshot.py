@@ -18,6 +18,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
+from agent_operations_planner import build_plan
+
 VERSION = "loto7-ops-snapshot-v1"
 JST = timezone(timedelta(hours=9))
 TRUST = "verified_two_result_sources"
@@ -287,7 +289,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
     if filenames != list(WORKFLOWS):
         raise error("workflow order/identity mismatch")
     moment = (now or datetime.now(JST)).astimezone(JST)
-    return {
+    snapshot = {
         "version": VERSION,
         "generated_at_jst": moment.isoformat(timespec="seconds"),
         "source_commit": ref or subprocess.check_output(
@@ -296,6 +298,8 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         "sources": sources, "workflows": workflows, "series": series,
         "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
     }
+    snapshot["operations_plan"] = build_plan(snapshot, now=moment)
+    return snapshot
 
 
 def main() -> int:
