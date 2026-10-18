@@ -68,6 +68,46 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
       }
     }
   }
+
+  // Incident plan is computed from this exact snapshot, not a separate fetch.
+  const plan = snapshot.operations_plan;
+  if (!plan || plan.version !== "agent-operations-command-center-v1" ||
+      plan.source_commit !== sha || !Array.isArray(plan.tasks) ||
+      !plan.counts || !plan.authority ||
+      plan.authority.model_promotions !== false ||
+      plan.authority.forecast_overwrites !== false ||
+      plan.authority.retroactive_freezes !== false ||
+      plan.authority.workflow_retries !== false ||
+      plan.authority.production_publication !== false) {
+    throw new Error("AI司令塔の安全性とデータ整合性を確認できません");
+  }
+  const allowActionUrl = url => {
+    if (typeof url !== "string") return null;
+    if (/^https:\/\/github\.com\/Joker7822\/LOTO7_AI_AGENT\/actions\/runs\/\d+$/.test(url)) return url;
+    if (url === "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md") return url;
+    return null;
+  };
+  const priority = {block:0,watch:1,info:2};
+  const incidentTasks = plan.tasks.map(t => {
+    if (!Object.hasOwn(priority,t.priority) || t.autonomous_mutation_allowed !== false ||
+        t.requires_existing_workflow_or_human_review !== true ||
+        !/^[a-f0-9]{16}$/.test(t.id)) {
+      throw new Error("安全でないAIエージェントの対応指示が含まれています");
+    }
+    return {
+      id:t.id,priority:t.priority,
+      title:String(t.title||"要確認").slice(0,140),
+      owner:String(t.owner||"担当未確認").slice(0,100),
+      detail:String(t.detail||"").slice(0,300),
+      recommendedAction:String(t.recommended_action||"").slice(0,320),
+      url:allowActionUrl(t.url)
+    };
+  });
+  if (incidentTasks.some((t,i) => i>0 && priority[t.priority]<priority[incidentTasks[i-1].priority]) ||
+      new Set(incidentTasks.map(x=>x.id)).size!==incidentTasks.length ||
+      ["block","watch","info"].some(p=>incidentTasks.filter(x=>x.priority===p).length!==plan.counts[p])) {
+    throw new Error("AI司令塔の優先順位と件数が一致しません");
+  }
   const alerts = [];
   if (outdated) alerts.push({
     severity: "watch", source: "監視データの鮮度",
@@ -89,6 +129,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     sourceCommit: sha, generatedAt: timestamp.toISOString(),
     ageMinutes, outdated, workflows, series, alerts,
     sources: snapshot.sources,
+    operationsPlan: { overall:plan.overall, counts:plan.counts, tasks:incidentTasks },
     healthyRuns: workflows.filter(x => x.health === "ok").length
   };
 }
