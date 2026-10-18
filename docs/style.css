@@ -34,3 +34,23 @@
 .freshness{color:#6de4b1}.freshness.warn{color:#f5c47c}
 @media(max-width:1000px){.prospective-grid{grid-template-columns:1fr 1fr}.workflow-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:680px){.prospective-grid,.workflow-grid{grid-template-columns:1fr}.workflow-card{padding:15px}.monitor-meta{gap:8px;flex-direction:column;align-items:flex-start}.workflow-panel .panel-heading{flex-wrap:wrap}}
+
+/* Agent operations command center (advisory and auditable). */
+.command-center{margin:16px 0;border-color:rgba(92,231,219,.2);background:linear-gradient(125deg,rgba(23,54,73,.8),rgba(12,27,46,.98))}
+.command-center .panel-heading h3{font-size:19px;margin-top:5px}
+.command-intro{color:var(--sub)!important;font-size:11px!important;line-height:1.8;margin:5px 0 0}
+.command-summary{margin:18px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:11px;border-top:1px solid var(--line);padding-top:14px}
+.command-summary span:first-child{font-size:12px;font-weight:800;color:var(--text)}
+.command-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.command-card{border-radius:13px;padding:17px;background:rgba(6,19,36,.7);border:1px solid var(--line);min-width:0;overflow-wrap:anywhere}
+.command-card.block{border-color:rgba(255,143,160,.42);background:rgba(99,42,61,.15)}
+.command-card.watch{border-color:rgba(245,196,124,.24)}
+.command-card.info{border-color:rgba(109,228,177,.18)}
+.command-card-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.command-card-head b{font-size:11px;color:var(--cyan)}
+.command-card h4{font-size:14px;line-height:1.6;margin:12px 0 6px}
+.command-card p{font-size:11px;line-height:1.8;color:var(--sub);margin:0 0 12px}
+.command-next{border-top:1px solid var(--line);padding-top:11px;font-size:11px;line-height:1.8;color:var(--text)}
+.command-next strong{color:var(--cyan);font-size:10px;display:block;letter-spacing:.06em}
+.command-empty{color:var(--good);grid-column:1/-1;padding:18px;font-size:12px}
+@media(max-width:680px){.command-grid{grid-template-columns:1fr}.command-center{padding:19px}.command-center .panel-heading{flex-wrap:wrap}}
