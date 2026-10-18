@@ -71,6 +71,12 @@
         <p class="explain"><span aria-hidden="true">ⓘ</span> 26回の節目は結果を表示するための目安です。継続学習は26回後も続きます。数字が増えただけで精度向上が証明されたことにはなりません。</p>
       </section>
 
+      <section class="section" id="prospective-trend" aria-labelledby="prospective-trend-title">
+        <div class="section-heading"><div><span class="section-index">03 / TRUE FUTURE PERFORMANCE</span><h2 id="prospective-trend-title">未来の予測精度の推移</h2></div><p>事前凍結した実測結果のみで累積平均を描画</p></div>
+        <div id="prospective-trends" class="prospective-grid" aria-live="polite"></div>
+        <p class="explain">点線は比較基準（score差・log/Brier差は0、Top7は理論平均1.324個）です。まだ結果がない検証は空欄のまま表示します。途中経過は精度改善の証明ではありません。</p>
+      </section>
+
       <section class="section" id="research" aria-labelledby="section-research">
         <div class="section-heading"><div><span class="section-index">03 / LEARNING & RESEARCH</span><h2 id="section-research">AIの学習と研究</h2></div><p>探索の進行と、比較検証の状況</p></div>
         <div class="research-layout">
@@ -95,6 +101,11 @@
       <section class="section" id="operations" aria-labelledby="section-operations">
         <div class="section-heading"><div><span class="section-index">04 / GOVERNANCE</span><h2 id="section-operations">役割ごとの稼働状態</h2></div><p>5つの監査役が独立して確認</p></div>
         <div id="role-grid" class="role-grid"></div>
+        <section class="panel workflow-panel" aria-labelledby="workflow-title">
+          <div class="panel-heading"><div><h3 id="workflow-title">GitHub Actions 稼働監視</h3><span>最新実行の成功・失敗・最終更新時刻</span></div><span id="workflow-summary" class="label-outline">取得中...</span></div>
+          <div class="monitor-meta"><span id="snapshot-freshness" class="freshness">監視データを取得中</span><span>状態の確認: <strong id="monitor-timestamp">—</strong></span><span>データコミット: <code id="monitor-commit">—</code></span></div>
+          <div id="workflow-grid" class="workflow-grid" aria-live="polite"></div>
+        </section>
         <div class="operations-grid">
           <article class="panel operational-panel">
             <div class="panel-heading"><h3>Production（本番運用）</h3><span class="label-outline">READ-ONLY</span></div>
