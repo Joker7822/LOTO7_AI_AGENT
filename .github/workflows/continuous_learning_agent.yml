@@ -1,0 +1,128 @@
+name: Continuous Learning Agent Prospective
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/continuous_learning_agent.yml"
+      - "continuous_learning_agent.py"
+      - "tests/test_continuous_learning_agent.py"
+      - "CONTINUOUS_LEARNING_AGENT.md"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/continuous_learning_agent.yml"
+      - "continuous_learning_agent.py"
+      - "tests/test_continuous_learning_agent.py"
+      - "CONTINUOUS_LEARNING_AGENT.md"
+      - "loto7.csv"
+      - "loto7_agent_output/source_validation.json"
+  schedule:
+    # Daily verification/recovery at 10:35 JST.
+    - cron: "35 1 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prospective-continuous-learning-agent
+  cancel-in-progress: false
+
+jobs:
+  protected-learning-loop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout full evidence
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Verify synthetic temporal state machine and prior-only learner
+        run: |
+          python -m compileall -q continuous_learning_agent.py tests/test_continuous_learning_agent.py
+          python -m pytest -q tests/test_continuous_learning_agent.py
+
+      - name: Dry-run initial registration without any main writes
+        if: github.event_name == 'pull_request'
+        run: |
+          rm -rf /tmp/continuous-learning-prospective-test
+          python continuous_learning_agent.py \
+            --repo-root . \
+            --out-dir /tmp/continuous-learning-prospective-test \
+            --source-report loto7_agent_output/source_validation.json
+          test -f /tmp/continuous-learning-prospective-test/continuous_learning_agent_registration.json
+          test ! -f /tmp/continuous-learning-prospective-test/continuous_learning_agent_registry.json
+
+      - name: Safely update independent prospective research ledger on main
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for ATTEMPT in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            # FAIL CLOSED on missing, modified, retrospective or out-of-order
+            # evidence before any new result is graded or vector is frozen.
+            python continuous_learning_agent.py \
+              --repo-root . \
+              --out-dir loto7_agent_output \
+              --source-report loto7_agent_output/source_validation.json
+
+            for P in \
+              loto7_agent_output/continuous_learning_agent_registration.json \
+              loto7_agent_output/continuous_learning_agent_registry.json \
+              loto7_agent_output/continuous_learning_agent_state.json \
+              loto7_agent_output/continuous_learning_agent_freeze_history.jsonl \
+              loto7_agent_output/continuous_learning_agent_results.jsonl \
+              loto7_agent_output/continuous_learning_agent_summary.json \
+              loto7_agent_output/continuous_learning_agent_report.md; do
+              if [ -f "$P" ]; then
+                git add -- "$P"
+              fi
+            done
+
+            if [ -z "$(git status --porcelain -- loto7_agent_output/continuous_learning_agent_*)" ]; then
+              echo "No independent adaptive research changes."
+              exit 0
+            fi
+            git commit -m "chore: append prospective continuous learning evidence"
+            if git push origin HEAD:main; then
+              echo "Continuous learning freeze / trusted grade persisted."
+              exit 0
+            fi
+            echo "Main branch advanced; recomputing from latest registered evidence."
+          done
+          echo "Could not persist evidence after bounded retry; no backfill permitted" >&2
+          exit 1
+
+      - name: Research-only status
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Continuous learning (research-only, prospectively frozen)"
+            cat loto7_agent_output/continuous_learning_agent_report.md 2>/dev/null || \
+              cat /tmp/continuous-learning-prospective-test/continuous_learning_agent_report.md 2>/dev/null || true
+            echo
+            echo "No automatic model selection, unregistered OOS claim or Production authority."
+          } >> "$GITHUB_STEP_SUMMARY"

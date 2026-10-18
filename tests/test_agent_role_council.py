@@ -14,7 +14,11 @@ import agent_role_council as council
 
 
 JST = timezone(timedelta(hours=9))
-NOW = datetime(2026, 10, 18, 8, 30, tzinfo=JST)
+# Anchor the fixture clock to the actual checked-in source snapshot. A static
+# time before the source checked_at timestamp incorrectly triggers a clock block.
+NOW = datetime.fromisoformat(json.loads(
+    Path("loto7_agent_output/source_validation.json").read_text(encoding="utf-8")
+)["checked_at_jst"]) + timedelta(minutes=5)
 OUT = [
     "source_validation.json", "model_champion.json", "shadow_registry.json",
     "future_holdout_state.json", "future_holdout_registry.json",
