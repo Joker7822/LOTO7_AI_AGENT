@@ -1,7 +1,7 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-18T21:36:19+09:00",
-  "source_commit": "19c767aca1378bb19fb209bc15e89474e464a45d",
+  "generated_at_jst": "2026-10-18T22:10:37+09:00",
+  "source_commit": "c254f05108c726922ffac1f7814be3aa3259aaae",
   "state_hashes_sha256": "3a72eb79e2560e229d3986e3243e6f98be13effa5019113aff80b1f22bc3335c",
   "sources": {
     "source": {
@@ -255,9 +255,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39127896069,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39127896069",
-      "updated_at": "2026-10-18T12:35:22Z",
+      "run_id": 39130304619,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39130304619",
+      "updated_at": "2026-10-18T13:09:37Z",
       "recent_failure_count": 0
     }
   ],
@@ -317,5 +317,94 @@
     "adaptive": [],
     "scope": "genuinely_prospective_prefrozen_only_descriptive_no_automatic_promotion"
   },
-  "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion."
+  "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
+  "operations_plan": {
+    "version": "agent-operations-command-center-v1",
+    "source_commit": "c254f05108c726922ffac1f7814be3aa3259aaae",
+    "snapshot_generated_at_jst": "2026-10-18T22:10:37+09:00",
+    "computed_at_jst": "2026-10-18T13:10:37+00:00",
+    "overall": "block",
+    "counts": {
+      "block": 1,
+      "watch": 1,
+      "info": 2
+    },
+    "checkpoints": {
+      "portfolio": {
+        "trusted_draws": 7,
+        "fixed_horizon": 26
+      },
+      "v2_signal": {
+        "trusted_draws": 0,
+        "fixed_horizon": 26
+      },
+      "adaptive": {
+        "trusted_draws": 0,
+        "descriptive_open_ended": true
+      }
+    },
+    "tasks": [
+      {
+        "id": "ab9dcbe688673bc1",
+        "priority": "block",
+        "code": "WORKFLOW_FAILED:continuous_loto7_v4.yml",
+        "owner": "研究復旧エージェント",
+        "title": "継続研究：最新実行が失敗",
+        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
+        "evidence": "39092108237",
+        "recommended_action": "研究CIの直近ログを確認し、修正後の実行を別途検証してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39092108237"
+      },
+      {
+        "id": "615a36ffa6f66937",
+        "priority": "watch",
+        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
+        "owner": "統計・リスクエージェント",
+        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
+        "detail": "監査の判定と元の公表記録を照合してください。",
+        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
+        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
+      },
+      {
+        "id": "e2ba1045b7d8c317",
+        "priority": "info",
+        "code": "WAIT_REGISTERED_PREFIX:learning",
+        "owner": "将来検証エージェント",
+        "title": "継続学習：第700回の確認待ち",
+        "detail": "第701回を事後的に凍結してはいけません。",
+        "evidence": "699→700→701",
+        "recommended_action": "検証済みの第700回が到着するまで既存の固定手順で待機してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": null
+      },
+      {
+        "id": "3ee040efe3fb0171",
+        "priority": "info",
+        "code": "WAIT_REGISTERED_PREFIX:signal",
+        "owner": "将来検証エージェント",
+        "title": "v2信号：第700回の確認待ち",
+        "detail": "第701回を事後的に凍結してはいけません。",
+        "evidence": "699→700→701",
+        "recommended_action": "検証済みの第700回が到着するまで既存の固定手順で待機してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": null
+      }
+    ],
+    "authority": {
+      "model_promotions": false,
+      "forecast_overwrites": false,
+      "retroactive_freezes": false,
+      "workflow_retries": false,
+      "production_publication": false,
+      "scope": "deterministic_read_only_operational_plan"
+    },
+    "claim": "Operational suggestions only. Lottery prediction skill has not been established."
+  }
 }
