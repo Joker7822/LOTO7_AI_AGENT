@@ -1,0 +1,43 @@
+{
+  "version": "continuous-learning-agent-v1",
+  "registered_at_jst": "2026-10-18T10:41:59+09:00",
+  "registered_latest_round": 699,
+  "registered_data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "start_target_round": 701,
+  "excluded_target_round": 700,
+  "learning_rule": "past_outcomes_only_exponential_weighting_of_fixed_experts",
+  "inference_policy": "open_ended_descriptive_no_p_values",
+  "checkpoint_at_trusted_draws": 26,
+  "promotion_role": "diagnostic_only",
+  "production_autonomy": false,
+  "algorithm_manifest": {
+    "version": "continuous-learning-agent-v1",
+    "start_target_round": 701,
+    "excluded_previously_frozen_round": 700,
+    "min_train": 100,
+    "checkpoint_draws": 26,
+    "open_ended_monitoring_no_interim_p_value": true,
+    "learning_family": [
+      "uniform",
+      "bayes_short40",
+      "bayes_long160",
+      "momentum_shrink"
+    ],
+    "fixed_initial_expert_weights": [
+      0.55,
+      0.15,
+      0.15,
+      0.15
+    ],
+    "fixed_online_log_edge_rate": 10.0,
+    "fixed_online_decay": 0.995,
+    "file_sha256": {
+      "continuous_learning_agent.py": "767ebf2ddc84ff7e7019f10374297ef55b620f9a4bc08cd0022785070a8f5819",
+      "predictive_expert_agent.py": "1e24ecee1033c9e0a65f4f3001888d6d3f28ae6fe9663afd8ce71f6220b49569",
+      "joint_set_v2_model.py": "943eaaf06d99a664f1f667453f208fa73de6f4d4b47fcc4401deb37ad4716a95",
+      "joint_set_v2_signal_oos_guard.py": "d03ef0caf8baa77c1127d99c0c2a3c1e6adfaf4840844ccb0a6de4cfcb857e2b",
+      "joint_set_v2_signal_oos.py": "d1c02b567615abf7f6331854a14891f690d94eddaa4f92f91cc47a3eb691dee2"
+    },
+    "manifest_sha256": "a575593530ff173afd5e197f86739ed337524621f48ba3f2fee9deab8dabf90e"
+  }
+}
