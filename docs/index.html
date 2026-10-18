@@ -101,6 +101,16 @@
       <section class="section" id="operations" aria-labelledby="section-operations">
         <div class="section-heading"><div><span class="section-index">04 / GOVERNANCE</span><h2 id="section-operations">役割ごとの稼働状態</h2></div><p>5つの監査役が独立して確認</p></div>
         <div id="role-grid" class="role-grid"></div>
+        <section class="panel command-center" aria-labelledby="command-center-title">
+          <div class="panel-heading">
+            <div><span class="section-index">05 / AGENT DECISION SYSTEM</span><h3 id="command-center-title">AI運用司令塔 · 次にすべきこと</h3><p class="command-intro">7つの自動処理と5つの監査役を統合して、緊急度順に安全な対応を提案します。</p></div>
+            <span id="command-center-count" class="label-outline">分析待ち</span>
+          </div>
+          <div class="command-summary"><span id="command-center-overall">診断待ち</span><span>提案のみ · 自動昇格・事後凍結なし</span></div>
+          <div id="command-center-grid" class="command-grid" aria-live="polite">
+            <p class="muted">監視データに基づく推奨アクションを作成中...</p>
+          </div>
+        </section>
         <section class="panel workflow-panel" aria-labelledby="workflow-title">
           <div class="panel-heading"><div><h3 id="workflow-title">GitHub Actions 稼働監視</h3><span>最新実行の成功・失敗・最終更新時刻</span></div><span id="workflow-summary" class="label-outline">取得中...</span></div>
           <div class="monitor-meta"><span id="snapshot-freshness" class="freshness">監視データを取得中</span><span>状態の確認: <strong id="monitor-timestamp">—</strong></span><span>データコミット: <code id="monitor-commit">—</code></span></div>
