@@ -1,0 +1,60 @@
+name: Browser Agent Dashboard CI
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - ".github/workflows/browser_dashboard_ci.yml"
+      - "README.md"
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/browser_dashboard_ci.yml"
+      - "README.md"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dashboard-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout dashboard sources
+        uses: actions/checkout@v4
+
+      - name: Node for pure unit tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate HTML, CSS and module graph
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s docs/index.html
+          test -s docs/style.css
+          test -s docs/app.js
+          test -s docs/model.mjs
+          test -s docs/icon.svg
+          node --check docs/app.js
+          node --check docs/model.mjs
+          grep -q 'Content-Security-Policy' docs/index.html
+          grep -q 'raw.githubusercontent.com' docs/app.js
+          ! grep -Eq 'SAKURA_PREDICTION_HMAC_SECRET|prediction_ingest_config\.php|password_verify' docs/index.html docs/*.js docs/*.mjs docs/style.css
+
+      - name: Test data trust, fail-closed statuses and privacy
+        run: node --test docs/tests/*.test.mjs
+
+      - name: Verify only public display source files are requested
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          import {SOURCES} from './docs/model.mjs';
+          if (Object.values(SOURCES).some(path=>path.includes('/') || !/^[\w-]+\.json$/.test(path))) {
+            throw new Error('dashboard must only request whitelisted direct JSON report files');
+          }
+          console.log('Public sources whitelisted:', Object.keys(SOURCES).length);
+          JS
