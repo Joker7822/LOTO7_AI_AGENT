@@ -41,8 +41,9 @@ jobs:
           test -s docs/icon.svg
           node --check docs/app.js
           node --check docs/model.mjs
+          node --check docs/telemetry.mjs
           grep -q 'Content-Security-Policy' docs/index.html
-          grep -q 'raw.githubusercontent.com' docs/app.js
+          grep -q 'raw.githubusercontent.com' docs/telemetry.mjs
           ! grep -Eq 'SAKURA_PREDICTION_HMAC_SECRET|prediction_ingest_config\.php|password_verify' docs/index.html docs/*.js docs/*.mjs docs/style.css
 
       - name: Test data trust, fail-closed statuses and privacy

@@ -1,5 +1,6 @@
+import { SNAPSHOT_URL, normalizeSnapshot, SERIES_TABS } from "./telemetry.mjs";
 import {
-  SOURCES, ROLE_NAMES, LEVEL_LABELS, buildView, percent, displayMetric
+  LEVEL_LABELS, buildView, percent, displayMetric
 } from "./model.mjs";
 
 const ROOT = "https://raw.githubusercontent.com/Joker7822/LOTO7_AI_AGENT/main/loto7_agent_output/";
@@ -164,59 +165,118 @@ function renderOperations(v) {
     list.append(issues);
   }
 }
-async function loadSource(name, file) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 13_000);
-  const url = ROOT + encodeURIComponent(file) + "?_=" + Date.now();
-  try {
-    const response = await fetch(url, {
-      cache: "no-store", headers: {Accept:"application/json"}, signal:controller.signal
-    });
-    if (!response.ok) throw new Error("HTTP " + response.status);
-    const value = await response.json();
-    if (!value || typeof value !== "object" || Array.isArray(value)) {
-      throw new Error("状態データの形式が不正");
+const NS="http://www.w3.org/2000/svg";
+const metricSelection={portfolio:"mean_delta_vs_random",v2:"mean_log_edge",adaptive:"mean_log_edge"};
+const asJst=s=>s?new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(s))+" JST":"未取得";
+function renderWorkflowStatus(ops){
+  set("monitor-timestamp",asJst(ops.generatedAt));
+  set("monitor-commit",ops.sourceCommit.slice(0,12));
+  set("workflow-summary",ops.healthyRuns+" / "+ops.workflows.length+" 正常終了（最新実行）");
+  const grid=clear("workflow-grid");
+  for(const w of ops.workflows){
+    const box=node("article","workflow-card"),head=node("div","workflow-row");
+    head.append(node("b","",w.label));
+    head.append(pill(w.health==="running"||w.health==="warning"?"watch":w.health==="block"?"block":w.health==="ok"?"ok":"unknown",w.status));
+    box.append(head);
+    box.append(node("p","workflow-updated","最終実行 "+asJst(w.updatedAt)));
+    if(w.failures!=null)box.append(node("span","workflow-note","直近5回の失敗: "+w.failures));
+    if(w.url){const link=node("a","workflow-link","実行ログを見る ↗");link.href=w.url;link.rel="noopener noreferrer";link.target="_blank";box.append(link);}
+    grid.append(box);
+  }
+  const freshness=el("snapshot-freshness");
+  if(freshness){freshness.className="freshness"+(ops.outdated?" warn":"");freshness.textContent=ops.outdated?"監視データが古くなっています":"同一コミットに基づく監視データ";}
+}
+function svgEl(tag,attrs={},label=""){
+  const e=document.createElementNS(NS,tag);
+  for(const [key,value] of Object.entries(attrs))e.setAttribute(key,String(value));
+  if(label)e.textContent=label;
+  return e;
+}
+function renderSeriesGraph(series,field,baseline){
+  const svg=svgEl("svg",{viewBox:"0 0 420 174",role:"img","aria-label":"将来検証"+series.length+"回の累積平均"});
+  if(!series.length)return svg;
+  const values=series.map(x=>x[field]);
+  if(values.some(v=>typeof v!=="number"))return svg;
+  const l=47,r=407,t=19,b=140;
+  let low=Math.min(...values,baseline),high=Math.max(...values,baseline);
+  const padding=Math.max((high-low)*.23,field==="mean_top7_hits"?.08:.00003);
+  low-=padding;high+=padding;
+  const xx=i=>l+(series.length===1?.5:i/(series.length-1))*(r-l);
+  const yy=v=>b-(v-low)/(high-low)*(b-t);
+  svg.append(svgEl("line",{x1:l,y1:b,x2:r,y2:b,stroke:"#4d6382","stroke-width":.7}));
+  const zy=yy(baseline);
+  svg.append(svgEl("line",{x1:l,y1:zy,x2:r,y2:zy,stroke:"#92a4bb","stroke-width":1,"stroke-dasharray":"4 5"}));
+  svg.append(svgEl("text",{x:3,y:zy+4,fill:"#8ba5c2","font-size":10},field==="mean_top7_hits"?"1.324":"0"));
+  svg.append(svgEl("polyline",{points:values.map((v,i)=>xx(i)+","+yy(v)).join(" "),fill:"none",stroke:"#6ae4d7","stroke-width":2.5,"stroke-linecap":"round","stroke-linejoin":"round"}));
+  for(let i=0;i<series.length;i++){
+    const dot=svgEl("circle",{cx:xx(i),cy:yy(values[i]),r:3,fill:"#8bf4eb",stroke:"#081829","stroke-width":1});
+    dot.append(svgEl("title",{},"第"+series[i].round+"回: "+values[i].toFixed(7)));
+    svg.append(dot);
+  }
+  svg.append(svgEl("text",{x:l,y:164,fill:"#8ba5c2","font-size":10},"第"+series[0].round+"回"));
+  svg.append(svgEl("text",{x:r,y:164,fill:"#8ba5c2","font-size":10,"text-anchor":"end"},"第"+series.at(-1).round+"回"));
+  return svg;
+}
+function renderProspective(ops){
+  const host=clear("prospective-trends");
+  for(const tab of SERIES_TABS){
+    const data=ops.series[tab.id],card=node("article","panel prospective-panel"),top=node("div","panel-heading");
+    top.append(node("h3","",tab.label));
+    top.append(node("span","label-outline",data.length+"回 / 事前凍結実績"));
+    card.append(top);
+    const choices=node("div","metric-tabs");
+    for(const metric of tab.choices){
+      const btn=node("button","metric-tab"+(metric.id===metricSelection[tab.id]?" active":""),metric.label);
+      btn.type="button";btn.setAttribute("aria-pressed",metric.id===metricSelection[tab.id]?"true":"false");
+      btn.addEventListener("click",()=>{metricSelection[tab.id]=metric.id;renderProspective(ops);});
+      choices.append(btn);
     }
-    return {name, value};
-  } finally {
-    clearTimeout(timeout);
+    card.append(choices);
+    const plot=node("div","prospective-plot");
+    if(!data.length)plot.append(node("div","prospective-empty","まだ実際の未来結果はありません。事前凍結・照合後に表示します。"));
+    else{
+      const selected=tab.choices.find(x=>x.id===metricSelection[tab.id])||tab.choices[0];
+      plot.append(renderSeriesGraph(data,selected.id,selected.zero));
+      const last=data.at(-1)[selected.id];
+      plot.append(node("p","prospective-latest","累積平均: "+(last==null?"未取得":last.toFixed(selected.id==="mean_top7_hits"?3:6))));
+    }
+    card.append(plot);card.append(node("p","prospective-caption",tab.description));host.append(card);
   }
 }
-export async function refresh() {
-  if (busy) return;
-  busy = true;
-  const button = el("refresh");
-  if (button) button.disabled = true;
-  set("refresh-label", "更新中");
-  try {
-    const entries = Object.entries(SOURCES);
-    const settled = await Promise.allSettled(entries.map(([name, file]) => loadSource(name, file)));
-    const values = {}, errors = {};
-    settled.forEach((result, index) => {
-      const key = entries[index][0];
-      if (result.status === "fulfilled") values[key] = result.value.value;
-      else errors[key] = result.reason?.message || "取得失敗";
-    });
-    const view = buildView(values, errors, new Date());
-    renderOverview(view);
-    renderProgress(view);
-    renderResearch(view);
-    renderOperations(view);
-    document.title = (view.state === "ok" ? "● " : view.state === "watch" ? "◐ " : "！ ")
-      + "LOTO7 AI AGENT | 現在の状態";
-  } catch (e) {
-    set("overall-status", "データの表示に失敗しました");
-    const light = el("overall-light");
-    if (light) light.className = "status-light block";
-    const messages = clear("alert-list");
-    messages.append(node("p", "error-line", String(e.message || "通信エラー")));
-  } finally {
-    busy = false;
-    if (button) button.disabled = false;
-    set("refresh-label", "更新");
+function appendOperationalWarnings(ops){
+  const list=el("alert-list");if(!list)return;
+  for(const a of ops.alerts){
+    const item=node("article","alert-item "+(a.severity==="block"?"block":"watch"));
+    item.append(node("span","alert-owner",a.source));
+    item.append(node("p","",a.description));
+    if(a.url){const link=node("a","workflow-link","実行ログ ↗");link.href=a.url;link.target="_blank";link.rel="noopener noreferrer";item.append(link);}
+    list.append(item);
   }
 }
-el("refresh")?.addEventListener("click", refresh);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) refresh(); });
-setInterval(() => { if (!document.hidden) refresh(); }, REFRESH_MS);
+export async function refresh(){
+  if(busy)return;
+  busy=true;const button=el("refresh");
+  if(button)button.disabled=true;set("refresh-label","更新中");
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),13000);
+  try{
+    const response=await fetch(SNAPSHOT_URL+"?v="+Date.now(),{cache:"no-store",headers:{Accept:"application/json"},signal:controller.signal});
+    if(!response.ok)throw new Error("監視JSONを取得できません (HTTP "+response.status+")");
+    const ops=normalizeSnapshot(await response.json(),new Date());
+    const view=buildView(ops.sources,{},new Date());
+    if(ops.outdated&&view.state==="ok"){view.state="watch";view.stateLabel="監視データが古くなっています";}
+    if(ops.alerts.some(a=>a.severity==="block")&&view.state!=="unknown"){view.state="block";view.stateLabel="一部の自動処理で異常を確認";}
+    renderOverview(view);renderProgress(view);renderResearch(view);renderOperations(view);
+    renderWorkflowStatus(ops);renderProspective(ops);appendOperationalWarnings(ops);
+    set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
+    document.title=(view.state==="ok"?"● ":view.state==="watch"?"◐ ":"！ ")+"LOTO7 AI AGENT | 現在の状態";
+  }catch(e){
+    set("overall-status","監視データを取得できません");
+    const light=el("overall-light");if(light)light.className="status-light unknown";
+    set("snapshot-freshness","未取得・通信状況を確認してください");
+    const list=clear("alert-list");list.append(node("p","error-line",String(e.message||"監視情報の取得失敗")));
+  }finally{clearTimeout(timeout);busy=false;if(button)button.disabled=false;set("refresh-label","更新");}
+}
+el("refresh")?.addEventListener("click",refresh);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh();});
+setInterval(()=>{if(!document.hidden)refresh();},REFRESH_MS);
 refresh();

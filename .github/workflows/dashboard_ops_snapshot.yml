@@ -1,0 +1,113 @@
+name: Browser Ops Snapshot
+
+on:
+  pull_request:
+    paths:
+      - "dashboard_status_snapshot.py"
+      - "tests/test_dashboard_status_snapshot.py"
+      - "docs/**"
+      - ".github/workflows/dashboard_ops_snapshot.yml"
+      - "tests/test_ephemeral_research_caches.py"
+  push:
+    branches: [main]
+    paths:
+      - "dashboard_status_snapshot.py"
+      - "tests/test_dashboard_status_snapshot.py"
+      - "tests/test_ephemeral_research_caches.py"
+      - "docs/app.js"
+      - "docs/index.html"
+      - "docs/style.css"
+      - "docs/telemetry.mjs"
+      - "docs/tests/**"
+      - ".github/workflows/dashboard_ops_snapshot.yml"
+      - "loto7_agent_output/**"
+  schedule:
+    - cron: "3,18,33,48 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: browser-ops-snapshot-main
+  cancel-in-progress: false
+
+jobs:
+  build-public-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TZ: Asia/Tokyo
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate telemetry builder and UI
+        run: |
+          python -m pip install -r requirements.txt pytest
+          python -m compileall -q dashboard_status_snapshot.py
+          python -m pytest -q tests/test_dashboard_status_snapshot.py tests/test_ephemeral_research_caches.py
+          node --check docs/app.js
+          node --check docs/telemetry.mjs
+          node --test docs/tests/*.test.mjs
+      - name: Dry run (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          python dashboard_status_snapshot.py --repo-root . --output /tmp/dashboard_snapshot.json --fetch-workflows
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          r=json.loads(Path("/tmp/dashboard_snapshot.json").read_text(encoding="utf-8"))
+          assert r["version"]=="loto7-ops-snapshot-v1"
+          assert len(r["series"]["portfolio"])==r["sources"]["holdout"]["trusted_draws"]
+          assert len(r["series"]["v2"])==r["sources"]["signal"]["trusted_draws"]
+          assert len(r["series"]["adaptive"])==r["sources"]["learning"]["trusted_draws"]
+          assert len(r["workflows"])==7
+          print("Validated source commit "+r["source_commit"][:12])
+          PY
+      - name: Update only public snapshot on main
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python dashboard_status_snapshot.py --repo-root . --output docs/data/dashboard_snapshot.json --fetch-workflows
+            git add -- docs/data/dashboard_snapshot.json
+            if git diff --cached --quiet; then
+              echo "No snapshot change."
+              break
+            fi
+            git commit -m "chore: refresh read-only operations dashboard snapshot"
+            if git push origin HEAD:main; then
+              echo "Public telemetry snapshot committed."
+              break
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::Snapshot could not be committed after retries"
+              exit 1
+            fi
+          done
+      - name: Explain scope
+        if: always()
+        run: |
+          {
+            echo "## Browser operations monitoring"
+            echo "Only docs/data/dashboard_snapshot.json may be staged or committed."
+            echo "All registered prospective, Champion, source and Production files remain unchanged."
+          } >> "$GITHUB_STEP_SUMMARY"

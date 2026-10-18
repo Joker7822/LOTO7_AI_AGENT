@@ -4,6 +4,7 @@ The active research scripts must start with empty caches and rebuild them safely
 while prospective freeze registries and append-only evidence remain tracked.
 """
 from pathlib import Path
+import subprocess
 
 import feedback_optimizer
 import research_feedback
@@ -44,7 +45,19 @@ def test_gitignore_applies_only_to_derived_cache_files():
     patterns = set(Path(".gitignore").read_text(encoding="utf-8").splitlines())
     for path in CACHE_PATHS:
         assert "/" + path in patterns
-        assert not Path(path).exists(), "derived caches must not remain tracked"
+        # GitHub Actions restores these runtime files via actions/cache before
+        # pytest runs. They MAY exist on disk, but must NEVER be Git-tracked.
+        tracked = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", "--", path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        assert tracked.returncode != 0, "derived cache must not be Git-tracked"
+        ignored = subprocess.run(
+            ["git", "check-ignore", "-q", "--", path], check=False,
+        )
+        assert ignored.returncode == 0, "restored runtime cache must be ignored"
     for path in EVIDENCE_PATHS:
         assert Path(path).exists(), "scientific/OOS evidence must remain in the repository"
         assert "/" + path not in patterns

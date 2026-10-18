@@ -7,3 +7,30 @@
 @media (max-width:980px){.hero-orb{right:-30px;opacity:.45}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.role-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.draw-panel{align-items:flex-start;flex-direction:column}.research-layout{grid-template-columns:1fr 1fr}.progress-grid{grid-template-columns:1fr 1fr}.shell{width:min(100% - 40px,1240px)}}
 @media (max-width:680px){.site-head{height:75px}.shell{width:calc(100% - 30px)}.brand-mark{width:37px;height:37px;font-size:24px}.brand strong{font-size:13px}.brand small{font-size:8px}.header-actions{gap:8px}.live-indicator{font-size:0;gap:0}.pulse-dot{width:7px;height:7px}.refresh-button{padding:7px 11px}.hero{padding:38px 0 29px;min-height:300px}.hero-orb{right:-150px;top:20px;opacity:.17}.hero-sub{font-size:12px}.desktop-break{display:none}.hero-status{gap:12px}.hero-status strong{font-size:12px}.hero-divider{margin:0 2px}.snapshot-auto{font-size:0}.snapshot-auto:after{content:"自動更新";font-size:10px}.snapshot-bar{padding:12px}.snapshot-bar b{font-size:11px}.section{margin-top:43px}.section-heading{display:block}.section-heading h2{font-size:21px}.section-heading p{margin:6px 0 0}.metric-grid{gap:9px}.metric-card{min-height:155px;padding:15px}.metric-top{font-size:10px;gap:7px}.metric-icon{width:24px;height:24px;font-size:13px}.metric-value{font-size:31px;margin-top:24px}.metric-value.compact{font-size:17px;margin-top:27px}.metric-footer{font-size:10px}.draw-panel{padding:16px;gap:18px}.draw-numbers{flex-direction:column;align-items:flex-start;gap:12px}.bonus-wrap{border-left:0;padding:0}.ball{height:33px;width:33px}.progress-grid,.research-layout,.operations-grid{grid-template-columns:1fr}.progress-card{padding:20px}.role-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.role-card{padding:15px 12px}.rank-row{grid-template-columns:105px minmax(0,1fr) 58px;gap:9px}.rank-name{font-size:11px}.panel{padding:20px}.footer{margin-top:38px;flex-direction:column;align-items:flex-start}.footer>p{font-size:8px;letter-spacing:0}.disclaimer{margin-top:34px;padding:16px;gap:11px}.disclaimer p{font-size:10px}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important;animation:none!important}}
+
+/* Operations reliability and strictly prospective evidence */
+.prospective-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}
+.prospective-panel{padding:20px;min-width:0}
+.prospective-panel h3{font-size:14px}
+.metric-tabs{display:flex;flex-wrap:wrap;gap:5px;margin:18px 0 12px}
+.metric-tab{background:#142941;color:#a9bdd2;border:1px solid rgba(145,179,217,.2);padding:7px 9px;font-size:10px;border-radius:8px;cursor:pointer}
+.metric-tab.active{background:rgba(95,228,218,.13);border-color:rgba(95,228,218,.6);color:#a4f4ec;font-weight:800}
+.metric-tab:focus-visible,.workflow-link:focus-visible{outline:2px solid #6ae4d7;outline-offset:2px}
+.prospective-plot{min-height:174px}
+.prospective-plot svg{display:block;width:100%;height:auto;max-height:174px;overflow:visible}
+.prospective-empty{min-height:174px;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.85;padding:20px;font-size:12px;color:#a9bdd2;border:1px dashed rgba(145,179,217,.22);border-radius:12px;background:rgba(7,21,39,.38)}
+.prospective-caption{font-size:11px;line-height:1.8;color:#94a9bf;margin:13px 0 0}
+.prospective-latest{margin:0;color:#6ae4d7;text-align:right;font-weight:800;font-size:11px}
+.workflow-panel{margin-bottom:13px}
+.workflow-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:15px}
+.workflow-card{border:1px solid rgba(145,179,217,.13);border-radius:12px;padding:14px 12px;background:rgba(5,17,32,.4);min-width:0}
+.workflow-row{display:flex;align-items:center;justify-content:space-between;gap:5px}
+.workflow-row b{font-size:11px;line-height:1.5}
+.workflow-updated{font-size:10px;color:#9bb0c7;margin:10px 0 5px}
+.workflow-note{display:block;font-size:10px;color:#9bb0c7}
+.workflow-link{display:inline-block;color:#6ae4d7;text-decoration:none;font-weight:750;font-size:10px;margin-top:11px}
+.monitor-meta{display:flex;flex-wrap:wrap;gap:12px 22px;align-items:center;margin-top:15px;color:#8ba5c2;font-size:11px}
+.monitor-meta strong,.monitor-meta code{color:#d6e6f6;font-weight:700}
+.freshness{color:#6de4b1}.freshness.warn{color:#f5c47c}
+@media(max-width:1000px){.prospective-grid{grid-template-columns:1fr 1fr}.workflow-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:680px){.prospective-grid,.workflow-grid{grid-template-columns:1fr}.workflow-card{padding:15px}.monitor-meta{gap:8px;flex-direction:column;align-items:flex-start}.workflow-panel .panel-heading{flex-wrap:wrap}}
