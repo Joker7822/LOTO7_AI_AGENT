@@ -1,9 +1,9 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-10-18T15:35:37+09:00",
+  "checked_at_jst": "2026-10-19T09:52:19+09:00",
   "latest_resolved_round": 699,
   "overall": "watch",
-  "input_snapshot_sha256": "a8e36a4fa1216619edd0032fe2d8afef3abe4d61c910d47ea4a5db148afa3e2e",
+  "input_snapshot_sha256": "0cbeef43701cda0f81c8cf675c41c5a23c021391a7c5b8e046979552d3498862",
   "governance": {
     "authority": "read_only_advisory",
     "permissions": {
@@ -20,13 +20,13 @@
   },
   "roles": {
     "data_steward": {
-      "status": "ok",
+      "status": "watch",
       "findings": [
         {
-          "level": "ok",
-          "code": "TRUSTED_RESULT_EXACT_MATCH",
-          "evidence": "round=699; secondary=rakuten_bank",
-          "next_action": "Continue predeclared workflow."
+          "level": "watch",
+          "code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
+          "evidence": "round=699; status=degraded_single_result_source",
+          "next_action": "Use the existing source recovery workflow; no trusted OOS grading."
         }
       ]
     },
@@ -88,6 +88,15 @@
     }
   },
   "handoff_tasks": [
+    {
+      "priority": "watch",
+      "owner": "data_steward",
+      "issue_code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
+      "evidence": "round=699; status=degraded_single_result_source",
+      "next_action": "Use the existing source recovery workflow; no trusted OOS grading.",
+      "existing_workflow_or_human_required": true,
+      "autonomous_production_write_allowed": false
+    },
     {
       "priority": "watch",
       "owner": "oos_risk_officer",

@@ -1,21 +1,26 @@
 # LOTO7 AI Agent — Role Council
 
-- checked JST: **2026-10-18T15:35:37+09:00**
+- checked JST: **2026-10-19T09:52:19+09:00**
 - latest round: **699**
 - overall: **WATCH**
-- input snapshot SHA256: a8e36a4fa1216619edd0032fe2d8afef3abe4d61c910d47ea4a5db148afa3e2e
+- input snapshot SHA256: 0cbeef43701cda0f81c8cf675c41c5a23c021391a7c5b8e046979552d3498862
 - **Read-only advice; never promote, publish, freeze or backfill.**
 
 ## Role checks
 | Role | Verdict | Checks |
 |---|---|---|
-| data_steward | OK | TRUSTED_RESULT_EXACT_MATCH |
+| data_steward | WATCH | RESULT_NOT_TWO_SOURCE_VERIFIED |
 | prospective_signal_custodian | OK | V2_LOCK_AND_IMMUTABLE_HISTORY, WAIT_FOR_700 |
 | oos_risk_officer | WATCH | OOS_REFERENCE_CONSISTENCY, NO_EARLY_PORTFOLIO_CLAIM |
 | research_skeptic | OK | DIAGNOSTIC_RESEARCH_ISOLATION |
 | release_operations | OK | RELEASE_SCHEDULE_GUARD |
 
 ## Prioritized handoffs
+### WATCH — data_steward: RESULT_NOT_TWO_SOURCE_VERIFIED
+- evidence: round=699; status=degraded_single_result_source
+- next action: Use the existing source recovery workflow; no trusted OOS grading.
+- executor: **existing workflow / human review only**
+
 ### WATCH — oos_risk_officer: NO_EARLY_PORTFOLIO_CLAIM
 - evidence: holdout=7/26
 - next action: Keep all comparator evidence and wait until 26/26 for independent confirmation.
