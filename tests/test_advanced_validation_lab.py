@@ -181,3 +181,17 @@ def test_full_readonly_pipeline_with_real_original_699_evidence(lab_root, monkey
     for name, data in original.items():
         assert (out / name).read_bytes() == data
     assert {p.name for p in out.iterdir()} - original.keys() == {lab.REG, lab.SUMMARY, lab.REPORT}
+
+
+
+def test_missing_first_prefreeze_after_round_701_cannot_be_audited_as_zero_evidence(lab_root, monkeypatch):
+    out = lab_root / "loto7_agent_output"
+    candidate_registration = json.loads((out / candidate.REG).read_text())
+    # Preregister the advanced evaluator before any synthetic future outcome.
+    lab.register(lab_root, out, candidate_registration, 699, CLOCK)
+    original_validator = lab.ledger.validated_draws
+    x, clean, _ = original_validator(lab_root / "loto7.csv")
+    # Synthetic future clock/round, not the live repository's CSV or registrations.
+    monkeypatch.setattr(lab.ledger, "validated_draws", lambda _: (x, clean, 701))
+    with pytest.raises(ValueError, match="missing required prospective target freeze"):
+        lab.run(lab_root, out, now=CLOCK + timedelta(days=12))
