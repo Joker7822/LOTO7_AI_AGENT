@@ -282,3 +282,12 @@ python v4_status.py
 - [GitHub Pagesの初期設定・操作手順](docs/README.md) — 初回のみ Settings → Pages → Deploy from a branch → main /docs を設定します。
 - 状態JSONは公開mainから2分ごとに更新されます（CDN反映には時間差があります）。本番予測番号・秘密情報は公開画面に表示しません。
 - 過去研究の比較と将来の独立検証は明確に区別し、精度向上が証明されたと誤表示しません。
+
+
+## 高度な統計検証ラボ
+
+複数モデルの選択バイアスを含む公平抽せん実験、時系列ブロック再標本化、未来の事前凍結予測に対する厳密な逐次e値を追加しました。過去研究と本当の未来の証拠を区別します。
+
+- [統計と安全上の設計](ADVANCED_VALIDATION_LAB.md)
+- [統合ブラウザダッシュボード](https://joker7822.github.io/LOTO7_AI_AGENT/)
+- 既存のProduction・Champion・登録済み将来検証の台帳には変更しません。
