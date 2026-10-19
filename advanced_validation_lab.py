@@ -281,6 +281,8 @@ def run(root: Path, out: Path, *, now: datetime | None = None) -> dict:
         raise ValueError("candidate algorithm SHA or research authority changed")
     lab_reg = register(root, out, candidate_reg, latest, clock)
     freezes, grades, _registry, state = candidate.audit(out, candidate_reg, x, clean)
+    if latest >= FIRST_FUTURE and (not freezes or latest > int(freezes[-1]["target_round"])):
+        raise ValueError("missing required prospective target freeze; never backfill post-result")
     if state.get("trusted_draws") != len(grades):
         raise ValueError("candidate graded state absent or does not match audited records")
     if any(g["target_round"] > latest for g in grades):
