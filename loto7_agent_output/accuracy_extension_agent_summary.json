@@ -1,0 +1,47 @@
+{
+  "version": "accuracy-extension-agent-v1",
+  "status": "waiting_for_verified_round_700_prefix",
+  "latest_seen_round": 699,
+  "latest_source_trusted": false,
+  "first_target_round": 701,
+  "current_prefrozen_target": null,
+  "trusted_future_draws": 0,
+  "future_descriptive_only": {
+    "observed": 0,
+    "mean_top7_hits": null,
+    "mean_log_edge": null,
+    "mean_brier_edge": null
+  },
+  "historical_data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "historical_reused_diagnostics": {
+    "mean_top7_hits": 1.3833333333333333,
+    "mean_log_edge": -2.600048582060329e-05,
+    "mean_brier_edge": -7.31717036049212e-06,
+    "mean_transition_log_edge": -0.0012110707306220464,
+    "evaluated_rounds": 60,
+    "evaluated_start": 640,
+    "evaluated_end": 699
+  },
+  "full_budget_fair_null": {
+    "worlds": 32,
+    "mean_log_edge": -2.7177455723194933e-05,
+    "mean_top7_hits": 1.353125,
+    "full_learner_rerun_each_fair_world": true,
+    "no_prospective_claim": true,
+    "one_sided_empirical_p_exploratory_only": 0.3939393939393939
+  },
+  "prior_four_expert_reference": {
+    "same_historical_window": true,
+    "mean_log_edge": 1.753060790740668e-05,
+    "mean_top7_hits": 1.4333333333333333,
+    "mean_brier_edge": 6.665014467945504e-06
+  },
+  "model_manifest_sha256": "f30b9e1b7b769a066817d3eef4f07df1528b701bc818c59c9928d47db1537d88",
+  "scope": "research_only",
+  "independent_future_only_after_prefreeze": true,
+  "production_changed": false,
+  "original_registered_shadows_changed": false,
+  "promotion_eligible": false,
+  "p_values_valid_for_continual_monitoring": false,
+  "interpretation": "Additional conditional lag hypothesis is exploratory. Existing historical draws were reused during research. Separate independent future results after an auditable pre-draw freeze are descriptive only; not a Production promotion test."
+}

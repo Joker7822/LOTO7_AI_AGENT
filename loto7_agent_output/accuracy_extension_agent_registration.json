@@ -1,0 +1,45 @@
+{
+  "version": "accuracy-extension-agent-v1",
+  "registered_at_jst": "2026-10-19T10:05:04+09:00",
+  "registered_at_latest_round": 699,
+  "registered_data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "start_target_round": 701,
+  "promotion_role": "diagnostic_only",
+  "fixed_horizon_p_values_authorized": false,
+  "automatic_model_adoption": false,
+  "algorithm_manifest": {
+    "version": "accuracy-extension-agent-v1",
+    "start_target_round": 701,
+    "excluded_already_frozen_round": 700,
+    "warmup": 100,
+    "history_pair_window": 160,
+    "transition_virtual_exposures": 500,
+    "final_uniform_shrink": 0.25,
+    "online_rate": 10.0,
+    "online_decay": 0.995,
+    "prior_weights": [
+      0.5,
+      0.12,
+      0.12,
+      0.11,
+      0.15
+    ],
+    "expert_names": [
+      "uniform",
+      "bayes_short40",
+      "bayes_long160",
+      "momentum_shrink",
+      "shrunken_lag1_transition"
+    ],
+    "code_sha256": {
+      "accuracy_extension_agent.py": "fad1e3fe2a172199bf2e109a5a6fced3f52ce2ef7082f5778119d948efd2e3cd",
+      "predictive_expert_agent.py": "1e24ecee1033c9e0a65f4f3001888d6d3f28ae6fe9663afd8ce71f6220b49569",
+      "continuous_learning_agent.py": "767ebf2ddc84ff7e7019f10374297ef55b620f9a4bc08cd0022785070a8f5819",
+      "joint_set_v2_model.py": "943eaaf06d99a664f1f667453f208fa73de6f4d4b47fcc4401deb37ad4716a95",
+      "joint_set_v2_signal_oos.py": "d1c02b567615abf7f6331854a14891f690d94eddaa4f92f91cc47a3eb691dee2",
+      "joint_set_v2_signal_oos_guard.py": "d03ef0caf8baa77c1127d99c0c2a3c1e6adfaf4840844ccb0a6de4cfcb857e2b"
+    },
+    "no_fixed_horizon_significance_from_anytime_monitor": true,
+    "manifest_sha256": "f30b9e1b7b769a066817d3eef4f07df1528b701bc818c59c9928d47db1537d88"
+  }
+}
