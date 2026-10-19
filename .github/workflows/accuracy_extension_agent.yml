@@ -1,0 +1,129 @@
+name: Accuracy Extension Prospective Research
+
+on:
+  pull_request:
+    paths:
+      - "accuracy_extension_agent.py"
+      - "tests/test_accuracy_extension_agent.py"
+      - ".github/workflows/accuracy_extension_agent.yml"
+      - "ACCURACY_EXTENSION_AGENT.md"
+  push:
+    branches: [main]
+    paths:
+      - "accuracy_extension_agent.py"
+      - "tests/test_accuracy_extension_agent.py"
+      - ".github/workflows/accuracy_extension_agent.yml"
+      - "ACCURACY_EXTENSION_AGENT.md"
+      - "loto7.csv"
+      - "loto7_agent_output/source_validation.json"
+  schedule:
+    # Saturday 15:10 JST, after the Friday draw and verification jobs.
+    - cron: "10 6 * * 6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: accuracy-extension-prospective-research
+  cancel-in-progress: false
+
+jobs:
+  prospective-extension:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout full scientific evidence
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+      - name: Guard against hindsight and validate the research model
+        run: |
+          python -m compileall -q accuracy_extension_agent.py tests/test_accuracy_extension_agent.py
+          python -m pytest -q tests/test_accuracy_extension_agent.py
+      - name: PR dry-run from real source without main writes
+        if: github.event_name == 'pull_request'
+        run: |
+          python accuracy_extension_agent.py \
+            --repo-root . \
+            --out-dir /tmp/accuracy-extension-test \
+            --source-report loto7_agent_output/source_validation.json \
+            --null-worlds 2
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("/tmp/accuracy-extension-test/accuracy_extension_agent_summary.json")
+          x=json.loads(p.read_text(encoding="utf-8"))
+          assert x["promotion_eligible"] is False
+          assert x["production_changed"] is False
+          assert x["original_registered_shadows_changed"] is False
+          assert x["current_prefrozen_target"] is None
+          assert x["trusted_future_draws"] == 0
+          print(x["status"], x["historical_reused_diagnostics"])
+          PY
+      - name: Persist only independent research evidence on main
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python accuracy_extension_agent.py \
+              --repo-root . \
+              --out-dir loto7_agent_output \
+              --source-report loto7_agent_output/source_validation.json \
+              --null-worlds 32
+
+            for file in \
+              loto7_agent_output/accuracy_extension_agent_registration.json \
+              loto7_agent_output/accuracy_extension_agent_registry.json \
+              loto7_agent_output/accuracy_extension_agent_state.json \
+              loto7_agent_output/accuracy_extension_agent_freezes.jsonl \
+              loto7_agent_output/accuracy_extension_agent_grades.jsonl \
+              loto7_agent_output/accuracy_extension_agent_summary.json \
+              loto7_agent_output/accuracy_extension_agent_report.md; do
+              if [ -f "$file" ]; then
+                git add -- "$file"
+              fi
+            done
+            if git diff --cached --quiet; then
+              echo "No new extension research evidence."
+              exit 0
+            fi
+            git commit -m "chore: persist registered fifth-expert prospective research"
+            if git push origin HEAD:main; then
+              echo "Seventh-file-only prospective extension evidence persisted."
+              exit 0
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::Failed to commit registered extension after retries."
+              exit 1
+            fi
+          done
+      - name: Surface research results without promotion
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Accuracy extension (research only)"
+            cat loto7_agent_output/accuracy_extension_agent_report.md 2>/dev/null || \
+              cat /tmp/accuracy-extension-test/accuracy_extension_agent_report.md 2>/dev/null || true
+            echo
+            echo "No new Production/Champion change, preregistered v2/adaptive edit, or predictive accuracy claim."
+          } >> "$GITHUB_STEP_SUMMARY"
