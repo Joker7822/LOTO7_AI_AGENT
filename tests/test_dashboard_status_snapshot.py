@@ -133,3 +133,57 @@ def test_source_evidence_is_not_modified(project):
     after = {p.relative_to(project): p.read_bytes() for p in project.rglob("*") if p.is_file()}
     assert after == before
     assert all(not filename.endswith("registry.json") for filename in d.SOURCE_FILES.values())
+
+
+
+def test_optional_scientific_lab_is_hidden_until_registered(project):
+    value, fingerprint = d.scientific_research_projection(
+        project, project / "loto7_agent_output")
+    assert value == {"status": "not_yet_published", "future_draws": None}
+    assert fingerprint is None
+
+
+def test_scientific_projection_whitelists_scores_and_detects_stale_inputs(project):
+    from loto7_evolving_agent import fingerprint_file
+    out = project / "loto7_agent_output"
+    for name in ("accuracy_extension_agent_registration.json",
+                 "accuracy_extension_agent_state.json"):
+        shutil.copyfile(Path("loto7_agent_output") / name, out / name)
+    reg = json.loads((out / "accuracy_extension_agent_registration.json").read_text())
+    source_sha = fingerprint_file(project / "loto7.csv")
+    report = {
+        "version": "advanced-validation-lab-v1",
+        "historical_data_sha256": source_sha,
+        "source_model_manifest_sha256": reg["algorithm_manifest"]["manifest_sha256"],
+        "production_secret_key": "this must never be visible",
+        "historical_exploratory": {
+            "round_start": 640, "round_end": 699,
+            "original_four": {"mean_log_edge": .000017, "mean_top7_hits": 1.4333},
+            "candidate_five": {"mean_log_edge": -.000026, "mean_top7_hits": 1.3833},
+            "paired_block_bootstrap": {"low95": -.001, "high95": .001,
+                                       "mean_five_minus_four": -.000043},
+            "matched_full_budget_fair_draws": {
+                "worlds": 32,
+                "max_statistic_selection_adjusted_empirical_tail_p": .42
+            },
+        },
+        "future_e_monitor": {
+            "verified_prefrozen_draws": 0,
+            "current_e_value": 1.0, "max_e_value": 1.0,
+            "ville_threshold": 20.0, "threshold_crossed": False, "series": [],
+        },
+    }
+    path = out / "advanced_validation_lab_summary.json"
+    path.write_text(json.dumps(report), encoding="utf-8")
+    result, digest = d.scientific_research_projection(project, out)
+    assert result["status"] == "verified_diagnostic_only"
+    assert result["future_e_series"] == []
+    assert result["future_current_e"] == 1.0
+    assert result["future_draws"] == 0
+    assert "production_secret_key" not in json.dumps(result)
+    assert digest
+    report["historical_data_sha256"] = "obsolete"
+    path.write_text(json.dumps(report), encoding="utf-8")
+    stale, _ = d.scientific_research_projection(project, out)
+    assert stale["status"] == "stale_or_mismatched_evidence"
+    assert stale["future_draws"] is None
