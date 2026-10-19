@@ -54,3 +54,19 @@
 .command-next strong{color:var(--cyan);font-size:10px;display:block;letter-spacing:.06em}
 .command-empty{color:var(--good);grid-column:1/-1;padding:18px;font-size:12px}
 @media(max-width:680px){.command-grid{grid-template-columns:1fr}.command-center{padding:19px}.command-center .panel-heading{flex-wrap:wrap}}
+
+/* Independent, clearly limited scientific evidence rather than prediction hype */
+.science-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.science-panel{min-width:0}
+.science-panel .panel-heading{flex-wrap:wrap}
+.science-panel .panel-heading h3{font-size:16px}
+.science-comparison,.science-future-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
+.science-comparison>div,.science-future-head>div{padding:16px;border-radius:12px;background:rgba(47,91,129,.13);border:1px solid var(--line)}
+.science-comparison span,.science-future-head span{display:block;color:var(--sub);font-size:11px}
+.science-comparison strong,.science-future-head strong{display:block;font-size:24px;letter-spacing:-.04em;line-height:1.4;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.science-future-head strong{color:var(--cyan)}
+.science-note{font-size:11px;color:var(--muted);line-height:1.85;padding-top:11px;border-top:1px solid var(--line);margin:17px 0 0}
+.science-plot{width:100%;min-height:85px;margin-top:14px}
+.science-plot svg{width:100%;max-height:190px;display:block}
+.science-empty{font-size:11px;color:var(--sub);background:rgba(95,228,218,.05);border:1px dashed var(--line2);border-radius:12px;padding:17px;line-height:1.8}
+@media(max-width:780px){.science-grid{grid-template-columns:1fr}.science-panel{padding:19px}.science-comparison strong,.science-future-head strong{font-size:21px}}

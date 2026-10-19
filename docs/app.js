@@ -246,6 +246,32 @@ function renderSeriesGraph(series,field,baseline){
   svg.append(svgEl("text",{x:r,y:164,fill:"#8ba5c2","font-size":10,"text-anchor":"end"},"第"+series.at(-1).round+"回"));
   return svg;
 }
+function renderScientific(ops){
+  const v=ops.scientificValidation;
+  const plot=clear("science-e-plot");
+  if(v.status!=="verified_diagnostic_only"){
+    const label=v.status==="not_yet_published"?"最初の研究レポートを待っています。":"原データとの整合を確認できないため研究指標を非表示にしています。";
+    set("science-future-pill",v.status==="not_yet_published"?"研究データ待ち":"要確認");
+    for(const id of ["science-four-top7","science-five-top7","science-log-delta","science-ci",
+                     "science-p","science-e","science-max-e","science-trusted"])set(id,"—");
+    if(plot)plot.append(node("p","muted",label));
+    return;
+  }
+  const sign=n=>(n>=0?"+":"")+n.toFixed(7);
+  set("science-four-top7",v.originalTop7.toFixed(3)+" 個");
+  set("science-five-top7",v.candidateTop7.toFixed(3)+" 個");
+  set("science-log-delta",sign(v.candidateLog-v.originalLog));
+  set("science-ci","["+sign(v.pairedCI.low95)+", "+sign(v.pairedCI.high95)+"]");
+  set("science-p","p="+v.adjustedExploratoryP.toFixed(4)+"（"+v.nullWorlds+"世界）");
+  set("science-e",v.eValue.toFixed(4));
+  set("science-max-e",v.maxE.toFixed(4));
+  set("science-threshold",v.threshold.toFixed(0));
+  set("science-trusted",v.futureDraws+" 回");
+  set("science-future-pill",v.futureDraws===0?"未来データ待ち":v.thresholdCrossed?"要監査・自動採用なし":"未来の観測中");
+  if(!plot)return;
+  if(!v.series.length)plot.append(node("p","science-empty","まだ独立した将来結果はありません。将来e値は中立値1で開始します。"));
+  else plot.append(renderSeriesGraph(v.series,"e_value",1));
+}
 function renderProspective(ops){
   const host=clear("prospective-trends");
   for(const tab of SERIES_TABS){
@@ -295,7 +321,7 @@ export async function refresh(){
     if(ops.outdated&&view.state==="ok"){view.state="watch";view.stateLabel="監視データが古くなっています";}
     if((ops.alerts.some(a=>a.severity==="block")||ops.operationsPlan.overall==="block")&&view.state!=="unknown"){view.state="block";view.stateLabel="一部の自動処理で異常を確認";}
     renderOverview(view);renderProgress(view);renderResearch(view);renderOperations(view);
-    renderWorkflowStatus(ops);renderProspective(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
+    renderWorkflowStatus(ops);renderProspective(ops);renderScientific(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
     set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
     document.title=(view.state==="ok"?"● ":view.state==="watch"?"◐ ":"！ ")+"LOTO7 AI AGENT | 現在の状態";
   }catch(e){
@@ -303,6 +329,7 @@ export async function refresh(){
     const light=el("overall-light");if(light)light.className="status-light unknown";
     set("snapshot-freshness","未取得・通信状況を確認してください");
     const list=clear("alert-list");list.append(node("p","error-line",String(e.message||"監視情報の取得失敗")));
+    set("science-future-pill","情報を取得できません");
     set("command-center-overall","司令塔の判定を取得できません");
     const grid=clear("command-center-grid");grid.append(node("p","error-line","安全な判断のため状態の再取得が必要です。"));
   }finally{clearTimeout(timeout);busy=false;if(button)button.disabled=false;set("refresh-label","更新");}

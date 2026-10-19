@@ -15,6 +15,61 @@ function parseDate(value) {
 function finite(value) {
   return typeof value === "number" && Number.isFinite(value);
 }
+export function normalizeScientificValidation(value) {
+  if (!value || value.status === "not_yet_published") {
+    return {status:"not_yet_published",futureDraws:null};
+  }
+  if (value.status !== "verified_diagnostic_only") {
+    return {status:"stale_or_mismatched_evidence",futureDraws:null};
+  }
+  const valid = n => typeof n === "number" && Number.isFinite(n);
+  const tail = value.future_e_series;
+  const n = value.future_draws;
+  if (value.promotion_eligible !== false ||
+      !Number.isInteger(n) || n < 0 || !Array.isArray(tail) ||
+      tail.length !== n || !valid(value.future_current_e) ||
+      !valid(value.future_max_e) || !valid(value.future_threshold) ||
+      value.future_current_e <= 0 || value.future_max_e < 1 ||
+      value.future_threshold <= 1 ||
+      value.future_max_e < value.future_current_e - 1e-8 ||
+      value.future_threshold_crossed !== (value.future_max_e >= value.future_threshold) ||
+      value.historical_matched_fair_worlds !== 32 ||
+      !valid(value.historical_selection_adjusted_p_exploratory_only) ||
+      value.historical_selection_adjusted_p_exploratory_only < 0 ||
+      value.historical_selection_adjusted_p_exploratory_only > 1 ||
+      !valid(value.original_four_top7) || !valid(value.candidate_five_top7) ||
+      !valid(value.original_four_log_edge) || !valid(value.candidate_five_log_edge)) {
+    throw new Error("高度な研究指標の整合性を確認できません");
+  }
+  const ci = value.historical_paired_block_ci || {};
+  if (!valid(ci.low95) || !valid(ci.high95) || ci.low95 > ci.high95) {
+    throw new Error("時系列bootstrapの研究区間が不正です");
+  }
+  const series = tail.map((d,i) => {
+    if (!Number.isInteger(d.round) || d.round !== 701 + i ||
+        !valid(d.e_value) || d.e_value <= 0) {
+      throw new Error("将来e値の回別整合性が不正です");
+    }
+    return {round:d.round,e_value:d.e_value};
+  });
+  return {
+    status:"verified_diagnostic_only",
+    futureDraws:n,
+    eValue:value.future_current_e,
+    maxE:value.future_max_e,
+    threshold:value.future_threshold,
+    thresholdCrossed:value.future_threshold_crossed,
+    originalTop7:value.original_four_top7,
+    candidateTop7:value.candidate_five_top7,
+    originalLog:value.original_four_log_edge,
+    candidateLog:value.candidate_five_log_edge,
+    nullWorlds:value.historical_matched_fair_worlds,
+    adjustedExploratoryP:value.historical_selection_adjusted_p_exploratory_only,
+    pairedCI:{low95:ci.low95,high95:ci.high95},
+    series,
+  };
+}
+
 export function normalizeSnapshot(snapshot, now = new Date()) {
   if (!snapshot || typeof snapshot !== "object" ||
       snapshot.version !== SNAPSHOT_VERSION ||
@@ -108,7 +163,12 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
       ["block","watch","info"].some(p=>incidentTasks.filter(x=>x.priority===p).length!==plan.counts[p])) {
     throw new Error("AI司令塔の優先順位と件数が一致しません");
   }
+  const scientificValidation = normalizeScientificValidation(snapshot.scientific_validation);
   const alerts = [];
+  if (scientificValidation.status === "stale_or_mismatched_evidence") alerts.push({
+    severity:"watch",source:"高度な研究データ",
+    description:"統計研究の状態が古いか、原データと一致していません。結果を採用せず専用CIを確認してください。"
+  });
   if (outdated) alerts.push({
     severity: "watch", source: "監視データの鮮度",
     description: "監視スナップショットが90分以上前、または時刻が不正です。GitHub Actionsを確認してください。"
@@ -129,6 +189,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     sourceCommit: sha, generatedAt: timestamp.toISOString(),
     ageMinutes, outdated, workflows, series, alerts,
     sources: snapshot.sources,
+    scientificValidation,
     operationsPlan: { overall:plan.overall, counts:plan.counts, tasks:incidentTasks },
     healthyRuns: workflows.filter(x => x.health === "ok").length
   };
