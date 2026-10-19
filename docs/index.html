@@ -77,6 +77,34 @@
         <p class="explain">点線は比較基準（score差・log/Brier差は0、Top7は理論平均1.324個）です。まだ結果がない検証は空欄のまま表示します。途中経過は精度改善の証明ではありません。</p>
       </section>
 
+      <section class="section" id="advanced-validation" aria-labelledby="advanced-validation-title">
+        <div class="section-heading">
+          <div><span class="section-index">ADVANCED / SCIENTIFIC VALIDATION</span><h2 id="advanced-validation-title">高度な統計検証ラボ</h2></div>
+          <p>モデル選択の偶然と、真の未来の証拠を分離</p>
+        </div>
+        <div class="science-grid">
+          <article class="panel science-panel">
+            <div class="panel-heading"><div><h3>4モデル vs 5モデル</h3><span>探索済み過去60回の参考比較</span></div><span class="label-outline">探索的・採用根拠ではない</span></div>
+            <div class="science-comparison">
+              <div><span>従来4モデル Top7</span><strong id="science-four-top7">—</strong></div>
+              <div><span>追加5モデル Top7</span><strong id="science-five-top7">—</strong></div>
+            </div>
+            <div class="fact-row"><span>過去の平均log-score差（5−4）</span><b id="science-log-delta">—</b></div>
+            <div class="fact-row"><span>時系列block-bootstrap参考95%区間</span><b id="science-ci">—</b></div>
+            <div class="fact-row"><span>モデル選択補正・公平シミュレーション</span><b id="science-p">—</b></div>
+            <p class="science-note">複数モデルから最良を選ぶ偶然を含めた比較です。過去に何度も調査した履歴のため、p値は確認的な証拠ではありません。</p>
+          </article>
+          <article class="panel science-panel">
+            <div class="panel-heading"><div><h3>事前凍結 × 逐次e値</h3><span>真に未知だった結果だけで計算</span></div><span id="science-future-pill" class="label-outline">証拠待ち</span></div>
+            <div class="science-future-head"><div><span>条件付き公平抽せんに対するe値</span><strong id="science-e">—</strong></div><div><span>事前登録の監視閾値</span><strong id="science-threshold">20</strong></div></div>
+            <div class="fact-row"><span>検証済み未来抽せん</span><b id="science-trusted">—</b></div>
+            <div class="fact-row"><span>累積e値の過去最大</span><b id="science-max-e">—</b></div>
+            <div id="science-e-plot" class="science-plot"><p class="muted">新しい事前凍結・検証済み結果を待機中</p></div>
+            <p class="science-note">e値は公平な7/37帰無仮説の証拠であり、当せん確率の上昇や本番昇格を意味しません。閾値を超えても自動採用しません。</p>
+          </article>
+        </div>
+      </section>
+
       <section class="section" id="research" aria-labelledby="section-research">
         <div class="section-heading"><div><span class="section-index">03 / LEARNING & RESEARCH</span><h2 id="section-research">AIの学習と研究</h2></div><p>探索の進行と、比較検証の状況</p></div>
         <div class="research-layout">
