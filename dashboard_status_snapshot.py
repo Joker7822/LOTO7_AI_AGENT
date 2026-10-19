@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from agent_operations_planner import build_plan
+from loto7_evolving_agent import fingerprint_file
 
 VERSION = "loto7-ops-snapshot-v1"
 JST = timezone(timedelta(hours=9))
@@ -278,11 +279,71 @@ def workflows_from_api(repository: str, token: str | None = None, timeout: int =
     return output
 
 
+def scientific_research_projection(root: Path, out: Path) -> tuple[dict, str | None]:
+    """Public summaries only, never candidate full vectors or graded numbers."""
+    path = out / "advanced_validation_lab_summary.json"
+    if not path.exists():
+        return {"status": "not_yet_published", "future_draws": None}, None
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    raw = read_object(path)
+    if raw.get("version") != "advanced-validation-lab-v1":
+        return {"status": "invalid_protocol_version", "future_draws": None}, digest
+    candidate_state = read_object(out / "accuracy_extension_agent_state.json")
+    candidate_reg = read_object(out / "accuracy_extension_agent_registration.json")
+    current_history = fingerprint_file(root / "loto7.csv")
+    new_hypothesis = raw.get("source_model_manifest_sha256") == candidate_reg["algorithm_manifest"]["manifest_sha256"]
+    future = raw.get("future_e_monitor", {})
+    hist = raw.get("historical_exploratory", {})
+    observed = future.get("verified_prefrozen_draws")
+    if (raw.get("historical_data_sha256") != current_history or not new_hypothesis
+            or not isinstance(observed, int) or observed != candidate_state.get("trusted_draws")
+            or len(future.get("series", [])) != observed):
+        return {"status": "stale_or_mismatched_evidence", "future_draws": None}, digest
+    best = hist.get("matched_full_budget_fair_draws", {})
+    bootstrap = hist.get("paired_block_bootstrap", {})
+    original = hist.get("original_four", {})
+    candidate = hist.get("candidate_five", {})
+    result = {
+        "status": "verified_diagnostic_only",
+        "model_family": "four_vs_five_experts",
+        "candidate_protocol": "predeclared_701_start",
+        "history_round_start": hist.get("round_start"),
+        "history_round_end": hist.get("round_end"),
+        "original_four_top7": original.get("mean_top7_hits"),
+        "candidate_five_top7": candidate.get("mean_top7_hits"),
+        "original_four_log_edge": original.get("mean_log_edge"),
+        "candidate_five_log_edge": candidate.get("mean_log_edge"),
+        "historical_selection_adjusted_p_exploratory_only": best.get(
+            "max_statistic_selection_adjusted_empirical_tail_p"
+        ),
+        "historical_matched_fair_worlds": best.get("worlds"),
+        "historical_paired_block_ci": {
+            "low95": bootstrap.get("low95"), "high95": bootstrap.get("high95"),
+            "mean_five_minus_four": bootstrap.get("mean_five_minus_four")
+        },
+        "future_draws": observed,
+        "future_current_e": future.get("current_e_value"),
+        "future_max_e": future.get("max_e_value"),
+        "future_threshold": future.get("ville_threshold"),
+        "future_threshold_crossed": future.get("threshold_crossed"),
+        "future_e_series": [
+            {"round": r.get("round"), "e_value": r.get("e_value")}
+            for r in future.get("series", [])
+        ],
+        "inference_scope": "conditional_fair_null_for_one_future_prefrozen_stream_only",
+        "promotion_eligible": False,
+    }
+    return result, digest
+
+
 def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None = None,
                     ref: str | None = None) -> dict:
     out = root / "loto7_agent_output"
     sources, sha = read_sources(out)
     series = read_future_series(out, sources)
+    scientific, research_hash = scientific_research_projection(root, out)
+    if research_hash is not None:
+        sha["scientific_validation"] = research_hash
     if len(workflows) != len(WORKFLOWS):
         raise error("workflow telemetry missing items")
     filenames = [x.get("file") for x in workflows]
@@ -296,6 +357,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
             ["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip(),
         "state_hashes_sha256": hashlib.sha256(json.dumps(sha, sort_keys=True).encode()).hexdigest(),
         "sources": sources, "workflows": workflows, "series": series,
+        "scientific_validation": scientific,
         "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
     }
     snapshot["operations_plan"] = build_plan(snapshot, now=moment)
