@@ -1,7 +1,7 @@
 # Continuous Learning Agent — prospective forecast lifecycle
 
 - version: continuous-learning-agent-v1
-- latest verified draw round: 699 / trusted=True
+- latest verified draw round: 699 / trusted=False
 - status: **waiting_for_verified_round_700_prefix**
 - frozen next-round target: **None**
 - genuine future draws graded: **0**
