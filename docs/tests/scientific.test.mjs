@@ -31,7 +31,7 @@ test("historical evidence and future neutral e=1 are displayed separately",()=>{
   assert.deepEqual(x.series,[]);
 });
 test("real future-only e values require contiguous targets starting at 701",()=>{
-  const a=valid();a.futureDraws=2;a.future_current_e=1.08;a.future_max_e=1.2;
+  const a=valid();a.future_draws=2;a.future_current_e=1.08;a.future_max_e=1.2;
   a.future_e_series=[{round:701,e_value:1.2},{round:702,e_value:1.08}];
   const z=normalizeScientificValidation(a);
   assert.equal(z.series.length,2);
