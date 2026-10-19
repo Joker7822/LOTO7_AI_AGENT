@@ -47,12 +47,44 @@ def rewrite(path, mutate):
     path.write_text(json.dumps(obj, ensure_ascii=False), encoding="utf-8")
 
 
+def set_verified_source_fixture(root):
+    """Simulate a verified second-source record only in the isolated test tree.
+
+    Never relabel the live degraded source report or registered Future-OOS.
+    The real latest CSV and published-number fields remain unchanged.
+    """
+    path = root / "loto7_agent_output" / "source_validation.json"
+
+    def verify(report):
+        report["status"] = "ok"
+        report["verification"] = "verified_two_result_sources"
+        # A separate matching source *record* is mandatory under the existing
+        # trusted-source guard; creating this is only a synthetic unit fixture.
+        report.setdefault("sources", {})["rakuten_bank"] = dict(report["latest"])
+
+    rewrite(path, verify)
+
+
 def test_role_council_preserves_current_registered_evidence(root):
     report = council.evaluate(root, NOW)
     assert tuple(report["roles"]) == council.ROLES
     assert report["overall"] == "watch"  # Existing 7/26 holdout, current 699.
     assert report["latest_resolved_round"] == 699
-    assert report["roles"]["data_steward"]["status"] == "ok"
+    source = json.loads(
+        (root / "loto7_agent_output" / "source_validation.json").read_text(encoding="utf-8")
+    )
+    expected_trust = (
+        source["status"] == "ok"
+        and source["verification"] == "verified_two_result_sources"
+    )
+    # A current one-source/degraded report is WATCH, not falsely trusted.
+    assert report["roles"]["data_steward"]["status"] == (
+        "ok" if expected_trust else "watch"
+    )
+    if not expected_trust:
+        assert "RESULT_NOT_TWO_SOURCE_VERIFIED" in [
+            f["code"] for f in report["roles"]["data_steward"]["findings"]
+        ]
     assert report["roles"]["prospective_signal_custodian"]["status"] == "ok"
     assert report["roles"]["oos_risk_officer"]["status"] == "watch"
     assert report["roles"]["release_operations"]["status"] == "ok"
@@ -82,6 +114,10 @@ def test_status_only_writes_two_advisory_files(root, tmp_path):
 
 
 def test_source_number_conflict_blocks_only_governed_role(root):
+    # A *trusted* result must match the CSV and independently matching source.
+    # Without this setup, the real degraded report must remain merely WATCH.
+    set_verified_source_fixture(root)
+    assert council.evaluate(root, NOW)["roles"]["data_steward"]["status"] == "ok"
     path = root / "loto7_agent_output" / "source_validation.json"
     rewrite(path, lambda s: s["latest"].update(main=[1, 2, 3, 4, 5, 6, 7]))
     result = council.evaluate(root, NOW)
@@ -90,6 +126,33 @@ def test_source_number_conflict_blocks_only_governed_role(root):
     assert result["roles"]["oos_risk_officer"]["status"] == "watch"
     assert result["handoff_tasks"][0]["owner"] == "data_steward"
     assert result["handoff_tasks"][0]["autonomous_production_write_allowed"] is False
+
+
+
+
+def test_degraded_single_source_never_pretends_to_verify_conflicting_numbers(root):
+    path = root / "loto7_agent_output" / "source_validation.json"
+
+    def degrade_and_conflict(report):
+        report["status"] = "degraded"
+        report["verification"] = "degraded_single_result_source"
+        report["latest"]["main"] = [1, 2, 3, 4, 5, 6, 7]
+
+    rewrite(path, degrade_and_conflict)
+    role = council.evaluate(root, NOW)["roles"]["data_steward"]
+    assert role["status"] == "watch"
+    assert role["findings"][0]["code"] == "RESULT_NOT_TWO_SOURCE_VERIFIED"
+
+
+def test_trusted_result_with_mismatched_secondary_source_blocks(root):
+    set_verified_source_fixture(root)
+    path = root / "loto7_agent_output" / "source_validation.json"
+    rewrite(path, lambda s: s["sources"]["rakuten_bank"].update(
+        main=[1, 2, 3, 4, 5, 6, 7]
+    ))
+    role = council.evaluate(root, NOW)["roles"]["data_steward"]
+    assert role["status"] == "block"
+    assert role["findings"][0]["code"] == "DATA_INTEGRITY_BLOCK"
 
 
 def test_registered_model_sha_drift_fails_closed(root):
