@@ -150,6 +150,7 @@ def test_scientific_projection_whitelists_scores_and_detects_stale_inputs(projec
                  "accuracy_extension_agent_state.json"):
         shutil.copyfile(Path("loto7_agent_output") / name, out / name)
     reg = json.loads((out / "accuracy_extension_agent_registration.json").read_text())
+    shutil.copyfile(Path("loto7.csv"), project / "loto7.csv")
     source_sha = fingerprint_file(project / "loto7.csv")
     report = {
         "version": "advanced-validation-lab-v1",
