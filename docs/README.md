@@ -70,3 +70,16 @@ If the official URL shows 404, enable GitHub Pages in Settings first and check t
 テストは `python -m pytest -q tests/test_dashboard_status_snapshot.py` と `node --test docs/tests/*.test.mjs` です。CI内の一時キャッシュはファイルが存在しても構いません。Gitの追跡対象でないことを確認します（`tests/test_ephemeral_research_caches.py`）。
 
 **注意:** フローの失敗理由がGitHub APIから取れない場合は「未取得」と表示します。過去の探索済み成績は将来の精度改善を示す統計的証拠ではありません。
+
+
+## Advanced Scientific Validation Laboratory
+
+The dashboard has a new section showing (1) exploratory side-by-side four/five expert comparisons with a matched full-learner fair-lottery max-statistic experiment and four-draw paired block-bootstrap interval, and (2) an **independently preregistered future-only anytime e-process** from SHA-verified fifth-expert prospective freeze ledgers.
+
+The e-value starts at 1 with **zero new actual future draws**, stays empty until the registered target 701 is graded from a two-source verified result, and does **not** imply lottery winning or Production adoption. Raw 37-number prediction vectors and ticket numbers are never displayed. If research data are missing, stale, or inconsistent with the fifth-expert registration, the site labels them as unavailable rather than successful.
+
+- Lab entrypoint: advanced_validation_lab.py
+- Independent workflow: .github/workflows/advanced_validation_lab.yml
+- Protocol: ADVANCED_VALIDATION_LAB.md
+- One public summary: loto7_agent_output/advanced_validation_lab_summary.json
+- New snapshot field: scientific_validation
