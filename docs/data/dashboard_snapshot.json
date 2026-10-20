@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-20T08:49:26+09:00",
-  "source_commit": "ea125e66f4b383afa281f87fd3cfd1d500ff24ca",
-  "state_hashes_sha256": "c17572375b8666a83e8f03bccd3db01d8e672df3f2ed482cf3a2e233d142e769",
+  "generated_at_jst": "2026-10-20T10:20:35+09:00",
+  "source_commit": "e1e22976a01acae45db4ea8a7cfe30c2bf29dfc1",
+  "state_hashes_sha256": "14e341c6160ade270e1965c4e16bf4764dbe0e861019a46512bb2b07d0c45038",
   "sources": {
     "source": {
       "status": "degraded",
       "verification": "degraded_single_result_source",
-      "checked_at_jst": "2026-10-20T08:22:12+09:00",
+      "checked_at_jst": "2026-10-20T09:33:28+09:00",
       "latest": {
         "round": 699,
         "date": "2026-10-16",
@@ -261,9 +261,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39195487896,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39195487896",
-      "updated_at": "2026-10-19T03:36:39Z",
+      "run_id": 39352764285,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39352764285",
+      "updated_at": "2026-10-20T01:19:27Z",
       "recent_failure_count": 0
     }
   ],
@@ -349,12 +349,57 @@
     "inference_scope": "conditional_fair_null_for_one_future_prefrozen_stream_only",
     "promotion_eligible": false
   },
+  "always_on_accuracy": {
+    "status": "active_bounded_research",
+    "sequence": 1,
+    "last_activity_jst": "2026-10-20T10:20:28+09:00",
+    "current_phase": "literature_search",
+    "current_activity": "インターネットから最新の研究論文を検索",
+    "online_search_status": "searched",
+    "research_mode": "VALIDATION_ONLY",
+    "two_source_verified": false,
+    "new_papers_count": 4,
+    "papers": [
+      {
+        "title": "Enforcing tail calibration when training probabilistic forecast models",
+        "url": "https://doi.org/10.1016/j.ijforecast.2026.04.009",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "PBIE Pro: A Hybrid Probabilistic Decision Framework Integrating Bayesian Inference, Scenario Simulation, and Calibration-Aware Intuition for Robust Forecasting Under Data Scarcity",
+        "url": "https://doi.org/10.2139/ssrn.6617378",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "Investigating Calibration Challenges in Probabilistic Electricity Price Forecasting",
+        "url": "https://doi.org/10.1145/3765611.3815392",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "Transformer-Based Probabilistic Demand Forecasting with Adaptive Online Learning",
+        "url": "https://doi.org/10.2139/ssrn.4896166",
+        "year": 2024,
+        "review_status": "unreviewed"
+      }
+    ],
+    "promotion_authorized": false,
+    "review_notes": [
+      "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
+      "探索予算ガードがVALIDATION_ONLY。既存データの無制限再探索は禁止。",
+      "真正Future-OOSの実測がまだ不足。改善を断定しない。",
+      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
+      "オンライン検索: searched / 新規候補 4件"
+    ]
+  },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "ea125e66f4b383afa281f87fd3cfd1d500ff24ca",
-    "snapshot_generated_at_jst": "2026-10-20T08:49:26+09:00",
-    "computed_at_jst": "2026-10-19T23:49:26+00:00",
+    "source_commit": "e1e22976a01acae45db4ea8a7cfe30c2bf29dfc1",
+    "snapshot_generated_at_jst": "2026-10-20T10:20:35+09:00",
+    "computed_at_jst": "2026-10-20T01:20:35+00:00",
     "overall": "block",
     "counts": {
       "block": 1,
