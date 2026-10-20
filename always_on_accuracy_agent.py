@@ -23,11 +23,11 @@ VERSION = "always-on-accuracy-research-v1"
 JST = timezone(timedelta(hours=9))
 GENESIS = "GENESIS"
 PHASES = (
+    ("literature_search", "インターネットから最新の研究論文を検索"),
     ("source_audit", "結果の二重ソース照合と鮮度を点検"),
     ("future_protocol", "事前凍結と真正将来採点の連続性を監査"),
     ("generalization", "過去モデル比較・多重比較を点検"),
     ("calibration", "未来の校正と逐次e値を点検"),
-    ("literature_search", "インターネットから最新の研究論文を検索"),
     ("budget_and_plan", "試行予算を守り次の検証を計画"),
 )
 TOPICS = (
