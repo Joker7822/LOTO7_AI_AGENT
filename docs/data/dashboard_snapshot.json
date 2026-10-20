@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-20T13:39:37+09:00",
-  "source_commit": "4d4c0949819bf62390b19d54e9d50293353f695e",
-  "state_hashes_sha256": "811658849d49351fc59766e101c938f0a51b8aef7b71cd1f3f95f493c92dfd0b",
+  "generated_at_jst": "2026-10-20T18:41:29+09:00",
+  "source_commit": "6932cac1c361d5ac294aa4bed83167ffc9d2edd3",
+  "state_hashes_sha256": "d74d5dc798c5dad70b29e3e3f03eeda72080915a8e80ef5888f1a718aa3aafec",
   "sources": {
     "source": {
       "status": "degraded",
       "verification": "degraded_single_result_source",
-      "checked_at_jst": "2026-10-20T12:52:31+09:00",
+      "checked_at_jst": "2026-10-20T18:02:22+09:00",
       "latest": {
         "round": 699,
         "date": "2026-10-16",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-10-19T15:49:24+09:00",
+      "checked_at_jst": "2026-10-20T15:36:15+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -195,10 +195,10 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 39353433794,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39353433794",
-      "updated_at": "2026-10-20T01:26:33Z",
-      "recent_failure_count": 2
+      "run_id": 39375417820,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39375417820",
+      "updated_at": "2026-10-20T05:32:18Z",
+      "recent_failure_count": 1
     },
     {
       "file": "continuous_learning_agent.yml",
@@ -206,9 +206,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39210898693,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39210898693",
-      "updated_at": "2026-10-19T06:37:46Z",
+      "run_id": 39380002664,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39380002664",
+      "updated_at": "2026-10-20T06:23:49Z",
       "recent_failure_count": 0
     },
     {
@@ -217,9 +217,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39212031444,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39212031444",
-      "updated_at": "2026-10-19T06:49:28Z",
+      "run_id": 39381258688,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39381258688",
+      "updated_at": "2026-10-20T06:36:19Z",
       "recent_failure_count": 0
     },
     {
@@ -228,9 +228,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39208296091,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39208296091",
-      "updated_at": "2026-10-19T06:10:44Z",
+      "run_id": 39377802834,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39377802834",
+      "updated_at": "2026-10-20T06:00:18Z",
       "recent_failure_count": 0
     },
     {
@@ -239,9 +239,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39207932966,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39207932966",
-      "updated_at": "2026-10-19T06:06:26Z",
+      "run_id": 39377679726,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39377679726",
+      "updated_at": "2026-10-20T05:58:39Z",
       "recent_failure_count": 0
     },
     {
@@ -351,10 +351,10 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 2,
-    "last_activity_jst": "2026-10-20T10:25:21+09:00",
-    "current_phase": "source_audit",
-    "current_activity": "結果の二重ソース照合と鮮度を点検",
+    "sequence": 3,
+    "last_activity_jst": "2026-10-20T16:38:20+09:00",
+    "current_phase": "future_protocol",
+    "current_activity": "事前凍結と真正将来採点の連続性を監査",
     "online_search_status": "not_scheduled",
     "research_mode": "VALIDATION_ONLY",
     "two_source_verified": false,
@@ -390,15 +390,15 @@
       "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがVALIDATION_ONLY。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "最新信頼ステータス: degraded_single_result_source"
+      "26回固定holdout 7/26、新規v2 0回"
     ]
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "4d4c0949819bf62390b19d54e9d50293353f695e",
-    "snapshot_generated_at_jst": "2026-10-20T13:39:37+09:00",
-    "computed_at_jst": "2026-10-20T04:39:37+00:00",
+    "source_commit": "6932cac1c361d5ac294aa4bed83167ffc9d2edd3",
+    "snapshot_generated_at_jst": "2026-10-20T18:41:29+09:00",
+    "computed_at_jst": "2026-10-20T09:41:29+00:00",
     "overall": "block",
     "counts": {
       "block": 1,
