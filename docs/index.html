@@ -77,6 +77,28 @@
         <p class="explain">点線は比較基準（score差・log/Brier差は0、Top7は理論平均1.324個）です。まだ結果がない検証は空欄のまま表示します。途中経過は精度改善の証明ではありません。</p>
       </section>
 
+      <section class="section" id="always-on-accuracy" aria-labelledby="always-on-title">
+        <div class="section-heading">
+          <div><span class="section-index">AUTONOMOUS / BOUNDED RESEARCH</span><h2 id="always-on-title">自律研究エージェントの活動</h2></div>
+          <p>毎時の安全な監査とオンライン論文調査</p>
+        </div>
+        <div class="always-on-grid">
+          <article class="panel">
+            <div class="panel-heading"><div><h3>研究サイクル</h3><span>本番モデルは変更しません</span></div><span id="always-on-health" class="label-outline">起動待ち</span></div>
+            <div class="fact-row"><span>記録された活動回数</span><b id="always-on-count">—</b></div>
+            <div class="fact-row"><span>最後の活動</span><b id="always-on-time">—</b></div>
+            <div class="fact-row"><span>今回の研究作業</span><b id="always-on-activity">—</b></div>
+            <div class="fact-row"><span>探索許可・研究予算</span><b id="always-on-mode">—</b></div>
+            <p class="science-note">1時間ごとに最大1つの重点活動を実施する予定です。GitHub Actionsの実行は遅れることがあります。結果不十分・予算上限のときは調査・監査を継続し、無制限の追加学習は行いません。</p>
+          </article>
+          <article class="panel">
+            <div class="panel-heading"><div><h3>オンライン研究文献</h3><span>Crossrefの公開書誌情報から自動取得</span></div><span id="always-on-search" class="label-outline">検索待ち</span></div>
+            <div id="always-on-paper-list" class="always-on-papers"><p class="muted">文献の検索結果を待っています。</p></div>
+            <p class="science-note">掲載文献は未検証の研究候補です。検索結果や外部ページの指示を実行せず、第三者のコードを無断で本番に導入しません。</p>
+          </article>
+        </div>
+      </section>
+
       <section class="section" id="advanced-validation" aria-labelledby="advanced-validation-title">
         <div class="section-heading">
           <div><span class="section-index">ADVANCED / SCIENTIFIC VALIDATION</span><h2 id="advanced-validation-title">高度な統計検証ラボ</h2></div>
