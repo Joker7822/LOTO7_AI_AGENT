@@ -336,12 +336,53 @@ def scientific_research_projection(root: Path, out: Path) -> tuple[dict, str | N
     return result, digest
 
 
+def always_on_research_projection(out: Path) -> tuple[dict, str | None]:
+    """Expose only nonsecret, unreviewed research bibliographic metadata."""
+    path = out / "always_on_accuracy_research_state.json"
+    if not path.exists():
+        return {"status": "not_yet_started"}, None
+    raw = read_object(path)
+    checksum = hashlib.sha256(path.read_bytes()).hexdigest()
+    if (raw.get("version") != "always-on-accuracy-research-v1"
+            or raw.get("read_only_scientific_activity") is not True
+            or raw.get("promotion_authorized") is not False):
+        return {"status": "invalid_or_unsafe"}, checksum
+    papers = []
+    for paper in raw.get("papers", [])[:8]:
+        doi = paper.get("doi", "")
+        url = paper.get("url", "")
+        if (not isinstance(doi, str) or not doi.startswith("10.")
+                or not isinstance(url, str) or not url.startswith("https://doi.org/")):
+            continue
+        papers.append({
+            "title": str(paper.get("title", ""))[:200], "url": url[:240],
+            "year": paper.get("year"), "review_status": "unreviewed"
+        })
+    return {
+        "status": raw.get("status"),
+        "sequence": raw.get("sequence"),
+        "last_activity_jst": raw.get("last_activity_jst"),
+        "current_phase": raw.get("current_phase"),
+        "current_activity": str(raw.get("current_activity", ""))[:150],
+        "online_search_status": str(raw.get("online_search_status", ""))[:80],
+        "research_mode": raw.get("research_mode"),
+        "two_source_verified": raw.get("two_source_verified"),
+        "new_papers_count": raw.get("new_papers_count"),
+        "papers": papers,
+        "promotion_authorized": False,
+        "review_notes": [str(note)[:160] for note in raw.get("review_notes", [])[:6]],
+    }, checksum
+
+
 def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None = None,
                     ref: str | None = None) -> dict:
     out = root / "loto7_agent_output"
     sources, sha = read_sources(out)
     series = read_future_series(out, sources)
     scientific, research_hash = scientific_research_projection(root, out)
+    always_on, activity_hash = always_on_research_projection(out)
+    if activity_hash is not None:
+        sha["always_on_research"] = activity_hash
     if research_hash is not None:
         sha["scientific_validation"] = research_hash
     if len(workflows) != len(WORKFLOWS):
@@ -358,6 +399,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         "state_hashes_sha256": hashlib.sha256(json.dumps(sha, sort_keys=True).encode()).hexdigest(),
         "sources": sources, "workflows": workflows, "series": series,
         "scientific_validation": scientific,
+        "always_on_accuracy": always_on,
         "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
     }
     snapshot["operations_plan"] = build_plan(snapshot, now=moment)

@@ -70,6 +70,41 @@ export function normalizeScientificValidation(value) {
   };
 }
 
+export function normalizeAlwaysOnActivity(value, now = new Date()) {
+  if (!value || value.status === "not_yet_started") {
+    return {status:"not_yet_started",papers:[],sequence:0};
+  }
+  if (!["active_bounded_research","online_unavailable"].includes(value.status) ||
+      value.promotion_authorized !== false ||
+      !Number.isInteger(value.sequence) || value.sequence < 1 ||
+      !Array.isArray(value.papers) || !Array.isArray(value.review_notes) ||
+      typeof value.last_activity_jst !== "string") {
+    return {status:"invalid_or_unsafe",papers:[],sequence:0};
+  }
+  const ageHours=(now.getTime()-new Date(value.last_activity_jst).getTime())/3600000;
+  if (!Number.isFinite(ageHours)) return {status:"invalid_or_unsafe",papers:[],sequence:0};
+  const papers=value.papers.slice(0,8).map(p=>{
+    const link=typeof p.url === "string" && /^https:\/\/doi\.org\/10\.\d{4,9}\/[a-z0-9._;():%/-]+$/i.test(p.url) ? p.url : null;
+    if (!link || p.review_status!=="unreviewed" ||
+        typeof p.title!=="string" || p.title.length>200 || !Number.isInteger(p.year)) {
+      return null;
+    }
+    return {title:p.title,year:p.year,url:link,reviewStatus:"unreviewed"};
+  }).filter(Boolean);
+  return {
+    status:value.status,
+    stale:ageHours>2.5 || ageHours < -1,
+    sequence:value.sequence,
+    lastActivity:value.last_activity_jst,
+    activity:String(value.current_activity||"").slice(0,150),
+    phase:String(value.current_phase||"").slice(0,60),
+    researchMode:String(value.research_mode||"").slice(0,40),
+    searchStatus:String(value.online_search_status||"").slice(0,80),
+    papers,
+    reviewNotes:value.review_notes.slice(0,6).map(n=>String(n).slice(0,160))
+  };
+}
+
 export function normalizeSnapshot(snapshot, now = new Date()) {
   if (!snapshot || typeof snapshot !== "object" ||
       snapshot.version !== SNAPSHOT_VERSION ||
@@ -164,7 +199,12 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     throw new Error("AI司令塔の優先順位と件数が一致しません");
   }
   const scientificValidation = normalizeScientificValidation(snapshot.scientific_validation);
+  const alwaysOnActivity = normalizeAlwaysOnActivity(snapshot.always_on_accuracy, now);
   const alerts = [];
+  if (alwaysOnActivity.stale || alwaysOnActivity.status === "invalid_or_unsafe") alerts.push({
+    severity:"watch",source:"自律研究活動",
+    description:"定期監査が古いか、活動証跡を検証できません。研究workflowの最新実行を確認してください。"
+  });
   if (scientificValidation.status === "stale_or_mismatched_evidence") alerts.push({
     severity:"watch",source:"高度な研究データ",
     description:"統計研究の状態が古いか、原データと一致していません。結果を採用せず専用CIを確認してください。"
@@ -190,6 +230,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     ageMinutes, outdated, workflows, series, alerts,
     sources: snapshot.sources,
     scientificValidation,
+    alwaysOnActivity,
     operationsPlan: { overall:plan.overall, counts:plan.counts, tasks:incidentTasks },
     healthyRuns: workflows.filter(x => x.health === "ok").length
   };

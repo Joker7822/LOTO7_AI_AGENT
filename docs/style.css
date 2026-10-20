@@ -70,3 +70,16 @@
 .science-plot svg{width:100%;max-height:190px;display:block}
 .science-empty{font-size:11px;color:var(--sub);background:rgba(95,228,218,.05);border:1px dashed var(--line2);border-radius:12px;padding:17px;line-height:1.8}
 @media(max-width:780px){.science-grid{grid-template-columns:1fr}.science-panel{padding:19px}.science-comparison strong,.science-future-head strong{font-size:21px}}
+
+/* Auditable scheduled research and untrusted online scholarly leads */
+.always-on-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.always-on-grid .panel{min-width:0}
+.always-on-grid .panel-heading{flex-wrap:wrap}
+.always-on-grid .panel-heading h3{font-size:15px}
+.always-on-papers{max-height:360px;overflow-y:auto;margin-top:10px}
+.always-on-paper{padding:11px 0;border-bottom:1px solid var(--line)}
+.always-on-paper:last-child{border-bottom:0}
+.always-on-doi{font-size:12px;color:var(--cyan);text-decoration:none;line-height:1.7;display:block;overflow-wrap:anywhere}
+.always-on-doi:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.always-on-paper p{font-size:10px;color:var(--muted);margin:5px 0 0}
+@media(max-width:780px){.always-on-grid{grid-template-columns:1fr}}
