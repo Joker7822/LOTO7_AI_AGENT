@@ -1,8 +1,8 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-10-20T10:25:21+09:00**
-- Completed audit cycles: **2**
-- This cycle: **source_audit** / 結果の二重ソース照合と鮮度を点検
+- Last executed: **2026-10-20T16:38:20+09:00**
+- Completed audit cycles: **3**
+- This cycle: **future_protocol** / 事前凍結と真正将来採点の連続性を監査
 - Network discovery: **not_scheduled**
 - Trusted draw latest: **699**, two-source: **False**
 - Research guard: **VALIDATION_ONLY**, same-data trials: **768/800**
@@ -12,7 +12,7 @@
 - 独立2ソース未照合。未信頼結果で将来予測を採点しない。
 - 探索予算ガードがVALIDATION_ONLY。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 最新信頼ステータス: degraded_single_result_source
+- 26回固定holdout 7/26、新規v2 0回
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
 - [Enforcing tail calibration when training probabilistic forecast models](https://doi.org/10.1016/j.ijforecast.2026.04.009) (2026) — UNREVIEWED
