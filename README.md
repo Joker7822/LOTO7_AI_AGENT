@@ -291,3 +291,13 @@ python v4_status.py
 - [統計と安全上の設計](ADVANCED_VALIDATION_LAB.md)
 - [統合ブラウザダッシュボード](https://joker7822.github.io/LOTO7_AI_AGENT/)
 - 既存のProduction・Champion・登録済み将来検証の台帳には変更しません。
+
+
+## 自律研究とオンライン文献検索
+
+研究エージェントが1時間ごとに既存の研究・将来検証・ソース状態を監査し、6つの重点作業を巡回します。約6サイクルに1回、[Crossref公式API](https://www.crossref.org/documentation/retrieve-metadata/rest-api/)で予測校正や逐次統計検定などの新しい公開論文を検索し、書誌メタデータだけを未検証の研究候補として保存します。
+
+- [常時活動と文献検索の設計・安全ルール](ALWAYS_ON_ACCURACY_RESEARCH.md)
+- [ブラウザダッシュボード](https://joker7822.github.io/LOTO7_AI_AGENT/)
+
+登録済み将来検証・Production・Championは変更しません。毎時の実行はGitHub Actionsのベストエフォートで、実行遅延とネットワーク障害は可視化します。
