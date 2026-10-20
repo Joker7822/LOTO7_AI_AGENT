@@ -188,3 +188,38 @@ def test_scientific_projection_whitelists_scores_and_detects_stale_inputs(projec
     stale, _ = d.scientific_research_projection(project, out)
     assert stale["status"] == "stale_or_mismatched_evidence"
     assert stale["future_draws"] is None
+
+
+
+def test_always_on_activity_optional_and_public_whitelist(project):
+    out = project / "loto7_agent_output"
+    empty, digest = d.always_on_research_projection(out)
+    assert empty == {"status": "not_yet_started"}
+    assert digest is None
+    state = {
+        "version": "always-on-accuracy-research-v1",
+        "status": "active_bounded_research",
+        "sequence": 9, "last_activity_jst": "2026-10-20T10:17:00+09:00",
+        "current_phase": "literature_search", "current_activity": "文献調査",
+        "online_search_status": "searched", "research_mode": "VALIDATION_ONLY",
+        "two_source_verified": False, "new_papers_count": 1,
+        "papers": [{"title": "Online forecasting", "year": 2026,
+                    "doi": "10.1234/abc",
+                    "url": "https://doi.org/10.1234/abc",
+                    "review_status": "unreviewed"}],
+        "review_notes": ["外部結果は未検証"],
+        "promotion_authorized": False,
+        "read_only_scientific_activity": True,
+        "secret_api_key": "never expose me",
+    }
+    p = out / "always_on_accuracy_research_state.json"
+    p.write_text(json.dumps(state, ensure_ascii=False))
+    projected, hash_ = d.always_on_research_projection(out)
+    assert hash_
+    assert projected["status"] == "active_bounded_research"
+    assert projected["papers"][0]["review_status"] == "unreviewed"
+    assert "secret_api_key" not in json.dumps(projected)
+    state["promotion_authorized"] = True
+    p.write_text(json.dumps(state, ensure_ascii=False))
+    unsafe, _ = d.always_on_research_projection(out)
+    assert unsafe["status"] == "invalid_or_unsafe"
