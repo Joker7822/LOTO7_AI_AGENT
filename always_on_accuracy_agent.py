@@ -222,6 +222,64 @@ def fetch_crossref(topic: str, since: str, timeout: int = 10) -> list[dict]:
     return output
 
 
+def fetch_openalex(topic: str, since: str, timeout: int = 10) -> list[dict]:
+    """Fallback public OpenAlex metadata; DOI allowlist and no body downloads."""
+    if topic not in TOPICS or not re.fullmatch(r"\d{4}-\d\d-\d\d", since):
+        raise ValueError("unregistered online research topic or date")
+    qs = urllib.parse.urlencode({
+        "search": topic,
+        "filter": "from_publication_date:" + since,
+        "per_page": 10, "select": "doi,title,publication_year",
+    })
+    request = urllib.request.Request(
+        "https://api.openalex.org/works?" + qs,
+        headers={"User-Agent": "LOTO7-Research-Discovery/1.0 (+https://github.com/Joker7822/LOTO7_AI_AGENT)",
+                 "Accept": "application/json"},
+    )
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        if getattr(response, "status", 200) != 200:
+            raise ValueError("OpenAlex unexpected status")
+        body = response.read(700_001)
+    if len(body) > 700_000:
+        raise ValueError("OpenAlex payload too large")
+    payload = json.loads(body)
+    items = payload.get("results", [])
+    if not isinstance(items, list):
+        raise ValueError("OpenAlex works malformed")
+    output = []
+    for item in items:
+        uri = item.get("doi", "")
+        if not isinstance(uri, str) or not uri.lower().startswith("https://doi.org/"):
+            continue
+        doi = urllib.parse.unquote(uri[len("https://doi.org/"):]).lower()
+        title = item.get("title", "")
+        year = item.get("publication_year")
+        if (not re.fullmatch(r"10\.\d{4,9}/[^\s<>\"']{1,130}", doi)
+                or not isinstance(title, str) or not title or len(title) > 220
+                or not isinstance(year, int) or year < int(since[:4])
+                or year > datetime.now(JST).year):
+            continue
+        if not any(k in title.lower() for k in TITLE_HINTS):
+            continue
+        output.append({
+            "doi": doi, "title": title[:200], "year": year,
+            "url": "https://doi.org/" + urllib.parse.quote(doi, safe="/.-_;():"),
+            "source": "OpenAlex bibliographic metadata",
+            "review_status": "unreviewed",
+        })
+        if len(output) == 4:
+            break
+    return output
+
+
+def fetch_scholarly_metadata(topic: str, since: str) -> list[dict]:
+    """Fail over on transport errors; never fake papers on two provider failures."""
+    try:
+        return fetch_crossref(topic, since)
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError, KeyError, json.JSONDecodeError):
+        return fetch_openalex(topic, since)
+
+
 def next_focus(seq: int, info: dict, latest_papers: list[dict], discovery_status: str) -> tuple[str, str, list[str]]:
     phase, description = PHASES[seq % len(PHASES)]
     notes = []
@@ -248,7 +306,7 @@ def next_focus(seq: int, info: dict, latest_papers: list[dict], discovery_status
 
 
 def run(root: Path, *, now: datetime | None = None,
-        fetcher: Callable[[str, str], list[dict]] = fetch_crossref) -> dict:
+        fetcher: Callable[[str, str], list[dict]] = fetch_scholarly_metadata) -> dict:
     root = root.resolve()
     out = root / "loto7_agent_output"
     now = (now or datetime.now(JST)).astimezone(JST)

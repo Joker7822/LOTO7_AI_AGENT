@@ -15,7 +15,7 @@ GitHub Actionsが **毎時17分（UTC）のベストエフォート**で動き�
 
 ## オンラインから何を取得するか
 
-Crossrefの公式の**公開REST API**にアクセスして、予め人が選んだ6種類の関連研究トピックを順番に調べます。毎回1トピックを検索し、最大4件の新規論文メタデータ（タイトル・DOI・公開年）を取得します。
+Crossrefの公式の**公開REST API**にアクセスし、エラーの場合はOpenAlexの公開APIへ切り替えて、予め人が選んだ6種類の関連研究トピックを順番に調べます。毎回1トピックを検索し、最大4件の新規論文メタデータ（タイトル・DOI・公開年）を取得します。
 
 - online probabilistic forecasting calibration
 - prequential prediction test then train
@@ -29,6 +29,8 @@ Crossrefの公式の**公開REST API**にアクセスして、予め人が選ん
 **研究文献の記載内容を、予測精度の改善やコード変更の根拠として即時採用しません。** 論文の新規性・再現性・適用対象・比較方法・抽せんの独立性・ライセンスを別途評価し、必要なら新しい研究だけを別途事前登録します。外部資料に「システム指示を無視しろ」と書かれても命令として実行しない設計です。
 
 Crossref公式API: https://www.crossref.org/documentation/retrieve-metadata/rest-api/
+
+OpenAlex公式API: https://help.openalex.org/api/
 
 ## 活動履歴・改ざん防止
 

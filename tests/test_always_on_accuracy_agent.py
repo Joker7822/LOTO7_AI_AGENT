@@ -169,3 +169,48 @@ def test_crossref_metadata_is_public_doi_only(monkeypatch):
     assert len(res)==1
     assert res[0]["url"]=="https://doi.org/10.1234/valid.2"
     assert res[0]["review_status"]=="unreviewed"
+
+
+
+def test_openalex_public_metadata_fallback_after_crossref_http_failure(monkeypatch):
+    from urllib.error import HTTPError
+
+    class Response:
+        status = 200
+        def __enter__(self): return self
+        def __exit__(self,*args): return False
+        def read(self,_limit):
+            return json.dumps({"results":[
+                {"doi":"https://doi.org/10.1234/valid.fallback",
+                 "title":"Online probabilistic forecasting with calibration",
+                 "publication_year":2026},
+                {"doi":"javascript:alert(1)", "title":"Unsafe sequential forecasting",
+                 "publication_year":2026},
+            ]}).encode()
+
+    calls=[]
+    def fetch(req, timeout):
+        calls.append(req.full_url)
+        if req.full_url.startswith("https://api.crossref.org/"):
+            raise HTTPError(req.full_url,429,"Too Many Requests",{},None)
+        assert req.full_url.startswith("https://api.openalex.org/works?")
+        assert timeout <= 10
+        return Response()
+    monkeypatch.setattr(agent.urllib.request,"urlopen",fetch)
+    papers=agent.fetch_scholarly_metadata(agent.TOPICS[0],"2024-01-01")
+    assert len(calls)==2
+    assert len(papers)==1
+    assert papers[0]["url"]=="https://doi.org/10.1234/valid.fallback"
+    assert papers[0]["review_status"]=="unreviewed"
+    assert papers[0]["source"]=="OpenAlex bibliographic metadata"
+
+
+def test_both_scholarly_metadata_services_unavailable_never_implies_success(repo, monkeypatch):
+    from urllib.error import HTTPError
+    def fail(req, timeout):
+        raise HTTPError(req.full_url, 503, "unavailable", {}, None)
+    monkeypatch.setattr(agent.urllib.request, "urlopen", fail)
+    state=agent.run(repo, now=NOW)
+    assert state["status"] == "online_unavailable"
+    assert state["papers"] == []
+    assert state["online_search_status"].startswith("unavailable:")
