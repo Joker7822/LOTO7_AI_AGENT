@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-21T19:21:05+09:00",
-  "source_commit": "4501c8bd2d56bd231c9bad6b72ef624142749490",
-  "state_hashes_sha256": "89b32c73dc567b5006ea4375f68071e155c4bf1fe382e98c5ccdb67dda85b97f",
+  "generated_at_jst": "2026-10-22T00:34:02+09:00",
+  "source_commit": "6251c137d8d9d0065b313df56374ad9a79ca00e7",
+  "state_hashes_sha256": "4deff909eb2bb30bab9bc06a503145920a403a9e67633673122e45d5dc79f0cb",
   "sources": {
     "source": {
       "status": "degraded",
@@ -351,10 +351,10 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 4,
-    "last_activity_jst": "2026-10-21T17:05:57+09:00",
-    "current_phase": "generalization",
-    "current_activity": "過去モデル比較・多重比較を点検",
+    "sequence": 5,
+    "last_activity_jst": "2026-10-21T22:51:05+09:00",
+    "current_phase": "calibration",
+    "current_activity": "未来の校正と逐次e値を点検",
     "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": false,
@@ -390,15 +390,15 @@
       "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。"
+      "検証済み未来データに限るe値: 1"
     ]
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "4501c8bd2d56bd231c9bad6b72ef624142749490",
-    "snapshot_generated_at_jst": "2026-10-21T19:21:05+09:00",
-    "computed_at_jst": "2026-10-21T10:21:05+00:00",
+    "source_commit": "6251c137d8d9d0065b313df56374ad9a79ca00e7",
+    "snapshot_generated_at_jst": "2026-10-22T00:34:02+09:00",
+    "computed_at_jst": "2026-10-21T15:34:02+00:00",
     "overall": "block",
     "counts": {
       "block": 2,
