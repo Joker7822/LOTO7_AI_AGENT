@@ -90,7 +90,7 @@ jobs:
               loto7_agent_output/research_literature_reviews.json \
               loto7_agent_output/research_experiment_proposals.json \
               loto7_agent_output/research_literature_review_report.md
-            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/(always_on_accuracy_research_(journal.jsonl|state.json|report.md)|research_literature_reviews.json|research_experiment_proposals.json|research_literature_review_report.md) || true)"
+            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/(always_on_accuracy_research_(journal.jsonl|state.json|report.md)|research_literature_reviews.json|research_experiment_proposals.json|research_literature_review_report.md)$' || true)"
             test -z "$unexpected" || { echo "::error::Unsafe staging $unexpected"; exit 1; }
             if git diff --cached --quiet; then
               echo "No new audit record."
@@ -118,31 +118,4 @@ jobs:
             cat loto7_agent_output/research_literature_review_report.md 2>/dev/null || \
               cat /tmp/accuracy-research-smoke/loto7_agent_output/research_literature_review_report.md 2>/dev/null || true
             echo "Online leads and research proposals remain untrusted drafts. No automated model/Production changes."
-          } >> "$GITHUB_STEP_SUMMARY"
- || true)"
-            test -z "$unexpected" || { echo "::error::Unsafe staging $unexpected"; exit 1; }
-            if git diff --cached --quiet; then
-              echo "No new audit record."
-              exit 0
-            fi
-            git commit -m "chore: record bounded hourly accuracy-research activity"
-            if git push origin HEAD:main; then
-              echo "New hourly scientific activity saved."
-              exit 0
-            fi
-            if [ "$attempt" -eq 5 ]; then
-              echo "::error::Cannot save research activity after retries."
-              exit 1
-            fi
-          done
-      - name: Summarize activity and authority limits
-        if: always()
-        shell: bash
-        run: |
-          {
-            echo "## Hourly accuracy-research cycle"
-            cat loto7_agent_output/always_on_accuracy_research_report.md 2>/dev/null || \
-              cat /tmp/accuracy-research-smoke/loto7_agent_output/always_on_accuracy_research_report.md 2>/dev/null || true
-            echo
-            echo "Online research leads are untrusted; no automated model or Production change."
           } >> "$GITHUB_STEP_SUMMARY"
