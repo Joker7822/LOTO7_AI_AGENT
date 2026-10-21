@@ -1,10 +1,10 @@
 {
   "version": "always-on-accuracy-research-v1",
-  "sequence": 6,
-  "last_record_sha256": "e309a592671bbc422e210937dcd6f33f0ee99adda07f497d936ec895e1df12de",
-  "last_activity_jst": "2026-10-22T03:41:13+09:00",
-  "current_phase": "budget_and_plan",
-  "current_activity": "試行予算を守り次の検証を計画",
+  "sequence": 7,
+  "last_record_sha256": "b24bc22c898eeb45f378cbccf8a5538435ff63908dfd4ff837a41afedb420d1d",
+  "last_activity_jst": "2026-10-22T07:24:11+09:00",
+  "current_phase": "literature_search",
+  "current_activity": "インターネットから最新の研究論文を検索",
   "status": "active_bounded_research",
   "research_mode": "WAIT_FOR_NEW_DATA",
   "latest_resolved_round": 699,
@@ -17,8 +17,36 @@
     "adaptive": 0,
     "fifth_expert": 0
   },
-  "online_search_status": "not_scheduled",
+  "online_search_status": "searched",
   "papers": [
+    {
+      "doi": "10.1007/s42081-026-00374-w",
+      "title": "Prequential posteriors",
+      "year": 2026,
+      "url": "https://doi.org/10.1007/s42081-026-00374-w",
+      "review_status": "unreviewed"
+    },
+    {
+      "doi": "10.2139/ssrn.7273201",
+      "title": "Prequential Benchmark of Limit Order Book Mid-Price Movement Prediction Models",
+      "year": 2026,
+      "url": "https://doi.org/10.2139/ssrn.7273201",
+      "review_status": "unreviewed"
+    },
+    {
+      "doi": "10.5281/zenodo.21508920",
+      "title": "Prequential Streaming Evaluation of Stateful Time-Series Forecasters with Online Conformal Calibration",
+      "year": 2026,
+      "url": "https://doi.org/10.5281/zenodo.21508920",
+      "review_status": "unreviewed"
+    },
+    {
+      "doi": "10.71781/36115",
+      "title": "In-context learning, data ordering, and active sensing : a prequential perspective",
+      "year": 2026,
+      "url": "https://doi.org/10.71781/36115",
+      "review_status": "unreviewed"
+    },
     {
       "doi": "10.1016/j.ijforecast.2026.04.009",
       "title": "Enforcing tail calibration when training probabilistic forecast models",
@@ -48,12 +76,13 @@
       "review_status": "unreviewed"
     }
   ],
-  "new_papers_count": 0,
+  "new_papers_count": 4,
   "review_notes": [
     "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
     "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
     "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-    "同一履歴の新規試行予算 768/800"
+    "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
+    "オンライン検索: searched / 新規候補 4件"
   ],
   "promotion_authorized": false,
   "read_only_scientific_activity": true

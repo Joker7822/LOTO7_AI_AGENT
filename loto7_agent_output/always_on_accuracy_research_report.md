@@ -1,9 +1,9 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-10-22T03:41:13+09:00**
-- Completed audit cycles: **6**
-- This cycle: **budget_and_plan** / 試行予算を守り次の検証を計画
-- Network discovery: **not_scheduled**
+- Last executed: **2026-10-22T07:24:11+09:00**
+- Completed audit cycles: **7**
+- This cycle: **literature_search** / インターネットから最新の研究論文を検索
+- Network discovery: **searched**
 - Trusted draw latest: **699**, two-source: **False**
 - Research guard: **WAIT_FOR_NEW_DATA**, same-data trials: **768/800**
 - Future actuals: portfolio 7/26, v2 0, fifth-expert 0
@@ -12,9 +12,14 @@
 - 独立2ソース未照合。未信頼結果で将来予測を採点しない。
 - 探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 同一履歴の新規試行予算 768/800
+- オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。
+- オンライン検索: searched / 新規候補 4件
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
+- [Prequential posteriors](https://doi.org/10.1007/s42081-026-00374-w) (2026) — UNREVIEWED
+- [Prequential Benchmark of Limit Order Book Mid-Price Movement Prediction Models](https://doi.org/10.2139/ssrn.7273201) (2026) — UNREVIEWED
+- [Prequential Streaming Evaluation of Stateful Time-Series Forecasters with Online Conformal Calibration](https://doi.org/10.5281/zenodo.21508920) (2026) — UNREVIEWED
+- [In-context learning, data ordering, and active sensing : a prequential perspective](https://doi.org/10.71781/36115) (2026) — UNREVIEWED
 - [Enforcing tail calibration when training probabilistic forecast models](https://doi.org/10.1016/j.ijforecast.2026.04.009) (2026) — UNREVIEWED
 - [PBIE Pro: A Hybrid Probabilistic Decision Framework Integrating Bayesian Inference, Scenario Simulation, and Calibration-Aware Intuition for Robust Forecasting Under Data Scarcity](https://doi.org/10.2139/ssrn.6617378) (2026) — UNREVIEWED
 - [Investigating Calibration Challenges in Probabilistic Electricity Price Forecasting](https://doi.org/10.1145/3765611.3815392) (2026) — UNREVIEWED
