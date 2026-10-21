@@ -36,8 +36,13 @@ def test_checked_data_and_guard_never_expand_search_permissions(repo):
     assert evidence["portfolio_future_draws"] == 7
     assert evidence["candidate_future_draws"] == 0
     assert evidence["future_e_value"] == 1
-    assert evidence["research_mode"] == "VALIDATION_ONLY"
-    assert evidence["search_enabled"] is False
+    saved_guard = json.loads((repo / "loto7_agent_output" / agent.FILES["budget"]).read_text())
+    # WAIT_FOR_NEW_DATA is a valid terminal mode after all matched-null
+    # calibration; the test must never demand additional same-data search.
+    assert evidence["research_mode"] == saved_guard["mode"]
+    assert evidence["search_enabled"] is saved_guard["search_enabled"]
+    if saved_guard["mode"] in ("VALIDATION_ONLY", "WAIT_FOR_NEW_DATA"):
+        assert evidence["search_enabled"] is False
 
 
 def test_six_hour_focus_rotation_search_dedup_and_strict_no_mutations(repo):
@@ -214,3 +219,30 @@ def test_both_scholarly_metadata_services_unavailable_never_implies_success(repo
     assert state["status"] == "online_unavailable"
     assert state["papers"] == []
     assert state["online_search_status"].startswith("unavailable:")
+
+
+@pytest.mark.parametrize("mode,permission", [
+    ("SEARCH", True),
+    ("VALIDATION_ONLY", False),
+    ("WAIT_FOR_NEW_DATA", False),
+])
+def test_guarded_research_mode_transitions_preserve_budget_authority(repo, mode, permission):
+    path = repo / "loto7_agent_output" / agent.FILES["budget"]
+    guard = json.loads(path.read_text(encoding="utf-8"))
+    guard["mode"] = mode
+    guard["search_enabled"] = permission
+    path.write_text(json.dumps(guard), encoding="utf-8")
+    result = agent.inspect_evidence(repo)
+    assert result["research_mode"] == mode
+    assert result["search_enabled"] is permission
+    assert result["same_data_trials"] <= result["max_same_data_trials"]
+
+
+def test_impossible_search_mode_permission_pair_still_rejected(repo):
+    path = repo / "loto7_agent_output" / agent.FILES["budget"]
+    guard = json.loads(path.read_text(encoding="utf-8"))
+    guard["mode"] = "WAIT_FOR_NEW_DATA"
+    guard["search_enabled"] = True
+    path.write_text(json.dumps(guard), encoding="utf-8")
+    with pytest.raises(ValueError, match="mode and budget permission disagree"):
+        agent.inspect_evidence(repo)

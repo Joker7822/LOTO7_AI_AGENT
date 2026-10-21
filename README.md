@@ -301,3 +301,12 @@ python v4_status.py
 - [ブラウザダッシュボード](https://joker7822.github.io/LOTO7_AI_AGENT/)
 
 登録済み将来検証・Production・Championは変更しません。毎時の実行はGitHub Actionsのベストエフォートで、実行遅延とネットワーク障害は可視化します。
+
+
+## AI論文レビュー・実験設計エージェント
+
+オンライン収集したCrossref/OpenAlexの論文候補をSHA連結の活動証跡で確認し、**タイトル・DOI・発行年だけに基づく一次評価**を行います。6種類の研究テーマに分類して、仮説・公平な基準・過剰適合対策・中止条件を含む**未承認の実験計画書**を自動起案します。全文を調査した査読や、実際の実験・将来登録を自動実行する機能ではありません。
+
+- [研究レビュー・実験設計の仕様](RESEARCH_LITERATURE_PIPELINE.md)
+- 新規研究出力: research_literature_reviews.json / research_experiment_proposals.json / research_literature_review_report.md
+- WAIT_FOR_NEW_DATAモードでは既存の試行予算を増やさず、Production・Champion・既存Future-OOSを変更しません。
