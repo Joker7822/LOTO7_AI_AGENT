@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-22T04:42:18+09:00",
-  "source_commit": "2ca5b2f076ccfd3377753d9d5f58c66cf0b8daa2",
-  "state_hashes_sha256": "e4bea5cc659dd6cc25e9fafe8b832ea72818e88f32e7eb7287af99f6e8d4b98a",
+  "generated_at_jst": "2026-10-22T07:49:52+09:00",
+  "source_commit": "c227291b8f4b688677b4e47f026deec13a8c7020",
+  "state_hashes_sha256": "b1809df683bffecb7c18a1b7d1bfe780222c55df570cad276518be5f13db3aba",
   "sources": {
     "source": {
       "status": "degraded",
@@ -195,10 +195,10 @@
       "health": "block",
       "status": "completed",
       "conclusion": "failure",
-      "run_id": 39490235378,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39490235378",
-      "updated_at": "2026-10-20T20:15:44Z",
-      "recent_failure_count": 1
+      "run_id": 39670126918,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39670126918",
+      "updated_at": "2026-10-21T20:26:12Z",
+      "recent_failure_count": 2
     },
     {
       "file": "continuous_learning_agent.yml",
@@ -351,15 +351,39 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 6,
-    "last_activity_jst": "2026-10-22T03:41:13+09:00",
-    "current_phase": "budget_and_plan",
-    "current_activity": "試行予算を守り次の検証を計画",
-    "online_search_status": "not_scheduled",
+    "sequence": 7,
+    "last_activity_jst": "2026-10-22T07:24:11+09:00",
+    "current_phase": "literature_search",
+    "current_activity": "インターネットから最新の研究論文を検索",
+    "online_search_status": "searched",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": false,
-    "new_papers_count": 0,
+    "new_papers_count": 4,
     "papers": [
+      {
+        "title": "Prequential posteriors",
+        "url": "https://doi.org/10.1007/s42081-026-00374-w",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "Prequential Benchmark of Limit Order Book Mid-Price Movement Prediction Models",
+        "url": "https://doi.org/10.2139/ssrn.7273201",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "Prequential Streaming Evaluation of Stateful Time-Series Forecasters with Online Conformal Calibration",
+        "url": "https://doi.org/10.5281/zenodo.21508920",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "In-context learning, data ordering, and active sensing : a prequential perspective",
+        "url": "https://doi.org/10.71781/36115",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
       {
         "title": "Enforcing tail calibration when training probabilistic forecast models",
         "url": "https://doi.org/10.1016/j.ijforecast.2026.04.009",
@@ -390,15 +414,16 @@
       "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "同一履歴の新規試行予算 768/800"
+      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
+      "オンライン検索: searched / 新規候補 4件"
     ]
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "2ca5b2f076ccfd3377753d9d5f58c66cf0b8daa2",
-    "snapshot_generated_at_jst": "2026-10-22T04:42:18+09:00",
-    "computed_at_jst": "2026-10-21T19:42:18+00:00",
+    "source_commit": "c227291b8f4b688677b4e47f026deec13a8c7020",
+    "snapshot_generated_at_jst": "2026-10-22T07:49:52+09:00",
+    "computed_at_jst": "2026-10-21T22:49:52+00:00",
     "overall": "block",
     "counts": {
       "block": 2,
@@ -434,17 +459,17 @@
         "url": null
       },
       {
-        "id": "ffa21debf56be20b",
+        "id": "24b6a77785d6a2da",
         "priority": "block",
         "code": "WORKFLOW_FAILED:continuous_loto7_v4.yml",
         "owner": "研究復旧エージェント",
         "title": "継続研究：最新実行が失敗",
         "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
-        "evidence": "39490235378",
+        "evidence": "39670126918",
         "recommended_action": "研究CIの直近ログを確認し、修正後の実行を別途検証してください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39490235378"
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39670126918"
       },
       {
         "id": "615a36ffa6f66937",
