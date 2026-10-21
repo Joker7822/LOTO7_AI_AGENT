@@ -1,0 +1,112 @@
+{
+  "version": "research-literature-review-and-design-v1",
+  "discovery_state_sha256": "576f443f3617ff1d60a9d94320635c0dc408be2c1742dfcb94f0f445e08a90ec",
+  "discovery_chain_tip": "173730265789f4ae1565de4342f28f587f3a29593cd8949e97c0145cef12a34e",
+  "draw_history_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "research_mode": "WAIT_FOR_NEW_DATA",
+  "last_resolved_round": 699,
+  "scope": "metadata_only_no_paper_contents",
+  "count": 3,
+  "proposals": [
+    {
+      "proposal_id": "2848357447ba7e37",
+      "topic": "calibration",
+      "source_dois": [
+        "10.2139/ssrn.6617378",
+        "10.1016/j.ijforecast.2026.04.009",
+        "10.1145/3765611.3815392"
+      ],
+      "hypothesis": "Frozen 37-number inclusion forecasts may need calibration auditing.",
+      "design": "Evaluate reliability bins and prequential proper scores using only existing frozen predictions.",
+      "primary_metric": "Brier/log-score and calibration-bin deviation",
+      "baseline": "uniform 7-of-37 draw plus an existing frozen comparator",
+      "required_controls": [
+        "identical chronological targets and matched compute budgets",
+        "full search-process reruns on synthetic fair 7-of-37 draws",
+        "include all attempted candidates in multiple-comparison correction",
+        "freeze every new genuinely prospective prediction before its outcome"
+      ],
+      "stop_conditions": [
+        "unverified result source or missing prefrozen forecast",
+        "model or draw-data SHA mismatch",
+        "per-data optimizer budget exceeded",
+        "new hypothesis not independently preregistered"
+      ],
+      "critical_risk": "Seven balls are drawn without replacement: the 37 indicators are not independent.",
+      "status": "draft_needs_human_method_review",
+      "experiment_approved": false,
+      "code_execution_authorized": false,
+      "new_trial_budget_granted": false,
+      "future_oos_registration_created": false,
+      "production_promotion_authorized": false,
+      "same_data_search_currently_permitted": false
+    },
+    {
+      "proposal_id": "84b90966f5e0c2b6",
+      "topic": "online_evaluation",
+      "source_dois": [
+        "10.2139/ssrn.4896166"
+      ],
+      "hypothesis": "A fixed online learner could differ from the uniform baseline in future data.",
+      "design": "Specify update timing, fixed rate, and test-then-train chronology before any future evaluation.",
+      "primary_metric": "prequential proper-score edge versus uniform 7/37",
+      "baseline": "uniform 7-of-37 draw plus an existing frozen comparator",
+      "required_controls": [
+        "identical chronological targets and matched compute budgets",
+        "full search-process reruns on synthetic fair 7-of-37 draws",
+        "include all attempted candidates in multiple-comparison correction",
+        "freeze every new genuinely prospective prediction before its outcome"
+      ],
+      "stop_conditions": [
+        "unverified result source or missing prefrozen forecast",
+        "model or draw-data SHA mismatch",
+        "per-data optimizer budget exceeded",
+        "new hypothesis not independently preregistered"
+      ],
+      "critical_risk": "Backtesting mined draws cannot validate predictive advantage.",
+      "status": "draft_needs_human_method_review",
+      "experiment_approved": false,
+      "code_execution_authorized": false,
+      "new_trial_budget_granted": false,
+      "future_oos_registration_created": false,
+      "production_promotion_authorized": false,
+      "same_data_search_currently_permitted": false
+    },
+    {
+      "proposal_id": "216e59712ab8f7ca",
+      "topic": "ensemble",
+      "source_dois": [
+        "10.2139/ssrn.6617378"
+      ],
+      "hypothesis": "Fixed probability averaging may reduce variance without improving true accuracy.",
+      "design": "Compare original frozen ensemble, fifth expert and uniform comparator on identical chronological targets.",
+      "primary_metric": "paired Brier/log-score edge and fair-world selection-adjusted comparison",
+      "baseline": "uniform 7-of-37 draw plus an existing frozen comparator",
+      "required_controls": [
+        "identical chronological targets and matched compute budgets",
+        "full search-process reruns on synthetic fair 7-of-37 draws",
+        "include all attempted candidates in multiple-comparison correction",
+        "freeze every new genuinely prospective prediction before its outcome"
+      ],
+      "stop_conditions": [
+        "unverified result source or missing prefrozen forecast",
+        "model or draw-data SHA mismatch",
+        "per-data optimizer budget exceeded",
+        "new hypothesis not independently preregistered"
+      ],
+      "critical_risk": "Mixture weights must not be fit on already graded future targets.",
+      "status": "draft_needs_human_method_review",
+      "experiment_approved": false,
+      "code_execution_authorized": false,
+      "new_trial_budget_granted": false,
+      "future_oos_registration_created": false,
+      "production_promotion_authorized": false,
+      "same_data_search_currently_permitted": false
+    }
+  ],
+  "executed_experiments": 0,
+  "new_trials_consumed": 0,
+  "prior_registration_modified": false,
+  "production_modified": false,
+  "requires_human_approval": true
+}

@@ -1,12 +1,12 @@
 {
   "version": "always-on-accuracy-research-v1",
-  "sequence": 3,
-  "last_record_sha256": "f46afe20275f7e4f894781027721e7af576982ae2042555660a19519eb1ab42b",
-  "last_activity_jst": "2026-10-20T16:38:20+09:00",
-  "current_phase": "future_protocol",
-  "current_activity": "事前凍結と真正将来採点の連続性を監査",
+  "sequence": 4,
+  "last_record_sha256": "173730265789f4ae1565de4342f28f587f3a29593cd8949e97c0145cef12a34e",
+  "last_activity_jst": "2026-10-21T17:05:57+09:00",
+  "current_phase": "generalization",
+  "current_activity": "過去モデル比較・多重比較を点検",
   "status": "active_bounded_research",
-  "research_mode": "VALIDATION_ONLY",
+  "research_mode": "WAIT_FOR_NEW_DATA",
   "latest_resolved_round": 699,
   "two_source_verified": false,
   "same_data_trials": 768,
@@ -51,9 +51,9 @@
   "new_papers_count": 0,
   "review_notes": [
     "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
-    "探索予算ガードがVALIDATION_ONLY。既存データの無制限再探索は禁止。",
+    "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
     "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-    "26回固定holdout 7/26、新規v2 0回"
+    "過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。"
   ],
   "promotion_authorized": false,
   "read_only_scientific_activity": true
