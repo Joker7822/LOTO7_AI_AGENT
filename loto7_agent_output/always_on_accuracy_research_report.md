@@ -1,8 +1,8 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-10-22T16:38:32+09:00**
-- Completed audit cycles: **11**
-- This cycle: **calibration** / 未来の校正と逐次e値を点検
+- Last executed: **2026-10-22T22:50:42+09:00**
+- Completed audit cycles: **12**
+- This cycle: **budget_and_plan** / 試行予算を守り次の検証を計画
 - Network discovery: **not_scheduled**
 - Trusted draw latest: **699**, two-source: **False**
 - Research guard: **WAIT_FOR_NEW_DATA**, same-data trials: **768/800**
@@ -12,7 +12,7 @@
 - 独立2ソース未照合。未信頼結果で将来予測を採点しない。
 - 探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 検証済み未来データに限るe値: 1
+- 同一履歴の新規試行予算 768/800
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
 - [Prequential posteriors](https://doi.org/10.1007/s42081-026-00374-w) (2026) — UNREVIEWED
