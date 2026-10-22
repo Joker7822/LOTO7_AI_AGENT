@@ -1,0 +1,25 @@
+{
+  "version": "research-evidence-resilience-v1",
+  "input_discovery_state_sha256": "cd91a8c7f05bbb6d671bac0207c2beb51e5dc82d931377f562c885bc9ee5409a",
+  "decision": "bounded_auto_recovery_only",
+  "network_transient_retries": 0,
+  "provider_errors_or_conflicts": 0,
+  "previously_verified_records_preserved_without_fresh_claim": 0,
+  "derived_outputs_regenerated_from_trusted_inputs": true,
+  "actions_automatically_allowed": [
+    "retry_transient_408_429_5xx_max_three",
+    "preserve_prior_verified_DOI_as_stale_on_provider_outage",
+    "regenerate_derived_reports_from_SHA_checked_inputs",
+    "run_fixed_no_model_change_fair_null_sandbox"
+  ],
+  "actions_prohibited": [
+    "modify_model_code",
+    "run_unapproved_model_training",
+    "change_research_budget",
+    "modify_frozen_future_registry",
+    "fake_result_source_verification",
+    "promote_champion_or_production",
+    "automatically_merge_code_or_relaunch_failed_long_research"
+  ],
+  "requires_human_review_for_code_or_protocol_bugs": true
+}
