@@ -1,12 +1,12 @@
 {
   "version": "research-literature-review-and-design-v1",
-  "discovery_state_sha256": "4377029fc49bbe660a559501416e0d7f4944f750d83cff54689c5b8a7221017e",
-  "discovery_chain_tip": "63ad9d90a4b08905615485c337d646d8ce817d49440cb8d5c9c26e6f6ddadc9e",
+  "discovery_state_sha256": "06869f859b5667ebf13fdf700ae07ac3e6eada4542dabbf1caec2a038951907f",
+  "discovery_chain_tip": "56f599dc036a9e768dcc24f76dabd4199186cd9ff71daf289f34b3eeede4484e",
   "draw_history_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
   "research_mode": "WAIT_FOR_NEW_DATA",
   "last_resolved_round": 699,
   "scope": "metadata_only_no_paper_contents",
-  "count": 4,
+  "count": 5,
   "proposals": [
     {
       "proposal_id": "2848357447ba7e37",
@@ -68,6 +68,40 @@
         "new hypothesis not independently preregistered"
       ],
       "critical_risk": "Backtesting mined draws cannot validate predictive advantage.",
+      "status": "draft_needs_human_method_review",
+      "experiment_approved": false,
+      "code_execution_authorized": false,
+      "new_trial_budget_granted": false,
+      "future_oos_registration_created": false,
+      "production_promotion_authorized": false,
+      "same_data_search_currently_permitted": false
+    },
+    {
+      "proposal_id": "096d2b86267e5fe5",
+      "topic": "anytime_evidence",
+      "source_dois": [
+        "10.1093/jrsssb/qkaf014",
+        "10.1214/24-ejs2228",
+        "10.2139/ssrn.4689006",
+        "10.2139/ssrn.7599398"
+      ],
+      "hypothesis": "A new preregistered forecast could show evidence against conditional uniformity.",
+      "design": "Predeclare a new non-overlapping future stream, frozen predictable e-factor and threshold.",
+      "primary_metric": "future-only nonnegative e-process with conditional mean at most 1",
+      "baseline": "uniform 7-of-37 draw plus an existing frozen comparator",
+      "required_controls": [
+        "identical chronological targets and matched compute budgets",
+        "full search-process reruns on synthetic fair 7-of-37 draws",
+        "include all attempted candidates in multiple-comparison correction",
+        "freeze every new genuinely prospective prediction before its outcome"
+      ],
+      "stop_conditions": [
+        "unverified result source or missing prefrozen forecast",
+        "model or draw-data SHA mismatch",
+        "per-data optimizer budget exceeded",
+        "new hypothesis not independently preregistered"
+      ],
+      "critical_risk": "Multiple selective e-tests require multiplicity governance.",
       "status": "draft_needs_human_method_review",
       "experiment_approved": false,
       "code_execution_authorized": false,
