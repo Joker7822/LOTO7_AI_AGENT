@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-23T02:34:34+09:00",
-  "source_commit": "0b975f10de6e2007f67ae0570d482a3c1780bd4b",
-  "state_hashes_sha256": "4d62efd8a5efb514ed8e60b43307536fd26a5e92fe888fe86718227de41b6b8b",
+  "generated_at_jst": "2026-10-23T05:52:04+09:00",
+  "source_commit": "1bd2d33a05fc4a7de6d55f8a0328d560af31d573",
+  "state_hashes_sha256": "c09213384e04573637f21a57ca0143cfea3d4f62ab8b924c815214aa387e7acf",
   "sources": {
     "source": {
       "status": "degraded",
       "verification": "degraded_single_result_source",
-      "checked_at_jst": "2026-10-20T18:48:06+09:00",
+      "checked_at_jst": "2026-10-23T05:23:12+09:00",
       "latest": {
         "round": 699,
         "date": "2026-10-16",
@@ -195,9 +195,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39702130090,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39702130090",
-      "updated_at": "2026-10-22T00:53:06Z",
+      "run_id": 39848136572,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39848136572",
+      "updated_at": "2026-10-22T20:23:22Z",
       "recent_failure_count": 2
     },
     {
@@ -351,15 +351,39 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 12,
-    "last_activity_jst": "2026-10-22T22:50:42+09:00",
-    "current_phase": "budget_and_plan",
-    "current_activity": "試行予算を守り次の検証を計画",
-    "online_search_status": "not_scheduled",
+    "sequence": 13,
+    "last_activity_jst": "2026-10-23T03:34:52+09:00",
+    "current_phase": "literature_search",
+    "current_activity": "インターネットから最新の研究論文を検索",
+    "online_search_status": "searched",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": false,
-    "new_papers_count": 0,
+    "new_papers_count": 4,
     "papers": [
+      {
+        "title": "Merging sequential e-values via martingales",
+        "url": "https://doi.org/10.1214/24-ejs2228",
+        "year": 2024,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "Sequential Monte Carlo testing by betting",
+        "url": "https://doi.org/10.1093/jrsssb/qkaf014",
+        "year": 2025,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "Mimic Martingales in Sequential Auctions",
+        "url": "https://doi.org/10.2139/ssrn.4689006",
+        "year": 2024,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "Betting against the Field:&amp;nbsp;Optimal Elimination in Sequential Model Confidence Sets",
+        "url": "https://doi.org/10.2139/ssrn.7599398",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
       {
         "title": "Prequential posteriors",
         "url": "https://doi.org/10.1007/s42081-026-00374-w",
@@ -383,30 +407,6 @@
         "url": "https://doi.org/10.71781/36115",
         "year": 2026,
         "review_status": "unreviewed"
-      },
-      {
-        "title": "Enforcing tail calibration when training probabilistic forecast models",
-        "url": "https://doi.org/10.1016/j.ijforecast.2026.04.009",
-        "year": 2026,
-        "review_status": "unreviewed"
-      },
-      {
-        "title": "PBIE Pro: A Hybrid Probabilistic Decision Framework Integrating Bayesian Inference, Scenario Simulation, and Calibration-Aware Intuition for Robust Forecasting Under Data Scarcity",
-        "url": "https://doi.org/10.2139/ssrn.6617378",
-        "year": 2026,
-        "review_status": "unreviewed"
-      },
-      {
-        "title": "Investigating Calibration Challenges in Probabilistic Electricity Price Forecasting",
-        "url": "https://doi.org/10.1145/3765611.3815392",
-        "year": 2026,
-        "review_status": "unreviewed"
-      },
-      {
-        "title": "Transformer-Based Probabilistic Demand Forecasting with Adaptive Online Learning",
-        "url": "https://doi.org/10.2139/ssrn.4896166",
-        "year": 2024,
-        "review_status": "unreviewed"
       }
     ],
     "promotion_authorized": false,
@@ -414,15 +414,16 @@
       "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "同一履歴の新規試行予算 768/800"
+      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
+      "オンライン検索: searched / 新規候補 4件"
     ]
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "0b975f10de6e2007f67ae0570d482a3c1780bd4b",
-    "snapshot_generated_at_jst": "2026-10-23T02:34:34+09:00",
-    "computed_at_jst": "2026-10-22T17:34:34+00:00",
+    "source_commit": "1bd2d33a05fc4a7de6d55f8a0328d560af31d573",
+    "snapshot_generated_at_jst": "2026-10-23T05:52:04+09:00",
+    "computed_at_jst": "2026-10-22T20:52:04+00:00",
     "overall": "block",
     "counts": {
       "block": 1,
