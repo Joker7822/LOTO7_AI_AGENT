@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-22T10:27:06+09:00",
-  "source_commit": "0773db7842dc0269270c0c1b880943309abf1e85",
-  "state_hashes_sha256": "2b3e8bc67298c63ab4af8ec895ffe1167ca4904bae1a4baf54ddb05421b717aa",
+  "generated_at_jst": "2026-10-22T15:33:28+09:00",
+  "source_commit": "9941b296ba7c46f44d7bfcf98ac63dc96f7678be",
+  "state_hashes_sha256": "c1f24c6f9c8c659094ce1227284c8fa9dc6ecc9e9ef7c7380efcc016188c4737",
   "sources": {
     "source": {
       "status": "degraded",
@@ -206,9 +206,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39555041972,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39555041972",
-      "updated_at": "2026-10-21T06:23:41Z",
+      "run_id": 39733893132,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39733893132",
+      "updated_at": "2026-10-22T06:27:29Z",
       "recent_failure_count": 0
     },
     {
@@ -228,9 +228,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39552707883,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39552707883",
-      "updated_at": "2026-10-21T06:00:44Z",
+      "run_id": 39731849098,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39731849098",
+      "updated_at": "2026-10-22T06:06:48Z",
       "recent_failure_count": 0
     },
     {
@@ -239,9 +239,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39552635631,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39552635631",
-      "updated_at": "2026-10-21T05:59:52Z",
+      "run_id": 39731617506,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39731617506",
+      "updated_at": "2026-10-22T06:04:22Z",
       "recent_failure_count": 0
     },
     {
@@ -351,10 +351,10 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 9,
-    "last_activity_jst": "2026-10-22T10:14:54+09:00",
-    "current_phase": "future_protocol",
-    "current_activity": "事前凍結と真正将来採点の連続性を監査",
+    "sequence": 10,
+    "last_activity_jst": "2026-10-22T10:33:51+09:00",
+    "current_phase": "generalization",
+    "current_activity": "過去モデル比較・多重比較を点検",
     "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": false,
@@ -414,15 +414,15 @@
       "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "26回固定holdout 7/26、新規v2 0回"
+      "過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。"
     ]
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "0773db7842dc0269270c0c1b880943309abf1e85",
-    "snapshot_generated_at_jst": "2026-10-22T10:27:06+09:00",
-    "computed_at_jst": "2026-10-22T01:27:06+00:00",
+    "source_commit": "9941b296ba7c46f44d7bfcf98ac63dc96f7678be",
+    "snapshot_generated_at_jst": "2026-10-22T15:33:28+09:00",
+    "computed_at_jst": "2026-10-22T06:33:28+00:00",
     "overall": "block",
     "counts": {
       "block": 1,
