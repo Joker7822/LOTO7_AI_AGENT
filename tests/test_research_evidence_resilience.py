@@ -42,7 +42,10 @@ def good_fetch(url):
             "abstract": "<jats:p>Sequential probabilistic forecasting calibration provides "
                         "online forecasts evaluated before observing realized "
                         "outcomes and helps avoid selection mistakes in training. "
-                        "Its assumptions should be checked independently.</jats:p>",
+                        "Its assumptions should be checked independently, including data leakage, "
+                        "future-only evaluation, multiple comparisons, proper scoring rules, "
+                        "conditional fairness, sequential testing and model selection bias "
+                        "under repeated research attempts.</jats:p>",
         }}, 0
     if url.startswith("https://api.openalex.org/"):
         return {
