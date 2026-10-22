@@ -31,6 +31,7 @@ on:
       - "v4_status.py"
       - "runtime_metrics.py"
       - "fetch_validate.py"
+      - "tests/test_fetch_validate.py"
       - "audit_ledger.py"
   schedule:
     # Daily recovery/bootstrap at 02:00 JST (17:00 UTC previous day).
@@ -112,8 +113,10 @@ jobs:
             local dow hour max_attempts retry_seconds
             dow=$(TZ=Asia/Tokyo date +%u)
             hour=$(TZ=Asia/Tokyo date +%H)
-            max_attempts=1
-            retry_seconds=0
+            # A short bounded retry absorbs transient 429/5xx outages without
+            # spending the entire scientific window in HTTP fetch failures.
+            max_attempts=3
+            retry_seconds=20
             if [ "$dow" = "5" ] && [ "$hour" -ge 20 ] && [ "$hour" -le 21 ]; then
               max_attempts=10
               retry_seconds=600
@@ -124,6 +127,8 @@ jobs:
               --report loto7_agent_output/source_validation.json \
               --max-attempts "$max_attempts" \
               --interval-seconds "$retry_seconds" \
+              --allow-cached-wait-on-transient-error \
+              --research-guard loto7_agent_output/research_cycle_guard.json \
               --months 3
 
             python historical_replay.py \
