@@ -181,6 +181,7 @@ def test_fair_null_sanity_is_fixed_budget_reproducible_and_non_predictive():
     y=system.fair_sandbox(worlds=128,draws=24)
     assert x==y
     assert x["biased_minus_uniform_mean_log_score"] < 0
+    assert x["biased_minus_uniform_mean_brier_edge"] < 0
     assert x["null_max_e_threshold_rate"] < 0.1
     assert 0.95 < x["observed_null_mean_e_factor"] < 1.05
     assert x["auto_promotion_allowed"] is False
@@ -211,3 +212,27 @@ def test_off_literature_phase_makes_no_outbound_requests(repo):
     state=system.run(repo,fetch=should_not_fetch)
     assert count[0]==0
     assert state["evidence"]["verifications"][0]["status"]=="previously_verified_not_refreshed"
+
+
+
+def test_initial_bounded_verification_works_when_hourly_cycle_is_not_literature(repo):
+    # Simulate installation after the bibliography-search hour already ended.
+    discovery.run(repo, now=NOW + timedelta(hours=1),
+                  fetcher=lambda *_: (_ for _ in ()).throw(RuntimeError("not due")))
+    called=[]
+    def record(url):
+        called.append(url)
+        return good_fetch(url)
+    first=system.run(repo, fetch=record)
+    assert len(called)==2
+    assert first["evidence"]["verification_reason"]=="initial_bounded_bootstrap"
+    assert first["evidence"]["two_provider_matches_this_cycle"]==1
+    assert first["evidence"]["initial_verification_attempted"] is True
+
+    # Subsequent non-literature cycles must NOT repeatedly scrape providers.
+    discovery.run(repo, now=NOW + timedelta(hours=2),
+                  fetcher=lambda *_: (_ for _ in ()).throw(RuntimeError("not due")))
+    second=system.run(repo, fetch=lambda _: (_ for _ in ()).throw(
+        AssertionError("hourly network retry storm is forbidden")))
+    assert second["evidence"]["verification_reason"]=="not_due"
+    assert second["evidence"]["verifications"][0]["status"]=="previously_verified_not_refreshed"
