@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-23T05:52:04+09:00",
-  "source_commit": "1bd2d33a05fc4a7de6d55f8a0328d560af31d573",
-  "state_hashes_sha256": "c09213384e04573637f21a57ca0143cfea3d4f62ab8b924c815214aa387e7acf",
+  "generated_at_jst": "2026-10-23T08:57:47+09:00",
+  "source_commit": "03ae3b9df328969f13fa4bb95d4f8ff661c74ee8",
+  "state_hashes_sha256": "a786f99cd5a027a95f7f1b9e0b376e880b9580175a64d4b0910a37a3bdcf78d0",
   "sources": {
     "source": {
       "status": "degraded",
@@ -351,14 +351,14 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 13,
-    "last_activity_jst": "2026-10-23T03:34:52+09:00",
-    "current_phase": "literature_search",
-    "current_activity": "インターネットから最新の研究論文を検索",
-    "online_search_status": "searched",
+    "sequence": 14,
+    "last_activity_jst": "2026-10-23T07:22:56+09:00",
+    "current_phase": "source_audit",
+    "current_activity": "結果の二重ソース照合と鮮度を点検",
+    "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": false,
-    "new_papers_count": 4,
+    "new_papers_count": 0,
     "papers": [
       {
         "title": "Merging sequential e-values via martingales",
@@ -414,16 +414,15 @@
       "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
-      "オンライン検索: searched / 新規候補 4件"
+      "最新信頼ステータス: degraded_single_result_source"
     ]
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "1bd2d33a05fc4a7de6d55f8a0328d560af31d573",
-    "snapshot_generated_at_jst": "2026-10-23T05:52:04+09:00",
-    "computed_at_jst": "2026-10-22T20:52:04+00:00",
+    "source_commit": "03ae3b9df328969f13fa4bb95d4f8ff661c74ee8",
+    "snapshot_generated_at_jst": "2026-10-23T08:57:47+09:00",
+    "computed_at_jst": "2026-10-22T23:57:47+00:00",
     "overall": "block",
     "counts": {
       "block": 1,
