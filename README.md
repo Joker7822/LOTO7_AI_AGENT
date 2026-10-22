@@ -310,3 +310,9 @@ python v4_status.py
 - [研究レビュー・実験設計の仕様](RESEARCH_LITERATURE_PIPELINE.md)
 - 新規研究出力: research_literature_reviews.json / research_experiment_proposals.json / research_literature_review_report.md
 - WAIT_FOR_NEW_DATAモードでは既存の試行予算を増やさず、Production・Champion・既存Future-OOSを変更しません。
+
+## 研究論文の検証と限定的な自己修復
+
+毎時の研究エージェントに、[論文のDOI・年・タイトルをCrossref/OpenAlexで照合し、公平抽せんの模擬データで統計手法を点検する機能](RESEARCH_EVIDENCE_RESILIENCE.md)を追加しました。通信時の一時的な503/429などを限定回数で再試行し、壊れた**派生研究レポートだけ**を検証済み元台帳から再構築します。
+
+論文の本文・再現実装を検証済みとは見なしません。実抽せん結果の変更、研究ガードの変更、将来登録済みFuture-OOS、Champion、Productionの無断変更、未承認コードの自動実行・マージは行いません。
