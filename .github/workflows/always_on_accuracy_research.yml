@@ -2,35 +2,44 @@ name: Always-on Accuracy Research
 
 on:
   schedule:
-    # One bounded research activity each hour (best effort; GitHub may delay).
+    # One bounded research cycle each hour, GitHub best effort.
     - cron: "17 * * * *"
   workflow_dispatch:
   pull_request:
     paths:
       - "always_on_accuracy_agent.py"
-      - "tests/test_always_on_accuracy_agent.py"
       - "research_literature_pipeline.py"
       - "research_evidence_resilience.py"
-      - "tests/test_research_evidence_resilience.py"
-      - "RESEARCH_EVIDENCE_RESILIENCE.md"
+      - "tests/test_always_on_accuracy_agent.py"
       - "tests/test_research_literature_pipeline.py"
-      - "RESEARCH_LITERATURE_PIPELINE.md"
+      - "tests/test_research_evidence_resilience.py"
       - ".github/workflows/always_on_accuracy_research.yml"
       - "ALWAYS_ON_ACCURACY_RESEARCH.md"
+      - "RESEARCH_LITERATURE_PIPELINE.md"
+      - "RESEARCH_EVIDENCE_RESILIENCE.md"
       - "dashboard_status_snapshot.py"
       - "docs/**"
   push:
     branches: [main]
     paths:
       - "always_on_accuracy_agent.py"
+      - "research_literature_pipeline.py"
+      - "research_evidence_resilience.py"
       - "tests/test_always_on_accuracy_agent.py"
+      - "tests/test_research_literature_pipeline.py"
+      - "tests/test_research_evidence_resilience.py"
       - ".github/workflows/always_on_accuracy_research.yml"
       - "ALWAYS_ON_ACCURACY_RESEARCH.md"
+      - "RESEARCH_LITERATURE_PIPELINE.md"
+      - "RESEARCH_EVIDENCE_RESILIENCE.md"
+
 permissions:
   contents: write
+
 concurrency:
   group: bounded-always-on-accuracy-main
   cancel-in-progress: false
+
 jobs:
   bounded-research:
     runs-on: ubuntu-latest
@@ -45,14 +54,16 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Validate guard and internet-discovery sandbox
+      - name: Verify safe research, DOI checking and self-recovery tests
         run: |
           python -m pip install -r requirements.txt pytest
           python -m compileall -q always_on_accuracy_agent.py research_literature_pipeline.py research_evidence_resilience.py
           python -m pytest -q tests/test_always_on_accuracy_agent.py tests/test_research_literature_pipeline.py tests/test_research_evidence_resilience.py
-      - name: Isolated PR smoke test (no Git writes)
+      - name: Isolated PR smoke test without tracked-data writes
         if: github.event_name == 'pull_request'
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p /tmp/accuracy-research-smoke/loto7_agent_output
           cp loto7.csv /tmp/accuracy-research-smoke/loto7.csv
           for f in source_validation.json research_cycle_guard.json future_holdout_state.json joint_set_v2_signal_oos_state.json continuous_learning_agent_state.json accuracy_extension_agent_state.json advanced_validation_lab_summary.json; do
@@ -64,25 +75,22 @@ jobs:
           python - <<'PY'
           import json
           from pathlib import Path
-          j=json.loads(Path("/tmp/accuracy-research-smoke/loto7_agent_output/always_on_accuracy_research_state.json").read_text())
-          assert j["sequence"]==1
-          review=json.loads(Path("/tmp/accuracy-research-smoke/loto7_agent_output/research_literature_reviews.json").read_text())
-          plan=json.loads(Path("/tmp/accuracy-research-smoke/loto7_agent_output/research_experiment_proposals.json").read_text())
-          assert all(r["review_status"]=="metadata_triage_only" for r in review["reviews"])
-          assert plan["executed_experiments"]==0
-          verified=json.loads(Path("/tmp/accuracy-research-smoke/loto7_agent_output/research_verified_publications.json").read_text())
-          method=json.loads(Path("/tmp/accuracy-research-smoke/loto7_agent_output/research_method_sandbox.json").read_text())
-          repair=json.loads(Path("/tmp/accuracy-research-smoke/loto7_agent_output/research_self_repair_report.json").read_text())
-          assert verified["automatic_adoption"] is False
-          assert method["future_oos_draws_consumed"]==0
-          assert method["real_model_experiments_executed"]==0
-          assert repair["requires_human_review_for_code_or_protocol_bugs"]
-          assert all(p["experiment_approved"] is False for p in plan["proposals"])
-          assert j["promotion_authorized"] is False
-          assert j["research_mode"] in ("VALIDATION_ONLY","SEARCH","WAIT_FOR_NEW_DATA")
-          print("bounded research phase",j["current_phase"])
+          out = Path("/tmp/accuracy-research-smoke/loto7_agent_output")
+          journal = json.loads((out / "always_on_accuracy_research_state.json").read_text())
+          paper = json.loads((out / "research_verified_publications.json").read_text())
+          sandbox = json.loads((out / "research_method_sandbox.json").read_text())
+          recovery = json.loads((out / "research_self_repair_report.json").read_text())
+          designs = json.loads((out / "research_experiment_proposals.json").read_text())
+          assert journal["sequence"] == 1 and not journal["promotion_authorized"]
+          assert paper["automatic_adoption"] is False and paper["full_text_reviewed_count"] == 0
+          assert sandbox["future_oos_draws_consumed"] == 0
+          assert sandbox["real_model_experiments_executed"] == 0
+          assert recovery["requires_human_review_for_code_or_protocol_bugs"] is True
+          assert designs["executed_experiments"] == 0
+          assert all(not p["experiment_approved"] for p in designs["proposals"])
+          print("safe research verification:", [r["status"] for r in paper["verifications"]])
           PY
-      - name: Commit ONLY research agent owned ledger, state, report
+      - name: Commit only ten research-owned generated artifacts
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
@@ -106,63 +114,36 @@ jobs:
               loto7_agent_output/research_method_sandbox.json \
               loto7_agent_output/research_self_repair_report.json \
               loto7_agent_output/research_verified_method_report.md
-            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/(always_on_accuracy_research_(journal.jsonl|state.json|report.md)|research_literature_reviews.json|research_experiment_proposals.json|research_literature_review_report.md|research_verified_publications.json|research_method_sandbox.json|research_self_repair_report.json|research_verified_method_report.md) || true)"
-            test -z "$unexpected" || { echo "::error::Unsafe staging $unexpected"; exit 1; }
+            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/(always_on_accuracy_research_(journal.jsonl|state.json|report.md)|research_literature_reviews.json|research_experiment_proposals.json|research_literature_review_report.md|research_verified_publications.json|research_method_sandbox.json|research_self_repair_report.json|research_verified_method_report.md)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Unsafe staged paths: $unexpected"
+              exit 1
+            fi
             if git diff --cached --quiet; then
-              echo "No new audit record."
+              echo "No changed research artifacts."
               exit 0
             fi
-            git commit -m "chore: record bounded hourly accuracy-research activity"
+            git commit -m "chore: audit scholarly evidence and bounded research recovery"
             if git push origin HEAD:main; then
-              echo "New hourly scientific activity saved."
+              echo "Research-only evidence published."
               exit 0
             fi
             if [ "$attempt" -eq 5 ]; then
-              echo "::error::Cannot save research activity after retries."
+              echo "::error::Research-only record push failed after retries."
               exit 1
             fi
           done
-      - name: Summarize activity and authority limits
+      - name: Research and recovery report
         if: always()
         shell: bash
         run: |
           {
-            echo "## Hourly accuracy-research cycle"
+            echo "## Hourly research, source validation and safe recovery"
             cat loto7_agent_output/always_on_accuracy_research_report.md 2>/dev/null || \
               cat /tmp/accuracy-research-smoke/loto7_agent_output/always_on_accuracy_research_report.md 2>/dev/null || true
-            echo
             cat loto7_agent_output/research_literature_review_report.md 2>/dev/null || \
               cat /tmp/accuracy-research-smoke/loto7_agent_output/research_literature_review_report.md 2>/dev/null || true
             cat loto7_agent_output/research_verified_method_report.md 2>/dev/null || \
               cat /tmp/accuracy-research-smoke/loto7_agent_output/research_verified_method_report.md 2>/dev/null || true
-            echo "Internet research remains untrusted until cross-checked; method sandbox is synthetic only. No model/Production changes."
-          } >> "$GITHUB_STEP_SUMMARY"
- || true)"
-            test -z "$unexpected" || { echo "::error::Unsafe staging $unexpected"; exit 1; }
-            if git diff --cached --quiet; then
-              echo "No new audit record."
-              exit 0
-            fi
-            git commit -m "chore: record bounded hourly accuracy-research activity"
-            if git push origin HEAD:main; then
-              echo "New hourly scientific activity saved."
-              exit 0
-            fi
-            if [ "$attempt" -eq 5 ]; then
-              echo "::error::Cannot save research activity after retries."
-              exit 1
-            fi
-          done
-      - name: Summarize activity and authority limits
-        if: always()
-        shell: bash
-        run: |
-          {
-            echo "## Hourly accuracy-research cycle"
-            cat loto7_agent_output/always_on_accuracy_research_report.md 2>/dev/null || \
-              cat /tmp/accuracy-research-smoke/loto7_agent_output/always_on_accuracy_research_report.md 2>/dev/null || true
-            echo
-            cat loto7_agent_output/research_literature_review_report.md 2>/dev/null || \
-              cat /tmp/accuracy-research-smoke/loto7_agent_output/research_literature_review_report.md 2>/dev/null || true
-            echo "Online leads and research proposals remain untrusted drafts. No automated model/Production changes."
+            echo "No unreviewed paper executes model code. No Production or registered OOS edits."
           } >> "$GITHUB_STEP_SUMMARY"
