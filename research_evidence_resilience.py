@@ -216,11 +216,13 @@ def fair_sandbox(*, worlds: int = FAIR_WORLDS, draws: int = DRAWS_PER_WORLD,
     fair_rate = 7 * 7 / 37
     hits = 0
     logscore_edges = []
+    brier_edges = []
     e_factor_means = []
     for _ in range(worlds):
         log_e = 0.0
         max_e = 1.0
         score_edge = 0.0
+        brier_edge = 0.0
         factors = []
         for _ in range(draws):
             drawn = rng.choice(37, size=7, replace=False)
@@ -233,11 +235,14 @@ def fair_sandbox(*, worlds: int = FAIR_WORLDS, draws: int = DRAWS_PER_WORLD,
             s1 = np.mean(observed * np.log(biased) +
                          (1 - observed) * np.log1p(-biased))
             score_edge += s1 - s0
+            brier_edge += float(np.mean((observed - uniform) ** 2) -
+                                np.mean((observed - biased) ** 2))
             factor = float(biased[drawn].sum() / fair_rate)
             factors.append(factor)
             log_e += math.log(factor)
             max_e = max(max_e, math.exp(log_e))
         logscore_edges.append(score_edge / draws)
+        brier_edges.append(brier_edge / draws)
         e_factor_means.append(float(np.mean(factors)))
         hits += max_e >= 20
     return {
@@ -246,6 +251,7 @@ def fair_sandbox(*, worlds: int = FAIR_WORLDS, draws: int = DRAWS_PER_WORLD,
         "forecasts_compared": ["uniform_7_of_37", "fixed_biased_probabilities"],
         "biased_sum_inclusion_p": float(biased.sum()),
         "biased_minus_uniform_mean_log_score": float(np.mean(logscore_edges)),
+        "biased_minus_uniform_mean_brier_edge": float(np.mean(brier_edges)),
         "observed_null_mean_e_factor": float(np.mean(e_factor_means)),
         "anytime_threshold": 20,
         "null_max_e_threshold_rate": hits / worlds,
@@ -283,7 +289,11 @@ def run(root: Path, *, fetch: Callable[[str], tuple[dict, int]] | None = None) -
     relevant = {x["doi"] for x in papers}
     # Research sources are queried only when the hourly discovery rotates into
     # its literature phase. Each run caps external network work to three DOIs.
-    is_search = state.get("current_phase") == "literature_search"
+    # On initial installation perform one bounded verification immediately,
+    # even if the hourly focus has rotated past the literature-search phase.
+    # Preserve a persistent first-attempt marker to prevent hourly retry storms.
+    first_verification = previous.get("initial_verification_attempted") is not True
+    is_search = state.get("current_phase") == "literature_search" or first_verification
     if fetch is None:
         fetch = public_get_json
     output = []
@@ -315,7 +325,13 @@ def run(root: Path, *, fetch: Callable[[str], tuple[dict, int]] | None = None) -
         "discovery_tip_sha256": chain[-1]["record_sha256"],
         "research_mode": guard["research_mode"],
         "latest_round": guard["latest_round"],
-        "searched_this_cycle": bool(is_search), "max_dois_per_cycle": DOI_LIMIT,
+        "searched_this_cycle": bool(is_search),
+        "initial_verification_attempted": True,
+        "verification_reason": (
+            "initial_bounded_bootstrap" if first_verification
+            else "scheduled_literature_search" if is_search else "not_due"
+        ),
+        "max_dois_per_cycle": DOI_LIMIT,
         "verifications": output,
         "two_provider_matches_this_cycle": sum(x["status"] == "two_provider_bibliography_matched"
                                                for x in output),
@@ -359,6 +375,7 @@ def run(root: Path, *, fetch: Callable[[str], tuple[dict, int]] | None = None) -
         f"- Network/provider error or conflict count: {provider_failures}",
         f"- Synthetic fair 7/37 worlds: {FAIR_WORLDS} × {DRAWS_PER_WORLD} draws",
         f"- Biased prediction log-score difference vs fair: {lab['biased_minus_uniform_mean_log_score']:+.8f}",
+        f"- Biased prediction Brier improvement vs fair: {lab['biased_minus_uniform_mean_brier_edge']:+.8f}",
         f"- Fair null e-test threshold crossing fraction: {lab['null_max_e_threshold_rate']:.4f}",
         "- All experiments are safety smoke tests; **no evidence of actual LOTO7 forecasting advantage**",
         "- Self-repair: retry bounded transport failures, safe stale cache, regenerate derived-only reports.",
