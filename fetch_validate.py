@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import hashlib
 import html as html_lib
 import json
 import re
@@ -11,6 +12,7 @@ import sys
 import time
 import unicodedata
 import urllib.parse
+import urllib.error
 import urllib.request
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -301,6 +303,58 @@ def write_report(path: Path, obj: Dict[str, object]) -> None:
     path.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def transient_fetch_error(exc: Exception) -> bool:
+    """Only infrastructure transport failures can permit cached WAIT evidence."""
+    if isinstance(exc, urllib.error.HTTPError):
+        return exc.code in (408, 429, 500, 502, 503, 504)
+    return isinstance(exc, (urllib.error.URLError, TimeoutError, ConnectionError))
+
+
+def cached_wait_is_safe(
+    csv_path: Path,
+    report_path: Path,
+    guard_path: Path,
+    prior_csv_sha256: str,
+    before: Optional[Dict[str, str]],
+    *,
+    now: dt.datetime,
+) -> bool:
+    """Fail closed unless a research WAIT can reuse its *unchanged* last draw.
+
+    A degraded historical verification stays degraded. This never verifies a new
+    result, changes the report or alters the pre-draw freeze policy.
+    """
+    if before is None or not all(p.is_file() for p in (csv_path, report_path, guard_path)):
+        return False
+    try:
+        if hashlib.sha256(csv_path.read_bytes()).hexdigest() != prior_csv_sha256:
+            return False
+        guard = json.loads(guard_path.read_text(encoding="utf-8"))
+        prior = json.loads(report_path.read_text(encoding="utf-8"))
+        if (guard.get("mode") != "WAIT_FOR_NEW_DATA"
+                or guard.get("search_enabled") is not False
+                or guard.get("data_sha256") != prior_csv_sha256
+                or prior.get("status") not in ("ok", "degraded")
+                or prior.get("verification") not in (
+                    "verified_two_result_sources", "degraded_single_result_source"
+                )):
+            return False
+        previous_result = validate_row(before)
+        if previous_result != prior.get("latest"):
+            return False
+        # Do not pass an outage as success after the next scheduled draw's
+        # release window. In particular, Saturday must NOT be considered safe
+        # merely because expected_new_round() checks only Friday evenings.
+        last_date = dt.date.fromisoformat(previous_result["date"])
+        cutoff = dt.datetime.combine(last_date + dt.timedelta(days=7),
+                                     dt.time(20, 0), tzinfo=JST)
+        if now >= cutoff or now < dt.datetime.combine(last_date, dt.time(), tzinfo=JST):
+            return False
+    except (ValueError, TypeError, KeyError, OSError, json.JSONDecodeError):
+        return False
+    return True
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Fetch LOTO7 with freshness gate and redundant cross-source validation")
     ap.add_argument("--csv", type=Path, default=Path("loto7.csv"))
@@ -309,6 +363,12 @@ def main() -> int:
     ap.add_argument("--interval-seconds", type=int, default=600)
     ap.add_argument("--months", type=int, default=3)
     ap.add_argument("--require-two-result-sources", action="store_true")
+    ap.add_argument(
+        "--allow-cached-wait-on-transient-error", action="store_true",
+        help="Research WAIT only: retain byte-identical already validated history on 5xx/timeout before next draw deadline.",
+    )
+    ap.add_argument("--research-guard", type=Path,
+                    default=Path("loto7_agent_output/research_cycle_guard.json"))
     ap.add_argument(
         "--production-snapshot",
         action="store_true",
@@ -323,6 +383,8 @@ def main() -> int:
     before = latest_row(before_rows)
     expected = freshness_expected(before, production_snapshot=args.production_snapshot)
     last_error = ""
+    prior_csv_sha256 = hashlib.sha256(args.csv.read_bytes()).hexdigest() if args.csv.is_file() else ""
+    transient_only = True
 
     for attempt in range(1, max(1, args.max_attempts) + 1):
         print(f"[FETCH] attempt {attempt}/{args.max_attempts}")
@@ -372,10 +434,21 @@ def main() -> int:
             print(f"[VALIDATION] {verification} round={primary['round']} date={primary['date']}")
             return 0
         except Exception as exc:
+            transient_only = transient_only and transient_fetch_error(exc)
             last_error = str(exc)
             print(f"[WAIT] {last_error}", file=sys.stderr)
             if attempt < args.max_attempts and args.interval_seconds > 0:
                 time.sleep(args.interval_seconds)
+
+    if (args.allow_cached_wait_on_transient_error and transient_only and
+            expected is None and cached_wait_is_safe(
+                args.csv, args.report, args.research_guard,
+                prior_csv_sha256, before, now=now_jst()
+            )):
+        print("[WAIT-CACHE] Transient source outage; preserving prior validation "
+              "and unchanged CSV in WAIT_FOR_NEW_DATA. No new results verified, "
+              "no prospective grading or model selection authorized.")
+        return 0
 
     write_report(args.report, {
         "checked_at_jst": now_jst().isoformat(timespec="seconds"),
