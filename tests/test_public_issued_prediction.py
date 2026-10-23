@@ -23,6 +23,20 @@ def project(tmp_path):
     return root
 
 
+
+def append_actual(path, main, bonus):
+    with path.open(encoding="utf-8-sig", newline="") as f:
+        fieldnames=list(csv.DictReader(f).fieldnames)
+    row={k:"" for k in fieldnames}
+    row.update({"result_id":"synthetic", "recorded_at_jst":"2026-10-23T21:00:00+09:00",
+                "round":"第700回", "draw_date":"2026-10-23",
+                "main_numbers":main, "bonus_numbers":bonus,
+                "source_verification":"verified_two_result_sources",
+                "source_status":"ok", "source_report_sha256":"abc"})
+    with path.open("a", encoding="utf-8", newline="") as f:
+        csv.DictWriter(f, fieldnames=fieldnames).writerow(row)
+
+
 def evidence(root):
     p = root / "loto7_agent_output"
     return (json.loads((p / "source_validation.json").read_text()),
@@ -115,11 +129,7 @@ def test_older_published_forecast_can_be_graded_only_with_two_source_evidence(pr
     src["status"] = "ok"
     src["verification"] = "verified_two_result_sources"
     path = project / "loto7_agent_output" / "actual_results.csv"
-    with path.open(encoding="utf-8", newline="") as f:
-        pass
-    with path.open("a", encoding="utf-8") as f:
-        f.write("\nsynthetic,2026-10-23T21:00:00+09:00,第700回,2026-10-23,"
-                "01 02 03 04 05 06 07,08 09,,,,,,,,,verified_two_result_sources,ok,abc\n")
+    append_actual(path, "01 02 03 04 05 06 07", "08 09")
     p, _ = preview(project, src, pub)
     assert p["result_status"] == "independently_verified"
     assert p["current_result"]["round"] == 700
@@ -140,8 +150,6 @@ def test_source_disagreement_never_creates_graded_draw(project):
     src["latest"]["main"] = [1, 2, 3, 4, 5, 6, 7]
     src["latest"]["bonus"] = [8, 9]
     path = project / "loto7_agent_output" / "actual_results.csv"
-    with path.open("a", encoding="utf-8") as f:
-        f.write("\nsynthetic,2026-10-23T21:00:00+09:00,第700回,2026-10-23,"
-                "01 02 03 04 05 06 08,07 09,,,,,,,,,verified_two_result_sources,ok,abc\n")
+    append_actual(path, "01 02 03 04 05 06 08", "07 09")
     with pytest.raises(ValueError, match="disagrees"):
         preview(project, src, pub)
