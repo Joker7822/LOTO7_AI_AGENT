@@ -102,3 +102,16 @@
 .issued-result-line strong{color:var(--text)}
 .issued-result-line b{color:var(--cyan)}
 @media(max-width:680px){.issued-ticket-grid{grid-template-columns:1fr}.issued-ball-row .ball{width:33px;height:33px;min-width:33px}}
+
+/* Research application maturity: public diagnostics, never adoption commands. */
+.application-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin:15px 0}
+.application-summary>div{border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(90,120,148,.09);min-width:0}
+.application-summary span{display:block;color:var(--sub);font-size:11px;line-height:1.5}
+.application-summary strong{display:block;font-size:17px;line-height:1.7;color:var(--cyan)}
+.application-review-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:13px}
+.application-review{border:1px solid var(--line);border-radius:12px;padding:13px;background:rgba(12,28,47,.6)}
+.application-review-heading{display:flex;align-items:start;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.application-review-heading strong{font-size:12px}
+.application-review-heading span{font-size:10px;color:var(--sub)}
+.application-review p{font-size:11px;line-height:1.8;color:var(--muted);margin:8px 0 0}
+@media(max-width:680px){.application-summary,.application-review-list{grid-template-columns:1fr}}

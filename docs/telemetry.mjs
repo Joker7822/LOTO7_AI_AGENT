@@ -174,6 +174,42 @@ export function normalizeIssuedPrediction(value) {
   };
 }
 
+export function normalizeResearchApplication(value) {
+  if (!value || value.status === "not_yet_published") {
+    return {status:"not_yet_published",tasks:[]};
+  }
+  if (value.status !== "research_review_ready_only") {
+    return {status:"stale_or_unsafe",tasks:[]};
+  }
+  const topics = new Set(["calibration","online_evaluation","anytime_evidence",
+                          "distribution_shift","selection_bias","ensemble"]);
+  if (value.actual_prediction_accuracy_improvement_verified !== false ||
+      value.synthetic_control !== "passed" ||
+      !Number.isInteger(value.papers) || value.papers < 0 ||
+      !Number.isInteger(value.verified_dois) || value.verified_dois < 0 ||
+      !Number.isInteger(value.proposal_count) ||
+      !Array.isArray(value.tasks) || value.tasks.length !== value.proposal_count ||
+      value.tasks.length > 6 || !["SEARCH","VALIDATION_ONLY","WAIT_FOR_NEW_DATA"].includes(value.research_mode)) {
+    return {status:"stale_or_unsafe",tasks:[]};
+  }
+  const result = [];
+  for(const item of value.tasks){
+    if(!topics.has(item.topic) ||
+       !["bibliography_needs_verification","awaiting_full_text_and_methodology_review"].includes(item.status) ||
+       item.requires_human_approval !== true ||
+       !Number.isInteger(item.two_provider_matches) || item.two_provider_matches < 0 ||
+       item.two_provider_matches > 4){
+      return {status:"stale_or_unsafe",tasks:[]};
+    }
+    result.push({topic:item.topic,status:item.status,twoProviderMatches:item.two_provider_matches});
+  }
+  return {
+    status:"research_review_ready_only",papers:value.papers,verifiedDois:value.verified_dois,
+    researchMode:value.research_mode,trustedSource:value.trusted_result_source===true,
+    syntheticControl:"passed",tasks:result
+  };
+}
+
 export function normalizeSnapshot(snapshot, now = new Date()) {
   if (!snapshot || typeof snapshot !== "object" ||
       snapshot.version !== SNAPSHOT_VERSION ||
@@ -270,6 +306,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
   const issuedPrediction = normalizeIssuedPrediction(snapshot.latest_prediction);
   const scientificValidation = normalizeScientificValidation(snapshot.scientific_validation);
   const alwaysOnActivity = normalizeAlwaysOnActivity(snapshot.always_on_accuracy, now);
+  const researchApplication = normalizeResearchApplication(snapshot.research_application);
   const alerts = [];
   if (alwaysOnActivity.stale || alwaysOnActivity.status === "invalid_or_unsafe") alerts.push({
     severity:"watch",source:"自律研究活動",
@@ -302,6 +339,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     issuedPrediction,
     scientificValidation,
     alwaysOnActivity,
+    researchApplication,
     operationsPlan: { overall:plan.overall, counts:plan.counts, tasks:incidentTasks },
     healthyRuns: workflows.filter(x => x.health === "ok").length
   };

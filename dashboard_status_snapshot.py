@@ -375,6 +375,57 @@ def always_on_research_projection(out: Path) -> tuple[dict, str | None]:
     }, checksum
 
 
+def research_application_projection(root: Path, out: Path) -> tuple[dict, str | None]:
+    """Only show bounded, review-only readiness, never untrusted commands."""
+    path = out / "research_application_readiness.json"
+    if not path.is_file():
+        return {"status": "not_yet_published"}, None
+    raw = read_object(path)
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    research_mode = read_object(out / "research_cycle_guard.json").get("mode")
+    if (raw.get("version") != "research-application-gate-v1"
+            or raw.get("input_draw_sha256") != fingerprint_file(root / "loto7.csv")
+            or raw.get("research_mode") != research_mode
+            or raw.get("new_experiments_executed") != 0
+            or raw.get("automatic_model_training") is not False
+            or raw.get("auto_production_release") is not False
+            or raw.get("future_oos_or_production_changed") is not False
+            or raw.get("actual_prediction_accuracy_improvement_verified") is not False
+            or raw.get("synthetic_control", {}).get("status") != "synthetic_controls_passed"):
+        return {"status": "stale_or_unsafe"}, digest
+    allowed = {
+        "bibliography_needs_verification",
+        "awaiting_full_text_and_methodology_review",
+    }
+    queue = raw.get("application_queue")
+    if not isinstance(queue, list) or len(queue) > 6 or raw.get("proposal_count") != len(queue):
+        return {"status": "stale_or_unsafe"}, digest
+    tasks = []
+    for task in queue:
+        if (task.get("status") not in allowed
+                or task.get("experiment_execution_allowed") is not False
+                or task.get("production_adoption_allowed") is not False
+                or task.get("requires_human_approval") is not True):
+            return {"status": "stale_or_unsafe"}, digest
+        tasks.append({
+            "topic": str(task.get("topic", ""))[:50],
+            "status": task["status"],
+            "two_provider_matches": len(task.get("two_provider_matched_dois", [])),
+            "requires_human_approval": True,
+        })
+    return {
+        "status": "research_review_ready_only",
+        "research_mode": research_mode,
+        "trusted_result_source": raw.get("trusted_result_source") is True,
+        "papers": raw.get("reviewed_publication_count"),
+        "verified_dois": raw.get("two_provider_bibliographic_matches"),
+        "proposal_count": len(tasks),
+        "synthetic_control": "passed",
+        "actual_prediction_accuracy_improvement_verified": False,
+        "tasks": tasks,
+    }, digest
+
+
 def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None = None,
                     ref: str | None = None) -> dict:
     out = root / "loto7_agent_output"
@@ -386,6 +437,9 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
     sha.update(prediction_hashes)
     scientific, research_hash = scientific_research_projection(root, out)
     always_on, activity_hash = always_on_research_projection(out)
+    application, application_hash = research_application_projection(root, out)
+    if application_hash is not None:
+        sha["application_gate"] = application_hash
     if activity_hash is not None:
         sha["always_on_research"] = activity_hash
     if research_hash is not None:
@@ -406,6 +460,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         "scientific_validation": scientific,
         "latest_prediction": latest_prediction,
         "always_on_accuracy": always_on,
+        "research_application": application,
         "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
     }
     snapshot["operations_plan"] = build_plan(snapshot, now=moment)
