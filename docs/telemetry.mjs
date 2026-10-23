@@ -105,6 +105,75 @@ export function normalizeAlwaysOnActivity(value, now = new Date()) {
   };
 }
 
+export function normalizeIssuedPrediction(value) {
+  if (!value || value.status === "not_published") {
+    return {status:"not_published",tickets:[],latestVerified:null,currentResult:null};
+  }
+  const validNumbers=(nums, size)=>Array.isArray(nums) && nums.length===size &&
+    nums.every((n,i)=>Number.isInteger(n) && n>=1 && n<=37 && (i===0 || nums[i-1]<n));
+  const dateOk=t=>typeof t==="string" && /^\d{4}-\d\d-\d\d$/.test(t);
+  const timeOk=t=>typeof t==="string" && !Number.isNaN(Date.parse(t)) && /[+-]\d\d:\d\d$/.test(t);
+  if(value.version!=="issued-production-forecast-public-v1" ||
+     value.status!=="published" ||
+     value.no_future_oos_vectors!==true || value.accuracy_claim!==false ||
+     value.exposure!=="publicly_issued_production_only" ||
+     !Number.isInteger(value.target_round) || value.target_round<1 ||
+     value.source_base_round!==value.target_round-1 ||
+     !dateOk(value.draw_date) || !timeOk(value.published_at_jst) ||
+     typeof value.model!=="string" || !/^[A-Za-z0-9._-]{1,100}$/.test(value.model) ||
+     !Array.isArray(value.tickets) || value.tickets.length!==5) {
+    throw new Error("公開済みProduction予測の整合性を確認できません");
+  }
+  const tickets=value.tickets.map((t,i)=>{
+    if(t.ticket!==i+1 || !validNumbers(t.numbers,7)){
+      throw new Error("公開予測の口数・数字が不正です");
+    }
+    return {ticket:t.ticket,numbers:[...t.numbers]};
+  });
+  const gradeResult=(result,round)=>{
+    if(result==null)return null;
+    if(result.round!==round || !dateOk(result.date) ||
+       !validNumbers(result.main,7) || !validNumbers(result.bonus,2) ||
+       result.bonus.some(n=>result.main.includes(n)) ||
+       !Array.isArray(result.tickets) || result.tickets.length!==5 ||
+       (round!==value.target_round && result.source_verification!=="verified_two_result_sources")) {
+      throw new Error("公開済み予測の当選照合根拠が不正です");
+    }
+    const checked=result.tickets.map((t,i)=>{
+      if(t.ticket!==i+1 || !Number.isInteger(t.main_hits) ||
+         !Number.isInteger(t.bonus_hits) ||
+         t.main_hits<0 || t.main_hits>7 || t.bonus_hits<0 || t.bonus_hits>2 ||
+         typeof t.grade!=="string" ||
+         !["1等","2等","3等","4等","5等","6等","はずれ"].includes(t.grade)){
+        throw new Error("公開済み予測の当選結果が不正です");
+      }
+      return {ticket:t.ticket,mainHits:t.main_hits,bonusHits:t.bonus_hits,grade:t.grade};
+    });
+    if(round===value.target_round){
+      for(const t of checked){
+        const p=tickets[t.ticket-1].numbers;
+        const mh=p.filter(n=>result.main.includes(n)).length;
+        const bh=p.filter(n=>result.bonus.includes(n)).length;
+        if(mh!==t.mainHits || bh!==t.bonusHits)throw new Error("当選結果が公開予測と不一致です");
+      }
+    }
+    return {round:result.round,date:result.date,main:[...result.main],
+            bonus:[...result.bonus],tickets:checked};
+  };
+  const currentResult=gradeResult(value.current_result,value.target_round);
+  if(!["awaiting_independently_verified_draw","independently_verified"].includes(value.result_status) ||
+      (value.result_status==="independently_verified")!==Boolean(currentResult)){
+    throw new Error("公開済み予測の結果検証状態が不正です");
+  }
+  const lastVerified=value.latest_verified
+    ? gradeResult(value.latest_verified,value.target_round-1) : null;
+  return {
+    status:"published",targetRound:value.target_round,drawDate:value.draw_date,
+    publishedAt:value.published_at_jst,model:value.model,
+    tickets,resultStatus:value.result_status,currentResult,lastVerified,
+  };
+}
+
 export function normalizeSnapshot(snapshot, now = new Date()) {
   if (!snapshot || typeof snapshot !== "object" ||
       snapshot.version !== SNAPSHOT_VERSION ||
@@ -198,6 +267,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
       ["block","watch","info"].some(p=>incidentTasks.filter(x=>x.priority===p).length!==plan.counts[p])) {
     throw new Error("AI司令塔の優先順位と件数が一致しません");
   }
+  const issuedPrediction = normalizeIssuedPrediction(snapshot.latest_prediction);
   const scientificValidation = normalizeScientificValidation(snapshot.scientific_validation);
   const alwaysOnActivity = normalizeAlwaysOnActivity(snapshot.always_on_accuracy, now);
   const alerts = [];
@@ -229,6 +299,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     sourceCommit: sha, generatedAt: timestamp.toISOString(),
     ageMinutes, outdated, workflows, series, alerts,
     sources: snapshot.sources,
+    issuedPrediction,
     scientificValidation,
     alwaysOnActivity,
     operationsPlan: { overall:plan.overall, counts:plan.counts, tasks:incidentTasks },

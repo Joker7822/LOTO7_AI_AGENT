@@ -25,17 +25,17 @@ The dashboard fetches JSON via raw.githubusercontent.com from main every **120 s
 - future_holdout_state.json: pre-registered portfolio future holdout, including trusted draw count;
 - joint_set_v2_signal_oos_summary.json: independently registered 26-draw v2 signal shadow;
 - continuous_learning_agent_summary.json: indefinite prospective learning status, frozen target and future-only actual results;
-- model_champion.json, weekly_production_prediction_state.json: only model version and publication **status** — no ticket numbers;
+- model_champion.json, weekly_production_prediction_state.json: model version and publication **status**. The separate public snapshot also now exposes only the five **already-issued** Production tickets from the canonical append-only prediction ledger;
 - predictive_expert_agent_summary.json: exploratory historical comparison, never presented as independent future proof;
 - research_cycle_guard.json: trial-count guard.
 
 ### Privacy and accuracy limits
 
-The page **never displays stored production prediction tickets or any secret**. The separately password-protected Sakura prediction viewer remains protected by its existing controls.
+The GitHub Pages dashboard **now displays only the five already-published Production forecast tickets** after checking the weekly publisher state against the canonical prediction ledger and the correction/invalidation log. Because GitHub Pages is public, these five issued ticket numbers are public information; no password, private Sakura connection, unissued candidate, or registered research Future-OOS vector is exposed. The separately password-protected Sakura prediction viewer remains protected by its own controls.
 
 Failing JSON fetches and cross-system version/round discrepancies produce an **unknown / warning** rather than a fabricated successful score. A WATCH is a governance reminder, not evidence that the agent is broken. Historical Top7 scores are explicitly marked HISTORICAL ONLY; genuinely prospective data are shown separately. Accuracy gains, lottery winnings and Production promotion are never implied by past or partial exploratory data.
 
-This is a visualization; it cannot select a new Champion, alter training code, publish tickets, retroactively score a draw or modify a preregistered freeze.
+This is a read-only visualization; it cannot select a new Champion, alter training code, publish new tickets, retroactively score a draw or modify a preregistered freeze.
 
 ## Local preview and checks
 
@@ -83,3 +83,14 @@ The e-value starts at 1 with **zero new actual future draws**, stays empty until
 - Protocol: ADVANCED_VALIDATION_LAB.md
 - One public summary: loto7_agent_output/advanced_validation_lab_summary.json
 - New snapshot field: scientific_validation
+
+
+## 最新の本番予測番号と直近の照合結果
+
+- `public_issued_prediction.py` は新規発行を行わず、`weekly_production_prediction_state.json` が明示的に `published=true` の場合だけ、既存の `predictions.csv` に記録された該当回の**有効な5口**を取り出します。
+- `prediction_corrections.csv` の無効化イベント、対象回・基準回・発行時刻（抽せん前）・モデル版・CSV SHAを照合。不一致、重複、番号不正、抽せん後に作られた予測は表示を拒否します。
+- まだ確定していない対象回は「公式結果の検証待ち」。`actual_results.csv` の独立2ソース照合済み実結果に限定して数字の一致数を集計します。最新の前回分の照合済み成績も表示します。
+- 公開JSONは `docs/data/dashboard_snapshot.json` の `latest_prediction` に**発行済み本番5口と最小限の照合情報のみ**を同時刻のスナップショットとして含めます。研究用候補、Future-OOSの凍結ベクトル、秘密情報、認証情報は含めません。
+- **ご注意:** GitHub Pagesは公開サイトのため、5口の予測番号は第三者にも閲覧可能です。購入を推奨するものではなく、当せんを保証しません。
+
+テスト：`python -m pytest -q tests/test_public_issued_prediction.py tests/test_dashboard_status_snapshot.py`、`node --test docs/tests/issued-prediction.test.mjs`。

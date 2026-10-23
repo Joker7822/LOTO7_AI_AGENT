@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from agent_operations_planner import build_plan
+from public_issued_prediction import preview as issued_production_preview
 from loto7_evolving_agent import fingerprint_file
 
 VERSION = "loto7-ops-snapshot-v1"
@@ -379,6 +380,10 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
     out = root / "loto7_agent_output"
     sources, sha = read_sources(out)
     series = read_future_series(out, sources)
+    latest_prediction, prediction_hashes = issued_production_preview(
+        root, sources["source"], read_object(out / "weekly_production_prediction_state.json")
+    )
+    sha.update(prediction_hashes)
     scientific, research_hash = scientific_research_projection(root, out)
     always_on, activity_hash = always_on_research_projection(out)
     if activity_hash is not None:
@@ -399,6 +404,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         "state_hashes_sha256": hashlib.sha256(json.dumps(sha, sort_keys=True).encode()).hexdigest(),
         "sources": sources, "workflows": workflows, "series": series,
         "scientific_validation": scientific,
+        "latest_prediction": latest_prediction,
         "always_on_accuracy": always_on,
         "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
     }

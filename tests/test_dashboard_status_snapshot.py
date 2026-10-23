@@ -34,8 +34,12 @@ def project(tmp_path):
         "future_holdout_results.csv",
         "joint_set_v2_signal_oos_state.json",
         "continuous_learning_agent_state.json",
+        "predictions.csv",
+        "prediction_corrections.csv",
+        "actual_results.csv",
     ]:
         shutil.copyfile(src / filename, out / filename)
+    shutil.copyfile("loto7.csv", root / "loto7.csv")
     return root
 
 
@@ -223,3 +227,28 @@ def test_always_on_activity_optional_and_public_whitelist(project):
     p.write_text(json.dumps(state, ensure_ascii=False))
     unsafe, _ = d.always_on_research_projection(out)
     assert unsafe["status"] == "invalid_or_unsafe"
+
+
+
+def test_latest_published_five_tickets_are_only_issued_production(project):
+    result = d.create_snapshot(project, all_workflows(), now=FIXED, ref="a" * 40)
+    forecast = result["latest_prediction"]
+    assert forecast["status"] == "published"
+    assert forecast["target_round"] == 700
+    assert len(forecast["tickets"]) == 5
+    assert forecast["tickets"][0]["numbers"] == [6, 16, 22, 23, 24, 28, 36]
+    assert forecast["result_status"] == "awaiting_independently_verified_draw"
+    assert forecast["latest_verified"]["round"] == 699
+    assert forecast["latest_verified"]["source_verification"] == d.TRUST
+    assert "prediction_ledger" not in result["sources"]
+    assert not any("candidate_ticket" in k for k in result.keys())
+
+
+def test_no_unpublished_or_invalidated_prediction_can_be_rendered(project):
+    state_path = project / "loto7_agent_output" / "weekly_production_prediction_state.json"
+    state=json.loads(state_path.read_text(encoding="utf-8"))
+    state["published"]=False
+    state_path.write_text(json.dumps(state),encoding="utf-8")
+    doc=d.create_snapshot(project,all_workflows(),now=FIXED,ref="b"*40)
+    assert doc["latest_prediction"]["tickets"] == []
+    assert doc["latest_prediction"]["status"] == "not_published"

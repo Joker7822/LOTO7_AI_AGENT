@@ -125,6 +125,64 @@ function renderResearch(v) {
   set("research-mode", modes[v.researchMode] || v.researchMode);
   set("research-null", v.scoutP == null ? "未確定" : "p = " + displayMetric(v.scoutP, 4));
 }
+function renderIssuedPredictions(ops){
+  const prediction=ops.issuedPrediction;
+  const grid=clear("issued-ticket-grid");
+  const history=clear("issued-previous-results");
+  if(prediction.status!=="published"){
+    set("issued-target","発行済みの予測がありません");
+    set("issued-details","本番発行台帳で確認できた場合のみ公開します");
+    set("issued-status","未発行");
+    set("issued-result-status","予測番号なし");
+    set("issued-next-check","未発行・未登録の候補は掲載しません");
+    set("issued-previous-status","未取得");
+    grid?.append(node("p","muted","新たに発行された予測はまだ確認できません。"));
+    history?.append(node("p","muted","直近の照合済み予測成績は未取得です。"));
+    return;
+  }
+  set("issued-target","第"+prediction.targetRound+"回向け · Production 5口");
+  set("issued-details","予測発行: "+asJst(prediction.publishedAt)+"　/　モデル: "+prediction.model);
+  set("issued-status",prediction.currentResult?"2ソース照合済み":"発行済み");
+  for(const ticket of prediction.tickets){
+    const article=node("article","issued-ticket");
+    article.append(node("strong","issued-ticket-label","予測 "+ticket.ticket));
+    const row=node("div","ball-row issued-ball-row");
+    for(const n of ticket.numbers)row.append(node("span","ball",String(n).padStart(2,"0")));
+    article.append(row);
+    if(prediction.currentResult){
+      const scored=prediction.currentResult.tickets[ticket.ticket-1];
+      article.append(node("span","issued-ticket-grade",
+        "本数字 "+scored.mainHits+"個・ボーナス "+scored.bonusHits+"個 / "+scored.grade));
+    }
+    grid?.append(article);
+  }
+  set("issued-result-status",prediction.currentResult?
+      "第"+prediction.targetRound+"回：抽せん結果を照合済み":
+      "第"+prediction.targetRound+"回：公式結果の検証待ち");
+  set("issued-next-check",prediction.currentResult?
+      "2ソース検証済みの実結果だけで一致数を採点しました":
+      "結果が確認されるまで当否は表示しません。抽せん予定: "+prediction.drawDate);
+  const prev=prediction.lastVerified;
+  set("issued-previous-status",prev?"第"+prev.round+"回 検証済み":"照合済み結果なし");
+  if(!prev){
+    history?.append(node("p","muted","照合済みの過去予測成績がありません。"));
+    return;
+  }
+  set("issued-previous-heading","直近の照合済み予測成績 · 第"+prev.round+"回");
+  const official=node("p","issued-official",
+    "公式本数字 "+prev.main.map(n=>String(n).padStart(2,"0")).join(" ") +
+    "　 BONUS "+prev.bonus.map(n=>String(n).padStart(2,"0")).join(" "));
+  history?.append(official);
+  const table=node("div","issued-result-list");
+  for(const t of prev.tickets){
+    const line=node("div","issued-result-line");
+    line.append(node("strong","","予測 "+t.ticket));
+    line.append(node("span","","本 "+t.mainHits+"個 / B "+t.bonusHits+"個"));
+    line.append(node("b","",t.grade));
+    table.append(line);
+  }
+  history?.append(table);
+}
 function renderOperations(v) {
   const grid = clear("role-grid");
   for (const role of v.roles) {
@@ -349,7 +407,7 @@ export async function refresh(){
     const view=buildView(ops.sources,{},new Date());
     if(ops.outdated&&view.state==="ok"){view.state="watch";view.stateLabel="監視データが古くなっています";}
     if((ops.alerts.some(a=>a.severity==="block")||ops.operationsPlan.overall==="block")&&view.state!=="unknown"){view.state="block";view.stateLabel="一部の自動処理で異常を確認";}
-    renderOverview(view);renderProgress(view);renderResearch(view);renderOperations(view);
+    renderOverview(view);renderProgress(view);renderResearch(view);renderOperations(view);renderIssuedPredictions(ops);
     renderWorkflowStatus(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
     set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
     document.title=(view.state==="ok"?"● ":view.state==="watch"?"◐ ":"！ ")+"LOTO7 AI AGENT | 現在の状態";
@@ -358,6 +416,9 @@ export async function refresh(){
     const light=el("overall-light");if(light)light.className="status-light unknown";
     set("snapshot-freshness","未取得・通信状況を確認してください");
     const list=clear("alert-list");list.append(node("p","error-line",String(e.message||"監視情報の取得失敗")));
+    set("issued-status","検証データ未取得");
+    clear("issued-ticket-grid")?.append(node("p","error-line","公開予測の整合性を確認できないため番号を表示しません。"));
+    clear("issued-previous-results")?.append(node("p","muted","照合済み結果を取得できません。"));
     set("science-future-pill","情報を取得できません");
     set("command-center-overall","司令塔の判定を取得できません");
     const grid=clear("command-center-grid");grid.append(node("p","error-line","安全な判断のため状態の再取得が必要です。"));
