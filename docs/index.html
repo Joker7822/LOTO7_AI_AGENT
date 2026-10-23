@@ -65,6 +65,32 @@
         </div>
       </section>
 
+      <section class="section" id="issued-predictions" aria-labelledby="issued-predictions-title">
+        <div class="section-heading">
+          <div><span class="section-index">LATEST / ISSUED FORECASTS</span><h2 id="issued-predictions-title">最新のAI予測番号と照合結果</h2></div>
+          <p>発行済みProductionの5口だけを表示</p>
+        </div>
+        <article class="panel published-prediction-panel">
+          <div class="panel-heading">
+            <div><h3 id="issued-target">公開済み予測を確認中</h3><span id="issued-details">発行時刻・モデルを照合中</span></div>
+            <span id="issued-status" class="label-outline">取得中</span>
+          </div>
+          <div id="issued-ticket-grid" class="issued-ticket-grid" aria-live="polite"><p class="muted">公開済み予測の確認中...</p></div>
+          <div class="published-result-meta">
+            <span id="issued-result-status">結果照合の状態を確認中</span>
+            <span id="issued-next-check">結果は独立した2ソースで照合してから採点します</span>
+          </div>
+        </article>
+        <article class="panel published-previous-panel">
+          <div class="panel-heading">
+            <div><h3 id="issued-previous-heading">直近の照合済み予測成績</h3><span>事前発行された5口と公式結果の一致数</span></div>
+            <span id="issued-previous-status" class="label-outline">取得中</span>
+          </div>
+          <div id="issued-previous-results" class="issued-previous-results" aria-live="polite"><p class="muted">真正結果の確認待ち...</p></div>
+        </article>
+        <p class="explain">ここに掲載する数字は既存のProduction発行台帳に記録済みのものだけです。公開サイトなので予測番号は誰でも閲覧できます。未発行・研究用の候補・登録済みFuture-OOSの凍結予測は表示しません。予測は当せんや精度向上を保証しません。</p>
+      </section>
+
       <section class="section" id="validation" aria-labelledby="section-validation">
         <div class="section-heading"><div><span class="section-index">02 / REAL-WORLD EVIDENCE</span><h2 id="section-validation">将来の検証状況</h2></div><p>過去の研究とは別に、未知だった結果で評価</p></div>
         <div id="progress-grid" class="progress-grid" aria-live="polite"></div>
@@ -184,7 +210,7 @@
 
       <section class="disclaimer">
         <div class="disclaimer-icon" aria-hidden="true">!</div>
-        <div><b>このダッシュボードは状態の「可視化」専用です。</b><p>予測番号・パスワードは表示しません。過去研究の良好な数値や継続学習の進行は、将来の的中率・当せんを保証するものではありません。将来検証が未完了なら、精度向上は未確認として扱います。</p></div>
+        <div><b>このダッシュボードは状態の「可視化」専用です。</b><p>Productionで発行済みの予測番号のみを公開し、未発行予測・研究用予測・パスワードは表示しません。過去研究の良好な数値や継続学習の進行は、将来の的中率・当せんを保証するものではありません。将来検証が未完了なら、精度向上は未確認として扱います。</p></div>
       </section>
     </main>
 
