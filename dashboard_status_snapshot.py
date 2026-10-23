@@ -10,6 +10,7 @@ import argparse
 import csv
 import hashlib
 import json
+import re
 import os
 import subprocess
 import urllib.error
@@ -426,6 +427,77 @@ def research_application_projection(root: Path, out: Path) -> tuple[dict, str | 
     }, digest
 
 
+def research_priority_projection(root: Path, out: Path) -> tuple[dict, str | None]:
+    """Only whitelist safe research next-actions; never project executable commands."""
+    path = out / "research_autonomy_priority_queue.json"
+    if not path.exists():
+        return {"status": "not_yet_published", "tasks": []}, None
+    checksum = hashlib.sha256(path.read_bytes()).hexdigest()
+    raw = read_object(path)
+    auth = raw.get("authority", {})
+    forbidden = (
+        "automated_model_training", "research_budget_override",
+        "retroactive_future_freeze", "registered_oos_modification",
+        "production_or_champion_update", "workflows_dispatched",
+    )
+    guard = read_object(out / "research_cycle_guard.json")
+    source = read_object(out / "source_validation.json")
+    trusted = (source.get("status") == "ok" and
+               source.get("verification") == "verified_two_result_sources")
+    original = raw.get("tasks")
+    counts = raw.get("counts")
+    if (raw.get("version") != "research-priority-orchestrator-v1"
+            or not isinstance(auth, dict)
+            or any(auth.get(k) is not False for k in forbidden)
+            or raw.get("draw_history_sha256") != fingerprint_file(root / "loto7.csv")
+            or raw.get("research_mode") != guard.get("mode")
+            or raw.get("source_two_verified") is not trusted
+            or raw.get("latest_source_round") != source.get("latest", {}).get("round")
+            or not isinstance(original, list) or len(original) > 20
+            or not isinstance(counts, dict)
+            or any(counts.get(key) != sum(x.get("priority") == key for x in original)
+                   for key in ("block", "watch", "info"))):
+        return {"status": "stale_or_unsafe", "tasks": []}, checksum
+    priority = {"block": 0, "watch": 1, "info": 2}
+    lanes = {"source_integrity", "prospective_integrity",
+             "research_governance", "bibliography", "experiment_review"}
+    visible = []
+    previous = 0
+    seen = set()
+    for row in original:
+        if (not isinstance(row, dict) or row.get("priority") not in priority
+                or row.get("lane") not in lanes
+                or row.get("safe_autonomous_action") != "report_only"
+                or row.get("human_approval_required_for_model_change") is not True
+                or row.get("forecast_or_production_change_authorized") is not False
+                or row.get("new_optimizer_trials_authorized") is not False
+                or priority[row["priority"]] < previous
+                or not isinstance(row.get("id"), str)
+                or not re.fullmatch(r"[0-9a-f]{16}", row["id"])
+                or row["id"] in seen):
+            return {"status": "stale_or_unsafe", "tasks": []}, checksum
+        previous = priority[row["priority"]]
+        seen.add(row["id"])
+        if len(visible) < 6:
+            visible.append({
+                "priority": row["priority"],
+                "lane": row["lane"],
+                "owner": str(row.get("owner", ""))[:70],
+                "title": str(row.get("title", ""))[:110],
+                "reason": str(row.get("reason", ""))[:200],
+                "next_step": str(row.get("next_step", ""))[:280],
+                "safe_autonomous_action": "report_only",
+            })
+    return {
+        "status": "audited_research_plan",
+        "research_mode": guard["mode"],
+        "source_two_verified": trusted,
+        "total_tasks": len(original),
+        "counts": {k: counts[k] for k in ("block", "watch", "info")},
+        "tasks": visible, "promotion_authorized": False,
+    }, checksum
+
+
 def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None = None,
                     ref: str | None = None) -> dict:
     out = root / "loto7_agent_output"
@@ -438,6 +510,9 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
     scientific, research_hash = scientific_research_projection(root, out)
     always_on, activity_hash = always_on_research_projection(out)
     application, application_hash = research_application_projection(root, out)
+    priorities, priority_hash = research_priority_projection(root, out)
+    if priority_hash is not None:
+        sha["research_priority"] = priority_hash
     if application_hash is not None:
         sha["application_gate"] = application_hash
     if activity_hash is not None:
@@ -461,6 +536,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         "latest_prediction": latest_prediction,
         "always_on_accuracy": always_on,
         "research_application": application,
+        "research_priorities": priorities,
         "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
     }
     snapshot["operations_plan"] = build_plan(snapshot, now=moment)

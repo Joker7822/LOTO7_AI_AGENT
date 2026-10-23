@@ -210,6 +210,44 @@ export function normalizeResearchApplication(value) {
   };
 }
 
+export function normalizeResearchPriorities(value) {
+  if (!value || value.status === "not_yet_published") {
+    return {status:"not_yet_published",tasks:[],totalTasks:0};
+  }
+  if (value.status !== "audited_research_plan") {
+    return {status:"stale_or_unsafe",tasks:[],totalTasks:0};
+  }
+  const priorities={block:0,watch:1,info:2};
+  const lanes=new Set(["source_integrity","prospective_integrity",
+                        "research_governance","bibliography","experiment_review"]);
+  if (value.promotion_authorized !== false ||
+      !["SEARCH","VALIDATION_ONLY","WAIT_FOR_NEW_DATA"].includes(value.research_mode) ||
+      typeof value.source_two_verified !== "boolean" ||
+      !Number.isInteger(value.total_tasks) || value.total_tasks < 0 ||
+      !value.counts || !Array.isArray(value.tasks) || value.tasks.length > 6 ||
+      value.tasks.length > value.total_tasks ||
+      ["block","watch","info"].some(p => !Number.isInteger(value.counts[p]) || value.counts[p]<0) ||
+      Object.values(value.counts).reduce((a,b)=>a+b,0)!==value.total_tasks) {
+    return {status:"stale_or_unsafe",tasks:[],totalTasks:0};
+  }
+  let prev=-1;
+  const tasks=[];
+  for(const t of value.tasks){
+    if(!Object.hasOwn(priorities,t.priority) || !lanes.has(t.lane) ||
+       priorities[t.priority]<prev || t.safe_autonomous_action!=="report_only" ||
+       ["title","reason","next_step","owner"].some(k=>typeof t[k]!=="string" ||
+         !t[k].trim() || t[k].length>320)) {
+      return {status:"stale_or_unsafe",tasks:[],totalTasks:0};
+    }
+    prev=priorities[t.priority];
+    tasks.push({priority:t.priority,lane:t.lane,title:t.title,reason:t.reason,
+                nextStep:t.next_step,owner:t.owner});
+  }
+  return {status:"audited_research_plan",tasks,totalTasks:value.total_tasks,
+          counts:value.counts,researchMode:value.research_mode,
+          sourceTwoVerified:value.source_two_verified};
+}
+
 export function normalizeSnapshot(snapshot, now = new Date()) {
   if (!snapshot || typeof snapshot !== "object" ||
       snapshot.version !== SNAPSHOT_VERSION ||
@@ -307,6 +345,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
   const scientificValidation = normalizeScientificValidation(snapshot.scientific_validation);
   const alwaysOnActivity = normalizeAlwaysOnActivity(snapshot.always_on_accuracy, now);
   const researchApplication = normalizeResearchApplication(snapshot.research_application);
+  const researchPriorities = normalizeResearchPriorities(snapshot.research_priorities);
   const alerts = [];
   if (alwaysOnActivity.stale || alwaysOnActivity.status === "invalid_or_unsafe") alerts.push({
     severity:"watch",source:"自律研究活動",
@@ -340,6 +379,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     scientificValidation,
     alwaysOnActivity,
     researchApplication,
+    researchPriorities,
     operationsPlan: { overall:plan.overall, counts:plan.counts, tasks:incidentTasks },
     healthyRuns: workflows.filter(x => x.health === "ok").length
   };

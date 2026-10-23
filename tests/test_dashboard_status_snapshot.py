@@ -295,3 +295,65 @@ def test_application_projection_rejects_publication_and_unregistered_claims(proj
     p.write_text(json.dumps(sample))
     invalid, _ = d.research_application_projection(project, out)
     assert invalid["status"] == "stale_or_unsafe"
+
+
+
+def test_autonomous_research_priority_snapshot_is_absent_until_verified(project):
+    out = project / "loto7_agent_output"
+    view, fp = d.research_priority_projection(project, out)
+    assert view == {"status": "not_yet_published", "tasks": []}
+    assert fp is None
+
+
+def test_priority_projection_whitelists_actions_and_rejects_autonomous_promotions(project):
+    from loto7_evolving_agent import fingerprint_file
+    out = project / "loto7_agent_output"
+    source = json.loads((out / "source_validation.json").read_text())
+    guard = json.loads((out / "research_cycle_guard.json").read_text())
+    trusted = source["status"] == "ok" and source["verification"] == "verified_two_result_sources"
+    task = {
+        "id": "a" * 16, "priority": "block",
+        "lane": "source_integrity", "owner": "source_verifier",
+        "title": "公式ソースを確認", "reason": "単一ソースのみ",
+        "next_step": "公開結果を独立照合",
+        "safe_autonomous_action": "report_only",
+        "human_approval_required_for_model_change": True,
+        "forecast_or_production_change_authorized": False,
+        "new_optimizer_trials_authorized": False,
+        "secret": "never display",
+    }
+    payload = {
+        "version": "research-priority-orchestrator-v1",
+        "draw_history_sha256": fingerprint_file(project / "loto7.csv"),
+        "research_mode": guard["mode"],
+        "source_two_verified": trusted,
+        "latest_source_round": source["latest"]["round"],
+        "counts": {"block": 1, "watch": 0, "info": 0},
+        "tasks": [task],
+        "authority": {
+            "automated_model_training": False,
+            "research_budget_override": False,
+            "retroactive_future_freeze": False,
+            "registered_oos_modification": False,
+            "production_or_champion_update": False,
+            "workflows_dispatched": False,
+        },
+        "api_key": "never display",
+    }
+    path = out / "research_autonomy_priority_queue.json"
+    path.write_text(json.dumps(payload, ensure_ascii=False))
+    safe, fingerprint = d.research_priority_projection(project, out)
+    assert fingerprint
+    assert safe["status"] == "audited_research_plan"
+    assert safe["tasks"][0]["title"] == "公式ソースを確認"
+    assert "api_key" not in json.dumps(safe)
+    assert "secret" not in json.dumps(safe)
+    payload["authority"]["production_or_champion_update"] = True
+    path.write_text(json.dumps(payload, ensure_ascii=False))
+    rejected, _ = d.research_priority_projection(project, out)
+    assert rejected["status"] == "stale_or_unsafe"
+    payload["authority"]["production_or_champion_update"] = False
+    payload["tasks"][0]["safe_autonomous_action"] = "write_predictions"
+    path.write_text(json.dumps(payload, ensure_ascii=False))
+    rejected, _ = d.research_priority_projection(project, out)
+    assert rejected["status"] == "stale_or_unsafe"
