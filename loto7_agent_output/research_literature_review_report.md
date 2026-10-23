@@ -1,12 +1,13 @@
 # Literature metadata reviewer & experiment design queue
 
 This is not full-text paper review or an automated forecasting experiment.
-Discovery chain: 05aa074af75fd5eb9f87bfa38d2661b2e1ba80ce1c8dfb7d07fed1346f28f22a
+Discovery chain: 3dcbc628d9c226e696ff815799dde84b62378719c68bf71d54fc529abdb737ae
 Research guard: WAIT_FOR_NEW_DATA; search permitted: False
-Triaged papers: 12; non-executable designs: 5
+Triaged papers: 16; non-executable designs: 5
 
 ## Read-next list (metadata only)
 - DOI 10.2139/ssrn.6617378 (2026) review_next topics=calibration,ensemble
+- DOI 10.5194/egusphere-2026-4028 (2026) review_next topics=calibration,distribution_shift
 - DOI 10.5281/zenodo.21508920 (2026) review_next topics=calibration,online_evaluation,distribution_shift
 - DOI 10.1016/j.ijforecast.2026.04.009 (2026) review_next topics=calibration
 - DOI 10.1145/3765611.3815392 (2026) review_next topics=calibration
@@ -16,8 +17,7 @@ Triaged papers: 12; non-executable designs: 5
 - DOI 10.2139/ssrn.7599398 (2026) background topics=anytime_evidence
 - DOI 10.1007/s42081-026-00374-w (2026) background topics=online_evaluation
 - DOI 10.2139/ssrn.4896166 (2024) background topics=online_evaluation
-- DOI 10.2139/ssrn.7273201 (2026) background topics=online_evaluation
-- DOI 10.71781/36115 (2026) background topics=online_evaluation
+- DOI 10.2139/ssrn.5946791 (2025) background topics=distribution_shift
 
 ## Draft-only experiment templates
 ### calibration
