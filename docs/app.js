@@ -342,6 +342,37 @@ function renderResearchApplication(ops){
     list.append(row);
   }
 }
+function renderResearchPriorities(ops){
+  const p=ops.researchPriorities,list=clear("research-queue-list");
+  if(p.status!=="audited_research_plan"){
+    set("research-queue-status",p.status==="not_yet_published"?"初回計画待ち":"整合性を要確認");
+    set("research-queue-count","安全な最新アクションはまだ確定していません。");
+    if(list)list.append(node("p","muted","研究プランナーの報告を待機中です。"));
+    return;
+  }
+  set("research-queue-status",p.counts.block?"優先対応あり":p.counts.watch?"要確認事項あり":"監視継続");
+  set("research-queue-count","停止 "+p.counts.block+" / 要確認 "+p.counts.watch+
+      " / 待機 "+p.counts.info+"（全 "+p.totalTasks+" 件）");
+  if(!list)return;
+  if(!p.tasks.length){
+    list.append(node("p","muted","新しい対応項目はありません。研究ガードは継続監視しています。"));
+    return;
+  }
+  const labels={block:"最優先",watch:"要確認",info:"待機"};
+  for(const t of p.tasks){
+    const el=node("article","research-queue-item "+t.priority);
+    const header=node("div","research-queue-head");
+    header.append(node("strong","",t.title));
+    header.append(node("span","",labels[t.priority]));
+    el.append(header);
+    el.append(node("p","",t.reason));
+    const step=node("div","research-queue-next");
+    step.append(node("b","","次の対応："));
+    step.append(document.createTextNode(t.nextStep));
+    el.append(step);
+    list.append(el);
+  }
+}
 function renderAlwaysOn(ops){
   const a=ops.alwaysOnActivity, container=clear("always-on-paper-list");
   if (a.status==="not_yet_started" || a.status==="invalid_or_unsafe"){
@@ -446,7 +477,7 @@ export async function refresh(){
     if(ops.outdated&&view.state==="ok"){view.state="watch";view.stateLabel="監視データが古くなっています";}
     if((ops.alerts.some(a=>a.severity==="block")||ops.operationsPlan.overall==="block")&&view.state!=="unknown"){view.state="block";view.stateLabel="一部の自動処理で異常を確認";}
     renderOverview(view);renderProgress(view);renderResearch(view);renderOperations(view);renderIssuedPredictions(ops);
-    renderWorkflowStatus(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderResearchApplication(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
+    renderWorkflowStatus(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderResearchApplication(ops);renderResearchPriorities(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
     set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
     document.title=(view.state==="ok"?"● ":view.state==="watch"?"◐ ":"！ ")+"LOTO7 AI AGENT | 現在の状態";
   }catch(e){
