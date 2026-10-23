@@ -324,3 +324,13 @@ python v4_status.py
 
 - [研究成果の実用化ゲートと検証ルール](RESEARCH_APPLICATION_GATE.md)
 - [ブラウザダッシュボード](https://joker7822.github.io/LOTO7_AI_AGENT/)
+
+
+## 自律研究エージェントの優先順位付け
+
+オンライン論文レビュー・2サービス照合・公平な抽せんの合成検査・研究承認ゲートに続き、**次に何を調査すべきか**を自動的に決める研究プランナーを追加しました。抽せんの2ソース照合待ちやデータの更新遅延を優先し、同じデータを無制限に再学習することはありません。
+
+- [自律研究の優先順位・安全ルール](RESEARCH_AUTONOMY_ORCHESTRATOR.md)
+- [自律研究の状況](https://joker7822.github.io/LOTO7_AI_AGENT/)
+
+各候補は承認前の研究作業であり、Future-OOSやProductionの内容・予測精度が改善したことを意味しません。
