@@ -1,8 +1,8 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-10-23T07:22:56+09:00**
-- Completed audit cycles: **14**
-- This cycle: **source_audit** / 結果の二重ソース照合と鮮度を点検
+- Last executed: **2026-10-23T10:33:43+09:00**
+- Completed audit cycles: **15**
+- This cycle: **future_protocol** / 事前凍結と真正将来採点の連続性を監査
 - Network discovery: **not_scheduled**
 - Trusted draw latest: **699**, two-source: **False**
 - Research guard: **WAIT_FOR_NEW_DATA**, same-data trials: **768/800**
@@ -12,7 +12,7 @@
 - 独立2ソース未照合。未信頼結果で将来予測を採点しない。
 - 探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 最新信頼ステータス: degraded_single_result_source
+- 26回固定holdout 7/26、新規v2 0回
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
 - [Merging sequential e-values via martingales](https://doi.org/10.1214/24-ejs2228) (2024) — UNREVIEWED
