@@ -304,6 +304,44 @@ function renderSeriesGraph(series,field,baseline){
   svg.append(svgEl("text",{x:r,y:164,fill:"#8ba5c2","font-size":10,"text-anchor":"end"},"第"+series.at(-1).round+"回"));
   return svg;
 }
+function renderResearchApplication(ops){
+  const g=ops.researchApplication;
+  const list=clear("application-review-list");
+  if(g.status!=="research_review_ready_only"){
+    set("application-health",g.status==="not_yet_published"?"初回研究結果待ち":"整合性を要確認");
+    for(const id of ["application-papers","application-verified","application-null"])set(id,"—");
+    if(list)list.append(node("p","muted","研究ゲートの結果が未公開、または検証できません。"));
+    return;
+  }
+  set("application-health",g.trustedSource?"人の手法審査待ち":"抽せん結果の二重照合待ち");
+  set("application-papers",String(g.papers)+" 件");
+  set("application-verified",String(g.verifiedDois)+" 件");
+  set("application-null","安全性検査済み");
+  const topics={
+    calibration:"予測確率の校正",
+    online_evaluation:"オンライン学習の評価",
+    anytime_evidence:"逐次検定・e値",
+    distribution_shift:"時系列の変化",
+    selection_bias:"多重比較・過剰適合",
+    ensemble:"複数モデルの統合"
+  };
+  if(!list)return;
+  if(!g.tasks.length){
+    list.append(node("p","muted","現在、有効な研究計画はありません。"));
+    return;
+  }
+  for(const item of g.tasks){
+    const row=node("article","application-review");
+    const heading=node("div","application-review-heading");
+    heading.append(node("strong","",topics[item.topic]));
+    heading.append(node("span","",item.twoProviderMatches+" 件の二重照合済み参考情報"));
+    row.append(heading);
+    row.append(node("p","",item.status==="bibliography_needs_verification"?
+      "次の対応：論文の書誌情報を独立して照合。手法の実行は不可。":
+      "次の対応：全文・仮定・再現性・ライセンスを人が審査。実験と本番採用は未承認。"));
+    list.append(row);
+  }
+}
 function renderAlwaysOn(ops){
   const a=ops.alwaysOnActivity, container=clear("always-on-paper-list");
   if (a.status==="not_yet_started" || a.status==="invalid_or_unsafe"){
@@ -408,7 +446,7 @@ export async function refresh(){
     if(ops.outdated&&view.state==="ok"){view.state="watch";view.stateLabel="監視データが古くなっています";}
     if((ops.alerts.some(a=>a.severity==="block")||ops.operationsPlan.overall==="block")&&view.state!=="unknown"){view.state="block";view.stateLabel="一部の自動処理で異常を確認";}
     renderOverview(view);renderProgress(view);renderResearch(view);renderOperations(view);renderIssuedPredictions(ops);
-    renderWorkflowStatus(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
+    renderWorkflowStatus(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderResearchApplication(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
     set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
     document.title=(view.state==="ok"?"● ":view.state==="watch"?"◐ ":"！ ")+"LOTO7 AI AGENT | 現在の状態";
   }catch(e){
