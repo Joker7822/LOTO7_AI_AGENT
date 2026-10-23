@@ -194,10 +194,21 @@ def test_holdout_candidate_lock_mismatch_blocks(root):
 
 
 def test_no_retroactive_production_after_public_result_deadline(root):
+    # Current Production already issued target 700 before the deadline. Recreate
+    # the missing-publication failure ONLY inside this disposable fixture.
+    path = root / "loto7_agent_output" / "weekly_production_prediction_state.json"
+    rewrite(path, lambda obj: obj.update(published=False))
     deadline = datetime(2026, 10, 23, 20, 5, tzinfo=JST)
     role = council.release_operations(root / "loto7_agent_output", 699, deadline)
     assert role["status"] == "block"
     assert role["findings"][0]["code"] == "PRODUCTION_DEADLINE_PASSED"
+
+
+def test_issued_production_still_passes_release_guard_after_draw(root):
+    deadline = datetime(2026, 10, 23, 20, 5, tzinfo=JST)
+    role = council.release_operations(root / "loto7_agent_output", 699, deadline)
+    assert role["status"] == "ok"
+    assert role["findings"][0]["code"] == "RELEASE_SCHEDULE_GUARD"
 
 
 def test_missing_required_source_is_block_not_implicit_permission(root):
