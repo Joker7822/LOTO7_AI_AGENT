@@ -11,6 +11,9 @@ on:
       - "research_literature_pipeline.py"
       - "research_evidence_resilience.py"
       - "research_application_gate.py"
+      - "research_autonomy_orchestrator.py"
+      - "tests/test_research_autonomy_orchestrator.py"
+      - "RESEARCH_AUTONOMY_ORCHESTRATOR.md"
       - "tests/test_research_application_gate.py"
       - "RESEARCH_APPLICATION_GATE.md"
       - "tests/test_always_on_accuracy_agent.py"
@@ -28,6 +31,8 @@ on:
       - "always_on_accuracy_agent.py"
       - "research_literature_pipeline.py"
       - "research_evidence_resilience.py"
+      - "research_autonomy_orchestrator.py"
+      - "tests/test_research_autonomy_orchestrator.py"
       - "tests/test_always_on_accuracy_agent.py"
       - "tests/test_research_literature_pipeline.py"
       - "tests/test_research_evidence_resilience.py"
@@ -60,8 +65,8 @@ jobs:
       - name: Verify safe research, DOI checking and self-recovery tests
         run: |
           python -m pip install -r requirements.txt pytest
-          python -m compileall -q always_on_accuracy_agent.py research_literature_pipeline.py research_evidence_resilience.py research_application_gate.py
-          python -m pytest -q tests/test_always_on_accuracy_agent.py tests/test_research_literature_pipeline.py tests/test_research_evidence_resilience.py tests/test_research_application_gate.py
+          python -m compileall -q always_on_accuracy_agent.py research_literature_pipeline.py research_evidence_resilience.py research_application_gate.py research_autonomy_orchestrator.py
+          python -m pytest -q tests/test_always_on_accuracy_agent.py tests/test_research_literature_pipeline.py tests/test_research_evidence_resilience.py tests/test_research_application_gate.py tests/test_research_autonomy_orchestrator.py
       - name: Isolated PR smoke test without tracked-data writes
         if: github.event_name == 'pull_request'
         shell: bash
@@ -76,6 +81,7 @@ jobs:
           python research_literature_pipeline.py --repo-root /tmp/accuracy-research-smoke
           python research_evidence_resilience.py --repo-root /tmp/accuracy-research-smoke
           python research_application_gate.py --repo-root /tmp/accuracy-research-smoke
+          python research_autonomy_orchestrator.py --repo-root /tmp/accuracy-research-smoke
           python - <<'PY'
           import json
           from pathlib import Path
@@ -95,6 +101,10 @@ jobs:
           assert gate["synthetic_control"]["status"]=="synthetic_controls_passed"
           assert gate["new_experiments_executed"]==0 and not gate["auto_production_release"]
           assert all(not p["experiment_approved"] for p in designs["proposals"])
+          queue=json.loads((out / "research_autonomy_priority_queue.json").read_text())
+          assert queue["authority"]["workflows_dispatched"] is False
+          assert queue["authority"]["production_or_champion_update"] is False
+          assert all(t["safe_autonomous_action"] == "report_only" for t in queue["tasks"])
           print("safe research verification:", [r["status"] for r in paper["verifications"]])
           PY
       - name: Commit only ten research-owned generated artifacts
@@ -111,6 +121,7 @@ jobs:
             python research_literature_pipeline.py --repo-root .
             python research_evidence_resilience.py --repo-root .
             python research_application_gate.py --repo-root .
+            python research_autonomy_orchestrator.py --repo-root .
             git add -- \
               loto7_agent_output/always_on_accuracy_research_journal.jsonl \
               loto7_agent_output/always_on_accuracy_research_state.json \
@@ -123,8 +134,10 @@ jobs:
               loto7_agent_output/research_self_repair_report.json \
               loto7_agent_output/research_verified_method_report.md \
               loto7_agent_output/research_application_readiness.json \
-              loto7_agent_output/research_application_readiness_report.md
-            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/(always_on_accuracy_research_(journal.jsonl|state.json|report.md)|research_literature_reviews.json|research_experiment_proposals.json|research_literature_review_report.md|research_verified_publications.json|research_method_sandbox.json|research_self_repair_report.json|research_verified_method_report.md|research_application_readiness.json|research_application_readiness_report.md)$' || true)"
+              loto7_agent_output/research_application_readiness_report.md \
+              loto7_agent_output/research_autonomy_priority_queue.json \
+              loto7_agent_output/research_autonomy_priority_report.md
+            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/(always_on_accuracy_research_(journal.jsonl|state.json|report.md)|research_literature_reviews.json|research_experiment_proposals.json|research_literature_review_report.md|research_verified_publications.json|research_method_sandbox.json|research_self_repair_report.json|research_verified_method_report.md|research_application_readiness.json|research_application_readiness_report.md|research_autonomy_priority_queue.json|research_autonomy_priority_report.md)$' || true)"
             if [ -n "$unexpected" ]; then
               echo "::error::Unsafe staged paths: $unexpected"
               exit 1
@@ -157,5 +170,7 @@ jobs:
               cat /tmp/accuracy-research-smoke/loto7_agent_output/research_verified_method_report.md 2>/dev/null || true
             cat loto7_agent_output/research_application_readiness_report.md 2>/dev/null || \
               cat /tmp/accuracy-research-smoke/loto7_agent_output/research_application_readiness_report.md 2>/dev/null || true
+            cat loto7_agent_output/research_autonomy_priority_report.md 2>/dev/null || \
+              cat /tmp/accuracy-research-smoke/loto7_agent_output/research_autonomy_priority_report.md 2>/dev/null || true
             echo "No unreviewed paper executes model code. No Production or registered OOS edits."
           } >> "$GITHUB_STEP_SUMMARY"
