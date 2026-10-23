@@ -115,3 +115,18 @@
 .application-review-heading span{font-size:10px;color:var(--sub)}
 .application-review p{font-size:11px;line-height:1.8;color:var(--muted);margin:8px 0 0}
 @media(max-width:680px){.application-summary,.application-review-list{grid-template-columns:1fr}}
+
+/* Guarded research coordinator: visible next actions, not automated promotion */
+.research-queue-panel{margin-top:16px}
+.research-queue-summary{font-size:12px;color:var(--sub);margin:10px 0 16px}
+.research-queue-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.research-queue-item{min-width:0;overflow-wrap:anywhere;border:1px solid var(--line);border-radius:11px;padding:15px;background:rgba(8,19,34,.56)}
+.research-queue-item.block{border-color:rgba(255,116,127,.45)}
+.research-queue-item.watch{border-color:rgba(234,186,108,.3)}
+.research-queue-item.info{border-color:rgba(95,212,190,.23)}
+.research-queue-head{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.research-queue-head strong{font-size:12px;line-height:1.5}
+.research-queue-head span{font-size:10px;white-space:nowrap;color:var(--sub)}
+.research-queue-item p{font-size:11px;line-height:1.75;margin:10px 0;color:var(--sub)}
+.research-queue-next{border-top:1px solid var(--line);padding-top:10px;color:var(--text);font-size:11px;line-height:1.75}
+@media(max-width:780px){.research-queue-list{grid-template-columns:1fr}}
