@@ -1,8 +1,8 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-10-24T07:25:14+09:00**
-- Completed audit cycles: **20**
-- This cycle: **source_audit** / 結果の二重ソース照合と鮮度を点検
+- Last executed: **2026-10-24T07:50:21+09:00**
+- Completed audit cycles: **21**
+- This cycle: **future_protocol** / 事前凍結と真正将来採点の連続性を監査
 - Network discovery: **not_scheduled**
 - Trusted draw latest: **699**, two-source: **False**
 - Research guard: **WAIT_FOR_NEW_DATA**, same-data trials: **768/800**
@@ -12,7 +12,7 @@
 - 独立2ソース未照合。未信頼結果で将来予測を採点しない。
 - 探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 最新信頼ステータス: degraded_single_result_source
+- 26回固定holdout 7/26、新規v2 0回
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
 - [A note on adaptive conformal prediction for time series with structural breaks](https://doi.org/10.2139/ssrn.5946791) (2025) — UNREVIEWED
