@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-24T07:25:11+09:00",
-  "source_commit": "b8dc91c55ea644e992d384ce1a23a51722589a2c",
-  "state_hashes_sha256": "141175f8a39ce09a7462503f6163b06361b3656811a28b1121ac8553915bb3b2",
+  "generated_at_jst": "2026-10-24T07:50:37+09:00",
+  "source_commit": "dd264dbf7a1576f6f3fc3c4f3c1686e9972ac754",
+  "state_hashes_sha256": "ed33ea56b08817e5ebac5cd98f67bb2d29463d854eeb2f5dc3ece5b25672a241",
   "sources": {
     "source": {
       "status": "degraded",
@@ -261,9 +261,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 40033345755,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40033345755",
-      "updated_at": "2026-10-23T22:24:07Z",
+      "run_id": 40036051611,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40036051611",
+      "updated_at": "2026-10-23T22:49:46Z",
       "recent_failure_count": 0
     }
   ],
@@ -477,14 +477,14 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 19,
-    "last_activity_jst": "2026-10-24T07:14:14+09:00",
-    "current_phase": "literature_search",
-    "current_activity": "インターネットから最新の研究論文を検索",
-    "online_search_status": "searched",
+    "sequence": 21,
+    "last_activity_jst": "2026-10-24T07:50:21+09:00",
+    "current_phase": "future_protocol",
+    "current_activity": "事前凍結と真正将来採点の連続性を監査",
+    "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": false,
-    "new_papers_count": 4,
+    "new_papers_count": 0,
     "papers": [
       {
         "title": "A note on adaptive conformal prediction for time series with structural breaks",
@@ -540,19 +540,125 @@
       "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
-      "オンライン検索: searched / 新規候補 4件"
+      "26回固定holdout 7/26、新規v2 0回"
     ]
   },
   "research_application": {
-    "status": "not_yet_published"
+    "status": "research_review_ready_only",
+    "research_mode": "WAIT_FOR_NEW_DATA",
+    "trusted_result_source": false,
+    "papers": 16,
+    "verified_dois": 0,
+    "proposal_count": 5,
+    "synthetic_control": "passed",
+    "actual_prediction_accuracy_improvement_verified": false,
+    "tasks": [
+      {
+        "topic": "calibration",
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
+        "requires_human_approval": true
+      },
+      {
+        "topic": "online_evaluation",
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
+        "requires_human_approval": true
+      },
+      {
+        "topic": "anytime_evidence",
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
+        "requires_human_approval": true
+      },
+      {
+        "topic": "distribution_shift",
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
+        "requires_human_approval": true
+      },
+      {
+        "topic": "ensemble",
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
+        "requires_human_approval": true
+      }
+    ]
+  },
+  "research_priorities": {
+    "status": "audited_research_plan",
+    "research_mode": "WAIT_FOR_NEW_DATA",
+    "source_two_verified": false,
+    "total_tasks": 12,
+    "counts": {
+      "block": 1,
+      "watch": 8,
+      "info": 3
+    },
+    "tasks": [
+      {
+        "priority": "block",
+        "lane": "source_integrity",
+        "owner": "source_verifier",
+        "title": "抽せん結果の独立2ソース照合",
+        "reason": "照合済みでない最新結果を採点や新規予測の凍結に利用できません。",
+        "next_step": "既存の結果検証workflowと独立した発表元を照合してください。単一ソースで成功扱いしません。",
+        "safe_autonomous_action": "report_only"
+      },
+      {
+        "priority": "watch",
+        "lane": "source_integrity",
+        "owner": "source_verifier",
+        "title": "最新の抽せんデータ更新を確認",
+        "reason": "記録された最終抽せん日から 8 日が経過しています。",
+        "next_step": "公式抽せん日程と検証済み結果を確認し、取得先HTTP 503等の通信障害は既存の再試行手順で調査してください。",
+        "safe_autonomous_action": "report_only"
+      },
+      {
+        "priority": "watch",
+        "lane": "bibliography",
+        "owner": "literature_verifier",
+        "title": "文献書誌情報の不一致を確認",
+        "reason": "1 件のDOIで独立サービスの書誌照合結果が不一致です。",
+        "next_step": "元のDOIと著者・タイトルを確認してください。対立するメタデータから研究計画を承認しないでください。",
+        "safe_autonomous_action": "report_only"
+      },
+      {
+        "priority": "watch",
+        "lane": "bibliography",
+        "owner": "literature_verifier",
+        "title": "未照合の学術文献を一次確認",
+        "reason": "7 件の候補DOIがCrossref/OpenAlexによる照合待ちです。",
+        "next_step": "既存の上限付き照合を次の定期サイクルで続けてください。未照合論文を学術的根拠として扱わないでください。",
+        "safe_autonomous_action": "report_only"
+      },
+      {
+        "priority": "watch",
+        "lane": "experiment_review",
+        "owner": "methodology_reviewer",
+        "title": "研究計画レビュー：anytime_evidence",
+        "reason": "候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。",
+        "next_step": "Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。",
+        "safe_autonomous_action": "report_only"
+      },
+      {
+        "priority": "watch",
+        "lane": "experiment_review",
+        "owner": "methodology_reviewer",
+        "title": "研究計画レビュー：calibration",
+        "reason": "候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。",
+        "next_step": "Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。",
+        "safe_autonomous_action": "report_only"
+      }
+    ],
+    "promotion_authorized": false
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "b8dc91c55ea644e992d384ce1a23a51722589a2c",
-    "snapshot_generated_at_jst": "2026-10-24T07:25:11+09:00",
-    "computed_at_jst": "2026-10-23T22:25:11+00:00",
+    "source_commit": "dd264dbf7a1576f6f3fc3c4f3c1686e9972ac754",
+    "snapshot_generated_at_jst": "2026-10-24T07:50:37+09:00",
+    "computed_at_jst": "2026-10-23T22:50:37+00:00",
     "overall": "block",
     "counts": {
       "block": 2,
