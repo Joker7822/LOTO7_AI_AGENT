@@ -71,7 +71,11 @@ test("trusted graded ticket must match issued numbers",()=>{
     tickets:r.tickets.map(t=>({ticket:t.ticket,main_hits:0,bonus_hits:0,grade:"はずれ"}))
   };
   assert.throws(()=>normalizeIssuedPrediction(r),/不一致/);
-  r.current_result.tickets[0].main_hits=1;
+  for(const t of r.current_result.tickets){
+    const numbers=r.tickets[t.ticket-1].numbers;
+    t.main_hits=numbers.filter(n=>r.current_result.main.includes(n)).length;
+    t.bonus_hits=numbers.filter(n=>r.current_result.bonus.includes(n)).length;
+  }
   const p=normalizeIssuedPrediction(r);
   assert.equal(p.currentResult.tickets[0].mainHits,1);
 });
