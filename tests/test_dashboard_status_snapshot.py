@@ -252,3 +252,46 @@ def test_no_unpublished_or_invalidated_prediction_can_be_rendered(project):
     doc=d.create_snapshot(project,all_workflows(),now=FIXED,ref="b"*40)
     assert doc["latest_prediction"]["tickets"] == []
     assert doc["latest_prediction"]["status"] == "not_published"
+
+
+
+def test_application_projection_is_missing_until_first_safe_report(project):
+    data, checksum = d.research_application_projection(project, project / "loto7_agent_output")
+    assert data["status"] == "not_yet_published"
+    assert checksum is None
+
+
+def test_application_projection_rejects_publication_and_unregistered_claims(project):
+    from loto7_evolving_agent import fingerprint_file
+    out = project / "loto7_agent_output"
+    sample = {
+        "version": "research-application-gate-v1",
+        "input_draw_sha256": fingerprint_file(project / "loto7.csv"),
+        "research_mode": json.loads((out / "research_cycle_guard.json").read_text())["mode"],
+        "actual_prediction_accuracy_improvement_verified": False,
+        "automatic_model_training": False, "auto_production_release": False,
+        "future_oos_or_production_changed": False, "new_experiments_executed": 0,
+        "reviewed_publication_count": 4, "two_provider_bibliographic_matches": 1,
+        "synthetic_control": {"status": "synthetic_controls_passed"},
+        "proposal_count": 1,
+        "application_queue": [{
+            "topic": "calibration",
+            "status": "awaiting_full_text_and_methodology_review",
+            "two_provider_matched_dois": ["10.1234/test"],
+            "experiment_execution_allowed": False,
+            "production_adoption_allowed": False,
+            "requires_human_approval": True,
+        }],
+        "injected_secret": "never expose this",
+    }
+    p = out / "research_application_readiness.json"
+    p.write_text(json.dumps(sample))
+    projected, digest = d.research_application_projection(project, out)
+    assert digest
+    assert projected["status"] == "research_review_ready_only"
+    assert projected["tasks"][0]["two_provider_matches"] == 1
+    assert "injected_secret" not in json.dumps(projected)
+    sample["auto_production_release"] = True
+    p.write_text(json.dumps(sample))
+    invalid, _ = d.research_application_projection(project, out)
+    assert invalid["status"] == "stale_or_unsafe"
