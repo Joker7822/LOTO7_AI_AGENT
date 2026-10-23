@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-24T07:12:26+09:00",
-  "source_commit": "2b97d13968aaa41e6a36ec52f8ab2c59380d671a",
-  "state_hashes_sha256": "be52be2ca409138a8078eac28af83b99648f9683034e04ba713bd196e988698d",
+  "generated_at_jst": "2026-10-24T07:25:11+09:00",
+  "source_commit": "b8dc91c55ea644e992d384ce1a23a51722589a2c",
+  "state_hashes_sha256": "141175f8a39ce09a7462503f6163b06361b3656811a28b1121ac8553915bb3b2",
   "sources": {
     "source": {
       "status": "degraded",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-10-22T15:35:13+09:00",
+      "checked_at_jst": "2026-10-24T07:12:38+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -92,7 +92,7 @@
             {
               "code": "RELEASE_SCHEDULE_GUARD",
               "level": "ok",
-              "evidence": "next=700 on 2026-10-23; already_published=False"
+              "evidence": "next=700 on 2026-10-23; already_published=True"
             }
           ]
         }
@@ -214,12 +214,12 @@
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "running",
-      "status": "in_progress",
-      "conclusion": null,
+      "health": "ok",
+      "status": "completed",
+      "conclusion": "success",
       "run_id": 40031979943,
       "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40031979943",
-      "updated_at": "2026-10-23T22:11:29Z",
+      "updated_at": "2026-10-23T22:12:44Z",
       "recent_failure_count": 1
     },
     {
@@ -261,9 +261,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 40031980120,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40031980120",
-      "updated_at": "2026-10-23T22:11:38Z",
+      "run_id": 40033345755,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40033345755",
+      "updated_at": "2026-10-23T22:24:07Z",
       "recent_failure_count": 0
     }
   ],
@@ -477,15 +477,39 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 18,
-    "last_activity_jst": "2026-10-24T03:24:40+09:00",
-    "current_phase": "budget_and_plan",
-    "current_activity": "試行予算を守り次の検証を計画",
-    "online_search_status": "not_scheduled",
+    "sequence": 19,
+    "last_activity_jst": "2026-10-24T07:14:14+09:00",
+    "current_phase": "literature_search",
+    "current_activity": "インターネットから最新の研究論文を検索",
+    "online_search_status": "searched",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": false,
-    "new_papers_count": 0,
+    "new_papers_count": 4,
     "papers": [
+      {
+        "title": "A note on adaptive conformal prediction for time series with structural breaks",
+        "url": "https://doi.org/10.2139/ssrn.5946791",
+        "year": 2025,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "conformalForecast: Conformal Prediction Methods for Multistep-Ahead Time Series Forecasting",
+        "url": "https://doi.org/10.32614/cran.package.conformalforecast",
+        "year": 2025,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "RL-ConFormer: Reinforcement Learning-Enhanced Conformal Prediction with Transformer-Based Hybrid Forecasting for Multi-Horizon Time Series",
+        "url": "https://doi.org/10.2139/ssrn.6263102",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
+      {
+        "title": "Bias corrections and prediction intervals for time-series measurements with fouling and calibration drift",
+        "url": "https://doi.org/10.5194/egusphere-2026-4028",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
       {
         "title": "Merging sequential e-values via martingales",
         "url": "https://doi.org/10.1214/24-ejs2228",
@@ -509,30 +533,6 @@
         "url": "https://doi.org/10.2139/ssrn.7599398",
         "year": 2026,
         "review_status": "unreviewed"
-      },
-      {
-        "title": "Prequential posteriors",
-        "url": "https://doi.org/10.1007/s42081-026-00374-w",
-        "year": 2026,
-        "review_status": "unreviewed"
-      },
-      {
-        "title": "Prequential Benchmark of Limit Order Book Mid-Price Movement Prediction Models",
-        "url": "https://doi.org/10.2139/ssrn.7273201",
-        "year": 2026,
-        "review_status": "unreviewed"
-      },
-      {
-        "title": "Prequential Streaming Evaluation of Stateful Time-Series Forecasters with Online Conformal Calibration",
-        "url": "https://doi.org/10.5281/zenodo.21508920",
-        "year": 2026,
-        "review_status": "unreviewed"
-      },
-      {
-        "title": "In-context learning, data ordering, and active sensing : a prequential perspective",
-        "url": "https://doi.org/10.71781/36115",
-        "year": 2026,
-        "review_status": "unreviewed"
       }
     ],
     "promotion_authorized": false,
@@ -540,15 +540,19 @@
       "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "同一履歴の新規試行予算 768/800"
+      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
+      "オンライン検索: searched / 新規候補 4件"
     ]
+  },
+  "research_application": {
+    "status": "not_yet_published"
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "2b97d13968aaa41e6a36ec52f8ab2c59380d671a",
-    "snapshot_generated_at_jst": "2026-10-24T07:12:26+09:00",
-    "computed_at_jst": "2026-10-23T22:12:26+00:00",
+    "source_commit": "b8dc91c55ea644e992d384ce1a23a51722589a2c",
+    "snapshot_generated_at_jst": "2026-10-24T07:25:11+09:00",
+    "computed_at_jst": "2026-10-23T22:25:11+00:00",
     "overall": "block",
     "counts": {
       "block": 2,
