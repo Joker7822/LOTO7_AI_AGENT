@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-23T18:38:55+09:00",
-  "source_commit": "20c96fc4ef760ca51b787b8c7725b54d0da573c0",
-  "state_hashes_sha256": "1620034fd21f5059e02db900c39cd2733a79875b3549dad68d33cb228fa7a317",
+  "generated_at_jst": "2026-10-23T23:30:02+09:00",
+  "source_commit": "b7c8310acf43cf128d62ae9576ed461ee155c44d",
+  "state_hashes_sha256": "4e0b83cebcb5660b239374ad4f774a1160d9842a176c7ef7f51e5ca6664afa0c",
   "sources": {
     "source": {
       "status": "degraded",
@@ -192,13 +192,13 @@
     {
       "file": "continuous_loto7_v4.yml",
       "label": "継続研究",
-      "health": "ok",
+      "health": "block",
       "status": "completed",
-      "conclusion": "success",
-      "run_id": 39848136572,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39848136572",
-      "updated_at": "2026-10-22T20:23:22Z",
-      "recent_failure_count": 2
+      "conclusion": "failure",
+      "run_id": 39967294148,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39967294148",
+      "updated_at": "2026-10-23T14:11:31Z",
+      "recent_failure_count": 3
     },
     {
       "file": "continuous_learning_agent.yml",
@@ -250,9 +250,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 38923692403,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/38923692403",
-      "updated_at": "2026-10-16T15:24:44Z",
+      "run_id": 39967519655,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39967519655",
+      "updated_at": "2026-10-23T14:11:39Z",
       "recent_failure_count": 0
     },
     {
@@ -351,10 +351,10 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 16,
-    "last_activity_jst": "2026-10-23T16:35:51+09:00",
-    "current_phase": "generalization",
-    "current_activity": "過去モデル比較・多重比較を点検",
+    "sequence": 17,
+    "last_activity_jst": "2026-10-23T22:30:03+09:00",
+    "current_phase": "calibration",
+    "current_activity": "未来の校正と逐次e値を点検",
     "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": false,
@@ -414,18 +414,18 @@
       "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。"
+      "検証済み未来データに限るe値: 1"
     ]
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "20c96fc4ef760ca51b787b8c7725b54d0da573c0",
-    "snapshot_generated_at_jst": "2026-10-23T18:38:55+09:00",
-    "computed_at_jst": "2026-10-23T09:38:55+00:00",
+    "source_commit": "b7c8310acf43cf128d62ae9576ed461ee155c44d",
+    "snapshot_generated_at_jst": "2026-10-23T23:30:02+09:00",
+    "computed_at_jst": "2026-10-23T14:30:02+00:00",
     "overall": "block",
     "counts": {
-      "block": 2,
+      "block": 3,
       "watch": 2,
       "info": 2
     },
@@ -469,6 +469,19 @@
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
         "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39911631067"
+      },
+      {
+        "id": "b5048271b551710c",
+        "priority": "block",
+        "code": "WORKFLOW_FAILED:continuous_loto7_v4.yml",
+        "owner": "研究復旧エージェント",
+        "title": "継続研究：最新実行が失敗",
+        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
+        "evidence": "39967294148",
+        "recommended_action": "研究CIの直近ログを確認し、修正後の実行を別途検証してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39967294148"
       },
       {
         "id": "615a36ffa6f66937",
