@@ -134,19 +134,16 @@ def preview(root: Path, source: dict, published: dict) -> tuple[dict, dict[str, 
     target = parse_round(published.get("target_round"))
     if target is None or not isinstance(published.get("published_at_jst"), str):
         raise ValueError("published Production state lacks valid target/time")
-    if published.get("data_sha256") != fingerprint_file(root / "loto7.csv"):
-        raise ValueError("published Production source digest is stale")
     published_at = datetime.fromisoformat(published["published_at_jst"])
     if published_at.tzinfo is None:
         raise ValueError("issued Production publication has no timezone")
     source_round = source.get("latest", {}).get("round")
     if not isinstance(source_round, int) or isinstance(source_round, bool):
         raise ValueError("cannot establish latest public draw prefix")
-    # The frozen source must be the latest completed draw, or one older while
-    # a new result is being verified. Never reveal a distant old forecast as
-    # "latest" in the absence of reliable current issuing state.
-    if target != source_round + 1:
-        raise ValueError("published target does not follow current source prefix")
+    # A previously issued target may remain the latest publication after
+    # its draw is verified, until the next Production publication occurs.
+    if target > source_round + 1:
+        raise ValueError("published target is ahead of known source prefix")
     corrections = read_csv(out / "prediction_corrections.csv")
     invalidated = {
         r["prediction_id"] for r in corrections
@@ -164,8 +161,10 @@ def preview(root: Path, source: dict, published: dict) -> tuple[dict, dict[str, 
         raise ValueError("forecast generated after its publication")
     if any(r["data_sha256"] != published["data_sha256"] for r in tickets):
         raise ValueError("Production rows belong to another source snapshot")
-    if any(parse_round(r["base_round"]) != source_round for r in tickets):
-        raise ValueError("Production ticket not based on current observed draw")
+    if any(parse_round(r["base_round"]) != target - 1 for r in tickets):
+        raise ValueError("Production ticket not based on preceding source draw")
+    if target == source_round + 1 and published["data_sha256"] != fingerprint_file(root / "loto7.csv"):
+        raise ValueError("issued future ticket source hash does not match current historical data")
 
     draws = trusted_draws(out)
     latest_previous = draws.get(target - 1)
@@ -185,15 +184,19 @@ def preview(root: Path, source: dict, published: dict) -> tuple[dict, dict[str, 
     # result event. Cross-check result and source report when they refer to it.
     actual = draws.get(target)
     trusted = source.get("status") == "ok" and source.get("verification") == TRUST
-    if actual and not trusted:
-        # A previously independently verified result is valid, but a stale
-        # source report contradicting it should not be called live verified.
-        raise ValueError("published result trust and source report disagree")
     if actual and source_round == target:
-        if actual["main"] != source["latest"].get("main") or actual["bonus"] != source["latest"].get("bonus"):
+        if not trusted:
+            # Trust remains degraded until the currently observed result is
+            # independently corroborated; no false win grade.
+            actual = None
+        elif actual["main"] != source["latest"].get("main") or actual["bonus"] != source["latest"].get("bonus"):
             raise ValueError("official verified result disagrees with current source")
-    # The current Production target is source_round+1; it is logically still
-    # pending at this source prefix even if the real-world draw date has passed.
+    if source_round >= target and actual is None:
+        result_status = "awaiting_independently_verified_draw"
+    elif actual:
+        result_status = "independently_verified"
+    else:
+        result_status = "awaiting_independently_verified_draw"
     return {
         "version": VERSION,
         "status": "published",
@@ -201,12 +204,15 @@ def preview(root: Path, source: dict, published: dict) -> tuple[dict, dict[str, 
         "draw_date": tickets[0]["target_draw_date_estimate"],
         "published_at_jst": published["published_at_jst"],
         "model": published.get("model_version"),
-        "source_base_round": source_round,
+        "source_base_round": target - 1,
         "tickets": [
             {"ticket": int(r["ticket"]), "numbers": checked_numbers(r["predicted_numbers"], 7)}
             for r in tickets
         ],
-        "result_status": "awaiting_independently_verified_draw",
+        "result_status": result_status,
+        "current_result": {"round": target, "date": actual["date"],
+                           "main": actual["main"], "bonus": actual["bonus"],
+                           "tickets": grade(tickets, actual)} if actual else None,
         "latest_verified": historical,
         "exposure": "publicly_issued_production_only",
         "no_future_oos_vectors": True,
