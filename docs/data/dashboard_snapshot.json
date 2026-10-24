@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-24T18:11:14+09:00",
-  "source_commit": "e6ea8715d1f14f334571b71c9957fb7a617efa7d",
-  "state_hashes_sha256": "c488c6b1f141db0fe84ef953048da5c8598344ef02f954c11509b5337a8c8ec8",
+  "generated_at_jst": "2026-10-24T18:30:20+09:00",
+  "source_commit": "6c849d0e0abd50d14475d3703546be57abea5d73",
+  "state_hashes_sha256": "fff1da901415c682325bded784a46684122df07d9d2d3db9b182bb04bec440d9",
   "sources": {
     "source": {
       "status": "ok",
@@ -34,15 +34,15 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-10-24T15:28:18+09:00",
+      "checked_at_jst": "2026-10-24T18:30:03+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
           "findings": [
             {
-              "code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
-              "level": "watch",
-              "evidence": "round=700; status=degraded_single_result_source"
+              "code": "TRUSTED_RESULT_EXACT_MATCH",
+              "level": "ok",
+              "evidence": "round=700; secondary=loto7_tsushin"
             },
             {
               "code": "PAIR_CONTEXT_INT8_OVERFLOW",
@@ -52,12 +52,17 @@
           ]
         },
         "prospective_signal_custodian": {
-          "status": "ok",
+          "status": "watch",
           "findings": [
             {
               "code": "V2_LOCK_AND_IMMUTABLE_HISTORY",
               "level": "ok",
               "evidence": "locked_manifest=e38bc090fe5d691f; trusted=0/26; target=None"
+            },
+            {
+              "code": "FREEZE_701_NOW",
+              "level": "watch",
+              "evidence": "verified round 700 available, target 701 not frozen"
             }
           ]
         },
@@ -82,7 +87,7 @@
             {
               "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
               "level": "ok",
-              "evidence": "history reused; mode=SEARCH; trials=312/800"
+              "evidence": "history reused; mode=SEARCH; trials=338/800"
             }
           ]
         },
@@ -101,14 +106,14 @@
         {
           "owner": "data_steward",
           "priority": "watch",
-          "issue_code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
-          "evidence": "round=700; status=degraded_single_result_source"
-        },
-        {
-          "owner": "data_steward",
-          "priority": "watch",
           "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
           "evidence": "corrupted_cooccurrence_cells=27; history_draws=700"
+        },
+        {
+          "owner": "prospective_signal_custodian",
+          "priority": "watch",
+          "issue_code": "FREEZE_701_NOW",
+          "evidence": "verified round 700 available, target 701 not frozen"
         },
         {
           "owner": "oos_risk_officer",
@@ -155,10 +160,10 @@
       }
     },
     "learning": {
-      "status": "waiting_for_verified_round_700_prefix",
+      "status": "active_prefrozen_waiting_result",
       "trusted_draws": 0,
-      "current_prefrozen_target": null,
-      "latest_seen_round": 699,
+      "current_prefrozen_target": 701,
+      "latest_seen_round": 700,
       "descriptive_future_only": {
         "mean_log_edge_vs_uniform": null,
         "mean_brier_edge_vs_uniform": null,
@@ -199,23 +204,23 @@
     {
       "file": "continuous_loto7_v4.yml",
       "label": "継続研究",
-      "health": "block",
-      "status": "completed",
-      "conclusion": "failure",
-      "run_id": 40072905581,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40072905581",
-      "updated_at": "2026-10-24T07:18:47Z",
-      "recent_failure_count": 2
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 40082122798,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40082122798",
+      "updated_at": "2026-10-24T09:29:06Z",
+      "recent_failure_count": 1
     },
     {
       "file": "continuous_learning_agent.yml",
       "label": "継続学習",
-      "health": "block",
+      "health": "ok",
       "status": "completed",
-      "conclusion": "failure",
-      "run_id": 40069553244,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40069553244",
-      "updated_at": "2026-10-24T06:17:37Z",
+      "conclusion": "success",
+      "run_id": 40082122788,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40082122788",
+      "updated_at": "2026-10-24T09:30:18Z",
       "recent_failure_count": 1
     },
     {
@@ -224,20 +229,20 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 40070266755,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40070266755",
-      "updated_at": "2026-10-24T06:28:22Z",
-      "recent_failure_count": 1
+      "run_id": 40082122870,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40082122870",
+      "updated_at": "2026-10-24T09:30:07Z",
+      "recent_failure_count": 0
     },
     {
       "file": "joint_set_v2_signal_oos.yml",
       "label": "v2将来検証",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 40067632696,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40067632696",
-      "updated_at": "2026-10-24T05:48:32Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 40082122778,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40082122778",
+      "updated_at": "2026-10-24T09:29:05Z",
       "recent_failure_count": 0
     },
     {
@@ -538,13 +543,13 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "e6ea8715d1f14f334571b71c9957fb7a617efa7d",
-    "snapshot_generated_at_jst": "2026-10-24T18:11:14+09:00",
-    "computed_at_jst": "2026-10-24T09:11:14+00:00",
-    "overall": "block",
+    "source_commit": "6c849d0e0abd50d14475d3703546be57abea5d73",
+    "snapshot_generated_at_jst": "2026-10-24T18:30:20+09:00",
+    "computed_at_jst": "2026-10-24T09:30:20+00:00",
+    "overall": "watch",
     "counts": {
-      "block": 2,
-      "watch": 5,
+      "block": 0,
+      "watch": 4,
       "info": 0
     },
     "checkpoints": {
@@ -563,30 +568,17 @@
     },
     "tasks": [
       {
-        "id": "0fc7f2bd276192bd",
-        "priority": "block",
-        "code": "WORKFLOW_FAILED:continuous_learning_agent.yml",
-        "owner": "継続学習エージェント",
-        "title": "継続学習：最新実行が失敗",
-        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
-        "evidence": "40069553244",
-        "recommended_action": "継続学習の事前凍結・採点状態を照合してください。",
+        "id": "fcf95bb833fefb99",
+        "priority": "watch",
+        "code": "COUNCIL:FREEZE_701_NOW",
+        "owner": "将来検証エージェント",
+        "title": "第700回の検証済み結果で第701回の予測を抽せん前に凍結してください。",
+        "detail": "監査の判定と元の公表記録を照合してください。",
+        "evidence": "FREEZE_701_NOW",
+        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40069553244"
-      },
-      {
-        "id": "bd70cc4b23a74f36",
-        "priority": "block",
-        "code": "WORKFLOW_FAILED:continuous_loto7_v4.yml",
-        "owner": "研究復旧エージェント",
-        "title": "継続研究：最新実行が失敗",
-        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
-        "evidence": "40072905581",
-        "recommended_action": "研究CIの直近ログを確認し、修正後の実行を別途検証してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40072905581"
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
       },
       {
         "id": "615a36ffa6f66937",
@@ -613,32 +605,6 @@
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
         "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
-      },
-      {
-        "id": "5bba56f3f77333cc",
-        "priority": "watch",
-        "code": "COUNCIL:RESULT_NOT_TWO_SOURCE_VERIFIED",
-        "owner": "データ管理エージェント",
-        "title": "最新の抽せん結果の2ソース照合が完了していません。",
-        "detail": "監査の判定と元の公表記録を照合してください。",
-        "evidence": "RESULT_NOT_TWO_SOURCE_VERIFIED",
-        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
-      },
-      {
-        "id": "e45257b8166a52a9",
-        "priority": "watch",
-        "code": "FIRST_FREEZE_REQUIRED:learning",
-        "owner": "将来検証エージェント",
-        "title": "継続学習：第701回を事前凍結する段階",
-        "detail": "検証済みの第700回が利用可能です。第701回の結果より先に凍結してください。",
-        "evidence": "700/701",
-        "recommended_action": "既存の登録済み将来検証workflowを確認してください。研究コードを変更しないでください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": null
       },
       {
         "id": "22f88f4203ed5a8e",
