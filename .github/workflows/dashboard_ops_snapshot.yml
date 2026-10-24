@@ -12,6 +12,7 @@ on:
       - "docs/**"
       - ".github/workflows/dashboard_ops_snapshot.yml"
       - "tests/test_ephemeral_research_caches.py"
+      - "tests/test_automation_status_recovery.py"
   push:
     branches: [main]
     paths:
@@ -27,6 +28,17 @@ on:
       - "loto7_agent_output/**"
   schedule:
     - cron: "3,18,33,48 * * * *"
+  # GITHUB_TOKEN-authored evidence commits do not start ordinary push
+  # workflows. A completed producer run does trigger this independent
+  # snapshot refresh, preventing stale public SYSTEM STATUS notices.
+  workflow_run:
+    workflows:
+      - "LOTO7 Independent Result Corroboration"
+      - "Continuous Learning Agent Prospective"
+      - "Predictive Expert Agent Research"
+      - "Continuous LOTO7 Research v4"
+      - "LOTO7 Agent Role Council"
+    types: [completed]
   workflow_dispatch:
 
 permissions:
