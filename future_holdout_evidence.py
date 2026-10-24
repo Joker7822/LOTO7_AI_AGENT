@@ -77,9 +77,10 @@ def build_report(state: Dict[str, object]) -> Tuple[Dict[str, object], bool]:
         horizon > 0
         and trusted >= horizon
         and matched_trusted >= horizon
-        and int(state.get("trusted_draws", 0) or 0) == len(state.get("graded_rounds", []) or [])
-        and int(state.get("matched_ensemble_trusted_draws", 0) or 0)
-        == len(state.get("matched_ensemble_graded_rounds", []) or [])
+        and int(state.get("all_draws", -1)) == len(state.get("graded_rounds", []) or [])
+        and int(state.get("all_draws", -1)) == len(state.get("matched_ensemble_graded_rounds", []) or [])
+        and trusted <= int(state.get("all_draws", -1))
+        and matched_trusted <= int(state.get("all_draws", -1))
     )
 
     if not lock_ok:
