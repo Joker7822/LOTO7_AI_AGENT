@@ -41,6 +41,8 @@ on:
       - "always_on_accuracy_agent.py"
       - "future_holdout_evidence.py"
       - "scripts/ci_verify_frozen_regressions.sh"
+      - "scripts/rebase_v4_checkpoint.sh"
+      - "tests/test_rebase_v4_checkpoint.py"
   schedule:
     # Daily recovery/bootstrap at 02:00 JST (17:00 UTC previous day).
     - cron: "0 17 * * *"
@@ -239,8 +241,19 @@ jobs:
           PY
             )
             git commit -m "chore: checkpoint v4 research generation ${GENERATION}"
-            git pull --rebase
-            git push
+            # Other scheduled agents may advance main while this multi-hour
+            # runner computes. Never overwrite independently trusted source
+            # evidence with a stale local fetch during rebase.
+            for PUSH_ATTEMPT in 1 2 3; do
+              bash scripts/rebase_v4_checkpoint.sh
+              if git push origin HEAD:main; then
+                break
+              fi
+              if [ "$PUSH_ATTEMPT" -eq 3 ]; then
+                echo "::error::Research checkpoint could not be pushed safely."
+                return 1
+              fi
+            done
             LAST_CHECKPOINT=$(date +%s)
           }
 
