@@ -14,6 +14,9 @@ trap 'rm -rf "$WORK"' EXIT
 git -C "$ROOT" archive --format=tar HEAD | tar -xf - -C "$WORK"
 rm -rf "$WORK/loto7_agent_output" "$WORK/loto7.csv"
 git -C "$ROOT" archive --format=tar "$PIN" loto7.csv loto7_agent_output | tar -xf - -C "$WORK"
+# A fresh empty Git index is sufficient for repository-relative .gitignore
+# regression tests; it does not fetch, commit or change any evidence.
+git -C "$WORK" init -q
 
 python - "$WORK" <<'PY'
 import hashlib
