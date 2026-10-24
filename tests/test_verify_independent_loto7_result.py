@@ -171,3 +171,33 @@ def test_bank_result_remains_preferred_over_third_party(monkeypatch):
     snapshot = fv.source_snapshot(700)
     assert names == []
     assert snapshot["rakuten_bank"]["round"] == 700
+
+
+
+def test_previously_live_verified_receipt_survives_secondary_dns_outage(snapshot, monkeypatch):
+    csv, report = snapshot
+    monkeypatch.setattr(fv, "http_get", lambda u: HTML_700)
+    verify.verify(csv, report)
+    primary = fv.validate_row(fv.latest_row(fv.read_rows(csv)))
+    receipt = fv.previously_verified_secondary(report, csv, primary)
+    assert receipt is not None
+    assert receipt["source_tier"] == "independent_non_official"
+    status, _notes = fv.compare_sources(primary, {
+        "mizuho": {"status": "unavailable", "error": "403"},
+        "rakuten_bank": {"status": "unavailable", "error": "403"},
+        "loto7_tsushin": receipt,
+    })
+    assert status == "verified_two_result_sources"
+
+
+def test_prior_receipt_is_not_reused_for_an_altered_draw_or_csv(snapshot, monkeypatch):
+    csv, report = snapshot
+    monkeypatch.setattr(fv, "http_get", lambda u: HTML_700)
+    verify.verify(csv, report)
+    primary = fv.validate_row(fv.latest_row(fv.read_rows(csv)))
+    changed = dict(primary, main=[2, 3, 8, 12, 21, 25, 27])
+    assert fv.previously_verified_secondary(report, csv, changed) is None
+    assert fv.previously_verified_secondary(report, csv, dict(primary, round=701)) is None
+    with csv.open("a", encoding="utf-8") as stream:
+        stream.write("\n")
+    assert fv.previously_verified_secondary(report, csv, primary) is None
