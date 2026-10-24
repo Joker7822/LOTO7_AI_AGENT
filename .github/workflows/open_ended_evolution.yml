@@ -1,0 +1,125 @@
+name: Open-ended Autonomous Evolution
+
+on:
+  schedule:
+    # Every hour, resume the next generations from the last checked-in state.
+    # No global cap on generations or same-data research diagnostics.
+    - cron: "23 * * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "open_ended_evolution_agent.py"
+      - "tests/test_open_ended_evolution_agent.py"
+      - ".github/workflows/open_ended_evolution.yml"
+      - "OPEN_ENDED_EVOLUTION.md"
+  push:
+    branches: [main]
+    paths:
+      - "open_ended_evolution_agent.py"
+      - "tests/test_open_ended_evolution_agent.py"
+      - ".github/workflows/open_ended_evolution.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: open-ended-evolution-main
+  cancel-in-progress: false
+
+jobs:
+  autonomous-evolution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify evolutionary programming and durable checkpoints
+        run: |
+          python -m pip install -r requirements.txt pytest
+          python -m compileall -q open_ended_evolution_agent.py
+          python -m pytest -q tests/test_open_ended_evolution_agent.py
+
+      - name: PR smoke test on isolated actual historical data
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          isolated="$(mktemp -d)"
+          mkdir -p "$isolated/loto7_agent_output"
+          cp loto7.csv "$isolated/loto7.csv"
+          cp loto7_agent_output/source_validation.json "$isolated/loto7_agent_output/"
+          python open_ended_evolution_agent.py --repo-root "$isolated" --steps 3
+          python - "$isolated" <<'PY'
+          import json
+          import pathlib
+          import sys
+          path = pathlib.Path(sys.argv[1]) / "loto7_agent_output"
+          state = json.loads((path / "open_ended_evolution_state.json").read_text())
+          assert state["generations_total"] == 3
+          assert state["execution_limits"]["global_generation_cap"] is None
+          assert state["research_champion"]["assessment"]["historical_selection_only"]
+          assert not state["research_champion"]["assessment"]["prospective_edge_confirmed"]
+          print("Open-ended smoke:", state["generations_total"], "generations")
+          PY
+
+      - name: Resume indefinitely across scheduled executions
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            # Only a wall-clock execution slice is limited, not the model's
+            # number of generations, cumulative trials or data reuse.
+            python open_ended_evolution_agent.py --repo-root . --seconds 35
+
+            git add -- \
+              loto7_agent_output/open_ended_evolution_state.json \
+              loto7_agent_output/open_ended_evolution_journal.jsonl \
+              loto7_agent_output/open_ended_evolution_report.md \
+              loto7_agent_output/open_ended_evolution_candidate.py
+            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/open_ended_evolution_(state.json|journal.jsonl|report.md|candidate.py)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Unexpected staging path: $unexpected"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "No new evolution checkpoint."
+              exit 0
+            fi
+            git commit -m "research: evolve next open-ended model-program generations"
+            if git push origin HEAD:main; then
+              echo "Open-ended research generation committed."
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Checkpoint push failed after conflict retries."
+              exit 1
+            fi
+          done
+
+      - name: Summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Open-ended autonomous research"
+            cat loto7_agent_output/open_ended_evolution_report.md 2>/dev/null || true
+            echo "Historical model-selection search is not proof of predictive advantage."
+            echo "GitHub Actions execution limits and account usage limits still apply."
+          } >> "$GITHUB_STEP_SUMMARY"
