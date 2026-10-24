@@ -1,0 +1,122 @@
+name: Autonomous Evolution Lab (Bounded)
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Four independent attempts per day, with no perpetual runner.
+    - cron: "45 0,6,12,18 * * *"
+  pull_request:
+    paths:
+      - "autonomous_evolution_lab.py"
+      - "tests/test_autonomous_evolution_lab.py"
+      - ".github/workflows/autonomous_evolution_lab.yml"
+      - "AUTONOMOUS_EVOLUTION_LAB.md"
+  push:
+    branches: [main]
+    paths:
+      - "autonomous_evolution_lab.py"
+      - "tests/test_autonomous_evolution_lab.py"
+      - ".github/workflows/autonomous_evolution_lab.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: autonomous-evolution-lab-main
+  cancel-in-progress: false
+
+jobs:
+  autonomous-evolution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install and verify bounded agent
+        run: |
+          python -m pip install -r requirements.txt pytest
+          python -m compileall -q autonomous_evolution_lab.py
+          python -m pytest -q tests/test_autonomous_evolution_lab.py
+
+      - name: Isolated PR evaluation
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          isolated=$(mktemp -d)
+          mkdir -p "$isolated/loto7_agent_output"
+          cp loto7.csv "$isolated/loto7.csv"
+          cp loto7_agent_output/source_validation.json "$isolated/loto7_agent_output/"
+          cp loto7_agent_output/research_cycle_guard.json "$isolated/loto7_agent_output/"
+          python autonomous_evolution_lab.py --repo-root "$isolated"
+          python - "$isolated" <<'PY'
+          import json, pathlib, sys
+          root = pathlib.Path(sys.argv[1])
+          state = json.loads((root/"loto7_agent_output/autonomous_evolution_state.json").read_text())
+          assert state["authority"]["production_or_champion_update"] is False
+          assert state["authority"]["retrospective_future_freeze_or_grade"] is False
+          assert state["authority"]["self_modifying_code"] is False
+          assert len(state["trials"]) <= 1
+          assert not (root/"loto7_agent_output/model_champion.json").exists()
+          print("Autonomous historical research smoke test:", state["next_action"])
+          PY
+
+      - name: Commit only research-owned autonomous records
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python autonomous_evolution_lab.py --repo-root .
+            git add -- \
+              loto7_agent_output/autonomous_evolution_state.json \
+              loto7_agent_output/autonomous_evolution_journal.jsonl \
+              loto7_agent_output/autonomous_evolution_report.md
+            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/autonomous_evolution_(state.json|journal.jsonl|report.md)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Autonomy tried to stage unsafe paths: $unexpected"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "No new trusted evidence or diagnostic trial; idempotent wait."
+              exit 0
+            fi
+            git commit -m "chore: record bounded autonomous historical research decision"
+            if git push origin HEAD:main; then
+              echo "Committed research-only state/ledger/report."
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Could not push bounded agent checkpoint safely."
+              exit 1
+            fi
+          done
+
+      - name: Publish decision summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Autonomous evolution sandbox"
+            if [ -f loto7_agent_output/autonomous_evolution_report.md ]; then
+              cat loto7_agent_output/autonomous_evolution_report.md
+            else
+              echo "No persisted report; inspect the unit tests and runner logs."
+            fi
+            echo "This workflow has no Production or Future-OOS write authorization."
+          } >> "$GITHUB_STEP_SUMMARY"
