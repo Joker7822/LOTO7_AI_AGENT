@@ -21,69 +21,65 @@
   "online_decay": 0.995,
   "min_train": 100,
   "evaluated_rounds": 60,
-  "evaluated_round_start": 640,
-  "evaluated_round_end": 699,
-  "data_sha256": "5e4fa6fcc544604e52d591b75076365ff190664ecc508f853f27671f8af595cf",
+  "evaluated_round_start": 641,
+  "evaluated_round_end": 700,
+  "data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "scout": {
-    "mean_log_edge_vs_uniform": 1.753060790740668e-05,
-    "mean_brier_edge_vs_uniform": 6.665014467945504e-06,
-    "mean_top7_hits": 1.4333333333333333,
+    "mean_log_edge_vs_uniform": -4.166248399112467e-05,
+    "mean_brier_edge_vs_uniform": -1.1714431547353115e-05,
+    "mean_top7_hits": 1.4,
     "mean_weights": {
-      "uniform": 0.5945393654267996,
-      "bayes_short40": 0.12107910693902137,
-      "bayes_long160": 0.06212082191831336,
-      "momentum_shrink": 0.22226070571586568
+      "uniform": 0.5948379868761507,
+      "bayes_short40": 0.12081400304054998,
+      "bayes_long160": 0.062029646891557634,
+      "momentum_shrink": 0.22231836319174167
     },
     "last_prior_only_weights": {
-      "uniform": 0.6029129511970523,
-      "bayes_short40": 0.11342541261733578,
-      "bayes_long160": 0.05603502730221318,
-      "momentum_shrink": 0.22762660888339864
+      "uniform": 0.588401611316463,
+      "bayes_short40": 0.12271703944979608,
+      "bayes_long160": 0.056402858022533565,
+      "momentum_shrink": 0.2324784912112073
     },
     "rank_bucket_calibration": [
       {
         "rank_bucket": "1-7",
-        "realized_frequency": 0.20476190476190476,
-        "predicted_probability": 0.19397958455382946,
+        "realized_frequency": 0.2,
+        "predicted_probability": 0.19398231428225193,
         "observations": 420
       },
       {
         "rank_bucket": "8-14",
-        "realized_frequency": 0.18095238095238095,
-        "predicted_probability": 0.19082972782464427,
+        "realized_frequency": 0.17857142857142858,
+        "predicted_probability": 0.19080430423424313,
         "observations": 420
       },
       {
         "rank_bucket": "15-37",
-        "realized_frequency": 0.18695652173913044,
-        "predicted_probability": 0.18723194840655147,
+        "realized_frequency": 0.1891304347826087,
+        "predicted_probability": 0.18723885523411024,
         "observations": 1380
       }
     ],
     "log_edge_paired_bootstrap_95": {
-      "mean": 1.753060790740668e-05,
-      "low95": -0.000366621491569282,
-      "high95": 0.0003825316647030393
+      "mean": -4.166248399112467e-05,
+      "low95": -0.00040967078679858917,
+      "high95": 0.0003336598241354379
     }
   },
   "v2_reference": {
-    "available": true,
-    "same_historical_rounds": true,
-    "mean_log_edge": 2.6495587925302416e-05,
-    "mean_top7_hits": 1.5833333333333333,
-    "mean_brier_edge": 6.72075277474334e-06
+    "available": false
   },
   "full_budget_fair_draw_null": {
     "worlds": 64,
     "matching_algorithm_and_history_length": true,
-    "mean_log_edge": 1.5592305166110767e-05,
-    "log_edge_null_p95": 0.0002933049340581823,
-    "top7_null_mean": 1.3283854166666664,
+    "mean_log_edge": 2.046310230689663e-05,
+    "log_edge_null_p95": 0.00026688281406981,
+    "top7_null_mean": 1.3302083333333332,
     "simulation_seed": 74190329,
     "synthetic_worlds_not_prospective_evidence": true
   },
-  "synthetic_null_p_log_edge": 0.4461538461538462,
-  "synthetic_null_p_top7": 0.23076923076923078,
+  "synthetic_null_p_log_edge": 0.6615384615384615,
+  "synthetic_null_p_top7": 0.38461538461538464,
   "agent_roles": {
     "hypothesis_engineer": "Construct fixed uniform, shrinkage-frequency and momentum experts.",
     "online_calibration_specialist": "Update weights using strictly previous outcomes and proper log score.",
@@ -91,7 +87,7 @@
     "promotion_firewall": "Historical/reused evidence cannot promote, freeze, or overwrite Production."
   },
   "handoff": {
-    "research_finding": "exploratory_signal_only",
+    "research_finding": "no_historical_proper_score_improvement",
     "next_allowed_step": "Pre-register a disjoint prospective test before future target results; do not tune the registered v2 shadow.",
     "automatic_model_adoption": false
   },
