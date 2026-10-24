@@ -27,6 +27,9 @@ on:
   schedule:
     # Daily 10:15 JST. Source-validation/data pushes also trigger immediately.
     - cron: "15 1 * * *"
+  workflow_run:
+    workflows: ["LOTO7 Independent Result Corroboration"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
