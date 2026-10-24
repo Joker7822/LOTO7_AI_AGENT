@@ -109,8 +109,33 @@ jobs:
           assert all(t["safe_autonomous_action"] == "report_only" for t in queue["tasks"])
           print("safe research verification:", [r["status"] for r in paper["verifications"]])
           PY
-      - name: Commit only ten research-owned generated artifacts
+      - name: Check fresh scientific input provenance before scheduled research
         if: github.event_name != 'pull_request'
+        id: science_provenance
+        shell: bash
+        run: |
+          python - <<'PY'
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          csv_sha = hashlib.sha256(Path("loto7.csv").read_bytes()).hexdigest()
+          guard = json.loads(Path("loto7_agent_output/research_cycle_guard.json").read_text())
+          science = json.loads(Path("loto7_agent_output/advanced_validation_lab_summary.json").read_text())
+          ready = (guard.get("data_sha256") == csv_sha
+                   and science.get("historical_data_sha256") == csv_sha)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
+              out.write("ready=" + ("true" if ready else "false") + "\n")
+          if not ready:
+              print("::warning::Research safely paused: validated science and/or research guard belong to an older CSV SHA.")
+              with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+                  summary.write("## Scientific provenance WAIT\n\n")
+                  summary.write("Draw history changed. Research application deferred until the historical scientific summary and guard are regenerated consistently. No production, model, or prospective registry changes.\n")
+          else:
+              print("Scientific provenance matches checked-in draw history.")
+          PY
+      - name: Commit only research-owned generated artifacts
+        if: github.event_name != 'pull_request' && steps.science_provenance.outputs.ready == 'true'
         shell: bash
         run: |
           set -euo pipefail
