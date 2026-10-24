@@ -254,6 +254,16 @@ def source_snapshot(target_round: int) -> Dict[str, object]:
         out["rakuten_bank"] = fetch_rakuten_bank_result(target_round)
     except Exception as exc:
         out["rakuten_bank"] = {"status": "unavailable", "error": str(exc)[:300]}
+    # Independently operated publisher fallback: never treat the Rakuten
+    # parent site's duplicate pages as an independent second result source.
+    # Only attempt when neither approved bank result endpoint was parseable.
+    if not any(isinstance(out.get(name), dict) and "main" in out[name]
+               for name in ("mizuho", "rakuten_bank")):
+        try:
+            from verify_independent_loto7_result import fetch_secondary
+            out["loto7_tsushin"] = fetch_secondary(target_round)
+        except Exception as exc:
+            out["loto7_tsushin"] = {"status": "unavailable", "error": str(exc)[:300]}
     try:
         out["official_schedule"] = parse_official_schedule(http_get(OFFICIAL_URL)) or {"status": "not_parseable"}
     except Exception as exc:
@@ -285,6 +295,26 @@ def compare_sources(primary: Dict[str, object], sources: Dict[str, object]) -> T
         transport = candidate.get("transport")
         suffix = f" via {transport}" if transport else ""
         notes.append(f"{label} result matches Rakuten primary main/bonus numbers{suffix}")
+
+    # Independent third-party publication is a separate, explicitly
+    # non-official evidence tier. Accept only a freshly fetched, exact
+    # round-specific HTTPS URL with complete matching date and numbers.
+    candidate = sources.get("loto7_tsushin", {})
+    if isinstance(candidate, dict) and "main" in candidate:
+        expected_url = f"https://loto7.money-plan.net/round/{int(primary['round'])}/"
+        eligible = (
+            candidate.get("url") == expected_url
+            and candidate.get("source_tier") == "independent_non_official"
+            and candidate.get("transport") == "direct_independent_publisher_page"
+            and isinstance(candidate.get("response_sha256"), str)
+            and len(candidate["response_sha256"]) == 64
+            and bool(candidate.get("fetched_at_jst"))
+        )
+        if eligible:
+            if not result_matches(primary, candidate) or not candidate.get("date"):
+                return "mismatch", ["Rakuten primary and independent LOTO7通信 results disagree"]
+            verified.append("LOTO7通信 independent non-official publication")
+            notes.append("LOTO7通信 independent non-official result matches Rakuten primary round/date/main/bonus")
 
     official = sources.get("official_schedule", {})
     if isinstance(official, dict) and "round" in official:
@@ -419,7 +449,11 @@ def main() -> int:
                 "status": "ok" if verification == "verified_two_result_sources" else "degraded",
                 "verification": verification,
                 "primary_source": "Rakuten backnumber via scrapingloto7.py",
-                "secondary_policy": "Mizuho preferred; Rakuten Bank direct public winning-number endpoint is accepted as fallback",
+                "secondary_policy": (
+                    "Mizuho preferred; Rakuten Bank direct result, or an "
+                    "explicitly non-official, independently operated LOTO7通信 "
+                    "result page with live fetched response SHA as fallback"
+                ),
                 "latest": primary,
                 "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None,
                 "freshness_policy": (
@@ -428,6 +462,19 @@ def main() -> int:
                     else "require_current_draw_after_friday_20_jst"
                 ),
                 "sources": sources,
+                "verification_provenance": {
+                    "primary_domain": "takarakuji.rakuten.co.jp",
+                    "primary_method": "recorded_published_csv_result",
+                    "secondary_domain": (
+                        "loto7.money-plan.net"
+                        if verification == "verified_two_result_sources"
+                        and any("LOTO7通信" in n for n in notes)
+                        else None
+                    ),
+                    "secondary_official": False if any("LOTO7通信" in n for n in notes) else None,
+                    "source_tier": "independent_non_official" if any("LOTO7通信" in n for n in notes) else None,
+                    "draw_csv_sha256": hashlib.sha256(args.csv.read_bytes()).hexdigest(),
+                },
                 "notes": notes,
             }
             write_report(args.report, report)
