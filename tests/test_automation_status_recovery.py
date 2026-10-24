@@ -12,6 +12,7 @@ def test_dashboard_refreshes_on_evidence_workflow_completion():
     for name in (
         "LOTO7 Independent Result Corroboration",
         "Continuous Learning Agent Prospective",
+        "Joint Set v2 Signal Future OOS",
         "Predictive Expert Agent Research",
         "Continuous LOTO7 Research v4",
         "LOTO7 Agent Role Council",
@@ -37,3 +38,15 @@ def test_checkpoint_rebase_fails_if_unknown_evidence_conflicts():
     assert 'if [ "$conflicts" != "$source_file" ]' in sh
     assert "validate_trusted_source(csv, report)" in sh
     assert "git rebase --abort" in sh
+
+
+
+def test_verified_results_trigger_registered_701_freeze_workflows():
+    for name in ("continuous_learning_agent.yml", "joint_set_v2_signal_oos.yml"):
+        workflow = (ROOT / ".github/workflows" / name).read_text()
+        assert 'workflows: ["LOTO7 Independent Result Corroboration"]' in workflow
+        assert "types: [completed]" in workflow
+    v2 = (ROOT / ".github/workflows/joint_set_v2_signal_oos.yml").read_text()
+    assert "Dry-run registered prospective freeze without main writes" in v2
+    assert 'state["current_target_round"] == 701' in v2
+    assert 'git diff --exit-code -- loto7.csv loto7_agent_output/' in v2
