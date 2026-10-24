@@ -15,6 +15,8 @@ import json
 import os
 import re
 import tempfile
+import time
+import urllib.error
 from pathlib import Path
 
 import fetch_validate as fv
@@ -83,7 +85,23 @@ def parse_tsushin(html: str, target_round: int) -> dict | None:
 
 def fetch_secondary(round_no: int) -> dict:
     url = url_for_round(round_no)
-    html = fv.http_get(url)
+    # Intermittent GitHub-hosted runner DNS failures must not turn a real
+    # two-source verification into a permanent dead end. Retry only transient
+    # transport errors; never suppress HTTP 403 or a conflicting result.
+    html = None
+    for attempt in range(3):
+        try:
+            html = fv.http_get(url)
+            break
+        except urllib.error.HTTPError as exc:
+            if exc.code < 500 or attempt == 2:
+                raise
+        except (urllib.error.URLError, TimeoutError):
+            if attempt == 2:
+                raise
+        time.sleep(2 * (attempt + 1))
+    if html is None:
+        raise RuntimeError("independent publisher was not retrieved")
     parsed = parse_tsushin(html, round_no)
     if parsed is None:
         raise ValueError("independent publisher response lacks an unambiguous draw result")
