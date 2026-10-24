@@ -13,6 +13,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional
 
+import numpy as np
+
 from joint_set_v2_signal_oos import (
     algorithm_manifest, read_freeze_history, read_result_rows,
     validate_manifest, validate_registry,
@@ -62,6 +64,23 @@ def round_id(value: object) -> int:
     return int(v4.parse_round(value) or 0)
 
 
+def pair_context_overflow_count(history: np.ndarray) -> int:
+    """Audit legacy co-occurrence arithmetic without changing locked forecasts.
+
+    The legacy expert multiplies an int8 history by its transpose, causing
+    counts above 127 to wrap. Compare with exact int64 arithmetic.
+    """
+    h = np.asarray(history)
+    if h.ndim != 2 or h.shape[1] != 37 or not np.issubdtype(h.dtype, np.integer):
+        raise ValueError("expected 37-column integer draw history")
+    if not np.all((h == 0) | (h == 1)):
+        raise ValueError("draw history must contain binary indicators")
+    legacy = h.T @ h
+    wide = h.astype(np.int64, copy=False)
+    exact = wide.T @ wide
+    return int(np.count_nonzero(legacy.astype(np.int64) != exact))
+
+
 def data_steward(root: Path, out: Path, now: datetime) -> dict:
     try:
         csv_file = root / "loto7.csv"
@@ -85,6 +104,14 @@ def data_steward(root: Path, out: Path, now: datetime) -> dict:
                 "watch", "RESULT_NOT_TWO_SOURCE_VERIFIED",
                 "round=" + str(latest) + "; status=" + status,
                 "Use the existing source recovery workflow; no trusted OOS grading.",
+            ))
+        overflow_pairs = pair_context_overflow_count(x)
+        if overflow_pairs:
+            findings.append(finding(
+                "watch", "PAIR_CONTEXT_INT8_OVERFLOW",
+                f"corrupted_cooccurrence_cells={overflow_pairs}; history_draws={len(x)}",
+                "Use a separately versioned, revalidated model before changing "
+                "pair_context arithmetic. Do not rewrite frozen predictions.",
             ))
         checked_at = source.get("checked_at_jst")
         if checked_at:

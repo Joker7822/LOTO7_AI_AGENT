@@ -9,6 +9,7 @@ import hashlib
 import json
 import math
 import os
+import tempfile
 from dataclasses import asdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
@@ -59,8 +60,25 @@ def load_json(path: Path, default: Dict[str, object]) -> Dict[str, object]:
 
 
 def write_json(path: Path, obj: Dict[str, object]) -> None:
+    """Replace state atomically so interruption never leaves truncated JSON.
+
+    The temporary file is in the destination directory to preserve same-filesystem
+    os.replace semantics. Registered immutable ledgers are not touched here.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
+    payload = json.dumps(obj, ensure_ascii=False, indent=2)
+    fd, temp_name = tempfile.mkstemp(
+        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent,
+    )
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            stream.write(payload)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp_name, path)
+    finally:
+        if os.path.exists(temp_name):
+            os.unlink(temp_name)
 
 
 def append_csv(path: Path, rows: Iterable[Dict[str, object]], fields: Sequence[str]) -> None:

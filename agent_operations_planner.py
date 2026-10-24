@@ -36,6 +36,7 @@ WATCH_CODES = {
     "RESEARCH_TRIAL_LIMIT_APPROACHING": "同じ抽せん履歴での探索予算が上限に近づいています。",
     "SOURCE_REFRESH_OVERDUE": "2ソース照合の更新が予定より遅れています。",
     "RESULT_NOT_TWO_SOURCE_VERIFIED": "最新の抽せん結果の2ソース照合が完了していません。",
+    "PAIR_CONTEXT_INT8_OVERFLOW": "旧pair_context計算で整数オーバーフローが検出されました。モデルの別バージョンで修正・検証が必要です。",
     "FREEZE_701_NOW": "第700回の検証済み結果で第701回の予測を抽せん前に凍結してください。",
 }
 

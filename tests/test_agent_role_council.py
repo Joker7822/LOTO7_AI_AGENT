@@ -117,7 +117,10 @@ def test_source_number_conflict_blocks_only_governed_role(root):
     # A *trusted* result must match the CSV and independently matching source.
     # Without this setup, the real degraded report must remain merely WATCH.
     set_verified_source_fixture(root)
-    assert council.evaluate(root, NOW)["roles"]["data_steward"]["status"] == "ok"
+    # Trusted draw numbers can still have a separate numerical WATCH: an int8
+    # pair-context overflow is not evidence that the two source records disagree.
+    trusted_role = council.evaluate(root, NOW)["roles"]["data_steward"]
+    assert any(x["code"] == "TRUSTED_RESULT_EXACT_MATCH" for x in trusted_role["findings"])
     path = root / "loto7_agent_output" / "source_validation.json"
     rewrite(path, lambda s: s["latest"].update(main=[1, 2, 3, 4, 5, 6, 7]))
     result = council.evaluate(root, NOW)
@@ -215,3 +218,26 @@ def test_missing_required_source_is_block_not_implicit_permission(root):
     (root / "loto7_agent_output" / "source_validation.json").unlink()
     role = council.data_steward(root, root / "loto7_agent_output", NOW)
     assert role["status"] == "block"
+
+
+def test_pair_context_overflow_diagnostic_is_exact_and_non_mutating(root):
+    import numpy as np
+
+    short = np.zeros((127, 37), dtype=np.int8)
+    short[:, :7] = 1
+    assert council.pair_context_overflow_count(short) == 0
+    wrapped = np.vstack((short, short[0]))
+    # All ordered pairs in the 7x7 constant-number block wrap at 128.
+    assert council.pair_context_overflow_count(wrapped) == 49
+    assert council.pair_context_overflow_count(wrapped.astype(np.int64)) == 0
+
+    out = root / "loto7_agent_output"
+    report_path = out / "source_validation.json"
+    before = report_path.read_bytes()
+    role = council.data_steward(root, out, NOW)
+    finding = [x for x in role["findings"] if x["code"] == "PAIR_CONTEXT_INT8_OVERFLOW"]
+    assert len(finding) == 1
+    assert finding[0]["level"] == "watch"
+    assert "corrupted_cooccurrence_cells=" in finding[0]["evidence"]
+    assert role["status"] == "watch"
+    assert report_path.read_bytes() == before
