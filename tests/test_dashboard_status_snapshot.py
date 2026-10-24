@@ -79,7 +79,11 @@ def test_reject_missing_or_mismatched_future_evidence(project):
     p.write_bytes(original)
     with p.open(encoding="utf-8-sig", newline="") as f:
         original_rows = list(csv.DictReader(f))
-    original_rows[-1]["source_verification"] = "single_untrusted_result"
+    # Tamper with a TRUSTED result, not the most recent diagnostic-only
+    # untrusted result (round 700 is allowed to be explicitly untrusted).
+    last_verified = next(i for i in range(len(original_rows) - 1, -1, -1)
+                         if original_rows[i]["trusted"].lower() == "true")
+    original_rows[last_verified]["source_verification"] = "single_untrusted_result"
     with p.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=original_rows[0].keys())
         writer.writeheader()
