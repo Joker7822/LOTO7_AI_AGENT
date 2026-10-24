@@ -31,5 +31,5 @@ print("Running current source-code tests against pinned 699 evidence fixture")
 PY
 (
   cd "$WORK"
-  python -m pytest -q
+  python -m pytest -q "$@"
 )
