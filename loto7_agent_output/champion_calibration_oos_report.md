@@ -4,7 +4,7 @@
 - role: **Research diagnostic only; no Production authority**
 - locked base model: **baseline-5fdb8dc2ad**
 - fixed prospective horizon: **7/26 trusted draws**
-- status: **active**
+- status: **awaiting_trusted_result_verification**
 - current target: **round 700**
 - pre-frozen: **YES**
 - current calibration: **shrink-0p93-1209c16b93** (T=1.00, uniform_mix=0.93)
