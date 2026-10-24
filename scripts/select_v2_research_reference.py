@@ -8,11 +8,16 @@ unavailable comparator by predictive_expert_agent; no synthetic substitution.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
 
-from loto7_evolving_agent import fingerprint_file
+
+def fingerprint_file(path: Path) -> str:
+    # Standalone scripts/ entrypoints cannot import repository-root modules
+    # before adjusting sys.path. Read the exact committed CSV bytes instead.
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 KIND = "strict_prior_only_prequential_inclusion_probability_joint_set_v2"
 
