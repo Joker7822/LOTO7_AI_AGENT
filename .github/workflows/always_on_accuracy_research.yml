@@ -66,17 +66,19 @@ jobs:
         run: |
           python -m pip install -r requirements.txt pytest
           python -m compileall -q always_on_accuracy_agent.py research_literature_pipeline.py research_evidence_resilience.py research_application_gate.py research_autonomy_orchestrator.py
-          python -m pytest -q tests/test_always_on_accuracy_agent.py tests/test_research_literature_pipeline.py tests/test_research_evidence_resilience.py tests/test_research_application_gate.py tests/test_research_autonomy_orchestrator.py
+          python -m pytest -q tests/test_live_evidence_boundaries.py
+          bash scripts/ci_verify_frozen_regressions.sh             tests/test_always_on_accuracy_agent.py             tests/test_research_literature_pipeline.py             tests/test_research_evidence_resilience.py             tests/test_research_application_gate.py             tests/test_research_autonomy_orchestrator.py
       - name: Isolated PR smoke test without tracked-data writes
         if: github.event_name == 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p /tmp/accuracy-research-smoke/loto7_agent_output
-          cp loto7.csv /tmp/accuracy-research-smoke/loto7.csv
-          for f in source_validation.json research_cycle_guard.json future_holdout_state.json joint_set_v2_signal_oos_state.json continuous_learning_agent_state.json accuracy_extension_agent_state.json advanced_validation_lab_summary.json; do
-            cp "loto7_agent_output/$f" "/tmp/accuracy-research-smoke/loto7_agent_output/$f"
-          done
+          # The original research review integration was registered against
+          # 699-draw historical diagnostics. Exercise it on its pinned inputs
+          # in /tmp, not on stale 699 analysis mixed with live 700 outcomes.
+          PIN=8928cb2e3ef3496e1ad8b6c02b0c3c402beef38b
+          git archive "$PIN" -- loto7.csv             loto7_agent_output/source_validation.json             loto7_agent_output/research_cycle_guard.json             loto7_agent_output/future_holdout_state.json             loto7_agent_output/joint_set_v2_signal_oos_state.json             loto7_agent_output/continuous_learning_agent_state.json             loto7_agent_output/accuracy_extension_agent_state.json             loto7_agent_output/advanced_validation_lab_summary.json             | tar -xf - -C /tmp/accuracy-research-smoke
           python always_on_accuracy_agent.py --repo-root /tmp/accuracy-research-smoke
           python research_literature_pipeline.py --repo-root /tmp/accuracy-research-smoke
           python research_evidence_resilience.py --repo-root /tmp/accuracy-research-smoke
