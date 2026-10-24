@@ -30,8 +30,28 @@ HTML_700 = """<html><body>
 def snapshot(tmp_path):
     csv = tmp_path / "loto7.csv"
     report = tmp_path / "source_validation.json"
-    shutil.copyfile("loto7.csv", csv)
-    shutil.copyfile("loto7_agent_output/source_validation.json", report)
+    # Fixed synthetic round 700: historical regression CI intentionally runs
+    # current code against the immutable round-699 reference repository.
+    # Tests must NOT depend on whatever draw the checkout currently ends on.
+    csv.write_text(
+        "抽せん日,本数字,ボーナス数字,回別\n"
+        "2026-10-23,02 03 08 12 21 25 26,13 34,第700回\n",
+        encoding="utf-8",
+    )
+    report.write_text(json.dumps({
+        "checked_at_jst": "2026-10-24T15:00:00+09:00",
+        "status": "degraded", "verification": "degraded_single_result_source",
+        "primary_source": "Rakuten backnumber via scrapingloto7.py",
+        "latest": {
+            "round": 700, "date": "2026-10-23",
+            "main": [2, 3, 8, 12, 21, 25, 26], "bonus": [13, 34],
+        },
+        "sources": {
+            "mizuho": {"status": "unavailable"},
+            "rakuten_bank": {"status": "unavailable"},
+        },
+        "notes": [],
+    }), encoding="utf-8")
     return csv, report
 
 
