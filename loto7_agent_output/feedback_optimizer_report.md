@@ -1,6 +1,6 @@
 # Full-History Feedback Optimizer — Signal / Portfolio Separated
 
-- generation: **5307**
+- generation: **5308**
 - incumbent: **signal-g05281-c01-55a70e0b94**
 - trials: **2**
 - accepted: **なし**
@@ -10,8 +10,8 @@
 - overlap_penalty探索範囲: **0.25〜2.0**
 - Production昇格証拠: **使用しない**
 
-- feedback-g05307-c01-940713e767: portfolio gain **-0.1331** / signal **-0.0600** / accepted **NO**
-- feedback-g05307-c02-c68580e6c2: portfolio gain **-0.1106** / signal **-0.2618** / accepted **NO**
+- feedback-g05308-c01-4ab73e4575: portfolio gain **-0.1036** / signal **-0.0678** / accepted **NO**
+- feedback-g05308-c02-9f582aa76a: portfolio gain **-0.2352** / signal **-0.1992** / accepted **NO**
 
 > 5口分散で最大一致だけを上げる候補を防ぐため、確率分布そのもののSignalを別ゲートで評価します。
 > このoptimizerは過去データへの研究最適化です。独立精度の証明は未来OOSのみです。
