@@ -21,6 +21,10 @@ on:
   schedule:
     # Daily verification/recovery at 10:35 JST.
     - cron: "35 1 * * *"
+  # Evidence written by a GITHUB_TOKEN workflow does not trigger push CI.
+  workflow_run:
+    workflows: ["LOTO7 Independent Result Corroboration"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
