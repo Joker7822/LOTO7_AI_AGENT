@@ -1,15 +1,39 @@
 {
   "version": "autonomous-evolution-lab-v1",
-  "sequence": 1,
-  "last_record_sha256": "ca7f2e848aa019895d5ac6cde8252d83780279922934b322c0e54e76e8a95833",
+  "sequence": 2,
+  "last_record_sha256": "07850ceef086421f0034165035888b6121d2ddace63c4327014c66da03afb5a1",
   "data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "latest_round": 700,
-  "trusted_source": false,
+  "trusted_source": true,
   "research_mode": "SEARCH",
-  "last_action": "WAIT_FOR_INDEPENDENT_RESULT_SOURCE",
-  "next_action": "WAIT_FOR_INDEPENDENT_RESULT_SOURCE",
-  "diagnostic_leader": null,
-  "trials": [],
+  "last_action": "EVALUATE_SANDBOX_MUTATION",
+  "next_action": "EVALUATE_SANDBOX_MUTATION",
+  "diagnostic_leader": "3f16bdf7f2ea9003ae09",
+  "trials": [
+    {
+      "trial": 1,
+      "candidate_id": "3f16bdf7f2ea9003ae09",
+      "config": {
+        "window": 30,
+        "prior": 100,
+        "blend": 0.25
+      },
+      "diagnostic": {
+        "evaluated_historical_draws": 48,
+        "mean_log_edge": -0.00034779539294009396,
+        "mean_top7_hits": 1.3541666666666667,
+        "uniform_expected_top7_hits": 1.3243243243243243,
+        "chronological_block_log_edges": [
+          -0.0011966778468459963,
+          0.0007383579366973228,
+          -0.0005850662686716086
+        ],
+        "historical_only": true,
+        "independent_future_evidence": false,
+        "production_eligible": false
+      }
+    }
+  ],
   "authority": {
     "automated_historical_diagnostics": true,
     "self_modifying_code": false,
