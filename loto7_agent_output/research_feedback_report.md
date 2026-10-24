@@ -1,7 +1,7 @@
 # Research Winner Full-History Replay Feedback
 
-- generation: **5456**
-- provisional winner: **evo-g05456-c03-2f3c7fd6e3**
+- generation: **5457**
+- provisional winner: **evo-g05457-c04-1ed248c4b3**
 - incumbent research parent: **signal-g05281-c01-55a70e0b94**
 - accepted research parent: **signal-g05281-c01-55a70e0b94**
 - candidate accepted: **NO**
@@ -10,13 +10,13 @@
 
 | 指標 | Candidate | Incumbent |
 |---|---:|---:|
-| feedback objective | -0.0048 | 0.1142 |
-| full score Δ vs random | +0.0147 | +0.1402 |
-| 120 score Δ vs random | -0.0193 | +0.1172 |
-| 60 score Δ vs random | -0.0186 | +0.1106 |
-| 30 score Δ vs random | +0.0048 | +0.0202 |
+| feedback objective | 0.0685 | 0.1142 |
+| full score Δ vs random | +0.0596 | +0.1402 |
+| 120 score Δ vs random | +0.1363 | +0.1172 |
+| 60 score Δ vs random | -0.0119 | +0.1106 |
+| 30 score Δ vs random | +0.0232 | +0.0202 |
 
-- objective gain: **-0.1191**
-- checks: `{"full_max_hits_not_regressed": false, "objective_improves": false, "recent120_score_not_regressed": false}`
+- objective gain: **-0.0457**
+- checks: `{"full_max_hits_not_regressed": false, "objective_improves": false, "recent120_score_not_regressed": true}`
 
 > 最新モデルを過去へ再適用した結果はselection leakageを含み得るため、独立精度とは扱いません。未来OOSガバナンスは変更しません。
