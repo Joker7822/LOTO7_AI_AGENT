@@ -61,8 +61,12 @@ def parse_tsushin(html: str, target_round: int) -> dict | None:
     for hit in grid.finditer(text):
         # This result section is associated with the 700/other target heading
         # and not with another round's listing.
-        heading = list(re.finditer(round_pat, text[:hit.start()]))
-        if not heading or hit.start() - heading[-1].start() > 350:
+        # Match the CLOSEST draw heading, not merely the closest heading
+        # for our requested round: a subsequent round's table must never be
+        # mistaken for the target just because it appears within 350 chars.
+        heading = list(re.finditer(r"第\s*0*(\d{1,6})\s*回", text[:hit.start()]))
+        if (not heading or int(heading[-1].group(1)) != target_round
+                or hit.start() - heading[-1].start() > 350):
             continue
         main = [int(n) for n in hit.group(1).split()]
         bonus = [int(hit.group(2)), int(hit.group(3))]
