@@ -1,9 +1,9 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-10-24T09:40:25+09:00",
-  "latest_resolved_round": 699,
+  "checked_at_jst": "2026-10-24T13:04:30+09:00",
+  "latest_resolved_round": 700,
   "overall": "watch",
-  "input_snapshot_sha256": "a22238307200a03eb5f6bd0ff4b1e5b7b4e339b1d25d9a40cf4241ae2323068e",
+  "input_snapshot_sha256": "fd0f44777c9823fa685147024531537b79a77980be3a249a86e973ce8f62a628",
   "governance": {
     "authority": "read_only_advisory",
     "permissions": {
@@ -25,13 +25,13 @@
         {
           "level": "watch",
           "code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
-          "evidence": "round=699; status=degraded_single_result_source",
+          "evidence": "round=700; status=degraded_single_result_source",
           "next_action": "Use the existing source recovery workflow; no trusted OOS grading."
         },
         {
           "level": "watch",
           "code": "PAIR_CONTEXT_INT8_OVERFLOW",
-          "evidence": "corrupted_cooccurrence_cells=27; history_draws=699",
+          "evidence": "corrupted_cooccurrence_cells=27; history_draws=700",
           "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions."
         }
       ]
@@ -44,12 +44,6 @@
           "code": "V2_LOCK_AND_IMMUTABLE_HISTORY",
           "evidence": "locked_manifest=e38bc090fe5d691f; trusted=0/26; target=None",
           "next_action": "Continue predeclared workflow."
-        },
-        {
-          "level": "ok",
-          "code": "WAIT_FOR_700",
-          "evidence": "round 700 not resolved; do not freeze 701 yet",
-          "next_action": "Continue predeclared workflow."
         }
       ]
     },
@@ -59,7 +53,7 @@
         {
           "level": "ok",
           "code": "OOS_REFERENCE_CONSISTENCY",
-          "evidence": "champion=baseline-5fdb8dc2ad; frozen=700; trusted=7/26",
+          "evidence": "champion=baseline-5fdb8dc2ad; frozen=701; trusted=7/26",
           "next_action": "Continue predeclared workflow."
         },
         {
@@ -76,7 +70,7 @@
         {
           "level": "ok",
           "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
-          "evidence": "history reused; mode=WAIT_FOR_NEW_DATA; trials=768/800",
+          "evidence": "history reused; mode=SEARCH; trials=178/800",
           "next_action": "Continue predeclared workflow."
         }
       ]
@@ -87,7 +81,7 @@
         {
           "level": "ok",
           "code": "RELEASE_SCHEDULE_GUARD",
-          "evidence": "next=700 on 2026-10-23; already_published=True",
+          "evidence": "next=701 on 2026-10-30; already_published=False",
           "next_action": "Continue predeclared workflow."
         }
       ]
@@ -98,7 +92,7 @@
       "priority": "watch",
       "owner": "data_steward",
       "issue_code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
-      "evidence": "round=699; status=degraded_single_result_source",
+      "evidence": "round=700; status=degraded_single_result_source",
       "next_action": "Use the existing source recovery workflow; no trusted OOS grading.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
@@ -107,7 +101,7 @@
       "priority": "watch",
       "owner": "data_steward",
       "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-      "evidence": "corrupted_cooccurrence_cells=27; history_draws=699",
+      "evidence": "corrupted_cooccurrence_cells=27; history_draws=700",
       "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
