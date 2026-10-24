@@ -31,8 +31,17 @@ def setup_race(tmp_path: Path, remote_is_verified=True):
     git(setup, "config", "user.name", "CI")
     (setup / "loto7_agent_output").mkdir()
     shutil.copyfile(ROOT / "loto7.csv", setup / "loto7.csv")
-    original = json.loads((ROOT / "loto7_agent_output/source_validation.json").read_text())
-    assert original["verification"] == "verified_two_result_sources"
+    # CI also replays tests against a pinned 699 snapshot, which may be
+    # degraded. Create a *clearly synthetic* corroboration inside this
+    # disposable Git test fixture only, never in the real repository.
+    from fetch_validate import latest_row, read_rows, validate_row
+    latest = validate_row(latest_row(read_rows(setup / "loto7.csv")))
+    original = {
+        "status": "ok", "verification": "verified_two_result_sources",
+        "latest": latest,
+        "sources": {"synthetic_fixture_publisher": dict(latest)},
+        "checked_at_jst": "2026-10-24T16:00:00+09:00",
+    }
     base = dict(original)
     base["status"] = "degraded"
     base["verification"] = "degraded_single_result_source"
