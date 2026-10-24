@@ -1,9 +1,9 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-10-24T15:28:18+09:00",
+  "checked_at_jst": "2026-10-24T18:30:03+09:00",
   "latest_resolved_round": 700,
   "overall": "watch",
-  "input_snapshot_sha256": "55451fed0589f53ae180478c80a662dfd5eb25387b51e45a52d45e8599aff6ce",
+  "input_snapshot_sha256": "ff13b160e64019a4e3121c03428eec07ddea99fdfa046136ecf8a2726b6d14a9",
   "governance": {
     "authority": "read_only_advisory",
     "permissions": {
@@ -23,10 +23,10 @@
       "status": "watch",
       "findings": [
         {
-          "level": "watch",
-          "code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
-          "evidence": "round=700; status=degraded_single_result_source",
-          "next_action": "Use the existing source recovery workflow; no trusted OOS grading."
+          "level": "ok",
+          "code": "TRUSTED_RESULT_EXACT_MATCH",
+          "evidence": "round=700; secondary=loto7_tsushin",
+          "next_action": "Continue predeclared workflow."
         },
         {
           "level": "watch",
@@ -37,13 +37,19 @@
       ]
     },
     "prospective_signal_custodian": {
-      "status": "ok",
+      "status": "watch",
       "findings": [
         {
           "level": "ok",
           "code": "V2_LOCK_AND_IMMUTABLE_HISTORY",
           "evidence": "locked_manifest=e38bc090fe5d691f; trusted=0/26; target=None",
           "next_action": "Continue predeclared workflow."
+        },
+        {
+          "level": "watch",
+          "code": "FREEZE_701_NOW",
+          "evidence": "verified round 700 available, target 701 not frozen",
+          "next_action": "Dispatch the existing v2 signal freeze workflow before draw 701."
         }
       ]
     },
@@ -70,7 +76,7 @@
         {
           "level": "ok",
           "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
-          "evidence": "history reused; mode=SEARCH; trials=312/800",
+          "evidence": "history reused; mode=SEARCH; trials=338/800",
           "next_action": "Continue predeclared workflow."
         }
       ]
@@ -91,18 +97,18 @@
     {
       "priority": "watch",
       "owner": "data_steward",
-      "issue_code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
-      "evidence": "round=700; status=degraded_single_result_source",
-      "next_action": "Use the existing source recovery workflow; no trusted OOS grading.",
+      "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
+      "evidence": "corrupted_cooccurrence_cells=27; history_draws=700",
+      "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
     },
     {
       "priority": "watch",
-      "owner": "data_steward",
-      "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-      "evidence": "corrupted_cooccurrence_cells=27; history_draws=700",
-      "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions.",
+      "owner": "prospective_signal_custodian",
+      "issue_code": "FREEZE_701_NOW",
+      "evidence": "verified round 700 available, target 701 not frozen",
+      "next_action": "Dispatch the existing v2 signal freeze workflow before draw 701.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
     },
