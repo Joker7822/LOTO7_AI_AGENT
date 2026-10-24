@@ -328,6 +328,40 @@ def compare_sources(primary: Dict[str, object], sources: Dict[str, object]) -> T
     return "degraded_single_result_source", notes
 
 
+def previously_verified_secondary(
+    report_path: Path, csv_path: Path, primary: Dict[str, object]
+) -> Optional[Dict[str, object]]:
+    """Keep a real, previously fetched and validated second-source receipt.
+
+    A transient site outage cannot annul historical corroboration, but a
+    *changed* CSV, date, round, numbers, or missing receipt must fail closed.
+    No fresh fetch is implied when this prior evidence is reused.
+    """
+    try:
+        prior = json.loads(report_path.read_text(encoding="utf-8"))
+        if prior.get("status") != "ok" or prior.get("verification") != "verified_two_result_sources":
+            return None
+        if prior.get("latest") != primary:
+            return None
+        provenance = prior.get("verification_provenance", {})
+        if (provenance.get("primary_domain") != "takarakuji.rakuten.co.jp"
+                or provenance.get("secondary_domain") != "loto7.money-plan.net"
+                or provenance.get("draw_csv_sha256") != hashlib.sha256(csv_path.read_bytes()).hexdigest()):
+            return None
+        candidate = prior.get("sources", {}).get("loto7_tsushin", {})
+        url = f"https://loto7.money-plan.net/round/{int(primary['round'])}/"
+        if (candidate.get("url") != url
+                or candidate.get("source_tier") != "independent_non_official"
+                or candidate.get("transport") != "direct_independent_publisher_page"
+                or not candidate.get("response_sha256")
+                or not candidate.get("fetched_at_jst")
+                or not result_matches(primary, candidate)):
+            return None
+        return dict(candidate)
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, json.JSONDecodeError):
+        return None
+
+
 def write_report(path: Path, obj: Dict[str, object]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -438,6 +472,17 @@ def main() -> int:
 
             sources = source_snapshot(int(primary["round"]))
             verification, notes = compare_sources(primary, sources)
+            if verification == "degraded_single_result_source":
+                prior_secondary = previously_verified_secondary(args.report, args.csv, primary)
+                if prior_secondary is not None:
+                    sources["loto7_tsushin"] = prior_secondary
+                    verification, notes = compare_sources(primary, sources)
+                    if verification == "verified_two_result_sources":
+                        notes.append(
+                            "Previously live-fetched independent publisher receipt retained "
+                            "for exactly unchanged CSV/source during temporary HTTP outage; "
+                            "this execution did NOT perform a new secondary fetch."
+                        )
             if verification == "mismatch":
                 raise RuntimeError("cross-source mismatch: " + "; ".join(notes))
             if args.require_two_result_sources and verification != "verified_two_result_sources":
