@@ -21,6 +21,9 @@ on:
   schedule:
     # 10:45 JST daily; also run when important cross-workflow evidence changes.
     - cron: "45 1 * * *"
+  workflow_run:
+    workflows: ["LOTO7 Independent Result Corroboration", "Joint Set v2 Signal Future OOS", "Continuous Learning Agent Prospective"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:

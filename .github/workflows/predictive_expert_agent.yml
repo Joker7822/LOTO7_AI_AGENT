@@ -6,6 +6,8 @@ on:
       - "predictive_expert_agent.py"
       - "tests/test_predictive_expert_agent.py"
       - "PREDICTIVE_EXPERT_AGENT.md"
+      - "scripts/select_v2_research_reference.py"
+      - "tests/test_select_v2_research_reference.py"
       - ".github/workflows/predictive_expert_agent.yml"
   push:
     branches: [main]
@@ -13,6 +15,8 @@ on:
       - "predictive_expert_agent.py"
       - "tests/test_predictive_expert_agent.py"
       - "PREDICTIVE_EXPERT_AGENT.md"
+      - "scripts/select_v2_research_reference.py"
+      - "tests/test_select_v2_research_reference.py"
       - ".github/workflows/predictive_expert_agent.yml"
   schedule:
     # Saturday 13:30 JST, after the prior Friday's source/replay updates.
@@ -58,12 +62,13 @@ jobs:
       - name: PR independent research audit
         if: github.event_name == 'pull_request'
         run: |
+          v2_reference="$(python scripts/select_v2_research_reference.py --csv loto7.csv --summary loto7_agent_output/joint_set_v2_true_nested_summary.json --last-n 60)"
           python predictive_expert_agent.py \
             --csv loto7.csv \
             --out-dir /tmp/predictive-expert-agent \
             --last-n 60 \
             --null-worlds 64 \
-            --v2-summary loto7_agent_output/joint_set_v2_true_nested_summary.json
+            --v2-summary "$v2_reference"
           test -s /tmp/predictive-expert-agent/predictive_expert_agent_summary.json
           test ! -e /tmp/predictive-expert-agent/joint_set_v2_signal_oos_registry.json
 
@@ -77,12 +82,13 @@ jobs:
           for ATTEMPT in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
+            v2_reference="$(python scripts/select_v2_research_reference.py --csv loto7.csv --summary loto7_agent_output/joint_set_v2_true_nested_summary.json --last-n 60)"
             python predictive_expert_agent.py \
               --csv loto7.csv \
               --out-dir loto7_agent_output \
               --last-n 60 \
               --null-worlds 64 \
-              --v2-summary loto7_agent_output/joint_set_v2_true_nested_summary.json
+              --v2-summary "$v2_reference"
 
             git add -- \
               loto7_agent_output/predictive_expert_agent_summary.json \

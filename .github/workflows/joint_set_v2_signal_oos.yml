@@ -27,6 +27,9 @@ on:
   schedule:
     # Daily 10:15 JST. Source-validation/data pushes also trigger immediately.
     - cron: "15 1 * * *"
+  workflow_run:
+    workflows: ["LOTO7 Independent Result Corroboration"]
+    types: [completed]
   workflow_dispatch:
 
 permissions:
@@ -69,21 +72,41 @@ jobs:
             tests/test_joint_set_v2_signal_oos.py tests/test_joint_set_v2_signal_oos_guard.py
           python -m pytest -q tests/test_joint_set_v2_signal_oos.py tests/test_joint_set_v2_signal_oos_guard.py
 
-      - name: Dry-run registration on pull request
+      - name: Dry-run registered prospective freeze without main writes
         if: github.event_name == 'pull_request'
+        shell: bash
         run: |
+          set -euo pipefail
           python joint_set_v2_signal_oos_guard.py --csv loto7.csv --source-report loto7_agent_output/source_validation.json --out-dir loto7_agent_output
-          rm -rf /tmp/joint-set-v2-signal-oos
+          scratch="$(mktemp -d)"
+          for f in loto7_agent_output/joint_set_v2_signal_oos_*; do
+            if [ -f "$f" ]; then
+              cp -- "$f" "$scratch/"
+            fi
+          done
           python joint_set_v2_signal_oos.py \
             --csv loto7.csv \
-            --out-dir /tmp/joint-set-v2-signal-oos \
+            --out-dir "$scratch" \
             --source-report loto7_agent_output/source_validation.json \
             --model-file joint_set_v2_model.py \
             --research-file joint_set_v2_research.py \
             --min-train 100 \
             --selection-window 120
-          test -f /tmp/joint-set-v2-signal-oos/joint_set_v2_signal_oos_registration.json
-          test ! -f /tmp/joint-set-v2-signal-oos/joint_set_v2_signal_oos_registry.json
+          python - "$scratch" <<'PY'
+          import json
+          import pathlib
+          import sys
+          root = pathlib.Path(sys.argv[1])
+          source = json.loads(pathlib.Path("loto7_agent_output/source_validation.json").read_text())
+          state = json.loads((root / "joint_set_v2_signal_oos_state.json").read_text())
+          if source["verification"] == "verified_two_result_sources" and source["latest"]["round"] == 700:
+              assert state["current_target_round"] == 701
+              assert (root / "joint_set_v2_signal_oos_registry.json").exists()
+          else:
+              assert state["trusted_draws"] == 0
+          print("V2 prospective dry-run target:", state["current_target_round"])
+          PY
+          git diff --exit-code -- loto7.csv loto7_agent_output/
 
       - name: Freeze grade and persist
         if: github.event_name != 'pull_request'
