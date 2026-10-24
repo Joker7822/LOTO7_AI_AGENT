@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-24T18:30:20+09:00",
-  "source_commit": "6c849d0e0abd50d14475d3703546be57abea5d73",
-  "state_hashes_sha256": "fff1da901415c682325bded784a46684122df07d9d2d3db9b182bb04bec440d9",
+  "generated_at_jst": "2026-10-24T18:31:51+09:00",
+  "source_commit": "3e54375038fff8fb50f5c2c4287d7331cb8ec183",
+  "state_hashes_sha256": "35b07312ecd8c35e6d3940de19da759c52f0362bc5306e79eb015995bd803fc1",
   "sources": {
     "source": {
       "status": "ok",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-10-24T18:30:03+09:00",
+      "checked_at_jst": "2026-10-24T18:31:33+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -52,17 +52,12 @@
           ]
         },
         "prospective_signal_custodian": {
-          "status": "watch",
+          "status": "ok",
           "findings": [
             {
               "code": "V2_LOCK_AND_IMMUTABLE_HISTORY",
               "level": "ok",
-              "evidence": "locked_manifest=e38bc090fe5d691f; trusted=0/26; target=None"
-            },
-            {
-              "code": "FREEZE_701_NOW",
-              "level": "watch",
-              "evidence": "verified round 700 available, target 701 not frozen"
+              "evidence": "locked_manifest=e38bc090fe5d691f; trusted=0/26; target=701"
             }
           ]
         },
@@ -110,12 +105,6 @@
           "evidence": "corrupted_cooccurrence_cells=27; history_draws=700"
         },
         {
-          "owner": "prospective_signal_custodian",
-          "priority": "watch",
-          "issue_code": "FREEZE_701_NOW",
-          "evidence": "verified round 700 available, target 701 not frozen"
-        },
-        {
           "owner": "oos_risk_officer",
           "priority": "watch",
           "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
@@ -147,10 +136,10 @@
       "start_target_round": 693
     },
     "signal": {
-      "status": "waiting_for_verified_round_700_prefix",
+      "status": "active_target_prefrozen_waiting_result",
       "trusted_draws": 0,
       "horizon_trusted_draws": 26,
-      "current_target_round": null,
+      "current_target_round": 701,
       "start_target_round": 701,
       "interim_descriptive": {
         "mean_top7_hits": null,
@@ -187,12 +176,12 @@
     "scout": {
       "evaluated_rounds": 60,
       "scout": {
-        "mean_top7_hits": 1.4333333333333333
+        "mean_top7_hits": 1.4
       },
       "v2_reference": {
-        "mean_top7_hits": 1.5833333333333333
+        "mean_top7_hits": null
       },
-      "synthetic_null_p_log_edge": 0.4461538461538462
+      "synthetic_null_p_log_edge": 0.6615384615384615
     },
     "budget": {
       "mode": "SEARCH",
@@ -226,23 +215,23 @@
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 40082122870,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40082122870",
-      "updated_at": "2026-10-24T09:30:07Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 40082270071,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40082270071",
+      "updated_at": "2026-10-24T09:31:41Z",
       "recent_failure_count": 0
     },
     {
       "file": "joint_set_v2_signal_oos.yml",
       "label": "v2将来検証",
-      "health": "running",
-      "status": "in_progress",
-      "conclusion": null,
+      "health": "ok",
+      "status": "completed",
+      "conclusion": "success",
       "run_id": 40082122778,
       "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40082122778",
-      "updated_at": "2026-10-24T09:29:05Z",
+      "updated_at": "2026-10-24T09:31:06Z",
       "recent_failure_count": 0
     },
     {
@@ -543,13 +532,13 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "6c849d0e0abd50d14475d3703546be57abea5d73",
-    "snapshot_generated_at_jst": "2026-10-24T18:30:20+09:00",
-    "computed_at_jst": "2026-10-24T09:30:20+00:00",
+    "source_commit": "3e54375038fff8fb50f5c2c4287d7331cb8ec183",
+    "snapshot_generated_at_jst": "2026-10-24T18:31:51+09:00",
+    "computed_at_jst": "2026-10-24T09:31:51+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
-      "watch": 4,
+      "watch": 2,
       "info": 0
     },
     "checkpoints": {
@@ -567,19 +556,6 @@
       }
     },
     "tasks": [
-      {
-        "id": "fcf95bb833fefb99",
-        "priority": "watch",
-        "code": "COUNCIL:FREEZE_701_NOW",
-        "owner": "将来検証エージェント",
-        "title": "第700回の検証済み結果で第701回の予測を抽せん前に凍結してください。",
-        "detail": "監査の判定と元の公表記録を照合してください。",
-        "evidence": "FREEZE_701_NOW",
-        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
-      },
       {
         "id": "615a36ffa6f66937",
         "priority": "watch",
@@ -605,19 +581,6 @@
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
         "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
-      },
-      {
-        "id": "22f88f4203ed5a8e",
-        "priority": "watch",
-        "code": "FIRST_FREEZE_REQUIRED:signal",
-        "owner": "将来検証エージェント",
-        "title": "v2信号：第701回を事前凍結する段階",
-        "detail": "検証済みの第700回が利用可能です。第701回の結果より先に凍結してください。",
-        "evidence": "700/701",
-        "recommended_action": "既存の登録済み将来検証workflowを確認してください。研究コードを変更しないでください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": null
       }
     ],
     "authority": {
