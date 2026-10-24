@@ -1,0 +1,131 @@
+name: Recursive Code and Meta Evolution
+
+on:
+  schedule:
+    # Each execution resumes the research code/program and its learned mutation policy.
+    # There is no lifetime generation cap; infrastructure is intentionally time-sliced.
+    - cron: "11 * * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "recursive_self_evolution_agent.py"
+      - "tests/test_recursive_self_evolution_agent.py"
+      - ".github/workflows/recursive_self_evolution.yml"
+      - "RECURSIVE_SELF_EVOLUTION.md"
+  push:
+    branches: [main]
+    paths:
+      - "recursive_self_evolution_agent.py"
+      - "tests/test_recursive_self_evolution_agent.py"
+      - ".github/workflows/recursive_self_evolution.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: recursive-code-meta-evolution-main
+  cancel-in-progress: false
+
+jobs:
+  validate-recursive-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify research algorithms and recursive audit chain
+        run: |
+          python -m pip install -r requirements.txt pytest
+          python -m compileall -q recursive_self_evolution_agent.py tests/test_recursive_self_evolution_agent.py
+          python -m pytest -q tests/test_recursive_self_evolution_agent.py
+      - name: Actual-history isolated PR smoke
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          mkdir -p "$tmp/loto7_agent_output"
+          cp -- loto7.csv "$tmp/loto7.csv"
+          cp -- loto7_agent_output/source_validation.json "$tmp/loto7_agent_output/"
+          python recursive_self_evolution_agent.py --repo-root "$tmp" --steps 5
+          python recursive_self_evolution_agent.py --repo-root "$tmp" --steps 4
+          python - "$tmp" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+          from open_ended_evolution_agent import journal
+          root = Path(sys.argv[1]) / "loto7_agent_output"
+          state = json.loads((root / "recursive_self_evolution_state.json").read_text())
+          assert state["generations_total"] == 9
+          assert sum(z["trials"] for z in state["mutation_policy"].values()) == 9
+          assert len(journal(root / "recursive_self_evolution_journal.jsonl")) == 2
+          assert state["execution_limits"]["global_generations"] is None
+          assert state["authority"]["production_predictions"] is False
+          print("Verified automatic mutation-rule adaptation and 9 generations.")
+          PY
+          git diff --exit-code -- loto7.csv loto7_agent_output/
+
+  publish-research-only:
+    needs: validate-recursive-agent
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Evolve mathematical source and mutation policy indefinitely
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python recursive_self_evolution_agent.py --repo-root . --seconds 25
+            git add -- \
+              loto7_agent_output/recursive_self_evolution_state.json \
+              loto7_agent_output/recursive_self_evolution_journal.jsonl \
+              loto7_agent_output/recursive_self_evolution_candidate.py \
+              loto7_agent_output/recursive_self_evolution_report.md
+            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/recursive_self_evolution_(state.json|journal.jsonl|candidate.py|report.md)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Attempted to stage an unrelated file: $unexpected"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "No new recursive research checkpoint"
+              exit 0
+            fi
+            git commit -m "research: continue recursive model source and mutation-policy evolution"
+            if git push origin HEAD:main; then
+              echo "Committed recursive self-evolution checkpoint"
+              exit 0
+            fi
+          done
+          echo "::error::Failed to persist checkpoint after bounded Git push retry"
+          exit 1
+      - name: Research limitations
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Recursive code and meta-evolution"
+            cat loto7_agent_output/recursive_self_evolution_report.md 2>/dev/null || true
+            echo "Only isolated historical research records are writable."
+            echo "No unconstrained code execution, Production authority, or claim of future predictive skill."
+          } >> "$GITHUB_STEP_SUMMARY"
