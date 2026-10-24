@@ -1,0 +1,115 @@
+name: LOTO7 Independent Result Corroboration
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Retry independently published results after the weekly Friday draw.
+    - cron: "40 12 * * 5"
+    - cron: "40 3 * * 6"
+  pull_request:
+    paths:
+      - "verify_independent_loto7_result.py"
+      - "fetch_validate.py"
+      - "tests/test_verify_independent_loto7_result.py"
+      - ".github/workflows/independent_loto7_result.yml"
+  push:
+    branches: [main]
+    paths:
+      - "verify_independent_loto7_result.py"
+      - "fetch_validate.py"
+      - "tests/test_verify_independent_loto7_result.py"
+      - ".github/workflows/independent_loto7_result.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: loto7-independent-result-evidence
+  cancel-in-progress: false
+
+jobs:
+  validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Python and run independent verification regression tests
+        run: |
+          python -m pip install -r requirements.txt pytest
+          python -m pytest -q tests/test_verify_independent_loto7_result.py
+
+      - name: Live proof on isolated actual history and primary report
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          proof="$(mktemp -d)"
+          cp loto7.csv "$proof/loto7.csv"
+          cp loto7_agent_output/source_validation.json "$proof/source_validation.json"
+          python verify_independent_loto7_result.py --csv "$proof/loto7.csv" --report "$proof/source_validation.json"
+          python - "$proof" <<'PY'
+          import json
+          import pathlib
+          import sys
+          from joint_set_v2_signal_oos_guard import validate_trusted_source
+          root = pathlib.Path(sys.argv[1])
+          result = validate_trusted_source(root/"loto7.csv", root/"source_validation.json")
+          assert result["trusted"] and "loto7_tsushin" in result["secondary"]
+          print("Actual secondary independently published draw validated:", result["round"])
+          PY
+          git diff --exit-code -- loto7.csv loto7_agent_output/
+
+  publish:
+    needs: validation
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Verify and publish only documented secondary source record
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python verify_independent_loto7_result.py \
+              --csv loto7.csv \
+              --report loto7_agent_output/source_validation.json
+            git add -- loto7_agent_output/source_validation.json
+            unexpected="$(git diff --cached --name-only | grep -v '^loto7_agent_output/source_validation.json$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Unexpected staged path: $unexpected"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "Already independently verified; no scientific evidence changed."
+              exit 0
+            fi
+            git commit -m "data: independently corroborate latest LOTO7 result from non-official publisher"
+            if git push origin HEAD:main; then
+              echo "Independent result corroboration published."
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Could not persist source proof."
+              exit 1
+            fi
+          done

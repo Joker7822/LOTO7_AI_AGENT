@@ -254,6 +254,16 @@ def source_snapshot(target_round: int) -> Dict[str, object]:
         out["rakuten_bank"] = fetch_rakuten_bank_result(target_round)
     except Exception as exc:
         out["rakuten_bank"] = {"status": "unavailable", "error": str(exc)[:300]}
+    # Independently operated publisher fallback: never treat the Rakuten
+    # parent site's duplicate pages as an independent second result source.
+    # Only attempt when neither approved bank result endpoint was parseable.
+    if not any(isinstance(out.get(name), dict) and "main" in out[name]
+               for name in ("mizuho", "rakuten_bank")):
+        try:
+            from verify_independent_loto7_result import fetch_secondary
+            out["loto7_tsushin"] = fetch_secondary(target_round)
+        except Exception as exc:
+            out["loto7_tsushin"] = {"status": "unavailable", "error": str(exc)[:300]}
     try:
         out["official_schedule"] = parse_official_schedule(http_get(OFFICIAL_URL)) or {"status": "not_parseable"}
     except Exception as exc:
@@ -286,6 +296,26 @@ def compare_sources(primary: Dict[str, object], sources: Dict[str, object]) -> T
         suffix = f" via {transport}" if transport else ""
         notes.append(f"{label} result matches Rakuten primary main/bonus numbers{suffix}")
 
+    # Independent third-party publication is a separate, explicitly
+    # non-official evidence tier. Accept only a freshly fetched, exact
+    # round-specific HTTPS URL with complete matching date and numbers.
+    candidate = sources.get("loto7_tsushin", {})
+    if isinstance(candidate, dict) and "main" in candidate:
+        expected_url = f"https://loto7.money-plan.net/round/{int(primary['round'])}/"
+        eligible = (
+            candidate.get("url") == expected_url
+            and candidate.get("source_tier") == "independent_non_official"
+            and candidate.get("transport") == "direct_independent_publisher_page"
+            and isinstance(candidate.get("response_sha256"), str)
+            and len(candidate["response_sha256"]) == 64
+            and bool(candidate.get("fetched_at_jst"))
+        )
+        if eligible:
+            if not result_matches(primary, candidate) or not candidate.get("date"):
+                return "mismatch", ["Rakuten primary and independent LOTO7通信 results disagree"]
+            verified.append("LOTO7通信 independent non-official publication")
+            notes.append("LOTO7通信 independent non-official result matches Rakuten primary round/date/main/bonus")
+
     official = sources.get("official_schedule", {})
     if isinstance(official, dict) and "round" in official:
         notes.append(f"official schedule visible: round={official.get('round')} date={official.get('date','')}")
@@ -296,6 +326,40 @@ def compare_sources(primary: Dict[str, object], sources: Dict[str, object]) -> T
 
     notes.append("No secondary result endpoint was parseable for this round; operating in degraded single-result-source mode")
     return "degraded_single_result_source", notes
+
+
+def previously_verified_secondary(
+    report_path: Path, csv_path: Path, primary: Dict[str, object]
+) -> Optional[Dict[str, object]]:
+    """Keep a real, previously fetched and validated second-source receipt.
+
+    A transient site outage cannot annul historical corroboration, but a
+    *changed* CSV, date, round, numbers, or missing receipt must fail closed.
+    No fresh fetch is implied when this prior evidence is reused.
+    """
+    try:
+        prior = json.loads(report_path.read_text(encoding="utf-8"))
+        if prior.get("status") != "ok" or prior.get("verification") != "verified_two_result_sources":
+            return None
+        if prior.get("latest") != primary:
+            return None
+        provenance = prior.get("verification_provenance", {})
+        if (provenance.get("primary_domain") != "takarakuji.rakuten.co.jp"
+                or provenance.get("secondary_domain") != "loto7.money-plan.net"
+                or provenance.get("draw_csv_sha256") != hashlib.sha256(csv_path.read_bytes()).hexdigest()):
+            return None
+        candidate = prior.get("sources", {}).get("loto7_tsushin", {})
+        url = f"https://loto7.money-plan.net/round/{int(primary['round'])}/"
+        if (candidate.get("url") != url
+                or candidate.get("source_tier") != "independent_non_official"
+                or candidate.get("transport") != "direct_independent_publisher_page"
+                or not candidate.get("response_sha256")
+                or not candidate.get("fetched_at_jst")
+                or not result_matches(primary, candidate)):
+            return None
+        return dict(candidate)
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, json.JSONDecodeError):
+        return None
 
 
 def write_report(path: Path, obj: Dict[str, object]) -> None:
@@ -408,6 +472,17 @@ def main() -> int:
 
             sources = source_snapshot(int(primary["round"]))
             verification, notes = compare_sources(primary, sources)
+            if verification == "degraded_single_result_source":
+                prior_secondary = previously_verified_secondary(args.report, args.csv, primary)
+                if prior_secondary is not None:
+                    sources["loto7_tsushin"] = prior_secondary
+                    verification, notes = compare_sources(primary, sources)
+                    if verification == "verified_two_result_sources":
+                        notes.append(
+                            "Previously live-fetched independent publisher receipt retained "
+                            "for exactly unchanged CSV/source during temporary HTTP outage; "
+                            "this execution did NOT perform a new secondary fetch."
+                        )
             if verification == "mismatch":
                 raise RuntimeError("cross-source mismatch: " + "; ".join(notes))
             if args.require_two_result_sources and verification != "verified_two_result_sources":
@@ -419,7 +494,11 @@ def main() -> int:
                 "status": "ok" if verification == "verified_two_result_sources" else "degraded",
                 "verification": verification,
                 "primary_source": "Rakuten backnumber via scrapingloto7.py",
-                "secondary_policy": "Mizuho preferred; Rakuten Bank direct public winning-number endpoint is accepted as fallback",
+                "secondary_policy": (
+                    "Mizuho preferred; Rakuten Bank direct result, or an "
+                    "explicitly non-official, independently operated LOTO7通信 "
+                    "result page with live fetched response SHA as fallback"
+                ),
                 "latest": primary,
                 "freshness_expected": {"round": expected[0], "date": expected[1]} if expected else None,
                 "freshness_policy": (
@@ -428,6 +507,19 @@ def main() -> int:
                     else "require_current_draw_after_friday_20_jst"
                 ),
                 "sources": sources,
+                "verification_provenance": {
+                    "primary_domain": "takarakuji.rakuten.co.jp",
+                    "primary_method": "recorded_published_csv_result",
+                    "secondary_domain": (
+                        "loto7.money-plan.net"
+                        if verification == "verified_two_result_sources"
+                        and any("LOTO7通信" in n for n in notes)
+                        else None
+                    ),
+                    "secondary_official": False if any("LOTO7通信" in n for n in notes) else None,
+                    "source_tier": "independent_non_official" if any("LOTO7通信" in n for n in notes) else None,
+                    "draw_csv_sha256": hashlib.sha256(args.csv.read_bytes()).hexdigest(),
+                },
                 "notes": notes,
             }
             write_report(args.report, report)
