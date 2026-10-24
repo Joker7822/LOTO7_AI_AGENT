@@ -1,6 +1,6 @@
 {
   "version": "open-ended-evolution-v1",
-  "generations_total": 10277,
+  "generations_total": 12409,
   "evaluated_history_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "recorded_rounds": 700,
   "evaluation_rounds": 700,
@@ -152,6 +152,135 @@
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     },
     {
+      "generation": 10435,
+      "genome": {
+        "op": "blend",
+        "alpha": 0.6455,
+        "left": {
+          "op": "blend",
+          "alpha": 0.10065,
+          "left": {
+            "op": "power",
+            "exponent": 2.32582,
+            "child": {
+              "op": "frequency",
+              "window": 26,
+              "prior": 23.25951
+            }
+          },
+          "right": {
+            "op": "uniform"
+          }
+        },
+        "right": {
+          "op": "blend",
+          "alpha": 0.2484,
+          "left": {
+            "op": "blend",
+            "alpha": 0.4579,
+            "left": {
+              "op": "pair",
+              "window": 203,
+              "prior": 290.15944
+            },
+            "right": {
+              "op": "gap",
+              "scale": 2.06941
+            }
+          },
+          "right": {
+            "op": "power",
+            "exponent": 1.08841,
+            "child": {
+              "op": "uniform"
+            }
+          }
+        }
+      },
+      "assessment": {
+        "mean_log_edge": 0.00026399027191994584,
+        "mean_top7_hits": 1.5416666666666667,
+        "block_edges": [
+          -3.4180666832362035e-05,
+          0.0007205180080505291,
+          0.00010563347454167026
+        ],
+        "fitness": 0.00021481708121742592,
+        "historical_selection_only": true,
+        "prospective_edge_confirmed": false
+      },
+      "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
+    },
+    {
+      "generation": 11083,
+      "genome": {
+        "op": "blend",
+        "alpha": 0.99,
+        "left": {
+          "op": "blend",
+          "alpha": 0.6455,
+          "left": {
+            "op": "blend",
+            "alpha": 0.10065,
+            "left": {
+              "op": "power",
+              "exponent": 2.32582,
+              "child": {
+                "op": "frequency",
+                "window": 26,
+                "prior": 23.25951
+              }
+            },
+            "right": {
+              "op": "uniform"
+            }
+          },
+          "right": {
+            "op": "blend",
+            "alpha": 0.2484,
+            "left": {
+              "op": "blend",
+              "alpha": 0.4579,
+              "left": {
+                "op": "pair",
+                "window": 203,
+                "prior": 290.15944
+              },
+              "right": {
+                "op": "gap",
+                "scale": 2.06941
+              }
+            },
+            "right": {
+              "op": "power",
+              "exponent": 1.08841,
+              "child": {
+                "op": "uniform"
+              }
+            }
+          }
+        },
+        "right": {
+          "op": "pair",
+          "window": 53,
+          "prior": 223.26198
+        }
+      },
+      "assessment": {
+        "mean_log_edge": 0.0002611203373841942,
+        "mean_top7_hits": 1.5416666666666667,
+        "block_edges": [
+          -3.4470570225596004e-05,
+          0.0007135778307133915,
+          0.00010425375166478709
+        ],
+        "fitness": 0.00021238388590945733,
+        "historical_selection_only": true,
+        "prospective_edge_confirmed": false
+      },
+      "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
+    },
+    {
       "generation": 3887,
       "genome": {
         "op": "blend",
@@ -185,6 +314,85 @@
           0.00039417079117250945
         ],
         "fitness": 0.00021127113563166168,
+        "historical_selection_only": true,
+        "prospective_edge_confirmed": false
+      },
+      "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
+    },
+    {
+      "generation": 11925,
+      "genome": {
+        "op": "blend",
+        "alpha": 0.99,
+        "left": {
+          "op": "blend",
+          "alpha": 0.6455,
+          "left": {
+            "op": "blend",
+            "alpha": 0.10065,
+            "left": {
+              "op": "power",
+              "exponent": 2.32582,
+              "child": {
+                "op": "frequency",
+                "window": 26,
+                "prior": 23.25951
+              }
+            },
+            "right": {
+              "op": "uniform"
+            }
+          },
+          "right": {
+            "op": "blend",
+            "alpha": 0.2484,
+            "left": {
+              "op": "blend",
+              "alpha": 0.4579,
+              "left": {
+                "op": "pair",
+                "window": 203,
+                "prior": 290.15944
+              },
+              "right": {
+                "op": "gap",
+                "scale": 2.06941
+              }
+            },
+            "right": {
+              "op": "power",
+              "exponent": 1.08841,
+              "child": {
+                "op": "uniform"
+              }
+            }
+          }
+        },
+        "right": {
+          "op": "power",
+          "exponent": 2.10432,
+          "child": {
+            "op": "blend",
+            "alpha": 0.15481,
+            "left": {
+              "op": "decay",
+              "half_life": 165.95495
+            },
+            "right": {
+              "op": "uniform"
+            }
+          }
+        }
+      },
+      "assessment": {
+        "mean_log_edge": 0.0002596137174712636,
+        "mean_top7_hits": 1.5416666666666667,
+        "block_edges": [
+          -3.428416310759111e-05,
+          0.000712694935974771,
+          0.00010043037954661094
+        ],
+        "fitness": 0.0002108542653228186,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
@@ -235,137 +443,6 @@
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
-    },
-    {
-      "generation": 4040,
-      "genome": {
-        "op": "blend",
-        "alpha": 0.79613,
-        "left": {
-          "op": "blend",
-          "alpha": 0.10065,
-          "left": {
-            "op": "power",
-            "exponent": 2.32582,
-            "child": {
-              "op": "frequency",
-              "window": 26,
-              "prior": 23.25951
-            }
-          },
-          "right": {
-            "op": "uniform"
-          }
-        },
-        "right": {
-          "op": "pair",
-          "window": 65,
-          "prior": 286.27235
-        }
-      },
-      "assessment": {
-        "mean_log_edge": 0.00026502456573988397,
-        "mean_top7_hits": 1.4166666666666667,
-        "block_edges": [
-          -0.00032112626263976836,
-          0.000693405290291361,
-          0.00042279466956805925
-        ],
-        "fitness": 0.00020068323506282104,
-        "historical_selection_only": true,
-        "prospective_edge_confirmed": false
-      },
-      "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
-    },
-    {
-      "generation": 4043,
-      "genome": {
-        "op": "blend",
-        "alpha": 0.54812,
-        "left": {
-          "op": "blend",
-          "alpha": 0.10065,
-          "left": {
-            "op": "power",
-            "exponent": 2.32582,
-            "child": {
-              "op": "frequency",
-              "window": 26,
-              "prior": 23.25951
-            }
-          },
-          "right": {
-            "op": "uniform"
-          }
-        },
-        "right": {
-          "op": "uniform"
-        }
-      },
-      "assessment": {
-        "mean_log_edge": 0.0002406794939035471,
-        "mean_top7_hits": 1.5,
-        "block_edges": [
-          -0.00016394531897868838,
-          0.0005240641196003647,
-          0.00036191968108896473
-        ],
-        "fitness": 0.00019662890353263965,
-        "historical_selection_only": true,
-        "prospective_edge_confirmed": false
-      },
-      "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
-    },
-    {
-      "generation": 4028,
-      "genome": {
-        "op": "blend",
-        "alpha": 0.76233,
-        "left": {
-          "op": "blend",
-          "alpha": 0.10065,
-          "left": {
-            "op": "power",
-            "exponent": 2.32582,
-            "child": {
-              "op": "frequency",
-              "window": 26,
-              "prior": 23.25951
-            }
-          },
-          "right": {
-            "op": "uniform"
-          }
-        },
-        "right": {
-          "op": "power",
-          "exponent": 2.09261,
-          "child": {
-            "op": "blend",
-            "alpha": 0.35589,
-            "left": {
-              "op": "gap",
-              "scale": 67.04621
-            },
-            "right": {
-              "op": "uniform"
-            }
-          }
-        }
-      },
-      "assessment": {
-        "mean_log_edge": 0.00025395023850066645,
-        "mean_top7_hits": 1.4583333333333333,
-        "block_edges": [
-          -0.00036993347605012973,
-          0.000729233405184171,
-          0.00040255078636795805
-        ],
-        "fitness": 0.00018481954159396344,
-        "historical_selection_only": true,
-        "prospective_edge_confirmed": false
-      },
-      "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     }
   ],
   "execution_limits": {
@@ -375,5 +452,5 @@
   },
   "scope": "indefinite_historical_model_program_evolution_not_production",
   "claim": "Selection on reused historical data cannot establish predictive advantage.",
-  "last_record_sha256": "27f23295fdc38062755c9e9c12b41917ba89d668ff5116f505aa907d4cb6b00f"
+  "last_record_sha256": "ef4eb4c3c4a739e23c83f605a7cc5a24f1a97ba7c60366f52a7cfd7920c6acdb"
 }
