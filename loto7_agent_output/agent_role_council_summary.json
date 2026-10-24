@@ -1,6 +1,6 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-10-24T07:12:38+09:00",
+  "checked_at_jst": "2026-10-24T09:40:25+09:00",
   "latest_resolved_round": 699,
   "overall": "watch",
   "input_snapshot_sha256": "a22238307200a03eb5f6bd0ff4b1e5b7b4e339b1d25d9a40cf4241ae2323068e",
@@ -27,6 +27,12 @@
           "code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
           "evidence": "round=699; status=degraded_single_result_source",
           "next_action": "Use the existing source recovery workflow; no trusted OOS grading."
+        },
+        {
+          "level": "watch",
+          "code": "PAIR_CONTEXT_INT8_OVERFLOW",
+          "evidence": "corrupted_cooccurrence_cells=27; history_draws=699",
+          "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions."
         }
       ]
     },
@@ -94,6 +100,15 @@
       "issue_code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
       "evidence": "round=699; status=degraded_single_result_source",
       "next_action": "Use the existing source recovery workflow; no trusted OOS grading.",
+      "existing_workflow_or_human_required": true,
+      "autonomous_production_write_allowed": false
+    },
+    {
+      "priority": "watch",
+      "owner": "data_steward",
+      "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
+      "evidence": "corrupted_cooccurrence_cells=27; history_draws=699",
+      "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
     },

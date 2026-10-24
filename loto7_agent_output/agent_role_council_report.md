@@ -1,6 +1,6 @@
 # LOTO7 AI Agent — Role Council
 
-- checked JST: **2026-10-24T07:12:38+09:00**
+- checked JST: **2026-10-24T09:40:25+09:00**
 - latest round: **699**
 - overall: **WATCH**
 - input snapshot SHA256: a22238307200a03eb5f6bd0ff4b1e5b7b4e339b1d25d9a40cf4241ae2323068e
@@ -9,7 +9,7 @@
 ## Role checks
 | Role | Verdict | Checks |
 |---|---|---|
-| data_steward | WATCH | RESULT_NOT_TWO_SOURCE_VERIFIED |
+| data_steward | WATCH | RESULT_NOT_TWO_SOURCE_VERIFIED, PAIR_CONTEXT_INT8_OVERFLOW |
 | prospective_signal_custodian | OK | V2_LOCK_AND_IMMUTABLE_HISTORY, WAIT_FOR_700 |
 | oos_risk_officer | WATCH | OOS_REFERENCE_CONSISTENCY, NO_EARLY_PORTFOLIO_CLAIM |
 | research_skeptic | OK | DIAGNOSTIC_RESEARCH_ISOLATION |
@@ -19,6 +19,11 @@
 ### WATCH — data_steward: RESULT_NOT_TWO_SOURCE_VERIFIED
 - evidence: round=699; status=degraded_single_result_source
 - next action: Use the existing source recovery workflow; no trusted OOS grading.
+- executor: **existing workflow / human review only**
+
+### WATCH — data_steward: PAIR_CONTEXT_INT8_OVERFLOW
+- evidence: corrupted_cooccurrence_cells=27; history_draws=699
+- next action: Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions.
 - executor: **existing workflow / human review only**
 
 ### WATCH — oos_risk_officer: NO_EARLY_PORTFOLIO_CLAIM
