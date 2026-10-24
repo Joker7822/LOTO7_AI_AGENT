@@ -1,59 +1,59 @@
 {
   "optimizer_version": "robust-signal-era-gated-v1",
-  "generation": 5196,
+  "generation": 5198,
   "data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "incumbent_version": "signal-g05175-c01-33535f4f52",
-  "signal_accepted": false,
-  "selected_version": "signal-g05175-c01-33535f4f52",
-  "selected_signal_objective": -0.04032216875513375,
-  "selected_overlap": 0.9,
+  "signal_accepted": true,
+  "selected_version": "signal-g05198-c01-4cb45d5a7b",
+  "selected_signal_objective": -0.03981350035896281,
+  "selected_overlap": 0.65,
   "selected_eras": [
     {
       "label": "101-250",
       "evaluated_rounds": 150,
-      "signal_objective": -0.03189527277844377,
+      "signal_objective": -0.03158277901065229,
       "top7_delta_vs_uniform": 0.109009009009009,
-      "actual_mass_delta_vs_uniform": 0.002431762118263514,
-      "log_edge_vs_uniform": -0.01625901987908751,
-      "brier_edge_vs_uniform": -0.0012560271214713675
+      "actual_mass_delta_vs_uniform": 0.002421882743730286,
+      "log_edge_vs_uniform": -0.01614666462807479,
+      "brier_edge_vs_uniform": -0.0012472312308375588
     },
     {
       "label": "251-400",
       "evaluated_rounds": 150,
-      "signal_objective": -0.044158385856430726,
+      "signal_objective": -0.04381500039886416,
       "top7_delta_vs_uniform": -0.03765765765765772,
-      "actual_mass_delta_vs_uniform": 0.0015934222604147563,
-      "log_edge_vs_uniform": -0.015614713492948518,
-      "brier_edge_vs_uniform": -0.0011185900447418379
+      "actual_mass_delta_vs_uniform": 0.0015944293703290813,
+      "log_edge_vs_uniform": -0.015488669058717708,
+      "brier_edge_vs_uniform": -0.0011099769726015535
     },
     {
       "label": "401-550",
       "evaluated_rounds": 150,
-      "signal_objective": -0.07009687456516012,
+      "signal_objective": -0.06958226950771615,
       "top7_delta_vs_uniform": -0.08432432432432435,
-      "actual_mass_delta_vs_uniform": -0.0007614757117969384,
-      "log_edge_vs_uniform": -0.0226320930160826,
-      "brier_edge_vs_uniform": -0.0015003759077220485
+      "actual_mass_delta_vs_uniform": -0.000756677477021378,
+      "log_edge_vs_uniform": -0.0224462602674409,
+      "brier_edge_vs_uniform": -0.0014876088741520022
     },
     {
       "label": "551-latest",
       "evaluated_rounds": 150,
-      "signal_objective": -0.025728857004959468,
+      "signal_objective": -0.02549994374849659,
       "top7_delta_vs_uniform": 0.08234234234234239,
-      "actual_mass_delta_vs_uniform": 0.0021151800657187303,
-      "log_edge_vs_uniform": -0.013091212069457736,
-      "brier_edge_vs_uniform": -0.0010040895720469373
+      "actual_mass_delta_vs_uniform": 0.002104313430731558,
+      "log_edge_vs_uniform": -0.013007584628301316,
+      "brier_edge_vs_uniform": -0.0009974088086357052
     }
   ],
   "signal_trials": [
     {
-      "version": "signal-g05196-c01-8d03f8a68e",
-      "accepted": false,
-      "candidate_signal_objective": -0.040118674987990655,
+      "version": "signal-g05198-c01-0ae06abdf5",
+      "accepted": true,
+      "candidate_signal_objective": -0.03981350035896281,
       "incumbent_signal_objective": -0.04032216875513375,
-      "signal_gain": 0.00020349376714309808,
+      "signal_gain": 0.0005086683961709401,
       "checks": {
-        "signal_objective_improves": false,
+        "signal_objective_improves": true,
         "full_log_not_regressed": true,
         "recent120_log_not_regressed": true,
         "full_brier_not_regressed": true
@@ -64,16 +64,16 @@
         "worst_era_not_regressed": true
       },
       "era_deltas": [
-        0.0005246735704356881,
-        0.0006031609112799319,
-        0.00047193383436769376,
-        0.0004353283600508212
+        0.0003124937677914802,
+        0.0003433854575665696,
+        0.0005146050574439676,
+        0.00022891325646287597
       ],
       "candidate_era_objectives": [
-        -0.03137059920800808,
-        -0.043555224945150794,
-        -0.06962494073079242,
-        -0.025293528644908646
+        -0.03158277901065229,
+        -0.04381500039886416,
+        -0.06958226950771615,
+        -0.02549994374849659
       ],
       "incumbent_era_objectives": [
         -0.03189527277844377,
@@ -81,16 +81,16 @@
         -0.07009687456516012,
         -0.025728857004959468
       ],
-      "improved_era_count": 4,
-      "candidate_worst_era": -0.06962494073079242,
+      "improved_era_count": 3,
+      "candidate_worst_era": -0.06958226950771615,
       "incumbent_worst_era": -0.07009687456516012
     },
     {
-      "version": "signal-g05196-c02-283ad11fba",
+      "version": "signal-g05198-c02-7af09924df",
       "accepted": false,
-      "candidate_signal_objective": -0.04109004541807447,
+      "candidate_signal_objective": -0.08618764071188079,
       "incumbent_signal_objective": -0.04032216875513375,
-      "signal_gain": -0.0007678766629407169,
+      "signal_gain": -0.045865471956747034,
       "checks": {
         "signal_objective_improves": false,
         "full_log_not_regressed": false,
@@ -103,16 +103,16 @@
         "worst_era_not_regressed": false
       },
       "era_deltas": [
-        -0.00611152889134782,
-        -0.0046374273351932754,
-        -0.0067505967452727855,
-        -0.0064467370113930784
+        -0.053487806787442055,
+        -0.0463790677070466,
+        -0.0027325403122782366,
+        -0.04354026231448359
       ],
       "candidate_era_objectives": [
-        -0.03800680166979159,
-        -0.048795813191624,
-        -0.0768474713104329,
-        -0.032175594016352546
+        -0.08538307956588582,
+        -0.09053745356347732,
+        -0.07282941487743835,
+        -0.06926911931944306
       ],
       "incumbent_era_objectives": [
         -0.03189527277844377,
@@ -121,11 +121,40 @@
         -0.025728857004959468
       ],
       "improved_era_count": 0,
-      "candidate_worst_era": -0.0768474713104329,
+      "candidate_worst_era": -0.09053745356347732,
       "incumbent_worst_era": -0.07009687456516012
     }
   ],
-  "portfolio_trials": [],
+  "portfolio_trials": [
+    {
+      "overlap_penalty": 0.4,
+      "portfolio_objective": -0.052480188802082536
+    },
+    {
+      "overlap_penalty": 0.65,
+      "portfolio_objective": 0.07280481119791707
+    },
+    {
+      "overlap_penalty": 0.9,
+      "portfolio_objective": 0.034173977864584155
+    },
+    {
+      "overlap_penalty": 1.15,
+      "portfolio_objective": -0.014091022135415781
+    },
+    {
+      "overlap_penalty": 1.4,
+      "portfolio_objective": 0.04050731119791735
+    },
+    {
+      "overlap_penalty": 1.7,
+      "portfolio_objective": 0.06794147786458375
+    },
+    {
+      "overlap_penalty": 2.0,
+      "portfolio_objective": 0.0679531445312505
+    }
+  ],
   "precision_random_reps": 4096,
   "independent_evidence": false,
   "production_promotion_eligible": false
