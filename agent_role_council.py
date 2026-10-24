@@ -214,8 +214,19 @@ def oos_risk_officer(out: Path, latest: int) -> dict:
             raise ValueError("26-draw protocol SHA lock not verified")
         n, h = int(holdout["trusted_draws"]), int(holdout["horizon_trusted_draws"])
         graded = [int(v) for v in holdout["graded_rounds"]]
-        if n < 0 or n > h or graded != list(range(int(holdout["start_target_round"]), int(holdout["start_target_round"]) + n)):
-            raise ValueError("26-draw holdout graded rounds are noncontiguous or inconsistent")
+        all_draws = int(holdout.get("all_draws", len(graded)))
+        if (n < 0 or n > h or all_draws != len(graded) or n > all_draws
+                or graded != list(range(int(holdout["start_target_round"]),
+                                        int(holdout["start_target_round"]) + all_draws))):
+            raise ValueError("26-draw holdout all/trusted rounds are noncontiguous or inconsistent")
+        # Untrusted outcomes can have diagnostic rows without incrementing
+        # trusted_draws. Validate all parallel audit ledgers against all_draws.
+        for key in ("matched_graded_rounds", "matched_ensemble_graded_rounds",
+                    "matched_ensemble_rank_graded_rounds",
+                    "matched_ensemble_score_vector_audit_graded_rounds"):
+            rows = [int(v) for v in holdout.get(key, [])]
+            if rows and rows != graded:
+                raise ValueError("holdout parallel grade ledger disagrees: " + key)
         target = int(frozen["target_round"])
         if target != int(shadow["target_round"]) or target < latest + 1:
             raise ValueError("Production OOS registries have inconsistent or missed freeze target")

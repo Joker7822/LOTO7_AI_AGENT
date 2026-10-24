@@ -108,7 +108,14 @@ def inspect_evidence(root: Path) -> dict:
 
     portfolio = items["portfolio"]
     n = valid_count(portfolio, "trusted_draws")
-    if valid_count(portfolio, "horizon_trusted_draws") != 26 or n > 26 or len(portfolio.get("graded_rounds", [])) != n:
+    # The source-of-truth holdout records every outcome, including an
+    # independently UNVERIFIED draw, while trusted_draws counts only verified
+    # results. Never mistake untrusted rows for protocol evidence.
+    observed = valid_count(portfolio, "all_draws")
+    graded = portfolio.get("graded_rounds", [])
+    if (valid_count(portfolio, "horizon_trusted_draws") != 26 or n > 26
+            or not isinstance(graded, list) or len(graded) != observed
+            or n > observed or graded != list(range(693, 693 + observed))):
         raise ValueError("registered 26-draw portfolio state inconsistent")
     v2 = items["v2"]
     adaptive = items["adaptive"]

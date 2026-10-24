@@ -55,10 +55,11 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install pytest
 
-      - name: Test read-only role isolation and governance
+      - name: Verify current OOS trust counts and 699 role regressions
         run: |
           python -m compileall -q agent_role_council.py tests/test_agent_role_council.py
-          python -m pytest -q tests/test_agent_role_council.py
+          python -m pytest -q tests/test_live_evidence_boundaries.py
+          bash scripts/ci_verify_frozen_regressions.sh tests/test_agent_role_council.py
 
       - name: Read-only pull request review
         if: github.event_name == 'pull_request'

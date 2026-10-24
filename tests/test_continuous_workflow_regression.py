@@ -25,7 +25,8 @@ def test_v4_push_paths_track_full_suite_and_shared_inputs():
 
 def test_v4_checks_run_before_research_loop():
     text = WORKFLOW.read_text(encoding="utf-8")
-    assert text.index("name: Verify code once per runner") < text.index(
+    assert text.index("name: Verify newest evidence and locked historical regressions") < text.index(
         "name: Run continuous v4 research"
     )
-    assert "python -m pytest -q" in text
+    assert "python -m pytest -q tests/test_live_evidence_boundaries.py" in text
+    assert "bash scripts/ci_verify_frozen_regressions.sh" in text
