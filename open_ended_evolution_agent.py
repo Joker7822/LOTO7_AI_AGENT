@@ -21,6 +21,7 @@ import numpy as np
 
 from loto7_evolving_agent import N_NUMBERS, PICKS, fingerprint_file, make_history, read_csv_flexible
 from loto7_v4_runner import parse_round
+from joint_set_v2_signal_oos_guard import validate_trusted_source
 
 VERSION = "open-ended-evolution-v1"
 STATE = "open_ended_evolution_state.json"
@@ -94,21 +95,39 @@ def history(root: Path) -> tuple[np.ndarray, dict]:
         raise ValueError("CSV round index does not match chronological rows")
     verification = "not_available"
     source_file = root / "loto7_agent_output/source_validation.json"
+    independently_verified = False
     if source_file.exists():
         source = json.loads(source_file.read_text(encoding="utf-8"))
         verification = str(source.get("verification", "unknown"))
-        latest = source.get("latest") or {}
-        if latest.get("round") != len(matrix):
+        latest = source.get("latest")
+        if not isinstance(latest, dict) or latest.get("round") != len(matrix):
             raise ValueError("source snapshot and CSV disagree on latest round")
-    # Exploring already published data does not require two independent sources.
-    # An unverified last outcome is excluded from diagnostics, rather than
-    # pretending it was independently graded. The experiment still proceeds.
-    exclusion = verification != "verified_two_result_sources"
+        expected_date = cleaned["抽せん日"].iloc[-1].date().isoformat()
+        expected_main = sorted(int(i) + 1 for i in np.flatnonzero(matrix[-1]))
+        expected_bonus = sorted(int(x) for x in str(cleaned["ボーナス数字"].iloc[-1]).split())
+        if (latest.get("date") != expected_date
+                or latest.get("main") != expected_main
+                or latest.get("bonus") != expected_bonus):
+            raise ValueError("source snapshot and CSV disagree on latest numbers/date")
+        if verification == "verified_two_result_sources":
+            if source.get("status") != "ok":
+                raise ValueError("claimed independent source verification has a non-ok status")
+            # A string flag alone is not evidence of an independent source.
+            verified = validate_trusted_source(path, source_file)
+            if not verified.get("trusted") or not verified.get("secondary"):
+                raise ValueError("independent source evidence could not be validated")
+            independently_verified = True
+        elif source.get("status") == "ok":
+            raise ValueError("source claims ok status without independent verification")
+    # Historical exploratory model search may proceed using the known prefix;
+    # unverified outcomes are excluded from *all* candidate evaluation.
+    exclusion = not independently_verified
     training = matrix[:-1] if exclusion else matrix
     return training, {
         "data_sha256": fingerprint_file(path), "recorded_rounds": len(matrix),
         "evaluation_rounds": len(training), "latest_verification": verification,
         "last_unverified_row_excluded": exclusion,
+        "independent_source_verified": independently_verified,
     }
 
 
@@ -287,14 +306,36 @@ def restore_state(out: Path) -> tuple[dict | None, list[dict]]:
         snapshot = latest["snapshot"]
         if snapshot["last_record_sha256"] != latest["record_sha256"]:
             raise ValueError("checkpoint and journal digest mismatch")
-        if state is not None and state.get("last_record_sha256") != latest["record_sha256"]:
-            # Repair an interrupted state write only from the verified journal.
-            state = None
+        if state is not None and encoded(state) != encoded(snapshot):
+            # A crash between the atomic journal and state replacements may
+            # leave exactly the previous verified checkpoint on disk.
+            previous = records[-2]["snapshot"] if len(records) > 1 else None
+            if previous is not None and encoded(state) == encoded(previous):
+                state = None
+            else:
+                # In particular, an edited state with an unchanged record hash
+                # must NOT be trusted: hash equality alone is insufficient.
+                raise ValueError("evolutionary state differs from authenticated journal")
         if state is None:
             state = snapshot
     elif state is not None:
         raise ValueError("evolutionary state exists without audit journal")
     return state, records
+
+
+def elite_pool(candidates: list[dict], size: int = 8) -> list[dict]:
+    """Keep unique program structures; lifetime generations are unrestricted."""
+    seen, pool = set(), []
+    for candidate in sorted(
+        candidates, key=lambda item: (-item["assessment"]["fitness"], item["generation"])
+    ):
+        key = encoded(candidate["genome"])
+        if key not in seen:
+            seen.add(key)
+            pool.append(candidate)
+        if len(pool) >= size:
+            break
+    return pool
 
 
 def cycle(root: Path, *, steps: int | None = None, seconds: float = 45.0) -> dict:
@@ -309,7 +350,7 @@ def cycle(root: Path, *, steps: int | None = None, seconds: float = 45.0) -> dic
     state, chain = restore_state(out)
     start_gen = int(state["generations_total"]) if state else 0
     champion = copy.deepcopy(state["research_champion"]) if state else None
-    hall = copy.deepcopy(state.get("hall_of_fame", [])) if state else []
+    hall = elite_pool(copy.deepcopy(state.get("hall_of_fame", []))) if state else []
     if champion and state.get("evaluated_history_sha256") != meta["data_sha256"]:
         champion["assessment"] = assess(x, champion["genome"])
         champion["research_data_sha256"] = meta["data_sha256"]
@@ -320,8 +361,9 @@ def cycle(root: Path, *, steps: int | None = None, seconds: float = 45.0) -> dic
     while ((steps is None or completed < steps)
            and (steps is not None or time.monotonic() - begin < seconds)):
         generation = start_gen + completed + 1
-        seed = int(sha((meta["data_sha256"] + "|" + str(generation)
-                        + "|" + (chain[-1]["record_sha256"] if chain else GENESIS)).encode())[:16], 16)
+        # Deterministic by input data SHA and absolute generation number.
+        # Splitting 100 generations into hourly jobs must not alter outcomes.
+        seed = int(sha((meta["data_sha256"] + "|" + str(generation)).encode())[:16], 16)
         rng = np.random.default_rng(seed)
         if champion is None:
             genome = {"op": "frequency", "window": 60, "prior": 100.}
@@ -349,11 +391,9 @@ def cycle(root: Path, *, steps: int | None = None, seconds: float = 45.0) -> dic
         if (champion is None
                 or result["fitness"] > champion["assessment"]["fitness"]):
             champion = candidate
-        if candidate not in hall:
-            hall.append(candidate)
-        # Bounded working population; *no* bound on research generations.
-        hall = sorted(hall, key=lambda item: item["assessment"]["fitness"],
-                      reverse=True)[:8]
+        # Bounded distinct working population, not a global generation cap.
+        # Duplicate genomes cannot crowd out all genetic diversity.
+        hall = elite_pool([*hall, candidate])
         trace.append({"generation": generation,
                       "fitness": result["fitness"],
                       "genome_sha256": sha(encoded(genome).encode())})
@@ -384,6 +424,7 @@ def cycle(root: Path, *, steps: int | None = None, seconds: float = 45.0) -> dic
         "evaluation_rounds": meta["evaluation_rounds"],
         "latest_verification": meta["latest_verification"],
         "last_unverified_row_excluded": meta["last_unverified_row_excluded"],
+        "independent_source_verified": meta["independent_source_verified"],
         "research_champion": champion, "hall_of_fame": hall,
         "execution_limits": {"global_generation_cap": None, "global_trial_cap": None,
                              "needs_new_draw_to_continue": False},

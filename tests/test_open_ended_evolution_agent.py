@@ -1,6 +1,7 @@
 """Open-ended evolutionary researcher: indefinite generations, checkpoint recovery."""
 import copy
 import json
+import shutil
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -32,7 +33,12 @@ def root(tmp_path):
     (out / "source_validation.json").write_text(json.dumps({
         "verification": "degraded_single_result_source",
         "status": "degraded",
-        "latest": {"round": len(rows)}
+        "latest": {
+            "round": len(rows), "date": rows[-1]["抽せん日"],
+            "main": [int(v) for v in rows[-1]["本数字"].split()],
+            "bonus": [int(v) for v in rows[-1]["ボーナス数字"].split()],
+        },
+        "sources": {"secondary": {"status": "unavailable"}},
     }))
     # Production and official research budget are intentionally present to
     # verify they are NEVER modified by this separate open-ended experiment.
@@ -140,7 +146,9 @@ def test_recover_missing_state_from_verified_journal(root):
 
 def test_source_mismatch_fails_without_writing_any_research_file(root):
     p = root / "loto7_agent_output/source_validation.json"
-    p.write_text('{"verification":"degraded","latest":{"round":1000}}')
+    report = json.loads(p.read_text())
+    report["latest"]["round"] = 1000
+    p.write_text(json.dumps(report))
     with pytest.raises(ValueError, match="disagree"):
         agent.cycle(root, steps=1)
     assert not (root / "loto7_agent_output" / agent.LEDGER).exists()
@@ -164,3 +172,93 @@ def test_reject_invalid_program_instruction(root):
     x, _ = make_history(read_csv_flexible(root / "loto7.csv"))
     with pytest.raises(ValueError, match="unknown evolved program"):
         agent.inclusion(x, {"op": "shell_command", "code": "echo no"})
+
+
+
+def test_same_absolute_generations_are_reproducible_across_execution_slices(root, tmp_path):
+    alternate = tmp_path / "same-historical-source"
+    shutil.copytree(root, alternate)
+    single = agent.cycle(root, steps=18)
+    agent.cycle(alternate, steps=7)
+    split = agent.cycle(alternate, steps=11)
+    assert single["generations_total"] == split["generations_total"] == 18
+    assert single["research_champion"] == split["research_champion"]
+    assert single["hall_of_fame"] == split["hall_of_fame"]
+    assert (root / "loto7_agent_output" / agent.PROGRAM).read_bytes() == (
+        alternate / "loto7_agent_output" / agent.PROGRAM
+    ).read_bytes()
+
+
+def test_repeated_genome_does_not_fill_all_elite_slots(root):
+    a = {"generation": 1, "genome": {"op": "uniform"},
+         "assessment": {"fitness": 0.2}}
+    b = copy.deepcopy(a)
+    b["generation"] = 2
+    c = {"generation": 3, "genome": {"op": "gap", "scale": 15.0},
+         "assessment": {"fitness": 0.1}}
+    pool = agent.elite_pool([a, b, c])
+    assert [v["generation"] for v in pool] == [1, 3]
+    current = agent.cycle(root, steps=28)
+    keys = [agent.encoded(item["genome"]) for item in current["hall_of_fame"]]
+    assert len(keys) == len(set(keys))
+
+
+def test_state_content_edit_with_original_signed_hash_fails_closed(root):
+    agent.cycle(root, steps=2)
+    out = root / "loto7_agent_output"
+    state = out / agent.STATE
+    obj = json.loads(state.read_text())
+    obj["research_champion"]["assessment"]["fitness"] = 123456.
+    state.write_text(json.dumps(obj), encoding="utf-8")
+    original_journal = (out / agent.LEDGER).read_bytes()
+    with pytest.raises(ValueError, match="state differs from authenticated journal"):
+        agent.cycle(root, steps=1)
+    assert (out / agent.LEDGER).read_bytes() == original_journal
+
+
+def test_one_checkpoint_stale_state_is_recovered_only_if_authentic(root):
+    out = root / "loto7_agent_output"
+    first = agent.cycle(root, steps=1)
+    original_state = (out / agent.STATE).read_bytes()
+    agent.cycle(root, steps=2)
+    (out / agent.STATE).write_bytes(original_state)
+    resumed = agent.cycle(root, steps=1)
+    assert resumed["generations_total"] == 4
+    assert first["generations_total"] == 1
+
+
+def test_verified_label_requires_matching_second_independent_result(root):
+    path = root / "loto7_agent_output" / "source_validation.json"
+    info = json.loads(path.read_text())
+    info["status"] = "ok"
+    info["verification"] = "verified_two_result_sources"
+    path.write_text(json.dumps(info))
+    with pytest.raises(ValueError, match="matching secondary|independent|source"):
+        agent.cycle(root, steps=1)
+    assert not (root / "loto7_agent_output" / agent.STATE).exists()
+
+
+def test_source_numbers_mismatch_stops_without_writing(root):
+    path = root / "loto7_agent_output" / "source_validation.json"
+    info = json.loads(path.read_text())
+    info["latest"]["main"] = [1, 2, 3, 4, 5, 6, 7]
+    path.write_text(json.dumps(info))
+    with pytest.raises(ValueError, match="numbers/date"):
+        agent.cycle(root, steps=1)
+    assert not (root / "loto7_agent_output" / agent.LEDGER).exists()
+
+
+
+def test_evolution_workflow_separates_pr_test_token_from_writer():
+    workflow = Path(".github/workflows/open_ended_evolution.yml").read_text(
+        encoding="utf-8"
+    )
+    prelude, publisher = workflow.split("  publish-evolution:", 1)
+    assert "permissions:\n  contents: read" in prelude
+    assert "  test-evolution:" in prelude
+    assert "persist-credentials: false" in prelude
+    assert "    needs: test-evolution" in publisher
+    assert "    if: github.event_name != 'pull_request'" in publisher
+    assert "    permissions:\n      contents: write" in publisher
+    assert "persist-credentials: true" in publisher
+    assert "Resume indefinitely across scheduled executions" in publisher
