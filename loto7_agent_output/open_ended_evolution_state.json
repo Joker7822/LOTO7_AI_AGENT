@@ -1,27 +1,39 @@
 {
   "version": "open-ended-evolution-v1",
-  "generations_total": 2432,
+  "generations_total": 4049,
   "evaluated_history_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "recorded_rounds": 700,
   "evaluation_rounds": 699,
   "latest_verification": "degraded_single_result_source",
   "last_unverified_row_excluded": true,
+  "independent_source_verified": false,
   "research_champion": {
-    "generation": 1820,
+    "generation": 3823,
     "genome": {
-      "op": "frequency",
-      "window": 35,
-      "prior": 443.61324
+      "op": "blend",
+      "alpha": 0.10065,
+      "left": {
+        "op": "power",
+        "exponent": 2.32582,
+        "child": {
+          "op": "frequency",
+          "window": 26,
+          "prior": 23.25951
+        }
+      },
+      "right": {
+        "op": "uniform"
+      }
     },
     "assessment": {
-      "mean_log_edge": 0.00011798746307558048,
-      "mean_top7_hits": 1.3541666666666667,
+      "mean_log_edge": 0.00035008757756657856,
+      "mean_top7_hits": 1.5,
       "block_edges": [
-        -0.00012400861608261949,
-        0.00035327922729753313,
-        0.00012469177801182772
+        -0.00036874387717782115,
+        0.0008549751270350134,
+        0.0005640314828425433
       ],
-      "fitness": 8.875102205447826e-05,
+      "fitness": 0.00027178996780694465,
       "historical_selection_only": true,
       "prospective_edge_confirmed": false
     },
@@ -29,168 +41,327 @@
   },
   "hall_of_fame": [
     {
-      "generation": 1820,
+      "generation": 3823,
       "genome": {
-        "op": "frequency",
-        "window": 35,
-        "prior": 443.61324
+        "op": "blend",
+        "alpha": 0.10065,
+        "left": {
+          "op": "power",
+          "exponent": 2.32582,
+          "child": {
+            "op": "frequency",
+            "window": 26,
+            "prior": 23.25951
+          }
+        },
+        "right": {
+          "op": "uniform"
+        }
       },
       "assessment": {
-        "mean_log_edge": 0.00011798746307558048,
-        "mean_top7_hits": 1.3541666666666667,
+        "mean_log_edge": 0.00035008757756657856,
+        "mean_top7_hits": 1.5,
         "block_edges": [
-          -0.00012400861608261949,
-          0.00035327922729753313,
-          0.00012469177801182772
+          -0.00036874387717782115,
+          0.0008549751270350134,
+          0.0005640314828425433
         ],
-        "fitness": 8.875102205447826e-05,
+        "fitness": 0.00027178996780694465,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     },
     {
-      "generation": 1903,
+      "generation": 3811,
       "genome": {
-        "op": "frequency",
-        "window": 35,
-        "prior": 443.61324
+        "op": "blend",
+        "alpha": 0.20337,
+        "left": {
+          "op": "uniform"
+        },
+        "right": {
+          "op": "blend",
+          "alpha": 0.10065,
+          "left": {
+            "op": "power",
+            "exponent": 2.32582,
+            "child": {
+              "op": "frequency",
+              "window": 26,
+              "prior": 23.25951
+            }
+          },
+          "right": {
+            "op": "uniform"
+          }
+        }
       },
       "assessment": {
-        "mean_log_edge": 0.00011798746307558048,
-        "mean_top7_hits": 1.3541666666666667,
+        "mean_log_edge": 0.00031047468618722773,
+        "mean_top7_hits": 1.5,
         "block_edges": [
-          -0.00012400861608261949,
-          0.00035327922729753313,
-          0.00012469177801182772
+          -0.0002689254092192953,
+          0.0007169536957573357,
+          0.0004833957720236429
         ],
-        "fitness": 8.875102205447826e-05,
+        "fitness": 0.00024737765628258233,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     },
     {
-      "generation": 2021,
+      "generation": 4005,
       "genome": {
-        "op": "frequency",
-        "window": 35,
-        "prior": 443.61324
+        "op": "blend",
+        "alpha": 0.96416,
+        "left": {
+          "op": "blend",
+          "alpha": 0.10065,
+          "left": {
+            "op": "power",
+            "exponent": 2.32582,
+            "child": {
+              "op": "frequency",
+              "window": 26,
+              "prior": 23.25951
+            }
+          },
+          "right": {
+            "op": "uniform"
+          }
+        },
+        "right": {
+          "op": "decay",
+          "half_life": 159.85935
+        }
       },
       "assessment": {
-        "mean_log_edge": 0.00011798746307558048,
-        "mean_top7_hits": 1.3541666666666667,
+        "mean_log_edge": 0.00031126317017504066,
+        "mean_top7_hits": 1.4166666666666667,
         "block_edges": [
-          -0.00012400861608261949,
-          0.00035327922729753313,
-          0.00012469177801182772
+          -0.000397054634381597,
+          0.00082120790214534,
+          0.0005096362427613789
         ],
-        "fitness": 8.875102205447826e-05,
+        "fitness": 0.00023374980272253897,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     },
     {
-      "generation": 2093,
+      "generation": 3887,
       "genome": {
-        "op": "frequency",
-        "window": 35,
-        "prior": 443.61324
+        "op": "blend",
+        "alpha": 0.60922,
+        "left": {
+          "op": "blend",
+          "alpha": 0.10065,
+          "left": {
+            "op": "power",
+            "exponent": 2.32582,
+            "child": {
+              "op": "frequency",
+              "window": 26,
+              "prior": 23.25951
+            }
+          },
+          "right": {
+            "op": "uniform"
+          }
+        },
+        "right": {
+          "op": "uniform"
+        }
       },
       "assessment": {
-        "mean_log_edge": 0.00011798746307558048,
-        "mean_top7_hits": 1.3541666666666667,
+        "mean_log_edge": 0.0002600546569955526,
+        "mean_top7_hits": 1.5,
         "block_edges": [
-          -0.00012400861608261949,
-          0.00035327922729753313,
-          0.00012469177801182772
+          -0.0001880088046642952,
+          0.0005740019844784434,
+          0.00039417079117250945
         ],
-        "fitness": 8.875102205447826e-05,
+        "fitness": 0.00021127113563166168,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     },
     {
-      "generation": 2254,
+      "generation": 3934,
       "genome": {
-        "op": "frequency",
-        "window": 35,
-        "prior": 443.61324
+        "op": "blend",
+        "alpha": 0.99,
+        "left": {
+          "op": "blend",
+          "alpha": 0.60922,
+          "left": {
+            "op": "blend",
+            "alpha": 0.10065,
+            "left": {
+              "op": "power",
+              "exponent": 2.32582,
+              "child": {
+                "op": "frequency",
+                "window": 26,
+                "prior": 23.25951
+              }
+            },
+            "right": {
+              "op": "uniform"
+            }
+          },
+          "right": {
+            "op": "uniform"
+          }
+        },
+        "right": {
+          "op": "uniform"
+        }
       },
       "assessment": {
-        "mean_log_edge": 0.00011798746307558048,
-        "mean_top7_hits": 1.3541666666666667,
+        "mean_log_edge": 0.0002581881221283307,
+        "mean_top7_hits": 1.5,
         "block_edges": [
-          -0.00012400861608261949,
-          0.00035327922729753313,
-          0.00012469177801182772
+          -0.00018555810375617303,
+          0.000569096927447185,
+          0.00039102554269398006
         ],
-        "fitness": 8.875102205447826e-05,
+        "fitness": 0.00020987501998351337,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     },
     {
-      "generation": 2301,
+      "generation": 4040,
       "genome": {
-        "op": "frequency",
-        "window": 35,
-        "prior": 443.61324
+        "op": "blend",
+        "alpha": 0.79613,
+        "left": {
+          "op": "blend",
+          "alpha": 0.10065,
+          "left": {
+            "op": "power",
+            "exponent": 2.32582,
+            "child": {
+              "op": "frequency",
+              "window": 26,
+              "prior": 23.25951
+            }
+          },
+          "right": {
+            "op": "uniform"
+          }
+        },
+        "right": {
+          "op": "pair",
+          "window": 65,
+          "prior": 286.27235
+        }
       },
       "assessment": {
-        "mean_log_edge": 0.00011798746307558048,
-        "mean_top7_hits": 1.3541666666666667,
+        "mean_log_edge": 0.00026502456573988397,
+        "mean_top7_hits": 1.4166666666666667,
         "block_edges": [
-          -0.00012400861608261949,
-          0.00035327922729753313,
-          0.00012469177801182772
+          -0.00032112626263976836,
+          0.000693405290291361,
+          0.00042279466956805925
         ],
-        "fitness": 8.875102205447826e-05,
+        "fitness": 0.00020068323506282104,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     },
     {
-      "generation": 2388,
+      "generation": 4043,
       "genome": {
-        "op": "frequency",
-        "window": 35,
-        "prior": 443.61324
+        "op": "blend",
+        "alpha": 0.54812,
+        "left": {
+          "op": "blend",
+          "alpha": 0.10065,
+          "left": {
+            "op": "power",
+            "exponent": 2.32582,
+            "child": {
+              "op": "frequency",
+              "window": 26,
+              "prior": 23.25951
+            }
+          },
+          "right": {
+            "op": "uniform"
+          }
+        },
+        "right": {
+          "op": "uniform"
+        }
       },
       "assessment": {
-        "mean_log_edge": 0.00011798746307558048,
-        "mean_top7_hits": 1.3541666666666667,
+        "mean_log_edge": 0.0002406794939035471,
+        "mean_top7_hits": 1.5,
         "block_edges": [
-          -0.00012400861608261949,
-          0.00035327922729753313,
-          0.00012469177801182772
+          -0.00016394531897868838,
+          0.0005240641196003647,
+          0.00036191968108896473
         ],
-        "fitness": 8.875102205447826e-05,
+        "fitness": 0.00019662890353263965,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     },
     {
-      "generation": 2413,
+      "generation": 4028,
       "genome": {
-        "op": "frequency",
-        "window": 35,
-        "prior": 443.61324
+        "op": "blend",
+        "alpha": 0.76233,
+        "left": {
+          "op": "blend",
+          "alpha": 0.10065,
+          "left": {
+            "op": "power",
+            "exponent": 2.32582,
+            "child": {
+              "op": "frequency",
+              "window": 26,
+              "prior": 23.25951
+            }
+          },
+          "right": {
+            "op": "uniform"
+          }
+        },
+        "right": {
+          "op": "power",
+          "exponent": 2.09261,
+          "child": {
+            "op": "blend",
+            "alpha": 0.35589,
+            "left": {
+              "op": "gap",
+              "scale": 67.04621
+            },
+            "right": {
+              "op": "uniform"
+            }
+          }
+        }
       },
       "assessment": {
-        "mean_log_edge": 0.00011798746307558048,
-        "mean_top7_hits": 1.3541666666666667,
+        "mean_log_edge": 0.00025395023850066645,
+        "mean_top7_hits": 1.4583333333333333,
         "block_edges": [
-          -0.00012400861608261949,
-          0.00035327922729753313,
-          0.00012469177801182772
+          -0.00036993347605012973,
+          0.000729233405184171,
+          0.00040255078636795805
         ],
-        "fitness": 8.875102205447826e-05,
+        "fitness": 0.00018481954159396344,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
@@ -204,5 +375,5 @@
   },
   "scope": "indefinite_historical_model_program_evolution_not_production",
   "claim": "Selection on reused historical data cannot establish predictive advantage.",
-  "last_record_sha256": "9edc9c4c97635837c0142de2ed29276cd247c0023a6d67accc53c3b57d07b6e8"
+  "last_record_sha256": "fb059fdb14d1aaf95e4ed5454c7aa6ded6a0cb80283eb49c72ba4f64491079a9"
 }
