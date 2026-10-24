@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-24T18:34:23+09:00",
-  "source_commit": "04c8614cde357efabb14c4e3050b3104407d3f63",
-  "state_hashes_sha256": "6c515aaf771375e24e77b334cf1e506a7f18c185975bba54ccec35ac082c6a91",
+  "generated_at_jst": "2026-10-24T19:08:58+09:00",
+  "source_commit": "47f19384d8cdcce8a80bb1f362e5b2164555ecbe",
+  "state_hashes_sha256": "93daa025f82c4f177860e6093a8e43a1040d3311e4bfa5cc68f3783143ba1fff",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-10-24T16:09:09+09:00",
+      "checked_at_jst": "2026-10-24T18:30:54+09:00",
       "latest": {
         "round": 700,
         "date": "2026-10-23",
@@ -114,10 +114,10 @@
       "latest_resolved_round": 700
     },
     "research": {
-      "generation": 5259,
-      "total_research_evaluations": 36812,
+      "generation": 5268,
+      "total_research_evaluations": 36875,
       "champion_version": "baseline-5fdb8dc2ad",
-      "last_run_jst": "2026-10-24T15:54:00+09:00"
+      "last_run_jst": "2026-10-24T19:04:18+09:00"
     },
     "holdout": {
       "status": "active",
@@ -185,7 +185,7 @@
     },
     "budget": {
       "mode": "SEARCH",
-      "signal_trials_this_data": 338,
+      "signal_trials_this_data": 356,
       "max_signal_trials_per_data": 800
     }
   },
@@ -196,9 +196,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 40082122798,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40082122798",
-      "updated_at": "2026-10-24T09:29:06Z",
+      "run_id": 40084673884,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40084673884",
+      "updated_at": "2026-10-24T10:08:00Z",
       "recent_failure_count": 1
     },
     {
@@ -532,14 +532,14 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "04c8614cde357efabb14c4e3050b3104407d3f63",
-    "snapshot_generated_at_jst": "2026-10-24T18:34:23+09:00",
-    "computed_at_jst": "2026-10-24T09:34:23+00:00",
+    "source_commit": "47f19384d8cdcce8a80bb1f362e5b2164555ecbe",
+    "snapshot_generated_at_jst": "2026-10-24T19:08:58+09:00",
+    "computed_at_jst": "2026-10-24T10:08:58+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
-      "watch": 2,
-      "info": 0
+      "watch": 1,
+      "info": 1
     },
     "checkpoints": {
       "portfolio": {
@@ -557,19 +557,6 @@
     },
     "tasks": [
       {
-        "id": "615a36ffa6f66937",
-        "priority": "watch",
-        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
-        "owner": "統計・リスクエージェント",
-        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
-        "detail": "監査の判定と元の公表記録を照合してください。",
-        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
-        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
-      },
-      {
         "id": "bef623a2503719e7",
         "priority": "watch",
         "code": "COUNCIL:PAIR_CONTEXT_INT8_OVERFLOW",
@@ -577,6 +564,19 @@
         "title": "旧pair_context計算で整数オーバーフローが検出されました。モデルの別バージョンで修正・検証が必要です。",
         "detail": "監査の判定と元の公表記録を照合してください。",
         "evidence": "PAIR_CONTEXT_INT8_OVERFLOW",
+        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
+      },
+      {
+        "id": "615a36ffa6f66937",
+        "priority": "info",
+        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
+        "owner": "統計・リスクエージェント",
+        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
+        "detail": "監査の判定と元の公表記録を照合してください。",
+        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
         "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
