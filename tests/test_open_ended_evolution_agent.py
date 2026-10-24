@@ -246,3 +246,19 @@ def test_source_numbers_mismatch_stops_without_writing(root):
     with pytest.raises(ValueError, match="numbers/date"):
         agent.cycle(root, steps=1)
     assert not (root / "loto7_agent_output" / agent.LEDGER).exists()
+
+
+
+def test_evolution_workflow_separates_pr_test_token_from_writer():
+    workflow = Path(".github/workflows/open_ended_evolution.yml").read_text(
+        encoding="utf-8"
+    )
+    prelude, publisher = workflow.split("  publish-evolution:", 1)
+    assert "permissions:\n  contents: read" in prelude
+    assert "  test-evolution:" in prelude
+    assert "persist-credentials: false" in prelude
+    assert "    needs: test-evolution" in publisher
+    assert "    if: github.event_name != 'pull_request'" in publisher
+    assert "    permissions:\n      contents: write" in publisher
+    assert "persist-credentials: true" in publisher
+    assert "Resume indefinitely across scheduled executions" in publisher
