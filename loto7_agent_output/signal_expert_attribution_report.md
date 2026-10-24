@@ -4,7 +4,7 @@
 - role: **Research diagnostic only; no Production authority**
 - locked base: **baseline-5fdb8dc2ad**
 - fixed observation horizon: **7/26 trusted draws**
-- status: **active**
+- status: **awaiting_trusted_result_verification**
 - current target: **round 700**
 - pre-frozen: **YES**
 - interim model changes allowed: **false**
