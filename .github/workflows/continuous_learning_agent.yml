@@ -7,6 +7,7 @@ on:
       - "continuous_learning_agent.py"
       - "tests/test_continuous_learning_agent.py"
       - "CONTINUOUS_LEARNING_AGENT.md"
+      - "scripts/ci_verify_frozen_regressions.sh"
   push:
     branches: [main]
     paths:
@@ -14,6 +15,7 @@ on:
       - "continuous_learning_agent.py"
       - "tests/test_continuous_learning_agent.py"
       - "CONTINUOUS_LEARNING_AGENT.md"
+      - "scripts/ci_verify_frozen_regressions.sh"
       - "loto7.csv"
       - "loto7_agent_output/source_validation.json"
   schedule:
@@ -56,18 +58,47 @@ jobs:
       - name: Verify synthetic temporal state machine and prior-only learner
         run: |
           python -m compileall -q continuous_learning_agent.py tests/test_continuous_learning_agent.py
-          python -m pytest -q tests/test_continuous_learning_agent.py
+          # These lifecycle tests intentionally begin at synthetic round 699.
+          # Keep their input frozen in an ephemeral directory even after actual
+          # live data advances to 700+. This never rewrites on-disk evidence.
+          bash scripts/ci_verify_frozen_regressions.sh tests/test_continuous_learning_agent.py
 
-      - name: Dry-run initial registration without any main writes
+      - name: Dry-run actual registered temporal ledger without main writes
         if: github.event_name == 'pull_request'
+        shell: bash
         run: |
-          rm -rf /tmp/continuous-learning-prospective-test
+          set -euo pipefail
+          sandbox="$(mktemp -d)"
+          mkdir -p "$sandbox/loto7_agent_output"
+          cp -- loto7.csv "$sandbox/loto7.csv"
+          for file in continuous_learning_agent.py predictive_expert_agent.py joint_set_v2_model.py joint_set_v2_signal_oos_guard.py joint_set_v2_signal_oos.py; do
+            cp -- "$file" "$sandbox/$file"
+          done
+          cp -- loto7_agent_output/source_validation.json "$sandbox/loto7_agent_output/"
+          for file in loto7_agent_output/continuous_learning_agent_*; do
+            if [ -f "$file" ]; then
+              cp -- "$file" "$sandbox/loto7_agent_output/"
+            fi
+          done
           python continuous_learning_agent.py \
-            --repo-root . \
-            --out-dir /tmp/continuous-learning-prospective-test \
-            --source-report loto7_agent_output/source_validation.json
-          test -f /tmp/continuous-learning-prospective-test/continuous_learning_agent_registration.json
-          test ! -f /tmp/continuous-learning-prospective-test/continuous_learning_agent_registry.json
+            --repo-root "$sandbox" \
+            --out-dir "$sandbox/loto7_agent_output" \
+            --source-report "$sandbox/loto7_agent_output/source_validation.json"
+          python - "$sandbox" <<'PY'
+          import json
+          import pathlib
+          import sys
+          root = pathlib.Path(sys.argv[1]) / "loto7_agent_output"
+          state = json.loads((root / "continuous_learning_agent_state.json").read_text())
+          source = json.loads((root / "source_validation.json").read_text())
+          if source["verification"] == "verified_two_result_sources" and source["latest"]["round"] == 700:
+              assert state["current_target_round"] == 701
+              assert (root / "continuous_learning_agent_freeze_history.jsonl").is_file()
+          else:
+              assert state["trusted_draws"] == 0
+          print("Prospective dry-run target:", state["current_target_round"])
+          PY
+          git diff --exit-code -- loto7.csv loto7_agent_output/
 
       - name: Safely update independent prospective research ledger on main
         if: github.event_name != 'pull_request'
