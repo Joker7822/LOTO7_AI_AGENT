@@ -1,40 +1,40 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-24T09:05:51+09:00",
-  "source_commit": "53c7cf367f875f76913858d9f8a1f2701fc5663b",
-  "state_hashes_sha256": "ed33ea56b08817e5ebac5cd98f67bb2d29463d854eeb2f5dc3ece5b25672a241",
+  "generated_at_jst": "2026-10-24T13:04:40+09:00",
+  "source_commit": "bd46c7355a9c768b7891e2d0eb6b8fe7e01ad803",
+  "state_hashes_sha256": "f8ad992f443201dae28ec5d3e287763587305075a74aed9c0c3f7cb79bd8e592",
   "sources": {
     "source": {
       "status": "degraded",
       "verification": "degraded_single_result_source",
-      "checked_at_jst": "2026-10-23T14:15:28+09:00",
+      "checked_at_jst": "2026-10-24T11:44:58+09:00",
       "latest": {
-        "round": 699,
-        "date": "2026-10-16",
+        "round": 700,
+        "date": "2026-10-23",
         "main": [
-          5,
-          6,
+          2,
+          3,
           8,
-          14,
-          15,
-          22,
-          29
+          12,
+          21,
+          25,
+          26
         ],
         "bonus": [
-          3,
-          16
+          13,
+          34
         ]
       },
       "sources": {
         "official_schedule": {
-          "round": 700,
-          "date": "2026-10-23"
+          "round": 701,
+          "date": "2026-10-30"
         }
       }
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-10-24T07:12:38+09:00",
+      "checked_at_jst": "2026-10-24T13:04:30+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -42,7 +42,12 @@
             {
               "code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
               "level": "watch",
-              "evidence": "round=699; status=degraded_single_result_source"
+              "evidence": "round=700; status=degraded_single_result_source"
+            },
+            {
+              "code": "PAIR_CONTEXT_INT8_OVERFLOW",
+              "level": "watch",
+              "evidence": "corrupted_cooccurrence_cells=27; history_draws=700"
             }
           ]
         },
@@ -53,11 +58,6 @@
               "code": "V2_LOCK_AND_IMMUTABLE_HISTORY",
               "level": "ok",
               "evidence": "locked_manifest=e38bc090fe5d691f; trusted=0/26; target=None"
-            },
-            {
-              "code": "WAIT_FOR_700",
-              "level": "ok",
-              "evidence": "round 700 not resolved; do not freeze 701 yet"
             }
           ]
         },
@@ -67,7 +67,7 @@
             {
               "code": "OOS_REFERENCE_CONSISTENCY",
               "level": "ok",
-              "evidence": "champion=baseline-5fdb8dc2ad; frozen=700; trusted=7/26"
+              "evidence": "champion=baseline-5fdb8dc2ad; frozen=701; trusted=7/26"
             },
             {
               "code": "NO_EARLY_PORTFOLIO_CLAIM",
@@ -82,7 +82,7 @@
             {
               "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
               "level": "ok",
-              "evidence": "history reused; mode=WAIT_FOR_NEW_DATA; trials=768/800"
+              "evidence": "history reused; mode=SEARCH; trials=178/800"
             }
           ]
         },
@@ -92,7 +92,7 @@
             {
               "code": "RELEASE_SCHEDULE_GUARD",
               "level": "ok",
-              "evidence": "next=700 on 2026-10-23; already_published=True"
+              "evidence": "next=701 on 2026-10-30; already_published=False"
             }
           ]
         }
@@ -102,7 +102,13 @@
           "owner": "data_steward",
           "priority": "watch",
           "issue_code": "RESULT_NOT_TWO_SOURCE_VERIFIED",
-          "evidence": "round=699; status=degraded_single_result_source"
+          "evidence": "round=700; status=degraded_single_result_source"
+        },
+        {
+          "owner": "data_steward",
+          "priority": "watch",
+          "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
+          "evidence": "corrupted_cooccurrence_cells=27; history_draws=700"
         },
         {
           "owner": "oos_risk_officer",
@@ -111,13 +117,13 @@
           "evidence": "holdout=7/26"
         }
       ],
-      "latest_resolved_round": 699
+      "latest_resolved_round": 700
     },
     "research": {
-      "generation": 5089,
-      "total_research_evaluations": 35622,
+      "generation": 5179,
+      "total_research_evaluations": 36252,
       "champion_version": "baseline-5fdb8dc2ad",
-      "last_run_jst": "2026-10-18T09:44:00+09:00"
+      "last_run_jst": "2026-10-24T12:42:10+09:00"
     },
     "holdout": {
       "status": "active",
@@ -130,7 +136,8 @@
         696,
         697,
         698,
-        699
+        699,
+        700
       ],
       "start_target_round": 693
     },
@@ -183,8 +190,8 @@
       "synthetic_null_p_log_edge": 0.4461538461538462
     },
     "budget": {
-      "mode": "WAIT_FOR_NEW_DATA",
-      "signal_trials_this_data": 768,
+      "mode": "SEARCH",
+      "signal_trials_this_data": 178,
       "max_signal_trials_per_data": 800
     }
   },
@@ -192,13 +199,13 @@
     {
       "file": "continuous_loto7_v4.yml",
       "label": "継続研究",
-      "health": "block",
-      "status": "completed",
-      "conclusion": "failure",
-      "run_id": 40017055355,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40017055355",
-      "updated_at": "2026-10-23T20:10:57Z",
-      "recent_failure_count": 3
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 40060810022,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40060810022",
+      "updated_at": "2026-10-24T04:03:21Z",
+      "recent_failure_count": 2
     },
     {
       "file": "continuous_learning_agent.yml",
@@ -217,9 +224,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 40031979943,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40031979943",
-      "updated_at": "2026-10-23T22:12:44Z",
+      "run_id": 40060809991,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40060809991",
+      "updated_at": "2026-10-24T04:04:36Z",
       "recent_failure_count": 1
     },
     {
@@ -239,9 +246,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 39929712837,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/39929712837",
-      "updated_at": "2026-10-23T09:09:24Z",
+      "run_id": 40046154018,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40046154018",
+      "updated_at": "2026-10-24T00:41:40Z",
       "recent_failure_count": 0
     },
     {
@@ -324,30 +331,8 @@
     "scope": "genuinely_prospective_prefrozen_only_descriptive_no_automatic_promotion"
   },
   "scientific_validation": {
-    "status": "verified_diagnostic_only",
-    "model_family": "four_vs_five_experts",
-    "candidate_protocol": "predeclared_701_start",
-    "history_round_start": 640,
-    "history_round_end": 699,
-    "original_four_top7": 1.4333333333333333,
-    "candidate_five_top7": 1.3833333333333333,
-    "original_four_log_edge": 1.753060790740668e-05,
-    "candidate_five_log_edge": -2.6000485820605138e-05,
-    "historical_selection_adjusted_p_exploratory_only": 0.18181818181818182,
-    "historical_matched_fair_worlds": 32,
-    "historical_paired_block_ci": {
-      "low95": -0.0001722274087368349,
-      "high95": 9.443415115269104e-05,
-      "mean_five_minus_four": -4.353109372801182e-05
-    },
-    "future_draws": 0,
-    "future_current_e": 1.0,
-    "future_max_e": 1.0,
-    "future_threshold": 20.0,
-    "future_threshold_crossed": false,
-    "future_e_series": [],
-    "inference_scope": "conditional_fair_null_for_one_future_prefrozen_stream_only",
-    "promotion_eligible": false
+    "status": "stale_or_mismatched_evidence",
+    "future_draws": null
   },
   "latest_prediction": {
     "version": "issued-production-forecast-public-v1",
@@ -477,10 +462,10 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 21,
-    "last_activity_jst": "2026-10-24T07:50:21+09:00",
-    "current_phase": "future_protocol",
-    "current_activity": "事前凍結と真正将来採点の連続性を監査",
+    "sequence": 22,
+    "last_activity_jst": "2026-10-24T09:46:28+09:00",
+    "current_phase": "generalization",
+    "current_activity": "過去モデル比較・多重比較を点検",
     "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": false,
@@ -540,130 +525,27 @@
       "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "26回固定holdout 7/26、新規v2 0回"
+      "過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。"
     ]
   },
   "research_application": {
-    "status": "research_review_ready_only",
-    "research_mode": "WAIT_FOR_NEW_DATA",
-    "trusted_result_source": false,
-    "papers": 16,
-    "verified_dois": 0,
-    "proposal_count": 5,
-    "synthetic_control": "passed",
-    "actual_prediction_accuracy_improvement_verified": false,
-    "tasks": [
-      {
-        "topic": "calibration",
-        "status": "bibliography_needs_verification",
-        "two_provider_matches": 0,
-        "requires_human_approval": true
-      },
-      {
-        "topic": "online_evaluation",
-        "status": "bibliography_needs_verification",
-        "two_provider_matches": 0,
-        "requires_human_approval": true
-      },
-      {
-        "topic": "anytime_evidence",
-        "status": "bibliography_needs_verification",
-        "two_provider_matches": 0,
-        "requires_human_approval": true
-      },
-      {
-        "topic": "distribution_shift",
-        "status": "bibliography_needs_verification",
-        "two_provider_matches": 0,
-        "requires_human_approval": true
-      },
-      {
-        "topic": "ensemble",
-        "status": "bibliography_needs_verification",
-        "two_provider_matches": 0,
-        "requires_human_approval": true
-      }
-    ]
+    "status": "stale_or_unsafe"
   },
   "research_priorities": {
-    "status": "audited_research_plan",
-    "research_mode": "WAIT_FOR_NEW_DATA",
-    "source_two_verified": false,
-    "total_tasks": 12,
-    "counts": {
-      "block": 1,
-      "watch": 8,
-      "info": 3
-    },
-    "tasks": [
-      {
-        "priority": "block",
-        "lane": "source_integrity",
-        "owner": "source_verifier",
-        "title": "抽せん結果の独立2ソース照合",
-        "reason": "照合済みでない最新結果を採点や新規予測の凍結に利用できません。",
-        "next_step": "既存の結果検証workflowと独立した発表元を照合してください。単一ソースで成功扱いしません。",
-        "safe_autonomous_action": "report_only"
-      },
-      {
-        "priority": "watch",
-        "lane": "source_integrity",
-        "owner": "source_verifier",
-        "title": "最新の抽せんデータ更新を確認",
-        "reason": "記録された最終抽せん日から 8 日が経過しています。",
-        "next_step": "公式抽せん日程と検証済み結果を確認し、取得先HTTP 503等の通信障害は既存の再試行手順で調査してください。",
-        "safe_autonomous_action": "report_only"
-      },
-      {
-        "priority": "watch",
-        "lane": "bibliography",
-        "owner": "literature_verifier",
-        "title": "文献書誌情報の不一致を確認",
-        "reason": "1 件のDOIで独立サービスの書誌照合結果が不一致です。",
-        "next_step": "元のDOIと著者・タイトルを確認してください。対立するメタデータから研究計画を承認しないでください。",
-        "safe_autonomous_action": "report_only"
-      },
-      {
-        "priority": "watch",
-        "lane": "bibliography",
-        "owner": "literature_verifier",
-        "title": "未照合の学術文献を一次確認",
-        "reason": "7 件の候補DOIがCrossref/OpenAlexによる照合待ちです。",
-        "next_step": "既存の上限付き照合を次の定期サイクルで続けてください。未照合論文を学術的根拠として扱わないでください。",
-        "safe_autonomous_action": "report_only"
-      },
-      {
-        "priority": "watch",
-        "lane": "experiment_review",
-        "owner": "methodology_reviewer",
-        "title": "研究計画レビュー：anytime_evidence",
-        "reason": "候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。",
-        "next_step": "Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。",
-        "safe_autonomous_action": "report_only"
-      },
-      {
-        "priority": "watch",
-        "lane": "experiment_review",
-        "owner": "methodology_reviewer",
-        "title": "研究計画レビュー：calibration",
-        "reason": "候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。",
-        "next_step": "Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。",
-        "safe_autonomous_action": "report_only"
-      }
-    ],
-    "promotion_authorized": false
+    "status": "stale_or_unsafe",
+    "tasks": []
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "53c7cf367f875f76913858d9f8a1f2701fc5663b",
-    "snapshot_generated_at_jst": "2026-10-24T09:05:51+09:00",
-    "computed_at_jst": "2026-10-24T00:05:51+00:00",
+    "source_commit": "bd46c7355a9c768b7891e2d0eb6b8fe7e01ad803",
+    "snapshot_generated_at_jst": "2026-10-24T13:04:40+09:00",
+    "computed_at_jst": "2026-10-24T04:04:40+00:00",
     "overall": "block",
     "counts": {
-      "block": 2,
-      "watch": 2,
-      "info": 2
+      "block": 1,
+      "watch": 3,
+      "info": 0
     },
     "checkpoints": {
       "portfolio": {
@@ -681,30 +563,17 @@
     },
     "tasks": [
       {
-        "id": "8c7c37f002e5b793",
+        "id": "a3d31204de03642c",
         "priority": "block",
         "code": "UNTRUSTED_SOURCE",
         "owner": "データ管理エージェント",
         "title": "最新抽せんの2ソース検証待ち",
         "detail": "未確認の結果で採点や次回予測の凍結を進めないでください。",
-        "evidence": "699",
+        "evidence": "700",
         "recommended_action": "既存の検証workflowの結果を確認してください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
         "url": null
-      },
-      {
-        "id": "6d29355c04e133f3",
-        "priority": "block",
-        "code": "WORKFLOW_FAILED:continuous_loto7_v4.yml",
-        "owner": "研究復旧エージェント",
-        "title": "継続研究：最新実行が失敗",
-        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
-        "evidence": "40017055355",
-        "recommended_action": "研究CIの直近ログを確認し、修正後の実行を別途検証してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40017055355"
       },
       {
         "id": "615a36ffa6f66937",
@@ -714,6 +583,19 @@
         "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
         "detail": "監査の判定と元の公表記録を照合してください。",
         "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
+        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
+      },
+      {
+        "id": "bef623a2503719e7",
+        "priority": "watch",
+        "code": "COUNCIL:PAIR_CONTEXT_INT8_OVERFLOW",
+        "owner": "データ管理エージェント",
+        "title": "旧pair_context計算で整数オーバーフローが検出されました。モデルの別バージョンで修正・検証が必要です。",
+        "detail": "監査の判定と元の公表記録を照合してください。",
+        "evidence": "PAIR_CONTEXT_INT8_OVERFLOW",
         "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
@@ -731,32 +613,6 @@
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
         "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
-      },
-      {
-        "id": "e2ba1045b7d8c317",
-        "priority": "info",
-        "code": "WAIT_REGISTERED_PREFIX:learning",
-        "owner": "将来検証エージェント",
-        "title": "継続学習：第700回の確認待ち",
-        "detail": "第701回を事後的に凍結してはいけません。",
-        "evidence": "699→700→701",
-        "recommended_action": "検証済みの第700回が到着するまで既存の固定手順で待機してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": null
-      },
-      {
-        "id": "3ee040efe3fb0171",
-        "priority": "info",
-        "code": "WAIT_REGISTERED_PREFIX:signal",
-        "owner": "将来検証エージェント",
-        "title": "v2信号：第700回の確認待ち",
-        "detail": "第701回を事後的に凍結してはいけません。",
-        "evidence": "699→700→701",
-        "recommended_action": "検証済みの第700回が到着するまで既存の固定手順で待機してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": null
       }
     ],
     "authority": {
