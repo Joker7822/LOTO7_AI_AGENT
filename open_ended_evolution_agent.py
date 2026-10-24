@@ -68,8 +68,15 @@ def journal(path: Path) -> list[dict]:
         record = json.loads(line)
         if not isinstance(record, dict):
             raise ValueError("invalid evolutionary audit object")
-        plain = {k: v for k, v in record.items() if k != "record_sha256"}
-        if (record.get("sequence") != len(records) + 1
+        plain = {k: v for k, v in record.items()
+                 if k not in ("record_sha256", "snapshot")}
+        snapshot = record.get("snapshot")
+        if (not isinstance(snapshot, dict)
+                or record.get("snapshot_sha256") != sha(encoded({
+                    k: v for k, v in snapshot.items() if k != "last_record_sha256"
+                }).encode("utf-8"))
+                or snapshot.get("last_record_sha256") != record.get("record_sha256")
+                or record.get("sequence") != len(records) + 1
                 or record.get("previous_record_sha256") != previous
                 or record.get("record_sha256") != sha(encoded(plain).encode("utf-8"))):
             raise ValueError("evolutionary audit hash chain corrupted")
@@ -323,6 +330,17 @@ def cycle(root: Path, *, steps: int | None = None, seconds: float = 45.0) -> dic
         else:
             parent = champion if not hall or rng.random() < .65 else hall[int(rng.integers(len(hall)))]
             genome = mutate(parent["genome"], rng)
+        # Mutation and crossover may make increasingly deep programs. Bound
+        # one model's computational complexity, not the lifetime search size.
+        def program_shape(node):
+            children = ([node[k] for k in ("left", "right")] if node["op"] == "blend"
+                        else [node["child"]] if node["op"] == "power" else [])
+            shapes = [program_shape(child) for child in children]
+            return (1 + sum(item[0] for item in shapes),
+                    1 + max((item[1] for item in shapes), default=0))
+        nodes, depth = program_shape(genome)
+        if nodes > 120 or depth > 8:
+            genome = random_program(rng)
         result = assess(x, genome)
         candidate = {
             "generation": generation, "genome": genome, "assessment": result,
@@ -358,8 +376,7 @@ def cycle(root: Path, *, steps: int | None = None, seconds: float = 45.0) -> dic
         "best_historical_fitness": champion["assessment"]["fitness"],
         "genome_sha256": sha(encoded(champion["genome"]).encode()),
     }
-    hash_value = sha(encoded(event).encode())
-    event["record_sha256"] = hash_value
+    # Sign the checkpoint content without a circular record-SHA reference.
     result = {
         "version": VERSION, "generations_total": generation,
         "evaluated_history_sha256": meta["data_sha256"],
@@ -368,28 +385,15 @@ def cycle(root: Path, *, steps: int | None = None, seconds: float = 45.0) -> dic
         "latest_verification": meta["latest_verification"],
         "last_unverified_row_excluded": meta["last_unverified_row_excluded"],
         "research_champion": champion, "hall_of_fame": hall,
-        "last_record_sha256": hash_value,
         "execution_limits": {"global_generation_cap": None, "global_trial_cap": None,
                              "needs_new_draw_to_continue": False},
         "scope": "indefinite_historical_model_program_evolution_not_production",
         "claim": "Selection on reused historical data cannot establish predictive advantage.",
     }
-    event["snapshot"] = result
-    # Hash must include the complete checkpoint but exclude the self-reference.
-    # The journal record stores the content hash and state points to it.
-    plain = {k: v for k, v in event.items() if k not in ("record_sha256", "snapshot")}
-    hash_value = sha(encoded(plain).encode())
-    event["record_sha256"] = hash_value
-    result["last_record_sha256"] = hash_value
-    event["snapshot"] = result
-    plain = {k: v for k, v in event.items() if k != "record_sha256"}
-    # State hash is explicitly excluded from the hash input to prevent a
-    # circular self-reference (all remaining metadata is hash-authenticated).
-    def record_digest(record: dict) -> str:
-        material = {k: v for k, v in record.items() if k not in ("record_sha256", "snapshot")}
-        return sha(encoded(material).encode())
-    event["record_sha256"] = record_digest(event)
-    result["last_record_sha256"] = event["record_sha256"]
+    event["snapshot_sha256"] = sha(encoded(result).encode("utf-8"))
+    record_hash = sha(encoded(event).encode("utf-8"))
+    result["last_record_sha256"] = record_hash
+    event["record_sha256"] = record_hash
     event["snapshot"] = result
     if chain:
         content = (out / LEDGER).read_text(encoding="utf-8")
