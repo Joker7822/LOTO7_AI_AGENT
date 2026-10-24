@@ -1,6 +1,6 @@
 # Autonomous Research Priority Queue
 
-- Generated: 2026-10-24T07:50:21+09:00
+- Generated: 2026-10-24T09:46:29+09:00
 - Guard: **WAIT_FOR_NEW_DATA**; verified draw source: **False**
 - Priorities: block=1, watch=8, info=3
 - Read-only; does not launch workflows, change Production or create future grades.

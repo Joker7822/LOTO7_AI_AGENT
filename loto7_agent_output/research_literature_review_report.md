@@ -1,7 +1,7 @@
 # Literature metadata reviewer & experiment design queue
 
 This is not full-text paper review or an automated forecasting experiment.
-Discovery chain: fa1e0ce004ba41b985f395590bae782e49f886fc9bfa2c8b263ba1ac555be073
+Discovery chain: 19d48f6ef1b02a5e9d16632bb7c6f649a5b2dc9957809d74ddf1a60e6c753eee
 Research guard: WAIT_FOR_NEW_DATA; search permitted: False
 Triaged papers: 16; non-executable designs: 5
 
