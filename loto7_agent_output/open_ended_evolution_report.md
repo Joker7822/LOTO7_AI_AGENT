@@ -1,10 +1,10 @@
 # Open-ended Autonomous Evolution
 
-- Total research generations: **4049** (no predefined global cap)
-- Latest execution: **1617** candidate evaluations
+- Total research generations: **5585** (no predefined global cap)
+- Latest execution: **1536** candidate evaluations
 - Data SHA256: fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6
-- Source verification: degraded_single_result_source
-- Latest unverified draw excluded: True
+- Source verification: verified_two_result_sources
+- Latest unverified draw excluded: False
 - Historical diagnostic fitness: **+0.00027179**
 - Champion research gene from generation: 3823
 
