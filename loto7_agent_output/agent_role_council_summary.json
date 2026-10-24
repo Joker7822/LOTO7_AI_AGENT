@@ -1,9 +1,9 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-10-24T18:30:03+09:00",
+  "checked_at_jst": "2026-10-24T18:31:33+09:00",
   "latest_resolved_round": 700,
   "overall": "watch",
-  "input_snapshot_sha256": "ff13b160e64019a4e3121c03428eec07ddea99fdfa046136ecf8a2726b6d14a9",
+  "input_snapshot_sha256": "9549d91639676313d5f921258d18b6143c8b80a552e7a1af5abe8b5d32865c45",
   "governance": {
     "authority": "read_only_advisory",
     "permissions": {
@@ -37,19 +37,13 @@
       ]
     },
     "prospective_signal_custodian": {
-      "status": "watch",
+      "status": "ok",
       "findings": [
         {
           "level": "ok",
           "code": "V2_LOCK_AND_IMMUTABLE_HISTORY",
-          "evidence": "locked_manifest=e38bc090fe5d691f; trusted=0/26; target=None",
+          "evidence": "locked_manifest=e38bc090fe5d691f; trusted=0/26; target=701",
           "next_action": "Continue predeclared workflow."
-        },
-        {
-          "level": "watch",
-          "code": "FREEZE_701_NOW",
-          "evidence": "verified round 700 available, target 701 not frozen",
-          "next_action": "Dispatch the existing v2 signal freeze workflow before draw 701."
         }
       ]
     },
@@ -100,15 +94,6 @@
       "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
       "evidence": "corrupted_cooccurrence_cells=27; history_draws=700",
       "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions.",
-      "existing_workflow_or_human_required": true,
-      "autonomous_production_write_allowed": false
-    },
-    {
-      "priority": "watch",
-      "owner": "prospective_signal_custodian",
-      "issue_code": "FREEZE_701_NOW",
-      "evidence": "verified round 700 available, target 701 not frozen",
-      "next_action": "Dispatch the existing v2 signal freeze workflow before draw 701.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
     },
