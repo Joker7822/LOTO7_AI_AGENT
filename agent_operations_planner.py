@@ -148,6 +148,21 @@ def build_plan(snapshot: Mapping[str, Any], now: datetime | None = None) -> dict
             continue
         seen.add(code)
         priority = "block" if h.get("priority") == "block" else "watch"
+        # An uncompleted 26-draw holdout is expected, NOT a broken system.
+        # Keep the council's factual governance WATCH untouched, but show
+        # routine waiting as INFO only when source 700 is corroborated and
+        # both prospectively registered target-701 freezes already exist.
+        # Never claim 26/26 before it is actually reached.
+        if code == "NO_EARLY_PORTFOLIO_CLAIM":
+            n = _int(sources.get("holdout", {}).get("trusted_draws"))
+            hmax = _int(sources.get("holdout", {}).get("horizon_trusted_draws"))
+            signal_target = _int(sources.get("signal", {}).get("current_target_round"))
+            learning_target = _int(sources.get("learning", {}).get("current_prefrozen_target"))
+            if (verified and latest >= 700 and n is not None
+                    and hmax == 26 and n < hmax
+                    and signal_target is not None and signal_target > latest
+                    and learning_target is not None and learning_target > latest):
+                priority = "info"
         tasks.append(_item(
             priority, f"COUNCIL:{code}", owner,
             WATCH_CODES.get(code, "監査で要確認事項を検出しました。"),

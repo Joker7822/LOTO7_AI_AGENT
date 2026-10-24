@@ -1,0 +1,107 @@
+name: Pair Context v2 Numeric Diagnostics
+
+on:
+  pull_request:
+    paths:
+      - "pair_context_v2.py"
+      - "tests/test_pair_context_v2.py"
+      - "agent_operations_planner.py"
+      - ".github/workflows/pair_context_v2.yml"
+  push:
+    branches: [main]
+    paths:
+      - "pair_context_v2.py"
+      - "tests/test_pair_context_v2.py"
+      - "agent_operations_planner.py"
+      - ".github/workflows/pair_context_v2.yml"
+  schedule:
+    # Refresh research evidence when draw history changes via bot-authored commit.
+    - cron: "8 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pair-context-v2-research
+  cancel-in-progress: false
+
+jobs:
+  test-corrected-math:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify numerics and holdout progress
+        run: |
+          python -m pip install -r requirements.txt pytest
+          python -m compileall -q pair_context_v2.py
+          python -m pytest -q tests/test_pair_context_v2.py
+      - name: Run isolated actual-data diagnostic
+        run: |
+          proof="$(mktemp)"
+          python pair_context_v2.py --csv loto7.csv --out "$proof" --last-n 60
+          python - "$proof" <<'PY'
+          import json, sys
+          report = json.load(open(sys.argv[1], encoding="utf-8"))
+          assert report["version"] == "pair-context-v2-int64-prospective-candidate"
+          assert report["int64_corrupted_cooccurrence_cells"] == 0
+          assert report["legacy_runtime_still_uses_v1"]
+          assert not report["production_changed"]
+          assert not report["future_oos_changed"]
+          assert not report["promotion_authorized"]
+          print("Scientific scope: historical-only", report["history_draws"])
+          PY
+          git diff --exit-code -- loto7.csv loto7_agent_output/
+
+  publish-research-only-report:
+    needs: test-corrected-math
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Persist only versioned diagnostic (never old forecasts)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python pair_context_v2.py --csv loto7.csv \
+              --out loto7_agent_output/pair_context_v2_validation.json --last-n 60
+            git add -- loto7_agent_output/pair_context_v2_validation.json
+            actual="$(git diff --cached --name-only)"
+            if [ -z "$actual" ]; then
+              echo "No changes in corrected research-only diagnostic."
+              exit 0
+            fi
+            if [ "$actual" != "loto7_agent_output/pair_context_v2_validation.json" ]; then
+              echo "::error::unexpected data or production path staged"
+              exit 1
+            fi
+            git commit -m "research: update checked int64 pair-context v2 diagnostic"
+            if git push origin HEAD:main; then
+              echo "Corrected numerical research evidence persisted; no model replacement."
+              exit 0
+            fi
+          done
+          echo "::error::Versioned research diagnostic could not be persisted."
+          exit 1
