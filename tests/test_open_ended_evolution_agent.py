@@ -1,6 +1,7 @@
 """Open-ended evolutionary researcher: indefinite generations, checkpoint recovery."""
 import copy
 import json
+from datetime import date, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -23,7 +24,7 @@ def root(tmp_path):
         other = sorted(i for i in range(1, 38) if i not in win)
         rows.append({
             "回別": f"第{n+1}回",
-            "抽せん日": (pd.Timestamp("2023-01-06") + pd.Timedelta(days=n*7)).strftime("%Y-%m-%d"),
+            "抽せん日": (date(2023, 1, 6) + timedelta(days=n * 7)).isoformat(),
             "本数字": " ".join(f"{k:02}" for k in win),
             "ボーナス数字": " ".join(f"{k:02}" for k in other[:2]),
         })
