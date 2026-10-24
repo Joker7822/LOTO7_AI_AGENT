@@ -145,12 +145,24 @@ def read_portfolio(out: Path, holdout: dict) -> list[dict]:
         return []
     observed = [int(r["round"]) for r in data]
     require_rounds(observed, expected, "portfolio")
-    if len(data) != int(holdout["trusted_draws"]):
+    # The ledger also records correctly labelled UNTRUSTED outcomes. Those
+    # observations are useful for diagnostics, but must never enter public
+    # prospective score series or count toward the fixed trusted horizon.
+    if len(data) != int(holdout.get("all_draws", len(expected))):
+        raise error("portfolio all-draw count differs from the ledger")
+    if not all(before_draw(r) for r in data):
+        raise error("portfolio non-prefrozen result")
+    trusted_data = []
+    for row in data:
+        if result_is_trusted(row):
+            trusted_data.append(row)
+        elif (str(row.get("trusted", "")).lower() != "false"
+              or row.get("source_verification") == TRUST):
+            raise error("portfolio unverified or contradictory trust flags")
+    if len(trusted_data) != int(holdout["trusted_draws"]):
         raise error("portfolio trusted result count differs from 26-draw state")
-    if not all(result_is_trusted(r) and before_draw(r) for r in data):
-        raise error("portfolio unverified or non-prefrozen result")
-    vs_random = [float(r["delta_vs_random"]) for r in data]
-    vs_champion = [float(r["delta_vs_champion"]) for r in data]
+    vs_random = [float(r["delta_vs_random"]) for r in trusted_data]
+    vs_champion = [float(r["delta_vs_champion"]) for r in trusted_data]
     for collection in (vs_random, vs_champion):
         if any(not (-100 < v < 100) for v in collection):
             raise error("portfolio result score out of expected bounds")
@@ -159,7 +171,7 @@ def read_portfolio(out: Path, holdout: dict) -> list[dict]:
          "mean_delta_vs_random": cumulative(vs_random)[i],
          "mean_delta_vs_champion": cumulative(vs_champion)[i],
          "holdout_max_hits": int(r["holdout_max_hits"])}
-        for i, r in enumerate(data)
+        for i, r in enumerate(trusted_data)
     ]
 
 
