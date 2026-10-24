@@ -1,10 +1,10 @@
 {
-  "checked_at_jst": "2026-10-24T15:11:05+09:00",
+  "checked_at_jst": "2026-10-24T16:09:09+09:00",
   "attempt": 1,
-  "status": "degraded",
-  "verification": "degraded_single_result_source",
+  "status": "ok",
+  "verification": "verified_two_result_sources",
   "primary_source": "Rakuten backnumber via scrapingloto7.py",
-  "secondary_policy": "Mizuho preferred; Rakuten Bank direct public winning-number endpoint is accepted as fallback",
+  "secondary_policy": "Mizuho or Rakuten Bank preferred; when bank pages are blocked, an explicitly identified independently operated non-official publisher may corroborate a previously recorded Rakuten primary, if exact round/date/main/bonus and live response provenance all match.",
   "latest": {
     "round": 700,
     "date": "2026-10-23",
@@ -36,10 +36,45 @@
     "official_schedule": {
       "round": 701,
       "date": "2026-10-30"
+    },
+    "loto7_tsushin": {
+      "round": 700,
+      "date": "2026-10-23",
+      "main": [
+        2,
+        3,
+        8,
+        12,
+        21,
+        25,
+        26
+      ],
+      "bonus": [
+        13,
+        34
+      ],
+      "url": "https://loto7.money-plan.net/round/700/",
+      "transport": "direct_independent_publisher_page",
+      "publisher": "LOTO7通信 (non-official, independent web publisher)",
+      "fetched_at_jst": "2026-10-24T16:09:09+09:00",
+      "response_sha256": "3f2fbeb9ae7e332d70faedfd2bbc12e45cbdbeccad563fdef83130f2f8bc4736",
+      "source_tier": "independent_non_official"
     }
   },
   "notes": [
     "official schedule visible: round=701 date=2026-10-30",
-    "No secondary result endpoint was parseable for this round; operating in degraded single-result-source mode"
-  ]
+    "No secondary result endpoint was parseable for this round; operating in degraded single-result-source mode",
+    "LOTO7通信 independently published result confirms the stored Rakuten primary.",
+    "Secondary is non-official; Mizuho and Rakuten Bank result pages may remain unavailable.",
+    "No retrospective future prediction freeze, score or model is amended."
+  ],
+  "verification_provenance": {
+    "primary_domain": "takarakuji.rakuten.co.jp",
+    "primary_method": "recorded_published_csv_result",
+    "secondary_domain": "loto7.money-plan.net",
+    "secondary_fetch": "live_https_response",
+    "secondary_official": false,
+    "independent_domains": true,
+    "draw_csv_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
+  }
 }
