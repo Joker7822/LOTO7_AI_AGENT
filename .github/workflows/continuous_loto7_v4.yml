@@ -31,7 +31,11 @@ on:
       - "v4_status.py"
       - "runtime_metrics.py"
       - "fetch_validate.py"
-      - "tests/test_fetch_validate.py"
+      - "tests/**"
+      - "requirements.txt"
+      - "loto7.csv"
+      - "loto7_evolving_agent.py"
+      - "agent_role_council.py"
       - "audit_ledger.py"
   schedule:
     # Daily recovery/bootstrap at 02:00 JST (17:00 UTC previous day).
