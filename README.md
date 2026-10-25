@@ -135,6 +135,41 @@ historical replay / reconciliation / nested replayはすべて**精度確認用�
 公開結果サイトへのアクセスは研究世代ごとには行わず、通常は最大1時間間隔です。金曜日20〜21時台は新結果待ちのため10分間隔・最大90分再試行します。
 
 
+## Production 5-ticket geometry (effective only for new rounds >= 702)
+
+The canonical Friday Production publisher uses **five nonoverlapping
+uniformly sampled 7-number tickets (35 distinct labels)** starting **only
+for new, never-before-frozen draw #702 and later**. The 2026-10-30 #701
+publisher path and all already-issued immutable ledger predictions continue
+unchanged. Existing Champion configuration, preregistered #701 geometry
+research and all strict Future-OOS freeze/grade ledgers are protected.
+
+- Policy: `production-disjoint35-layout-v1`, implemented in
+  `production_ticket_geometry35.py`, called from
+  `weekly_production_prediction.py` **only after its existing frozen-ledger
+  early return**. The candidate ticket CSV is a mutable output view; actual
+  Production evidence is the existing append-only `predictions.csv`.
+- Generation: seeded unbiased permutation of the 37 labels, partition
+  the first 35 into five seven-number tickets. Each ticket is unique and
+  tickets have **zero** interticket number overlap.
+- Preconditions: existing Friday **13:00–19:59 JST** publication gate,
+  target >= 702, fresh latest-draw CSV hash, matching secondary
+  independently verified result source, and existing ledger not frozen.
+  Failure stops new publication; it never rewrites a past prediction.
+- Model accounting: prediction `model_version` includes **Champion
+  signal identity + separate ticket-geometry policy version**, without
+  changing `model_champion.json` or using this policy as Champion/OOS
+  promotion evidence. An existing shadow Champion's research tickets
+  may have different geometry and are NOT presented as evaluations of this
+  new Production ticket layout.
+- Selection: under a fair 7-of-37 model the exact composite expectation
+  of the 35-number disjoint layout (~2.95215) exceeds that of an anchor
+  shared by two tickets (~2.94171). The previously observed historical
+  random-anchor high score is not a future-predictive edge. This is a
+  **coverage optimization, not a number prediction breakthrough**.
+  First-prize odds for five distinct tickets stay at
+  `5/C(37,7)`; winning/profit is **not guaranteed**.
+
 ## Production source snapshot / credential rotation / fixed holdout
 
 ### Production source snapshot
