@@ -51,7 +51,7 @@ jobs:
               range(2, report["history_draws"] + 1))
           assert "uniform_disjoint" in report["portfolio_arms"]
           assert report["fair_world_exact_theory"]["disjoint_exact"]["covered_distinct_numbers"] == 35
-          assert not report["fair_world_exact_theory"]["no_predictive_signal_claim"] is False
+          assert report["fair_world_exact_theory"]["no_predictive_signal_claim"]
           assert not report["target_outcome_used_before_prediction"]
           assert not report["production_changed"]
           assert not report["future_oos_changed"]
