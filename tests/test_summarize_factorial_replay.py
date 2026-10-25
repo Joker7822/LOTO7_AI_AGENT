@@ -10,10 +10,13 @@ from test_signal_portfolio_factorial import synthetic_history
 
 @pytest.fixture(scope="module")
 def synthetic_replay():
-    return replay.evaluate(
+    result = replay.evaluate(
         synthetic_history(130), min_train=100, last_n=5,
         scenarios=16, candidates=10, random_reps=2, seed=400,
     )
+    result["data_sha256"] = "0" * 64
+    result["implementation_sha256"] = "1" * 64
+    return result
 
 
 def test_reconciles_all_scores_and_signals(synthetic_replay):
