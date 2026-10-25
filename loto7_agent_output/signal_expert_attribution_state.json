@@ -1,6 +1,6 @@
 {
   "protocol_version": "signal-expert-attribution-oos-v1",
-  "status": "awaiting_trusted_result_verification",
+  "status": "active",
   "promotion_role": "diagnostic_only",
   "claim_policy": "descriptive_attribution_only_no_expert_selection_or_weight_change_within_fixed_26_draw_horizon",
   "horizon_trusted_draws": 26,
@@ -14,7 +14,7 @@
     "final_uniform_mix": 0.2,
     "overlap_penalty": 0.65
   },
-  "trusted_draws": 7,
+  "trusted_draws": 8,
   "graded_rounds": [
     693,
     694,
@@ -22,22 +22,21 @@
     696,
     697,
     698,
-    699
+    699,
+    700
   ],
-  "current_target_round": 700,
-  "last_graded_round": 699,
+  "current_target_round": 701,
+  "last_graded_round": 700,
   "interim_model_changes_allowed": false,
   "interpretation": "descriptive expert attribution; not evidence to alter Production or the locked shadow during the horizon",
   "production_champion_version_at_protocol_start": "baseline-5fdb8dc2ad",
   "protocol_started_at_jst": "2026-09-02T11:25:44+09:00",
-  "last_run_jst": "2026-10-24T14:44:20+09:00",
+  "last_run_jst": "2026-10-25T15:00:30+09:00",
   "latest_seen_round": 700,
   "latest_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
-  "latest_source_verification": "degraded_single_result_source",
-  "latest_source_trusted": false,
-  "last_grade_action": "awaiting_trusted_verification",
-  "last_grade_exact_mass_contribution_sum": 0.02431785491470697,
-  "last_grade_full_mass_edge_vs_uniform": 0.02431785491470692,
-  "pending_target_round": 700,
-  "pending_source_verification": "degraded_single_result_source"
+  "latest_source_verification": "verified_two_result_sources",
+  "latest_source_trusted": true,
+  "last_grade_action": "graded_trusted",
+  "last_grade_exact_mass_contribution_sum": -0.06529911188126616,
+  "last_grade_full_mass_edge_vs_uniform": -0.06529911188126618
 }
