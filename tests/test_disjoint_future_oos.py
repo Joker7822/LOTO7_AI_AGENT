@@ -75,7 +75,9 @@ def test_only_trusted_result_scores_and_freezes_new_target(tmp_path, monkeypatch
     monkeypatch.setattr(oos, "verified_latest", lambda *args: (
         701, [1, 3, 5, 7, 9, 11, 13], "a" * 64, future_source()
     ))
-    result = oos.advance(root, reg, Path("none"), Path("none"),
+    report_file = root / "source.json"
+    report_file.write_text(json.dumps(future_source()), encoding="utf-8")
+    result = oos.advance(root, reg, Path("none"), report_file,
                          now=now())
     # The grade needs an actual source report file hash. It is never read from
     # target data when generating that target's prefrozen tickets.
