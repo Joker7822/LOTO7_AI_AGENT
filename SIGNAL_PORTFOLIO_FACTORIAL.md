@@ -89,3 +89,38 @@ research as a read-only workflow and upload a downloadable artifact.
 - Optimizing for 3+ or 4+ ticket hits is a different objective from maximizing
   1st-prize probability. Do not treat coverage gains as an overall predictive
   breakthrough.
+
+
+## Full 600-draw historical replay and reconciliation
+
+To rerun **every target draw from round 101 through round 700** without
+modifying any original, frozen predictions:
+
+```bash
+python -m pytest -q tests/test_signal_portfolio_factorial.py tests/test_summarize_factorial_replay.py
+python signal_portfolio_factorial.py --csv loto7.csv \
+  --out research_output/signal_portfolio_factorial.json \
+  --min-train 100 --last-n 600 \
+  --scenarios 128 --candidates 48 --random-reps 16 --seed 20261025
+python summarize_factorial_replay.py \
+  --replay research_output/signal_portfolio_factorial.json \
+  --out research_output/full_history_replay_summary.json
+```
+
+The independent summary script fails closed unless the full 600 rows are
+continuous, every aggregate reconciles to its stored per-round score, source
+SHA-256 fingerprints exist, and research-only / no-promotion flags are intact.
+It computes paired mean differences for draw windows 60, 120, and 600, with
+seeded circular five-draw-block bootstrap 95% *exploratory* intervals. These
+intervals do **not** adjust for previous model search or multiple hypotheses.
+
+Both JSON artifacts are uploaded by the read-only diagnostic workflow.
+Forecast and portfolio checksums are retained for each historical target.
+All nine signal-variant metrics and all four five-ticket-arm metrics are retained
+per target, enabling independent recomputation of the reported aggregates.
+
+**Important:** The historical backtest *recomputes* predictions with the current
+version of the code. It is **not** a replacement for independent evidence from
+predictions issued and frozen before their actual draw results. These results
+must never be used to retroactively modify Future-OOS evidence, existing
+Champion registration, or historical issued tickets.
