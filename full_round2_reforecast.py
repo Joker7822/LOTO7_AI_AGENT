@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 
 import signal_portfolio_factorial as factor
+import balanced_uniform_portfolio as geometry
 from joint_set_v2_model import bernoulli_signal_metrics, project_inclusion
 from loto7_evolving_agent import (
     N_NUMBERS, PICKS, expert_probabilities, fingerprint_file,
@@ -23,7 +24,7 @@ from loto7_evolving_agent import (
 VERSION = "full-round2-chronological-reforecast-v1"
 VARIANTS = ("legacy", "pair_int64", "drop_ewma", "prior_uniform_gate")
 PORTFOLIO_ARMS = (
-    "uniform_random", "legacy_random", "uniform_optimized", "legacy_optimized",
+    "uniform_random", "legacy_random", "uniform_disjoint", "uniform_optimized", "legacy_optimized",
     "pair_int64_optimized", "drop_ewma_optimized", "prior_uniform_gate_optimized",
 )
 UNIFORM_Q = np.full(N_NUMBERS, 1.0 / N_NUMBERS)
@@ -48,6 +49,7 @@ def arm_portfolios(forecasts: dict[str, np.ndarray], seed: int,
             factor.random_tickets(q, seed + 700_000 + rep * 71)
             for rep in range(random_reps)
         ]
+    result["uniform_disjoint"] = geometry.disjoint_portfolio(seed + 1_000_000)
     for name in ("uniform",) + VARIANTS:
         result[name + "_optimized"] = factor.optimized_tickets(
             forecasts[name], seed + 1_000_000,
@@ -193,7 +195,7 @@ def reforecast(history: np.ndarray, *, actual_dates: list[str] | None = None,
             "tickets": {
                 name: [list(ticket) for ticket in ticket_sets]
                 for name, ticket_sets in portfolios.items()
-                if name.endswith("_optimized")
+                if name.endswith("_optimized") or name == "uniform_disjoint"
             },
             "uniform_random_sample_tickets": [
                 list(ticket) for ticket in portfolios["uniform_random"][0]
@@ -224,6 +226,7 @@ def reforecast(history: np.ndarray, *, actual_dates: list[str] | None = None,
         "baseline_config": "baseline-5fdb8dc2ad",
         "signal_variants": list(VARIANTS),
         "portfolio_arms": list(PORTFOLIO_ARMS),
+        "fair_world_exact_theory": geometry.theory_report(),
         "scenarios": scenarios,
         "candidates": candidates,
         "random_reps": random_reps,
