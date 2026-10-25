@@ -273,6 +273,29 @@ def advance(root: Path, reg: dict, csv_path: Path, source_path: Path,
     if pending >= START + HORIZON:
         return {"status": "completed", "graded": len(grades)}
     info, main, sha, source = verified_latest(csv_path, source_path)
+    if info == pending - 1 and pending not in freezes:
+        # A previously graded round may not have had a verified next-draw
+        # schedule yet. Recovery may ONLY freeze the next unobserved round,
+        # never reconstruct the already observed result.
+        if pending == START or pending - 1 not in grades:
+            raise RuntimeError("cannot create an unfounded freeze")
+        schedule = (source.get("sources") or {}).get("official_schedule") or {}
+        if int(schedule.get("round", -1)) != pending:
+            return {"status": "awaiting_official_schedule", "target": pending,
+                    "graded": len(grades)}
+        date_value = schedule.get("date")
+        if not isinstance(date_value, str):
+            return {"status": "awaiting_official_schedule", "target": pending,
+                    "graded": len(grades)}
+        try:
+            ensure_cutoff(date_value, now)
+        except (ValueError, RuntimeError):
+            return {"status": "freeze_cutoff_passed_no_backfill", "target": pending,
+                    "graded": len(grades)}
+        write_new(freeze_path(root, pending),
+                  proposed_freeze(reg, pending, sha, date_value))
+        return {"status": "new_future_target_prefrozen", "target": pending,
+                "graded": len(grades)}
     if info < pending:
         return {"status": "waiting_for_future_result", "target": pending,
                 "graded": len(grades)}
