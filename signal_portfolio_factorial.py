@@ -23,7 +23,7 @@ from pair_context_v2 import probability as corrected_pair_probability
 
 VERSION = "signal-portfolio-factorial-ablation-v1"
 VARIANTS = (
-    "legacy", "pair_int64", "drop_pair", "drop_hot", "drop_ewma",
+    "legacy", "prior_uniform_gate", "pair_int64", "drop_pair", "drop_hot", "drop_ewma",
     "drop_overdue", "drop_momentum", "drop_recent_cold",
 )
 ARMS = ("uniform_random", "model_random", "uniform_optimized", "model_optimized")
@@ -120,7 +120,17 @@ def optimized_tickets(q: np.ndarray, seed: int, scenarios: int,
         raise ValueError("too few scenarios or candidates")
     scenario_sets = sampled_sets(q, scenarios, seed + 11)
     candidate_draws = sampled_sets(q, max(candidates * 6, 128), seed + 29)
-    candidate_sets = np.unique(candidate_draws, axis=0)[:candidates]
+    # np.unique(..., axis=0) sorts lexicographically and would prefer low
+    # numbered tickets when truncated. Preserve draw order during deduplication.
+    unique_rows, seen = [], set()
+    for row in candidate_draws:
+        ticket = tuple(map(int, row))
+        if ticket not in seen:
+            seen.add(ticket)
+            unique_rows.append(ticket)
+        if len(unique_rows) == candidates:
+            break
+    candidate_sets = np.asarray(unique_rows, dtype=np.int16)
     if len(candidate_sets) < 5:
         raise RuntimeError("too few unique candidate tickets")
     hits = binary_sets(scenario_sets) @ binary_sets(candidate_sets).T
@@ -181,6 +191,7 @@ def evaluate(history: np.ndarray, *, min_train: int = 100, last_n: int = 60,
     arms = {name: [] for name in ARMS}
     signal = {name: [] for name in VARIANTS}
     round_rows = []
+    gate_prior_scores = []  # Only observed outcomes strictly BEFORE the target.
     evaluation_start = len(x) - last_n
     for t in range(min_train, len(x)):
         prior = x[:t]
@@ -193,7 +204,11 @@ def evaluate(history: np.ndarray, *, min_train: int = 100, last_n: int = 60,
             ex = variant_experts(base, name, prior)
             if name not in weights:
                 weights[name] = np.zeros(len(ex), dtype=float)
-            forecasts[name] = probability_from_weights(ex, weights[name])
+            q = probability_from_weights(ex, weights[name])
+            if name == "prior_uniform_gate" and len(gate_prior_scores) >= 30:
+                if float(np.mean(gate_prior_scores[-30:])) <= 0.0:
+                    q = UNIFORM_Q.copy()
+            forecasts[name] = q
             expert_sets[name] = ex
 
         if t >= evaluation_start:
@@ -234,6 +249,9 @@ def evaluate(history: np.ndarray, *, min_train: int = 100, last_n: int = 60,
             })
 
         actual_idx = np.flatnonzero(x[t])
+        legacy_inclusion = project_inclusion(PICKS * forecasts["legacy"])
+        legacy_edge = bernoulli_signal_metrics(legacy_inclusion, actual_idx)["log_edge"]
+        gate_prior_scores.append(float(legacy_edge))
         for name in VARIANTS:
             weights[name] = update_weights(expert_sets[name], weights[name], actual_idx)
 
