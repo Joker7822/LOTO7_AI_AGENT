@@ -1,0 +1,61 @@
+name: Top1 Overlap34 Research
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "top1_overlap34.py"
+      - "top1_overlap34_research.py"
+      - "tests/test_top1_overlap34_research.py"
+      - "TOP1_OVERLAP34_RESEARCH.md"
+      - ".github/workflows/top1_overlap34_research.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  research-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install required packages
+        run: |
+          python -m pip install -r requirements.txt pytest
+      - name: Validate exact mathematics and chronological evidence
+        run: |
+          python -m compileall -q top1_overlap34.py top1_overlap34_research.py
+          python -m pytest -q tests/test_top1_overlap34_research.py
+      - name: Reconstruct research predictions for every known draw from round 2
+        run: |
+          python top1_overlap34_research.py \
+            --csv loto7.csv \
+            --out research_output/top1_overlap34_research.json \
+            --seed 20261025
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          obj = json.loads(Path("research_output/top1_overlap34_research.json").read_text())
+          assert obj["evaluated_rounds"] == obj["last_target_round"] - 1
+          assert obj["first_target_round"] == 2
+          assert obj["last_target_round"] >= 700
+          assert obj["periods"]["cold_start_2_to_20"]["count"] == 19
+          assert obj["fair_world_exact"]["candidate"]["distinct_numbers"] == 34
+          assert not obj["target_outcome_used_before_prediction"]
+          assert not obj["independent_evidence"]
+          assert not obj["existing_future_oos_changed"]
+          assert not obj["production_changed"]
+          assert not obj["promotion_authorized"]
+          PY
+          git diff --exit-code -- loto7.csv STATUS.md loto7_agent_output/ research/disjoint_future_oos/
+      - name: Upload historical research diagnostic
+        uses: actions/upload-artifact@v4
+        with:
+          name: top1-overlap34-prior-only-historical-diagnostic
+          path: research_output/top1_overlap34_research.json
+          retention-days: 14
