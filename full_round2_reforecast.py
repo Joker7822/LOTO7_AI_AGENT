@@ -48,9 +48,9 @@ def arm_portfolios(forecasts: dict[str, np.ndarray], seed: int,
             factor.random_tickets(q, seed + 700_000 + rep * 71)
             for rep in range(random_reps)
         ]
-    for idx, name in enumerate(("uniform",) + VARIANTS):
+    for name in ("uniform",) + VARIANTS:
         result[name + "_optimized"] = factor.optimized_tickets(
-            forecasts[name], seed + 1_000_000 + idx * 10_000,
+            forecasts[name], seed + 1_000_000,
             scenarios=scenarios, candidates=candidates,
         )
     return result
