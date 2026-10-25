@@ -85,18 +85,11 @@ def sampled_sets(q: np.ndarray, size: int, seed: int) -> np.ndarray:
 
 def random_tickets(q: np.ndarray, seed: int) -> list[tuple[int, ...]]:
     """Five distinct tickets; never consult the target outcome."""
-    seen = set()
-    for row in sampled_sets(q, 128, seed):
-        seen.add(tuple(map(int, row)))
-        if len(seen) == 5:
-            break
-    if len(seen) != 5:
-        raise RuntimeError("not enough unique ticket samples")
-    # Preserve deterministic sampling order without relying on set iteration.
-    picks = []
+    seen, picks = set(), []
     for row in sampled_sets(q, 128, seed):
         ticket = tuple(map(int, row))
-        if ticket not in picks:
+        if ticket not in seen:
+            seen.add(ticket)
             picks.append(ticket)
         if len(picks) == 5:
             return picks
