@@ -1,0 +1,116 @@
+name: Disjoint Geometry Prospective OOS
+
+on:
+  pull_request:
+    paths:
+      - "disjoint_future_oos.py"
+      - "balanced_uniform_portfolio.py"
+      - "tests/test_disjoint_future_oos.py"
+      - "research/disjoint_future_oos/**"
+      - "DISJOINT_FUTURE_OOS.md"
+      - ".github/workflows/disjoint_future_oos.yml"
+  push:
+    branches: [main]
+    paths:
+      - "disjoint_future_oos.py"
+      - "balanced_uniform_portfolio.py"
+      - "research/disjoint_future_oos/**"
+      - "loto7.csv"
+      - "loto7_agent_output/source_validation.json"
+      - ".github/workflows/disjoint_future_oos.yml"
+  schedule:
+    # Daily at approximately 10:15 JST; source-verification push also triggers.
+    - cron: "15 1 * * *"
+  workflow_run:
+    workflows: ["LOTO7 Independent Result Corroboration"]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: disjoint-geometry-prospective-oos
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt pytest
+      - name: Run immutable freeze and no-leakage tests
+        run: |
+          python -m compileall -q disjoint_future_oos.py
+          python -m pytest -q tests/test_disjoint_future_oos.py tests/test_balanced_uniform_portfolio.py
+          python disjoint_future_oos.py --mode verify
+          python - <<'PY'
+          import disjoint_future_oos as oos
+          from pathlib import Path
+          r, _, _, _ = oos.verified_latest(
+              Path("loto7.csv"), Path("loto7_agent_output/source_validation.json"))
+          assert r >= 700
+          PY
+          git diff --exit-code -- loto7.csv STATUS.md loto7_agent_output/
+
+  advance:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt pytest
+      - name: Verify prospective registrations before appending records
+        run: |
+          python -m pytest -q tests/test_disjoint_future_oos.py
+      - name: Append only newly verified grade and next pre-result freeze
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python disjoint_future_oos.py --mode verify
+            python disjoint_future_oos.py --mode advance
+            git diff --exit-code -- \
+              research/disjoint_future_oos/registration.json \
+              research/disjoint_future_oos/freeze_0701.json \
+              loto7.csv STATUS.md loto7_agent_output/
+            # Freeze/grade records are append-only, and the script only writes
+            # new round-specific files inside this isolated research namespace.
+            git add -A -- research/disjoint_future_oos/
+            if git diff --cached --quiet; then
+              echo "No new trusted future draw or next safe freeze."
+              exit 0
+            fi
+            changed="$(git diff --cached --name-status)"
+            if printf '%s\n' "$changed" | grep -qvE '^A[[:space:]]+research/disjoint_future_oos/(grade|freeze)_[0-9]{4}\.json$'; then
+              echo "Disallowed change: immutable file or outside new freeze/grade" >&2
+              printf '%s\n' "$changed" >&2
+              exit 1
+            fi
+            git commit -m "chore: append verified disjoint geometry prospective OOS"
+            if git push origin HEAD:main; then
+              echo "Future research record saved (without touching Production)."
+              exit 0
+            fi
+            echo "Main changed during push. Revalidating latest source and immutable chain."
+          done
+          echo "Cannot persist independent future-OOS records after 5 attempts." >&2
+          exit 1
