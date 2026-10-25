@@ -22,19 +22,43 @@ The five signal comparisons are uniform, `legacy`, `pair_int64`,
 `drop_ewma`, `prior_uniform_gate` (return to uniform if the previous
 30 *legacy* Bernoulli log-score edges were nonpositive on average).
 
-Seven 5-ticket arms, all created from previous draws only:
+Eight 5-ticket arms, all created from previous draws only:
 
 - `uniform_random`, `legacy_random`: average of 8 independent seeded
   5-ticket samples per target round. The first sample's actual five tickets
   are in the record, but scores average across the full sample.
+- `uniform_disjoint`: an explicit fair-lottery geometry baseline with five
+  pairwise disjoint 7-number tickets (35 of 37 labels). The assignment uses a
+  per-round seeded uniform permutation, never historical lucky numbers.
 - `uniform_optimized`, `legacy_optimized`,
   `pair_int64_optimized`, `drop_ewma_optimized`,
   `prior_uniform_gate_optimized`: one five-ticket portfolio each, selected
   with the shared, research-only scenario-based greedy optimizer.
 
 For model vs uniform comparisons, ticket generation uses the same seeds.
+
+### Exact no-overlap null, without historical tuning
+
+`balanced_uniform_portfolio.py` calculates the **exact**, non-simulated
+expected hit thresholds and composite score for five disjoint tickets under
+an independently fair 7-of-37 draw. It enumerates feasible counts
+`k1+...+k5+r=7`, with each `ki` drawn from a 7-number block, `0<=r<=2`
+for the omitted two numbers, weighted by
+`C(2,r) * PRODUCT_i C(7,ki) / C(37,7)`.
+
+The report also includes an exact analytical reference for five independent
+uniform random tickets sampled **with replacement** (distinct from the
+replayed independent 5-ticket sets, which require distinct tickets). The
+probability of a first-prize win for five distinct tickets remains
+`5/C(37,7)` regardless of disjoint geometry.
+
+**Interpretation:** improving the probability that at least one ticket hits
+three numbers, or the mean maximum matches, is a ticket-geometry effect, NOT
+better prediction of the next seven numbers. A historical improvement over
+699 reused results is exploratory, not an independent future claim.
+
 Each round stores: prior count, date, actual 7 numbers, top-7 signal ranking,
-complete five-ticket optimized forecasts, seed-based example random forecasts,
+complete five-ticket optimized/disjoint forecasts, seed-based example random forecasts,
 per-arm max and average hits, any 3+/4+ results, composite portfolio score,
 proper Bernoulli log/Brier signals and the **pre-outcome** forecast SHA-256.
 
