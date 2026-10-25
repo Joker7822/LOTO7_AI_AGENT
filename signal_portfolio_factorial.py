@@ -239,6 +239,8 @@ def evaluate(history: np.ndarray, *, min_train: int = 100, last_n: int = 60,
                 "forecast_sha256": forecast_hash,
                 "portfolio_sha256": portfolio_hash,
                 "scores": {name: arms[name][-1]["score"] for name in ARMS},
+                "arm_metrics": {name: dict(arms[name][-1]) for name in ARMS},
+                "signal_metrics": {name: dict(signal[name][-1]) for name in VARIANTS},
             })
 
         actual_idx = np.flatnonzero(x[t])
