@@ -1,6 +1,6 @@
 {
   "version": "open-ended-evolution-v1",
-  "generations_total": 16823,
+  "generations_total": 18272,
   "evaluated_history_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "recorded_rounds": 700,
   "evaluation_rounds": 700,
@@ -279,6 +279,75 @@
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     },
     {
+      "generation": 18003,
+      "genome": {
+        "op": "blend",
+        "alpha": 0.99,
+        "left": {
+          "op": "blend",
+          "alpha": 0.6455,
+          "left": {
+            "op": "blend",
+            "alpha": 0.10065,
+            "left": {
+              "op": "power",
+              "exponent": 2.32582,
+              "child": {
+                "op": "frequency",
+                "window": 26,
+                "prior": 23.25951
+              }
+            },
+            "right": {
+              "op": "uniform"
+            }
+          },
+          "right": {
+            "op": "blend",
+            "alpha": 0.2484,
+            "left": {
+              "op": "blend",
+              "alpha": 0.4579,
+              "left": {
+                "op": "pair",
+                "window": 203,
+                "prior": 290.15944
+              },
+              "right": {
+                "op": "gap",
+                "scale": 2.06941
+              }
+            },
+            "right": {
+              "op": "power",
+              "exponent": 1.08841,
+              "child": {
+                "op": "uniform"
+              }
+            }
+          }
+        },
+        "right": {
+          "op": "frequency",
+          "window": 28,
+          "prior": 359.84129
+        }
+      },
+      "assessment": {
+        "mean_log_edge": 0.000261939243145743,
+        "mean_top7_hits": 1.5416666666666667,
+        "block_edges": [
+          -3.565020784333263e-05,
+          0.0007153600664752951,
+          0.00010610787080526632
+        ],
+        "fitness": 0.00021306951778015922,
+        "historical_selection_only": true,
+        "prospective_edge_confirmed": false
+      },
+      "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
+    },
+    {
       "generation": 14145,
       "genome": {
         "op": "blend",
@@ -361,76 +430,7 @@
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     },
     {
-      "generation": 11083,
-      "genome": {
-        "op": "blend",
-        "alpha": 0.99,
-        "left": {
-          "op": "blend",
-          "alpha": 0.6455,
-          "left": {
-            "op": "blend",
-            "alpha": 0.10065,
-            "left": {
-              "op": "power",
-              "exponent": 2.32582,
-              "child": {
-                "op": "frequency",
-                "window": 26,
-                "prior": 23.25951
-              }
-            },
-            "right": {
-              "op": "uniform"
-            }
-          },
-          "right": {
-            "op": "blend",
-            "alpha": 0.2484,
-            "left": {
-              "op": "blend",
-              "alpha": 0.4579,
-              "left": {
-                "op": "pair",
-                "window": 203,
-                "prior": 290.15944
-              },
-              "right": {
-                "op": "gap",
-                "scale": 2.06941
-              }
-            },
-            "right": {
-              "op": "power",
-              "exponent": 1.08841,
-              "child": {
-                "op": "uniform"
-              }
-            }
-          }
-        },
-        "right": {
-          "op": "pair",
-          "window": 53,
-          "prior": 223.26198
-        }
-      },
-      "assessment": {
-        "mean_log_edge": 0.0002611203373841942,
-        "mean_top7_hits": 1.5416666666666667,
-        "block_edges": [
-          -3.4470570225596004e-05,
-          0.0007135778307133915,
-          0.00010425375166478709
-        ],
-        "fitness": 0.00021238388590945733,
-        "historical_selection_only": true,
-        "prospective_edge_confirmed": false
-      },
-      "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
-    },
-    {
-      "generation": 16047,
+      "generation": 17038,
       "genome": {
         "op": "blend",
         "alpha": 0.99,
@@ -480,39 +480,28 @@
         },
         "right": {
           "op": "blend",
-          "alpha": 0.53174,
+          "alpha": 0.88109,
           "left": {
-            "op": "blend",
-            "alpha": 0.61485,
-            "left": {
-              "op": "pair",
-              "window": 182,
-              "prior": 299.24588
-            },
-            "right": {
-              "op": "uniform"
-            }
+            "op": "pair",
+            "window": 40,
+            "prior": 138.96079
           },
           "right": {
-            "op": "power",
-            "exponent": 0.31394,
-            "child": {
-              "op": "frequency",
-              "window": 139,
-              "prior": 7.31078
-            }
+            "op": "pair",
+            "window": 85,
+            "prior": 84.68752
           }
         }
       },
       "assessment": {
-        "mean_log_edge": 0.0002604625682450298,
+        "mean_log_edge": 0.00026144594620819357,
         "mean_top7_hits": 1.5416666666666667,
         "block_edges": [
-          -3.279669494581685e-05,
-          0.0007120301054162512,
-          0.00010215429426465493
+          -3.456930334203148e-05,
+          0.0007139821042422559,
+          0.00010492503772435618
         ],
-        "fitness": 0.0002118588843040388,
+        "fitness": 0.0002126930388266498,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
@@ -526,5 +515,5 @@
   },
   "scope": "indefinite_historical_model_program_evolution_not_production",
   "claim": "Selection on reused historical data cannot establish predictive advantage.",
-  "last_record_sha256": "516ab8e0464e3f6b6c87aa3255bd7679bed735a5349424907523f412af605772"
+  "last_record_sha256": "e8b4f6da4c16f4dbc1a343c401b3999ad1b384d4aa8bde8c7de4552c9bbce362"
 }
