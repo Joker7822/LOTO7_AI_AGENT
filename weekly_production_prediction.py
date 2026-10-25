@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import audit_ledger as ledger
+import production_ticket_geometry35 as geometry35
 import loto7_v2_runner as v2
 import loto7_v4_runner as v4
 from loto7_evolving_agent import fingerprint_file, make_history, read_csv_flexible
@@ -152,29 +153,45 @@ def publish(
         v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
         return result
 
-    reused_current_outputs = current_production_outputs_are_current(
-        out_dir,
-        data_sha,
-        champion.version(),
-        expected_latest_round=latest_round,
-        expected_target_round=target_round,
-    )
-    if reused_current_outputs:
-        state = v4.load_json(out_dir / "agent_state.json", {})
-    else:
-        production = v4.ensure_production_outputs(
-            x,
-            clean,
-            champion,
-            out_dir,
-            min_train,
-            data_sha,
-            os.environ.get("GITHUB_SHA", "local"),
-            generation,
-            force=False,
-            promotion=None,
+    # User-authorized Production ticket-layout change. Frozen targets are
+    # handled above, so round 701 cannot be edited or silently reissued.
+    # The Champion's learned signal and Future-OOS registry remain separate.
+    if target_round >= geometry35.MIN_TARGET_ROUND:
+        state = geometry35.prepare_new_production_outputs(
+            csv_path=csv_path,
+            out_dir=out_dir,
+            champion_version=champion.version(),
+            data_sha=data_sha,
+            latest_round=latest_round,
+            target_round=target_round,
+            latest_draw_date=clean["抽せん日"].iloc[-1].date().isoformat(),
+            git_sha=os.environ.get("GITHUB_SHA", "local"),
+            source_path=out_dir / "source_validation.json",
         )
-        state = production.get("state") if isinstance(production.get("state"), dict) else {}
+    else:
+        reused_current_outputs = current_production_outputs_are_current(
+            out_dir,
+            data_sha,
+            champion.version(),
+            expected_latest_round=latest_round,
+            expected_target_round=target_round,
+        )
+        if reused_current_outputs:
+            state = v4.load_json(out_dir / "agent_state.json", {})
+        else:
+            production = v4.ensure_production_outputs(
+                x,
+                clean,
+                champion,
+                out_dir,
+                min_train,
+                data_sha,
+                os.environ.get("GITHUB_SHA", "local"),
+                generation,
+                force=False,
+                promotion=None,
+            )
+            state = production.get("state") if isinstance(production.get("state"), dict) else {}
 
     if state.get("data_sha256") != data_sha:
         raise RuntimeError("refusing weekly Production freeze: agent_state data SHA is stale")
@@ -215,6 +232,7 @@ def publish(
         "target_round": f"第{target_round}回",
         "schedule_policy": "Friday 13:00-15:00 JST",
         "production_promotion_method": "future_oos_only",
+        "ticket_policy": state.get("production_ticket_policy_version", "champion_original"),
     }
     v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
     return result
