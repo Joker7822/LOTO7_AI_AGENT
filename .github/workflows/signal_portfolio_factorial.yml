@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - "signal_portfolio_factorial.py"
+      - "summarize_factorial_replay.py"
+      - "tests/test_summarize_factorial_replay.py"
       - "tests/test_signal_portfolio_factorial.py"
       - "SIGNAL_PORTFOLIO_FACTORIAL.md"
       - ".github/workflows/signal_portfolio_factorial.yml"
@@ -28,14 +30,14 @@ jobs:
           python -m pip install -r requirements.txt pytest
       - name: Verify read-only, reproducible, prior-only evaluation
         run: |
-          python -m compileall -q signal_portfolio_factorial.py
-          python -m pytest -q tests/test_signal_portfolio_factorial.py
-      - name: Evaluate all four arms and ablations
+          python -m compileall -q signal_portfolio_factorial.py summarize_factorial_replay.py
+          python -m pytest -q tests/test_signal_portfolio_factorial.py tests/test_summarize_factorial_replay.py
+      - name: Replay all 600 historic predictions with four arms and ablations
         run: |
           python signal_portfolio_factorial.py \
             --csv loto7.csv \
             --out research_output/signal_portfolio_factorial.json \
-            --min-train 100 --last-n 60 \
+            --min-train 100 --last-n 600 \
             --scenarios 128 --candidates 48 --random-reps 16 \
             --seed 20261025
           python - <<'PY'
@@ -44,6 +46,10 @@ jobs:
           p = Path("research_output/signal_portfolio_factorial.json")
           result = json.loads(p.read_text(encoding="utf-8"))
           assert result["scope"] == "research_only_historical_reused_data"
+          assert result["chronological_prior_only"]
+          assert result["evaluated_rounds"] == 600
+          assert (result["first_round_index"], result["last_round_index"]) == (101, 700)
+          assert len(result["rounds"]) == 600
           assert set(result["arms"]) == {
               "uniform_random", "model_random",
               "uniform_optimized", "model_optimized",
@@ -53,10 +59,24 @@ jobs:
           assert not result["future_oos_changed"]
           assert not result["promotion_authorized"]
           PY
+          python summarize_factorial_replay.py \
+            --replay research_output/signal_portfolio_factorial.json \
+            --out research_output/full_history_replay_summary.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          s = json.loads(Path("research_output/full_history_replay_summary.json").read_text())
+          assert s["evaluated_rounds"] == 600
+          assert set(s["windows"]) == {"60", "120", "600"}
+          assert not s["promotion_authorized"]
+          assert not s["independent_evidence"]
+          PY
           git diff --exit-code -- loto7.csv loto7_agent_output/ STATUS.md
       - name: Upload research diagnostic only
         uses: actions/upload-artifact@v4
         with:
-          name: signal-portfolio-factorial-diagnostic
-          path: research_output/signal_portfolio_factorial.json
-          retention-days: 7
+          name: signal-portfolio-factorial-600-draw-replay
+          path: |
+            research_output/signal_portfolio_factorial.json
+            research_output/full_history_replay_summary.json
+          retention-days: 14
