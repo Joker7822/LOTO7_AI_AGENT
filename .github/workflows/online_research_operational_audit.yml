@@ -1,0 +1,72 @@
+name: Online Research Operational Quality Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily 12:45 JST. Results are descriptive read-only best-effort reports.
+    - cron: "45 3 * * *"
+  pull_request:
+    paths:
+      - "online_research_operational_audit.py"
+      - "tests/test_online_research_operational_audit.py"
+      - "ONLINE_RESEARCH_OPERATIONAL_AUDIT.md"
+      - ".github/workflows/online_research_operational_audit.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  independent-read-only-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the repository's scientific dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Verify no research/Production/OOS privilege escalation
+        run: |
+          python -m compileall -q online_research_operational_audit.py
+          python -m pytest -q tests/test_online_research_operational_audit.py
+      - name: Build current actionable audit, highlight stale research
+        run: |
+          python online_research_operational_audit.py \
+            --repo-root . \
+            --out research_output/online_research_operational_audit.json \
+            --report research_output/online_research_operational_audit.md
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("research_output")
+          summary = json.loads((root / "online_research_operational_audit.json").read_text())
+          assert summary["input_provenance"]["source_status"] == "verified_two_result_sources"
+          assert not summary["automatic_promotion_allowed"]
+          assert not summary["forecast_skill_established"]
+          assert not summary["production_changed"]
+          assert not summary["existing_oos_changed"]
+          assert summary["new_research_experiments_executed"] == 0
+          print("read-only operational issues:", summary["blockers"])
+          PY
+          git diff --exit-code -- \
+            loto7.csv STATUS.md \
+            loto7_agent_output/ research/disjoint_future_oos/ \
+            weekly_production_prediction.py production_ticket_geometry35.py \
+            loto7_v4_runner.py
+      - name: Add research quality findings to GitHub Actions summary
+        if: success()
+        shell: bash
+        run: |
+          cat research_output/online_research_operational_audit.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive operational report (not a production release)
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: online-research-operational-audit
+          path: |
+            research_output/online_research_operational_audit.json
+            research_output/online_research_operational_audit.md
+          retention-days: 30
