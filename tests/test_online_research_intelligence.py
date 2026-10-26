@@ -158,14 +158,19 @@ def test_unknown_doi_from_bibliography_is_rejected(monkeypatch):
         intel.run(ROOT)
 
 
-def test_corrupt_audit_chain_is_rejected(monkeypatch):
-    prior = intel.discovery.read_chain
-    def forged(path):
-        events = copy.deepcopy(prior(path))
-        events[0]["record_sha256"] = "tampered"
-        return events
-    monkeypatch.setattr(intel.discovery, "read_chain", forged)
-    with pytest.raises(ValueError):
+def test_corrupt_audit_chain_is_rejected(tmp_path, monkeypatch):
+    # Mutate the actual serialized journal, then use the real cryptographic
+    # SHA-chain verifier. Forging its validated return value would bypass the
+    # protected trust boundary and would not be a meaningful test.
+    chain_file = ROOT / "loto7_agent_output/always_on_accuracy_research_journal.jsonl"
+    corrupted = tmp_path / "mutated.jsonl"
+    corrupted.write_text(chain_file.read_text().replace(
+        '"record_sha256": "', '"record_sha256": "tampered', 1
+    ))
+    actual_reader = intel.discovery.read_chain
+    monkeypatch.setattr(intel.discovery, "read_chain",
+                        lambda path: actual_reader(corrupted))
+    with pytest.raises(ValueError, match="tampered"):
         intel.run(ROOT)
 
 
