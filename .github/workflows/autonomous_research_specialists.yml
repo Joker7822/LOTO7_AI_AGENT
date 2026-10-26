@@ -1,0 +1,86 @@
+name: Four Autonomous Research Specialists
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every six hours, starting at 09:41 JST (GitHub best effort).
+    - cron: "41 0,6,12,18 * * *"
+  pull_request:
+    paths:
+      - "research_specialist_agents.py"
+      - "tests/test_research_specialist_agents.py"
+      - "AUTONOMOUS_RESEARCH_SPECIALISTS.md"
+      - ".github/workflows/autonomous_research_specialists.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  independent-specialist:
+    name: "Independent research • ${{ matrix.agent }}"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        agent:
+          - source_sentinel
+          - calibration_analyst
+          - prospective_custodian
+          - literature_examiner
+    concurrency:
+      group: research-specialists-${{ matrix.agent }}-${{ github.ref }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install bounded scientific dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Regression tests for all specialist permissions
+        run: |
+          python -m compileall -q research_specialist_agents.py
+          python -m pytest -q tests/test_research_specialist_agents.py
+      - name: Run dedicated specialist from independently audited inputs
+        run: |
+          python research_specialist_agents.py \
+            --repo-root . \
+            --agent "${{ matrix.agent }}" \
+            --output-dir research_output/autonomous_specialists
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          name = os.environ["AGENT_ID"]
+          report = json.loads((Path("research_output/autonomous_specialists") / (name + ".json")).read_text())
+          assert report["agent"] == name
+          assert report["decision"] == "advisory_only_no_model_release"
+          assert not any(report["permissions"].values())
+          assert not report["production_changed"]
+          assert not report["existing_oos_changed"]
+          assert report["new_real_experiments_executed"] == 0
+          print(name, report["status"])
+          PY
+        env:
+          AGENT_ID: ${{ matrix.agent }}
+      - name: Confirm repository ledgers and Production remain immutable
+        run: |
+          git diff --exit-code -- \
+            loto7.csv STATUS.md \
+            loto7_agent_output/ research/disjoint_future_oos/ \
+            weekly_production_prediction.py production_ticket_geometry35.py \
+            loto7_v4_runner.py
+      - name: Publish specialist advisory in Actions summary
+        if: success()
+        run: cat "research_output/autonomous_specialists/${{ matrix.agent }}.md" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload individual results
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: "research-specialist-${{ matrix.agent }}"
+          path: |
+            research_output/autonomous_specialists/${{ matrix.agent }}.json
+            research_output/autonomous_specialists/${{ matrix.agent }}.md
+          retention-days: 30
