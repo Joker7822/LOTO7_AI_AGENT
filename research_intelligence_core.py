@@ -388,20 +388,18 @@ def evidence_engine(
 
 def run(root: Path) -> dict:
     root = root.resolve()
-    reports = {name: specialists.execute(root, name) for name in specialists.AGENTS}
-    scholarly = internet.run(root)
+    # Snapshot BEFORE any analysis, then reject a concurrent source change.
     fingerprints = {name: _sha_file(root / path)
                     for name, path in SOURCE_FILES.items()}
+    reports = {name: specialists.execute(root, name) for name in specialists.AGENTS}
+    scholarly = internet.run(root)
     champion = json.loads(
         (root / SOURCE_FILES["production_champion"]).read_text(encoding="utf-8")
     )
     if not isinstance(champion, dict):
         raise ValueError("invalid current champion evidence")
-    # Re-read source-of-truth after all specialist analyses. If an independent
-    # repository process changed an input during the run, refuse mixed snapshots.
-    original = fingerprints
     fresh = {name: _sha_file(root / path) for name, path in SOURCE_FILES.items()}
-    if fresh != original:
+    if fresh != fingerprints:
         raise RuntimeError("concurrent evidence modification; retry on coherent snapshot")
     return evidence_engine(
         reports, scholarly, fingerprints=fingerprints,
