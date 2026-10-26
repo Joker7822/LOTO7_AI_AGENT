@@ -1,0 +1,74 @@
+name: Online Evidence Intelligence and Practical Research Handoff
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every six hours, 12:13 / 18:13 / 00:13 / 06:13 JST, GitHub best effort.
+    - cron: "13 3,9,15,21 * * *"
+  pull_request:
+    paths:
+      - "online_research_intelligence.py"
+      - "tests/test_online_research_intelligence.py"
+      - "ONLINE_RESEARCH_INTELLIGENCE.md"
+      - ".github/workflows/online_research_intelligence.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: online-evidence-intelligence-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit-research-intelligence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install existing scientific dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Test chained scholarly evidence, actionable use, and no permissions
+        run: |
+          python -m compileall -q online_research_intelligence.py
+          python -m pytest -q tests/test_online_research_intelligence.py
+      - name: Analyze previously collected online data
+        run: |
+          python online_research_intelligence.py \
+            --repo-root . \
+            --output-dir research_output/online_evidence_intelligence
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          doc = json.loads(Path("research_output/online_evidence_intelligence/report.json").read_text())
+          assert doc["quality_checks"]["audit_chain_verified"]
+          assert doc["quality_checks"]["bibliography_statuses_reconciled"]
+          assert doc["research_snapshot"]["paper_count"] <= 36
+          assert doc["new_real_experiments"] == 0
+          assert doc["new_predictions_generated"] == 0
+          assert not doc["auto_promotion_authorized"]
+          assert not doc["production_or_champion_changed"]
+          assert not doc["future_oos_registry_modified"]
+          print("source round:", doc["source"]["round"])
+          print("research snapshot round:", doc["research_snapshot"]["last_resolved_round"])
+          print("blockers:", doc["blockers"])
+          PY
+          git diff --exit-code -- \
+            loto7.csv STATUS.md loto7_agent_output/ \
+            research/disjoint_future_oos/ weekly_production_prediction.py \
+            production_ticket_geometry35.py loto7_v4_runner.py
+      - name: Publish analysis and fixed review handoffs to Actions summary
+        run: cat research_output/online_evidence_intelligence/report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive structured reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: online-evidence-intelligence
+          path: |
+            research_output/online_evidence_intelligence/report.json
+            research_output/online_evidence_intelligence/report.md
+            research_output/online_evidence_intelligence/topics.csv
+          retention-days: 30
