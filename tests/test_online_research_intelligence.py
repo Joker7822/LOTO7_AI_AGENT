@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import json
 from pathlib import Path
 
 import pytest
@@ -164,9 +165,11 @@ def test_corrupt_audit_chain_is_rejected(tmp_path, monkeypatch):
     # protected trust boundary and would not be a meaningful test.
     chain_file = ROOT / "loto7_agent_output/always_on_accuracy_research_journal.jsonl"
     corrupted = tmp_path / "mutated.jsonl"
-    corrupted.write_text(chain_file.read_text().replace(
-        '"record_sha256": "', '"record_sha256": "tampered', 1
-    ))
+    rows = chain_file.read_text().splitlines()
+    first = json.loads(rows[0])
+    first["record_sha256"] = "0" * 64
+    rows[0] = json.dumps(first, separators=(",", ":"))
+    corrupted.write_text("\n".join(rows) + "\n")
     actual_reader = intel.discovery.read_chain
     monkeypatch.setattr(intel.discovery, "read_chain",
                         lambda path: actual_reader(corrupted))
