@@ -132,6 +132,27 @@ def test_multi_agent_agreement_cannot_override_unverified_draw(evidence):
         "CONTINUE_PRE_REGISTERED_OOS"]["status"] == "await_verified_draw"
 
 
+def test_known_but_unverified_round_is_not_trusted_by_majority(evidence):
+    agents, online, fps = evidence
+    reports = copy.deepcopy(agents)
+    web = copy.deepcopy(online)
+    source = reports["source_sentinel"]
+    source["context"]["trusted_round"] = web["source"]["round"]
+    source["checks"][0]["status"] = "block"
+    source["status"] = "block"
+    web["source"]["independent_two_source_verified"] = False
+    web["quality_checks"]["current_draw_verified"] = False
+    result = intelligence.evidence_engine(
+        reports, web, fingerprints=fps,
+        champion_version="baseline-5fdb8dc2ad",
+    )
+    assert not result["latest_draw_trusted"]
+    assert result["independent_evidence_tiers"]["latest_result"] == "unverified"
+    assert result["work_plan"][0]["task_id"] == "VERIFY_TRUSTED_DRAW"
+    assert {task["task_id"]: task for task in result["work_plan"]}[
+        "CONTINUE_PRE_REGISTERED_OOS"]["status"] == "await_verified_draw"
+
+
 def test_forged_trust_disagreement_is_rejected(evidence):
     agents, online, fingerprints = evidence
     new = copy.deepcopy(online)
