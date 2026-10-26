@@ -338,6 +338,19 @@ python v4_status.py
 登録済み将来検証・Production・Championは変更しません。毎時の実行はGitHub Actionsのベストエフォートで、実行遅延とネットワーク障害は可視化します。
 
 
+## オンライン収集データの横断分析と安全な実用化
+
+Crossref/OpenAlexの収集済みDOI・論文タイトル・発行年・二重ソース照合記録を
+**出典SHA検証→テーマ別集計→信頼度別整理→固定の運用検証手順**へ変換する
+`online_research_intelligence.py` を追加しました。
+
+GitHub Actionsで6時間ごとに自動実行し、研究データの鮮度、未照合DOI、
+研究試行予算と安全な次の作業をJSON/Markdown/CSVで提供します。
+文献の全文を読んだことや予測精度向上を装わず、既存Championや
+未来OOSの予測・凍結結果は書き換えません。
+
+手順: [ONLINE_RESEARCH_INTELLIGENCE.md](ONLINE_RESEARCH_INTELLIGENCE.md)。
+
 ## 4体の専門自律研究エージェント
 
 既存の研究コーディネータを補強するため、独立実行の専門エージェントを
