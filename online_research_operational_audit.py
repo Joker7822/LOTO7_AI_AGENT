@@ -230,7 +230,7 @@ def make_operational_report(root: Path) -> dict:
 
     return {
         "version": VERSION,
-        "purpose": "operational_quality_control_from_online_research_topics_only",
+        "purpose": "read_only_operational_quality_control_from_online_research_topics_only",
         "latest_verified_draw": actual_round,
         "latest_draw_date": last_date,
         "draw_csv_sha256": csv_sha,
