@@ -338,6 +338,23 @@ python v4_status.py
 登録済み将来検証・Production・Championは変更しません。毎時の実行はGitHub Actionsのベストエフォートで、実行遅延とネットワーク障害は可視化します。
 
 
+## 4体の専門自律研究エージェント
+
+既存の研究コーディネータを補強するため、独立実行の専門エージェントを
+**4体追加**しました。GitHub Actionsが6時間ごと（ベストエフォート）に
+4つのジョブを動かし、各エージェントが監査結果をJSON/Markdownとして保存します。
+
+- `source_sentinel`: 抽せん結果の2ソース検証、CSV SHA、研究ガード鮮度。
+- `calibration_analyst`: 過去の校正、理論一様基準、統計的な限界。
+- `prospective_custodian`: 26回holdout、Joint Set v2、35数字研究の未来凍結監査。
+- `literature_examiner`: オンライン論文の独立照合、未承認手法の採用防止。
+
+詳細: [専門エージェント4体の運用・制約](AUTONOMOUS_RESEARCH_SPECIALISTS.md)。
+
+追加エージェントは**読み取り専用**です。Production・Champion・既存の
+第701回凍結予測・登録済み将来OOS・研究試行予算に触れず、
+予測精度の改善を自動的には認定しません。
+
 ## オンライン研究成果を運用に反映する監査
 
 研究文献のテーマを、実際のデータ鮮度・論文根拠・厳密な事前凍結・
