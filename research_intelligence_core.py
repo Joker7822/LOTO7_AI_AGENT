@@ -206,19 +206,28 @@ def evidence_engine(
     source = specialist_reports["source_sentinel"]
     source_ctx = source["context"]
     scholar_src = scholarly["source"]
-    if (source_ctx.get("draw_sha256") != scholar_src.get("sha256")
-            or source_ctx.get("trusted_round") != (
-                scholar_src.get("round") if scholar_src.get(
-                    "independent_two_source_verified") else None
-            )):
+    if source_ctx.get("draw_sha256") != scholar_src.get("sha256"):
         raise ValueError("specialists disagree about source SHA/verified round")
     source_checks = {c["code"]: c for c in source["checks"]}
     if not {"two_source_trust", "source_sha256"} <= source_checks.keys():
         raise ValueError("missing non-negotiable trust prerequisites")
+    is_verified = scholar_src.get("independent_two_source_verified") is True
+    # The pinned historical 699 fixture has a KNOWN round but not a
+    # VERIFIED result. The source guard may return the known round even
+    # when trusted=False. Never infer trust from round equality alone.
+    declared_round = source_ctx.get("trusted_round")
+    if is_verified:
+        if declared_round != scholar_src.get("round") or (
+                source_checks["two_source_trust"]["status"] != "pass"):
+            raise ValueError("specialists disagree about source SHA/verified round")
+    else:
+        if (source_checks["two_source_trust"]["status"] == "pass"
+                or declared_round not in (None, scholar_src.get("round"))):
+            raise ValueError("unverified draw cannot masquerade as verified")
     source_trusted = (
-        source_checks["two_source_trust"]["status"] == "pass"
+        is_verified
+        and source_checks["two_source_trust"]["status"] == "pass"
         and source_checks["source_sha256"]["status"] == "pass"
-        and scholar_src["independent_two_source_verified"] is True
     )
     if source_trusted and (
         fingerprints["draw"] != scholar_src["sha256"]
