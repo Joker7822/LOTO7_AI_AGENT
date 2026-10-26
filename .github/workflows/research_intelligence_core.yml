@@ -1,0 +1,73 @@
+name: Evidence-Grounded Research Intelligence Core
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every six hours at 12:57 / 18:57 / 00:57 / 06:57 JST, best effort.
+    - cron: "57 3,9,15,21 * * *"
+  pull_request:
+    paths:
+      - "research_intelligence_core.py"
+      - "tests/test_research_intelligence_core.py"
+      - "RESEARCH_INTELLIGENCE_CORE.md"
+      - ".github/workflows/research_intelligence_core.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: research-intelligence-core-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  evidence-decision-support:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install existing dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Test source trust, risk decisions and stable evidence DAG
+        run: |
+          python -m compileall -q research_intelligence_core.py
+          python -m pytest -q tests/test_research_intelligence_core.py \
+            tests/test_research_specialist_agents.py \
+            tests/test_online_research_intelligence.py
+      - name: Run integrated four-agent intelligence assessment
+        run: |
+          python research_intelligence_core.py \
+            --repo-root . \
+            --out-dir research_output/intelligence_core
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          doc = json.loads(Path("research_output/intelligence_core/decision_report.json").read_text())
+          assert len(doc["specialist_statuses"]) == 4
+          assert doc["evidence_graph"]["nodes"]
+          assert doc["work_plan"]
+          assert not any(doc["blocked_automated_actions"].values())
+          assert not doc["no_model_training_started"] is False
+          assert doc["no_production_writes"] is True
+          assert doc["no_registered_evidence_writes"] is True
+          assert doc["predictive_skill_proven"] is False
+          print("risk-ranked priorities:", doc["top_actions"])
+          PY
+          git diff --exit-code -- \
+            loto7.csv STATUS.md loto7_agent_output/ \
+            research/disjoint_future_oos/ weekly_production_prediction.py \
+            production_ticket_geometry35.py loto7_v4_runner.py
+      - name: Display explainable evidence decisions
+        run: cat research_output/intelligence_core/decision_report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive multi-agent evidence and work plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidence-grounded-intelligence
+          path: |
+            research_output/intelligence_core/decision_report.json
+            research_output/intelligence_core/decision_report.md
+          retention-days: 30
