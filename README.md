@@ -338,6 +338,19 @@ python v4_status.py
 登録済み将来検証・Production・Championは変更しません。毎時の実行はGitHub Actionsのベストエフォートで、実行遅延とネットワーク障害は可視化します。
 
 
+## 自律学習・研究用ソース自己改変・将来OOSでの自動昇格
+
+既存の自律進化ラボの**独立照合済み学習履歴**を、
+自律的に書き換わる研究用Pythonソースへ変換する
+`autonomous_self_rewrite.py` を追加しました。
+学習候補の統計値は再計算し、GitHub Actionsが研究専用の
+`research/autonomous_generated/` の2ファイルに限って自動コミットします。
+
+本番Championの将来OOSに基づく**自動昇格**は、既存の厳格な
+Champion・Random・32組のPermutation Ensemble対照条件を維持します。
+研究で自己生成したコードは直接本番に読み込ませません。
+詳しくは [AUTONOMOUS_SELF_REWRITE.md](AUTONOMOUS_SELF_REWRITE.md)。
+
 ## 高度な研究意思決定コア（4専門エージェント横断）
 
 既存のデータ照合、校正、未来OOS、文献審査の4専門エージェントを
