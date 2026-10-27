@@ -1,0 +1,126 @@
+name: Autonomous Self-Rewrite Research and OOS Promotion Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    # After the 6-hour specialist review, at 13:27 / 19:27 / 01:27 / 07:27 JST.
+    - cron: "27 4,10,16,22 * * *"
+  pull_request:
+    paths:
+      - "autonomous_self_rewrite.py"
+      - "tests/test_autonomous_self_rewrite.py"
+      - "AUTONOMOUS_SELF_REWRITE.md"
+      - ".github/workflows/autonomous_self_rewrite.yml"
+  push:
+    branches: [main]
+    paths:
+      - "research/autonomous_generated/**"
+      - "autonomous_self_rewrite.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: autonomous-research-rewrite-main
+  cancel-in-progress: false
+
+jobs:
+  compile-and-learn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Verify self-rewrite, learning and no illicit promotion
+        run: |
+          python -m compileall -q autonomous_self_rewrite.py
+          python -m pytest -q tests/test_autonomous_self_rewrite.py
+      - name: Generate isolated new research source from learned diagnostics
+        run: |
+          python autonomous_self_rewrite.py \
+            --repo-root . \
+            --out-dir research/autonomous_generated
+          python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          p = Path("research/autonomous_generated")
+          if (p / "research_model_manifest.json").exists():
+              data = json.loads((p / "research_model_manifest.json").read_text())
+              generated = (p / "research_model.py").read_bytes()
+              assert hashlib.sha256(generated).hexdigest() == data["source_sha256"]
+              assert data["source_authority"] == "research_only_not_loaded_by_production"
+              assert data["new_experiment_trials"] == 0
+              assert data["champion_changed"] is False
+              assert data["frozen_future_oos_modified"] is False
+          PY
+          git diff --exit-code -- \
+            loto7.csv STATUS.md loto7_agent_output/ \
+            research/disjoint_future_oos/ weekly_production_prediction.py \
+            production_ticket_geometry35.py loto7_v4_runner.py
+      - name: Persist self-rewritten research source only (no Production code)
+        if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python autonomous_self_rewrite.py \
+              --repo-root . \
+              --out-dir research/autonomous_generated
+            if [ ! -f research/autonomous_generated/research_model.py ]; then
+              echo "Learning still gated by verification or old evidence."
+              exit 0
+            fi
+            git add -- \
+              research/autonomous_generated/research_model.py \
+              research/autonomous_generated/research_model_manifest.json
+            changed=$(git diff --cached --name-only)
+            unsafe=$(echo "$changed" | grep -Ev '^research/autonomous_generated/(research_model.py|research_model_manifest.json)$' || true)
+            if [ -n "$unsafe" ]; then
+              echo "::error::Unexpected generated path: $unsafe"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "Autonomous research source already current."
+              exit 0
+            fi
+            git commit -m "research: regenerate isolated learned strategy source"
+            if git push origin HEAD:main; then
+              echo "Autonomous research code self-updated (Production unchanged)."
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Could not commit learned research source safely."
+              exit 1
+            fi
+          done
+      - name: Archive generated research program and evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: autonomous-self-rewrite-research-candidate
+          path: |
+            research/autonomous_generated/research_model.py
+            research/autonomous_generated/research_model_manifest.json
+          if-no-files-found: ignore
+          retention-days: 30
+      - name: Record governance boundary
+        if: always()
+        run: |
+          {
+            echo "## Autonomous learned code and future promotion"
+            echo "The AI can rewrite only its isolated, reproducibly templated research strategy."
+            echo "It never merges arbitrary downloaded code or changes locked predictions."
+            echo "Production Champion auto-promotion remains in the existing strict Future-OOS workflow:"
+            echo "Champion + independently pre-frozen Random + 32 matched-geometry reference gates."
+          } >> "$GITHUB_STEP_SUMMARY"
