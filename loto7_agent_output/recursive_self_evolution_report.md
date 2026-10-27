@@ -1,9 +1,9 @@
 # Recursive self-evolution (research-only)
 
-- Total evolving program generations: **48927** (no global cap)
-- Last-run generations: **3596**
-- Mutation policy learned: **{'restart': 0.195, 'splice': 0.197, 'tune': 0.218, 'wrap': 0.195, 'crossover': 0.195}**
-- Historical selection fitness: **+0.00931738**
+- Total evolving program generations: **50683** (no global cap)
+- Last-run generations: **1756**
+- Mutation policy learned: **{'restart': 0.195, 'splice': 0.197, 'tune': 0.217, 'wrap': 0.195, 'crossover': 0.196}**
+- Historical selection fitness: **+0.00932027**
 - Independent draw-source verified: **True**
 - Draw history SHA256: fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6
 
