@@ -1,7 +1,7 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-27T13:53:30+09:00",
-  "source_commit": "3342a74fcfc27a03d251d99d01ae8781c373cd0a",
+  "generated_at_jst": "2026-10-27T15:16:44+09:00",
+  "source_commit": "c946971b962f454835a4dec649a2f26538c59baa",
   "state_hashes_sha256": "ce4ed3634a069b2c6abbfa0117b1b095f56c63c306c525c0a47cebb972261166",
   "sources": {
     "source": {
@@ -215,12 +215,12 @@
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 40282808121,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40282808121",
-      "updated_at": "2026-10-26T06:57:45Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 40460019642,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40460019642",
+      "updated_at": "2026-10-27T06:15:30Z",
       "recent_failure_count": 0
     },
     {
@@ -229,10 +229,10 @@
       "health": "block",
       "status": "completed",
       "conclusion": "failure",
-      "run_id": 40278022444,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40278022444",
-      "updated_at": "2026-10-26T06:09:08Z",
-      "recent_failure_count": 3
+      "run_id": 40459875034,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40459875034",
+      "updated_at": "2026-10-27T06:15:25Z",
+      "recent_failure_count": 4
     },
     {
       "file": "weekly_production_publisher.yml",
@@ -240,9 +240,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 40277674876,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40277674876",
-      "updated_at": "2026-10-26T06:05:03Z",
+      "run_id": 40459813086,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40459813086",
+      "updated_at": "2026-10-27T06:14:18Z",
       "recent_failure_count": 0
     },
     {
@@ -532,9 +532,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "3342a74fcfc27a03d251d99d01ae8781c373cd0a",
-    "snapshot_generated_at_jst": "2026-10-27T13:53:30+09:00",
-    "computed_at_jst": "2026-10-27T04:53:30+00:00",
+    "source_commit": "c946971b962f454835a4dec649a2f26538c59baa",
+    "snapshot_generated_at_jst": "2026-10-27T15:16:44+09:00",
+    "computed_at_jst": "2026-10-27T06:16:44+00:00",
     "overall": "block",
     "counts": {
       "block": 1,
@@ -557,17 +557,17 @@
     },
     "tasks": [
       {
-        "id": "1ab549d3dd71accf",
+        "id": "e3623bd40573232f",
         "priority": "block",
         "code": "WORKFLOW_FAILED:joint_set_v2_signal_oos.yml",
         "owner": "将来検証エージェント",
         "title": "v2将来検証：最新実行が失敗",
         "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
-        "evidence": "40278022444",
+        "evidence": "40459875034",
         "recommended_action": "SHA固定されたv2台帳を確認し、未凍結予測の事後復元は行わないでください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40278022444"
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40459875034"
       },
       {
         "id": "bef623a2503719e7",
