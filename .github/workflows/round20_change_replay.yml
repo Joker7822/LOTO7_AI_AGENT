@@ -1,0 +1,116 @@
+name: Full Round20 Forecast Replay On Any Change
+
+on:
+  workflow_dispatch:
+  # Run on every repository update, including code, model, research,
+  # validated lottery data and operational configuration changes.
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "round20_change_replay.py"
+      - "tests/test_round20_change_replay.py"
+      - "loto7.csv"
+      - "loto7_evolving_agent.py"
+      - "loto7_v2_runner.py"
+      - "loto7_v3_runner.py"
+      - "historical_replay.py"
+      - "balanced_uniform_portfolio.py"
+      - "top1_overlap34.py"
+      - "production_ticket_geometry35.py"
+      - "autonomous_evolution_lab.py"
+      - "autonomous_self_rewrite.py"
+      - "research/autonomous_generated/**"
+      - "loto7_agent_output/model_champion.json"
+      - "loto7_agent_output/source_validation.json"
+      - ".github/workflows/round20_change_replay.yml"
+      - "ROUND20_CHANGE_REPLAY.md"
+  schedule:
+    # Daily independent replay at 09:25 JST (00:25 UTC), best effort.
+    - cron: "25 0 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: round20-full-replay-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  replay-entire-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      TZ: Asia/Tokyo
+      PYTHONHASHSEED: "0"
+    steps:
+      - name: Read-only checkout, no persisted credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install Python and test dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Verify Round20 cold-start, leakage guards and replay controls
+        run: |
+          python -m compileall -q round20_change_replay.py
+          python -m pytest -q tests/test_round20_change_replay.py
+      - name: Re-forecast EVERY round from round 20
+        run: |
+          python round20_change_replay.py \
+            --repo-root . \
+            --pool-size 100 \
+            --out-dir research_output/round20_replay
+          python - <<'PY'
+          import csv, json, math
+          from pathlib import Path
+          root = Path("research_output/round20_replay")
+          summary = json.loads((root / "summary.json").read_text())
+          with (root / "all_round_predictions.csv").open(
+                  encoding="utf-8-sig", newline="") as stream:
+              rows = list(csv.DictReader(stream))
+          assert summary["first_target_round"] == 20
+          assert summary["first_model_eligible_target"] == 21
+          assert summary["lanes"]["current_champion"]["rounds"] == (
+              summary["last_target_round"] - 19
+          )
+          assert summary["total_retrospective_rows"] == len(rows)
+          assert set(["current_champion", "uniform_disjoint35",
+                      "top1_shared34"]) <= set(summary["lanes"])
+          assert all(row["diagnostic_only"] == "True" for row in rows)
+          assert not summary["production_promoted"]
+          assert not summary["future_oos_registry_or_pre_frozen_predictions_modified"]
+          print("complete historical replay:", summary["first_target_round"],
+                summary["last_target_round"], len(rows))
+          PY
+      - name: Confirm only ignored research_output was written
+        run: |
+          git diff --exit-code -- .
+          if [ -n "$(git ls-files --others --exclude-standard)" ]; then
+            echo "::error::Unexpected tracked-layout file created"
+            git ls-files --others --exclude-standard
+            exit 1
+          fi
+      - name: Present model version, input fingerprints and research comparisons
+        if: success()
+        run: |
+          {
+            echo "## Repository-wide update: all rounds replayed since #20"
+            echo
+            echo "Git source commit: \`${GITHUB_SHA}\`"
+            cat research_output/round20_replay/report.md
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Store every prior-only prediction and its comparison
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: round20-full-forecast-replay
+          path: |
+            research_output/round20_replay/summary.json
+            research_output/round20_replay/all_round_predictions.csv
+            research_output/round20_replay/report.md
+          retention-days: 90
