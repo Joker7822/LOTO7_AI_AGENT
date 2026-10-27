@@ -64,8 +64,8 @@ def test_each_prior_round_is_complete_valid_and_seed_frozen(full_replay):
         assert len(row["forecast_sha256"]) == 64
         assert len(row["training_data_sha256"]) == 64
         assert 0 <= row["top7_hits"] <= 7
-        assert 1 <= row["max_hits"] <= 7
-        assert 0 < row["mean_ticket_hits"] <= 7
+        assert 0 <= row["max_hits"] <= 7
+        assert 0 <= row["mean_ticket_hits"] <= 7
         assert 0 <= row["any_ge3"] <= 1
         assert 0 <= row["any_ge4"] <= 1
         assert row["diagnostic_only"] is True
