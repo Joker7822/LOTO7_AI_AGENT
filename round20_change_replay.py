@@ -56,6 +56,10 @@ SOURCES = (
     "autonomous_self_rewrite.py",
     "round20_change_replay.py",
 )
+OPTIONAL_MODEL_SOURCES = (
+    "research/autonomous_generated/research_model.py",
+    "research/autonomous_generated/research_model_manifest.json",
+)
 HEADER = (
     "target_round", "draw_date", "prior_rounds", "lane", "model_version",
     "training_status", "training_data_sha256", "forecast_sha256",
@@ -301,9 +305,11 @@ def execute(root: Path, pool_size: int = 150) -> tuple[dict, list[dict]]:
     ch_path = root / "loto7_agent_output/model_champion.json"
     x, clean, cfg, source = validate_inputs(root, csv_path, src_path, ch_path)
     learned_cfg, learned_meta = learned_program(root)
+    all_paths = (*SOURCES, *(p for p in OPTIONAL_MODEL_SOURCES
+                             if (root / p).is_file()))
     sources = {str(p): sha((root / p).read_bytes())
-               for p in SOURCES if (root / p).is_file()}
-    if set(sources) != set(SOURCES):
+               for p in all_paths if (root / p).is_file()}
+    if not set(SOURCES).issubset(sources):
         raise ValueError("required algorithm code fingerprint missing")
 
     uniform = np.full(37, 1/37, dtype=float)
@@ -367,7 +373,7 @@ def execute(root: Path, pool_size: int = 150) -> tuple[dict, list[dict]]:
     if learned_cfg and per_lane["autonomous_learned"] != list(
             range(LEARNED_MIN_PRIOR+1, len(x)+1)):
         raise ValueError("learned lane skipped prior eligible rounds")
-    new_sources = {str(p): sha((root / p).read_bytes()) for p in SOURCES}
+    new_sources = {str(p): sha((root / p).read_bytes()) for p in all_paths}
     if sources != new_sources or sha(csv_path.read_bytes()) != source["csv_sha256"]:
         raise ValueError("source inputs changed during replay; reject mixed snapshots")
     return summarize(rows, source, learned_meta, sources, pool_size), rows
