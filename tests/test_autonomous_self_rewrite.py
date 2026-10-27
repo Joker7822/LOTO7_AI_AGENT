@@ -20,7 +20,10 @@ def root_if_consistent():
     # The project's broad CI intentionally installs *pinned 699 history*
     # while retaining latest 700 autonomous ledgers. Research source must
     # not try to rewrite from a mixed snapshot.
-    s = json.loads((ROOT / "loto7_agent_output" / old.STATE).read_text())
+    state_path = ROOT / "loto7_agent_output" / old.STATE
+    if not state_path.exists():
+        pytest.skip("pinned regression fixture omits the live autonomous learning state")
+    s = json.loads(state_path.read_text())
     draw = hashlib.sha256((ROOT / "loto7.csv").read_bytes()).hexdigest()
     if s["data_sha256"] != draw:
         pytest.skip("pinned-699 fixture has stale 700 learned candidate")
