@@ -152,9 +152,12 @@ def test_cannot_register_future_hypothesis_after_first_possible_result(lab_root)
         lab.register(lab_root, out, candidate_registration, 701, CLOCK)
 
 
-def test_full_readonly_pipeline_with_real_original_699_evidence(lab_root, monkeypatch):
+def test_full_readonly_pipeline_with_real_latest_prefix_evidence(lab_root, monkeypatch):
     out = lab_root / "loto7_agent_output"
     original = {p.name: p.read_bytes() for p in out.iterdir()}
+    # The immutable registered hypothesis predates #701, but the real prefix
+    # can legitimately advance from #699 to #700 without changing the model.
+    _, _, expected_round = lab.ledger.validated_draws(lab_root / "loto7.csv")
     # The costly fair-world experiment is verified in dedicated CI's PR real
     # dry-run; unit tests isolate ledger semantics and no-write permissions.
     synthetic = {
@@ -177,7 +180,8 @@ def test_full_readonly_pipeline_with_real_original_699_evidence(lab_root, monkey
     assert not result["production_changed"]
     assert not result["champion_changed"]
     assert not result["registered_existing_shadows_changed"]
-    assert result["latest_seen_round"] == 699
+    assert result["latest_seen_round"] == expected_round
+    assert result["historical_data_sha256"] == lab.fingerprint_file(lab_root / "loto7.csv")
     for name, data in original.items():
         assert (out / name).read_bytes() == data
     assert {p.name for p in out.iterdir()} - original.keys() == {lab.REG, lab.SUMMARY, lab.REPORT}
