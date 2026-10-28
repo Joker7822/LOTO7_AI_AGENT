@@ -3,12 +3,12 @@
 - Registered lab code SHA: **c9c872801cfda0ff27e329049f89456bbc63213fe343b4245bfebd1afa8da7d9**
 - Candidate code SHA protocol: **f30b9e1b7b769a066817d3eef4f07df1528b701bc818c59c9928d47db1537d88**
 - Scope: **research_only**; no Champion / Production / frozen-shadow writes
-- Used history: **640–699** (ALREADY REUSED)
-- Original four log edge: **+0.000017531**
-- New five log edge: **-0.000026000**
-- Paired 4-draw block-bootstrap 95% exploratory interval (five minus four): **[-0.000172227, +0.000094434]**
-- Selection-corrected max(4,5) fair-world empirical tail (n=32): **0.1818**
-- Four 15-draw stability blocks: **[-1.6588325301614138e-05, 6.733681516014241e-05, -6.918966559282073e-05, -0.00015568319917775482]**
+- Used history: **641–700** (ALREADY REUSED)
+- Original four log edge: **-0.000041662**
+- New five log edge: **-0.000072531**
+- Paired 4-draw block-bootstrap 95% exploratory interval (five minus four): **[-0.000157376, +0.000102783]**
+- Selection-corrected max(4,5) fair-world empirical tail (n=32): **0.5758**
+- Four 15-draw stability blocks: **[-2.820026905619629e-05, 0.00010252916944148242, -0.00012913619845582222, -6.866711762124982e-05]**
 
 ## Genuine prospectively pre-frozen evidence (NO future grades are invented)
 - New trustworthy graded targets: **0**
