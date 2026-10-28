@@ -296,12 +296,25 @@ def run(root: Path, *, fetch: Callable[[str], tuple[dict, int]] | None = None) -
     is_search = state.get("current_phase") == "literature_search" or first_verification
     if fetch is None:
         fetch = public_get_json
+    # Share the persisted round-robin cursor with the dedicated DOI verifier.
+    # The legacy code previously selected only the first three on every
+    # search cycle, permanently starving later collected references.
+    aligned = (previous.get("discovery_state_sha256") ==
+               sha256(state_file.read_bytes()) and
+               previous.get("discovery_tip_sha256") == chain[-1]["record_sha256"])
+    cursor = previous.get("rotation_next_index", 0) if aligned else 0
+    if type(cursor) is not int or cursor < 0 or (papers and cursor >= len(papers)):
+        raise ValueError("invalid bibliography rotation cursor")
+    selected_order = ([(cursor + i) % len(papers)
+                       for i in range(min(DOI_LIMIT, len(papers)))]
+                      if is_search and papers else [])
+    selected = set(selected_order)
     output = []
     recovered = 0
     provider_failures = 0
-    for paper in papers:
+    for index, paper in enumerate(papers):
         original = previous_records.get(paper["doi"])
-        if is_search and len(output) < DOI_LIMIT:
+        if index in selected:
             observed = verify_one(paper, fetch)
             provider_failures += len(observed["source_errors"])
             if (observed["status"] == "unavailable" and original and
@@ -332,6 +345,12 @@ def run(root: Path, *, fetch: Callable[[str], tuple[dict, int]] | None = None) -
             else "scheduled_literature_search" if is_search else "not_due"
         ),
         "max_dois_per_cycle": DOI_LIMIT,
+        "rotation_start_index": cursor,
+        "rotation_next_index": (
+            (cursor + len(selected_order)) % len(papers) if papers else 0
+        ),
+        "rotation_total_candidates": len(papers),
+        "rotation_attempted_dois": [papers[i]["doi"] for i in selected_order],
         "verifications": output,
         "two_provider_matches_this_cycle": sum(x["status"] == "two_provider_bibliography_matched"
                                                for x in output),

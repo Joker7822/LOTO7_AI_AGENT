@@ -382,6 +382,20 @@ Champion・Random・32組のPermutation Ensemble対照条件を維持します�
 
 詳細: [研究知能コアの構造と安全性](RESEARCH_INTELLIGENCE_CORE.md)。
 
+## オンライン研究文献をCrossref・OpenAlexで自動巡回照合
+
+オンライン論文の検証を**全候補に届く巡回型**へ強化しました。
+独立API2社でDOI・タイトル・発行年を検査し、
+未照合/不一致/2ソース一致/過去の一致を区別して保存します。
+6時間ごとに3件ずつ検証し、16件なら約6サイクルで全候補を巡回します。
+研究レポートが古くても書誌照合だけは動作します。
+
+- [自動検証手順と監査レポート](ONLINE_LITERATURE_AUTO_VERIFICATION.md)
+- [自動検証のActions実行履歴](https://github.com/Joker7822/LOTO7_AI_AGENT/actions/workflows/online_literature_auto_verify.yml)
+
+書誌情報の一致は査読・全文検証やLOTO7の予測能力を意味しません。
+本番Champion・将来OOS・研究試行予算は変更しません。
+
 ## オンライン収集データの横断分析と安全な実用化
 
 Crossref/OpenAlexの収集済みDOI・論文タイトル・発行年・二重ソース照合記録を
