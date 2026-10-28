@@ -6,6 +6,8 @@ on:
       - "advanced_validation_lab.py"
       - "tests/test_advanced_validation_lab.py"
       - "ADVANCED_VALIDATION_LAB.md"
+      - "research_cycle_provenance_recovery.py"
+      - "tests/test_research_cycle_provenance_recovery.py"
       - ".github/workflows/advanced_validation_lab.yml"
   push:
     branches: [main]
@@ -13,6 +15,8 @@ on:
       - "advanced_validation_lab.py"
       - "tests/test_advanced_validation_lab.py"
       - "ADVANCED_VALIDATION_LAB.md"
+      - "research_cycle_provenance_recovery.py"
+      - "tests/test_research_cycle_provenance_recovery.py"
       - ".github/workflows/advanced_validation_lab.yml"
       - "loto7.csv"
       - "loto7_agent_output/accuracy_extension_agent_registration.json"
@@ -20,8 +24,10 @@ on:
       - "loto7_agent_output/accuracy_extension_agent_state.json"
       - "loto7_agent_output/source_validation.json"
   schedule:
-    # Saturday 16:45 JST: after the prospective fifth-expert job.
-    - cron: "45 7 * * 6"
+    # Recover scientific evidence within a few hours of a newly trusted CSV.
+    # Same-SHA historical calculations are cached by advanced_validation_lab.py.
+    # GitHub Actions cron is best-effort, not a timing guarantee.
+    - cron: "37 */3 * * *"
   workflow_dispatch:
 
 permissions:
@@ -54,7 +60,7 @@ jobs:
       - name: Tests for fair conditional null, code locking and no-leakage
         run: |
           python -m compileall -q advanced_validation_lab.py tests/test_advanced_validation_lab.py
-          python -m pytest -q tests/test_advanced_validation_lab.py
+          python -m pytest -q tests/test_advanced_validation_lab.py tests/test_research_cycle_provenance_recovery.py
       - name: PR audit with identical 32-world null (no tracked writes)
         if: github.event_name == 'pull_request'
         shell: bash
@@ -117,6 +123,13 @@ jobs:
               exit 1
             fi
           done
+      - name: Confirm scientific catch-up and research-cycle readiness
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          python research_cycle_provenance_recovery.py --repo-root .
+          # WAIT_FOR_NEW_DATA is an expected research budget state.
+          # No further optimizer is authorized by this recovery.
       - name: Show inference limits
         if: always()
         run: |
