@@ -1,0 +1,139 @@
+{
+  "version": "frequent-verified-research-feed-v1",
+  "checked_at_utc": "2026-10-28T08:42:46+00:00",
+  "discovery_state_sha256": "6982e30921eb57bd62406cbbe4508213a4cf7197441f9d4990ea7373a0bea42c",
+  "discovery_chain_tip": "19d48f6ef1b02a5e9d16632bb7c6f649a5b2dc9957809d74ddf1a60e6c753eee",
+  "anchored_known_papers": 16,
+  "topic_searched": "online probabilistic forecasting calibration",
+  "next_topic_index": 1,
+  "cycle_count": 1,
+  "window_days": 180,
+  "max_independent_checks_per_cycle": 3,
+  "search_providers": [
+    "crossref",
+    "openalex"
+  ],
+  "provider_errors": [],
+  "search_hits_before_dedup": 8,
+  "new_unanchored_dois_seen": 6,
+  "checked": [
+    {
+      "doi": "10.21203/rs.3.rs-10484149/v1",
+      "status": "two_provider_bibliography_matched"
+    },
+    {
+      "doi": "10.48550/arxiv.2606.19642",
+      "status": "single_provider_only"
+    },
+    {
+      "doi": "10.48550/arxiv.2608.13554",
+      "status": "single_provider_only"
+    }
+  ],
+  "candidate_count": 3,
+  "status_counts": {
+    "single_provider_only": 2,
+    "two_provider_bibliography_matched": 1
+  },
+  "candidates": [
+    {
+      "doi": "10.48550/arxiv.2608.13554",
+      "title": "Defensive Boosting for Online Probabilistic Forecasting",
+      "year": 2026,
+      "status": "single_provider_only",
+      "crossref_consistent": false,
+      "openalex_consistent": true,
+      "abstract_metadata_present": true,
+      "abstract_word_count_max": 266,
+      "source_errors": {
+        "crossref": "permanent_provider_failure"
+      },
+      "transient_retry_count": 0,
+      "full_text_reviewed": false,
+      "peer_review_confirmed": false,
+      "methods_reproduced_from_paper": false,
+      "lottery_prediction_improved": false,
+      "first_seen_utc": "2026-10-28T08:42:46+00:00",
+      "last_checked_utc": "2026-10-28T08:42:46+00:00",
+      "last_two_provider_verified_utc": null,
+      "found_in_anchored_intake": false
+    },
+    {
+      "doi": "10.48550/arxiv.2606.19642",
+      "title": "Rigorous uncertainty quantification of probabilistic AI weather forecasts with conformal prediction",
+      "year": 2026,
+      "status": "single_provider_only",
+      "crossref_consistent": false,
+      "openalex_consistent": true,
+      "abstract_metadata_present": true,
+      "abstract_word_count_max": 147,
+      "source_errors": {
+        "crossref": "permanent_provider_failure"
+      },
+      "transient_retry_count": 0,
+      "full_text_reviewed": false,
+      "peer_review_confirmed": false,
+      "methods_reproduced_from_paper": false,
+      "lottery_prediction_improved": false,
+      "first_seen_utc": "2026-10-28T08:42:46+00:00",
+      "last_checked_utc": "2026-10-28T08:42:46+00:00",
+      "last_two_provider_verified_utc": null,
+      "found_in_anchored_intake": false
+    },
+    {
+      "doi": "10.21203/rs.3.rs-10484149/v1",
+      "title": "A Calibration-Aware Reference Architecture for Resilient Supply Chain Planning: Integrating Conformal Probabilistic Demand Forecasting with Scenario-Based Stochastic Vehicle Routing",
+      "year": 2026,
+      "status": "two_provider_bibliography_matched",
+      "crossref_consistent": true,
+      "openalex_consistent": true,
+      "abstract_metadata_present": true,
+      "abstract_word_count_max": 419,
+      "source_errors": {},
+      "transient_retry_count": 0,
+      "full_text_reviewed": false,
+      "peer_review_confirmed": false,
+      "methods_reproduced_from_paper": false,
+      "lottery_prediction_improved": false,
+      "first_seen_utc": "2026-10-28T08:42:46+00:00",
+      "last_checked_utc": "2026-10-28T08:42:46+00:00",
+      "last_two_provider_verified_utc": "2026-10-28T08:42:46+00:00",
+      "found_in_anchored_intake": false
+    }
+  ],
+  "verified_topics_this_cycle": [
+    "calibration",
+    "distribution_shift"
+  ],
+  "review_topics_from_current_or_prior_corroboration": [
+    "calibration",
+    "distribution_shift"
+  ],
+  "safe_application_handoffs": [
+    {
+      "topic": "calibration",
+      "bibliographic_identity_scope": "some_previous_matches_may_be_stale",
+      "fixed_safe_review_task": "Audit fixed historical Top7 versus fair 49/37 baseline",
+      "constraint": "Read-only descriptive baseline audit; do not refit probabilities",
+      "type": "human_review_only",
+      "automatic_method_adoption": false,
+      "requires_full_text_and_prospective_validation": true
+    },
+    {
+      "topic": "distribution_shift",
+      "bibliographic_identity_scope": "some_previous_matches_may_be_stale",
+      "fixed_safe_review_task": "Check age and SHA agreement across research inputs",
+      "constraint": "Do not infer a change in lottery ball probabilities",
+      "type": "human_review_only",
+      "automatic_method_adoption": false,
+      "requires_full_text_and_prospective_validation": true
+    }
+  ],
+  "unverified_external_inputs_do_not_change_models": true,
+  "new_optimizer_trials": 0,
+  "automatic_paper_method_execution": false,
+  "champion_or_production_modified": false,
+  "future_oos_modified": false,
+  "claim_of_lottery_predictive_improvement": false,
+  "provenance_scope": "discovery_sidecar_only_not_SHA_chained_canonical_intake"
+}
