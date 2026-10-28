@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-29T06:31:11+09:00",
-  "source_commit": "1337837718e97af4771980052937dc7c3bcbeaac",
-  "state_hashes_sha256": "bdb8018fa7c47d6f4ae68fe76f1cf973825481096cf05ad49413949f011fb898",
+  "generated_at_jst": "2026-10-29T07:55:15+09:00",
+  "source_commit": "9e29102f4c2ca5271baa9df9c278409b93cacd99",
+  "state_hashes_sha256": "dff86aafa4d25783fa962d4e85e0352d3127b0cb01e8459c294e46d2325812cd",
   "sources": {
     "source": {
       "status": "ok",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-10-28T16:24:41+09:00",
+      "checked_at_jst": "2026-10-29T07:54:58+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -193,12 +193,12 @@
     {
       "file": "continuous_loto7_v4.yml",
       "label": "継続研究",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 40772151657,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40772151657",
-      "updated_at": "2026-10-28T21:29:44Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 40783544922,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40783544922",
+      "updated_at": "2026-10-28T22:55:02Z",
       "recent_failure_count": 0
     },
     {
@@ -218,21 +218,21 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 40649742041,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40649742041",
-      "updated_at": "2026-10-28T07:24:47Z",
+      "run_id": 40783410622,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40783410622",
+      "updated_at": "2026-10-28T22:55:04Z",
       "recent_failure_count": 0
     },
     {
       "file": "joint_set_v2_signal_oos.yml",
       "label": "v2将来検証",
-      "health": "block",
-      "status": "completed",
-      "conclusion": "failure",
-      "run_id": 40646276839,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40646276839",
-      "updated_at": "2026-10-28T06:51:03Z",
-      "recent_failure_count": 5
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 40783544913,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40783544913",
+      "updated_at": "2026-10-28T22:55:02Z",
+      "recent_failure_count": 4
     },
     {
       "file": "weekly_production_publisher.yml",
@@ -532,12 +532,12 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "1337837718e97af4771980052937dc7c3bcbeaac",
-    "snapshot_generated_at_jst": "2026-10-29T06:31:11+09:00",
-    "computed_at_jst": "2026-10-28T21:31:11+00:00",
-    "overall": "block",
+    "source_commit": "9e29102f4c2ca5271baa9df9c278409b93cacd99",
+    "snapshot_generated_at_jst": "2026-10-29T07:55:15+09:00",
+    "computed_at_jst": "2026-10-28T22:55:15+00:00",
+    "overall": "watch",
     "counts": {
-      "block": 1,
+      "block": 0,
       "watch": 1,
       "info": 1
     },
@@ -556,19 +556,6 @@
       }
     },
     "tasks": [
-      {
-        "id": "eff3b8711fc71fdd",
-        "priority": "block",
-        "code": "WORKFLOW_FAILED:joint_set_v2_signal_oos.yml",
-        "owner": "将来検証エージェント",
-        "title": "v2将来検証：最新実行が失敗",
-        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
-        "evidence": "40646276839",
-        "recommended_action": "SHA固定されたv2台帳を確認し、未凍結予測の事後復元は行わないでください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40646276839"
-      },
       {
         "id": "bef623a2503719e7",
         "priority": "watch",
