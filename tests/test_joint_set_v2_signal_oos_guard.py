@@ -71,15 +71,46 @@ def test_untrusted_source_waits_instead_of_grading(tmp_path):
     assert res["status"] == "untrusted_wait"
 
 
-def test_guard_enforces_existing_registered_manifest_and_clean_state(tmp_path):
-    for name in (shadow.REGISTRATION_NAME, shadow.STATE_NAME):
+def copy_existing_shadow_fixture(tmp_path):
+    """Copy the complete real prospective state, never just state/registration.
+
+    Current main has an immutable #701 vector and append-only history; the
+    pinned #699 regression fixture has no vector yet. Both are valid and
+    MUST remain valid, without rewriting the registration or locked model.
+    """
+    for name in (
+        shadow.REGISTRATION_NAME, shadow.STATE_NAME,
+        shadow.REGISTRY_NAME, shadow.FREEZE_HISTORY_NAME, shadow.RESULTS_NAME
+    ):
         src = Path("loto7_agent_output") / name
-        (tmp_path / name).write_bytes(src.read_bytes())
+        if src.is_file():
+            (tmp_path / name).write_bytes(src.read_bytes())
+    registry = shadow.load_json(tmp_path / shadow.REGISTRY_NAME)
+    state = shadow.load_json(tmp_path / shadow.STATE_NAME)
+    history = shadow.read_freeze_history(tmp_path / shadow.FREEZE_HISTORY_NAME)
+    return state, registry, history
+
+
+def test_guard_enforces_existing_registered_manifest_and_clean_state(tmp_path):
+    state, registry, history = copy_existing_shadow_fixture(tmp_path)
     out = guard.validate_existing_shadow(tmp_path)
-    assert out == {"registration_locked": True, "trusted_draws": 0, "current_target": None}
+    assert out == {
+        "registration_locked": True,
+        "trusted_draws": len(shadow.read_result_rows(tmp_path / shadow.RESULTS_NAME)),
+        "current_target": registry.get("target_round"),
+    }
+    if registry:
+        # A real prefrozen target MUST be backed by byte-for-byte matching
+        # append-only history, rather than being stripped from the fixture.
+        assert state["current_target_round"] == registry["target_round"]
+        assert history[registry["target_round"]] == registry
+        assert registry["source_verification_at_freeze"] == "verified_two_result_sources"
+    else:
+        assert state["current_target_round"] is None
+        assert not history
+
     state_path = tmp_path / shadow.STATE_NAME
-    state = json.loads(state_path.read_text(encoding="utf-8"))
-    state["trusted_draws"] = 1
+    state["trusted_draws"] = len(shadow.read_result_rows(tmp_path / shadow.RESULTS_NAME)) + 1
     state_path.write_text(json.dumps(state), encoding="utf-8")
     with pytest.raises(ValueError, match="count"):
         guard.validate_existing_shadow(tmp_path)
@@ -88,9 +119,15 @@ def test_guard_enforces_existing_registered_manifest_and_clean_state(tmp_path):
 def test_real_registration_lifecycle_699_700_701_702_and_miss(tmp_path, monkeypatch):
     # Runs the actual registered state machine with a synthetic result stream. The
     # computational forecast alone is stubbed to isolate lifecycle/immutability.
-    for name in (shadow.REGISTRATION_NAME, shadow.STATE_NAME):
-        src = Path("loto7_agent_output") / name
-        (tmp_path / name).write_bytes(src.read_bytes())
+    # This synthetic run intentionally starts BEFORE #700 was verified.
+    # Seed its own valid pre-freeze state, never re-use a live #701 frozen
+    # state with the corresponding registry/history missing.
+    src = Path("loto7_agent_output") / shadow.REGISTRATION_NAME
+    (tmp_path / shadow.REGISTRATION_NAME).write_bytes(src.read_bytes())
+    original = shadow.load_json(tmp_path / shadow.REGISTRATION_NAME)
+    (tmp_path / shadow.STATE_NAME).write_text(
+        json.dumps(shadow.default_state(original)), encoding="utf-8"
+    )
     reg_bytes = (tmp_path / shadow.REGISTRATION_NAME).read_bytes()
     scenario = {"round": 699, "trusted": True}
 
@@ -177,4 +214,52 @@ def test_guard_rejects_registry_without_matching_freeze_history(tmp_path):
     }
     (tmp_path / shadow.REGISTRY_NAME).write_text(json.dumps(registry), encoding="utf-8")
     with pytest.raises(ValueError, match="immutable freeze history"):
+        guard.validate_existing_shadow(tmp_path)
+
+
+def test_real_prefrozen_target_rejects_missing_freeze_history(tmp_path):
+    state, registry, history = copy_existing_shadow_fixture(tmp_path)
+    if not registry:
+        pytest.skip("pinned historical #699 fixture predates the first #701 freeze")
+    assert state["current_target_round"] == 701
+    assert history[701] == registry
+    (tmp_path / shadow.FREEZE_HISTORY_NAME).unlink()
+    with pytest.raises(ValueError, match="immutable freeze history"):
+        guard.validate_existing_shadow(tmp_path)
+
+
+def test_real_prefrozen_registry_rejects_tamper_without_altering_source(tmp_path):
+    state, registry, history = copy_existing_shadow_fixture(tmp_path)
+    if not registry:
+        pytest.skip("pinned historical #699 fixture predates the first #701 freeze")
+    registered = (tmp_path / shadow.REGISTRATION_NAME).read_bytes()
+    freeze_bytes = (tmp_path / shadow.FREEZE_HISTORY_NAME).read_bytes()
+    forged = dict(registry)
+    forged["inclusion_p_sha256"] = "0" * 64
+    (tmp_path / shadow.REGISTRY_NAME).write_text(
+        json.dumps(forged), encoding="utf-8"
+    )
+    with pytest.raises(ValueError):
+        guard.validate_existing_shadow(tmp_path)
+    assert (tmp_path / shadow.REGISTRATION_NAME).read_bytes() == registered
+    assert (tmp_path / shadow.FREEZE_HISTORY_NAME).read_bytes() == freeze_bytes
+
+
+def test_initial_unfrozen_registration_is_valid_only_with_no_target(tmp_path):
+    src = Path("loto7_agent_output") / shadow.REGISTRATION_NAME
+    (tmp_path / shadow.REGISTRATION_NAME).write_bytes(src.read_bytes())
+    registered = shadow.load_json(tmp_path / shadow.REGISTRATION_NAME)
+    (tmp_path / shadow.STATE_NAME).write_text(
+        json.dumps(shadow.default_state(registered)), encoding="utf-8"
+    )
+    out = guard.validate_existing_shadow(tmp_path)
+    assert out == {"registration_locked": True, "trusted_draws": 0,
+                   "current_target": None}
+    # An existing target without an immutable vector is always an error.
+    state = shadow.default_state(registered)
+    state["current_target_round"] = 701
+    (tmp_path / shadow.STATE_NAME).write_text(
+        json.dumps(state), encoding="utf-8"
+    )
+    with pytest.raises(ValueError, match="current target exists without a frozen vector"):
         guard.validate_existing_shadow(tmp_path)
