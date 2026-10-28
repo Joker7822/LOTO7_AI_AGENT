@@ -89,7 +89,10 @@ def test_stale_two_provider_match_is_not_rebranded_as_current(copy_repo):
     store(copy_repo, one)
     two = call(copy_repo)
     assert two["status_counts"] == {feed.PREVIOUSLY: 1}
-    assert two["safe_application_handoffs"] == []
+    assert two["verified_topics_this_cycle"] == []
+    assert two["safe_application_handoffs"][0]["type"] == "human_review_only"
+    assert two["new_unanchored_dois_seen"] == 0
+    assert two["checked"] == []
     assert two["candidate_count"] == 1
 
 
