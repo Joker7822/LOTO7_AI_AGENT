@@ -44,7 +44,10 @@ jobs:
       - name: Test complete literature rotation and trust isolation
         run: |
           python -m compileall -q online_literature_auto_verify.py
-          python -m pytest -q tests/test_online_literature_auto_verify.py tests/test_research_evidence_resilience.py
+          python -m pytest -q tests/test_online_literature_auto_verify.py
+          # The legacy verifier's regression fixtures are pinned to #699.
+          # Do not relax its scientific SHA gate against current #700 data.
+          bash scripts/ci_verify_frozen_regressions.sh tests/test_research_evidence_resilience.py
       - name: Independently verify next three DOIs and commit only bibliography
         if: github.event_name != 'pull_request'
         shell: bash
