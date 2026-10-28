@@ -1,0 +1,117 @@
+name: Auto Verify All Online Research References
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every six hours, e.g. 10:07/16:07/22:07/04:07 JST.
+    - cron: "7 1,7,13,19 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "online_literature_auto_verify.py"
+      - "tests/test_online_literature_auto_verify.py"
+      - ".github/workflows/online_literature_auto_verify.yml"
+      - "loto7_agent_output/always_on_accuracy_research_state.json"
+      - "loto7_agent_output/always_on_accuracy_research_journal.jsonl"
+  pull_request:
+    paths:
+      - "online_literature_auto_verify.py"
+      - "tests/test_online_literature_auto_verify.py"
+      - ".github/workflows/online_literature_auto_verify.yml"
+      - "ONLINE_LITERATURE_AUTO_VERIFICATION.md"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rotating-online-scholarship-verification
+  cancel-in-progress: false
+
+jobs:
+  DOI-independent-recheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install existing research and testing libraries
+        run: python -m pip install -r requirements.txt pytest
+      - name: Test complete literature rotation and trust isolation
+        run: |
+          python -m compileall -q online_literature_auto_verify.py
+          python -m pytest -q tests/test_online_literature_auto_verify.py tests/test_research_evidence_resilience.py
+      - name: Independently verify next three DOIs and commit only bibliography
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python online_literature_auto_verify.py --repo-root . --output-dir loto7_agent_output
+            python - <<'PY'
+          import hashlib, json
+          from pathlib import Path
+          out=Path("loto7_agent_output/research_verified_publications.json")
+          data=json.loads(out.read_text())
+          state=Path("loto7_agent_output/always_on_accuracy_research_state.json")
+          chain=Path("loto7_agent_output/always_on_accuracy_research_journal.jsonl")
+          last=json.loads(chain.read_text().splitlines()[-1])
+          assert data["discovery_state_sha256"] == hashlib.sha256(state.read_bytes()).hexdigest()
+          assert data["discovery_tip_sha256"] == last["record_sha256"]
+          assert data["full_text_reviewed_count"] == 0
+          assert data["automatic_adoption"] is False
+          assert data["future_registry_changed"] is False
+          assert data["production_changed"] is False
+          assert len(data["rotation_attempted_dois"]) <= 3
+          print("Next DOI rotation:", data["rotation_next_index"])
+          PY
+            git diff --exit-code -- \
+              loto7.csv STATUS.md \
+              loto7_agent_output/model_champion.json \
+              loto7_agent_output/always_on_accuracy_research_state.json \
+              loto7_agent_output/always_on_accuracy_research_journal.jsonl \
+              research/disjoint_future_oos/ \
+              weekly_production_prediction.py production_ticket_geometry35.py
+            git add -- \
+              loto7_agent_output/research_verified_publications.json \
+              loto7_agent_output/research_verified_publications_auto_report.md
+            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/research_verified_publications(_auto_report.md|.json)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Attempted to stage protected paths: $unexpected"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "No bibliographic changes required."
+              break
+            fi
+            git commit -m "research: automatically rotate and verify scholarly DOI references"
+            if git push origin HEAD:main; then
+              echo "Verified bibliography updated; Production unchanged."
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Concurrent update; could not commit evidence."
+              exit 1
+            fi
+          done
+      - name: Human-readable verification summary
+        if: github.event_name != 'pull_request'
+        run: |
+          cat loto7_agent_output/research_verified_publications_auto_report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Store verification audit snapshot
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: rotating-independent-DOI-verification
+          path: |
+            loto7_agent_output/research_verified_publications.json
+            loto7_agent_output/research_verified_publications_auto_report.md
+          retention-days: 90
