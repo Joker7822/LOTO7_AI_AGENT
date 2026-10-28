@@ -397,7 +397,7 @@ def evidence_engine(
 
 def recent_online_research_projection(root: Path) -> dict:
     """Make *verified public metadata* usable by the established decision core."""
-    from frequent_online_research_feed import FILE, VERSION, TWO_SOURCE
+    from frequent_online_research_feed import FILE, VERSION, TWO_SOURCE, PREVIOUSLY
     import always_on_accuracy_agent as discovery
     from research_literature_pipeline import paper_topics
     from online_research_intelligence import SAFE_METHODS
@@ -424,10 +424,13 @@ def recent_online_research_projection(root: Path) -> dict:
     if not isinstance(entries, list) or len(entries) > 48:
         raise ValueError("invalid bounded external DOI candidates")
     matched = []
+    fresh_matches = 0
     for paper in entries:
         if (not isinstance(paper, dict)
-                or paper.get("status") != TWO_SOURCE):
+                or paper.get("status") not in (TWO_SOURCE, PREVIOUSLY)):
             continue
+        if paper["status"] == TWO_SOURCE:
+            fresh_matches += 1
         if (paper.get("crossref_consistent") is not True
                 or paper.get("openalex_consistent") is not True
                 or any(paper.get(flag) is not False for flag in (
@@ -442,11 +445,14 @@ def recent_online_research_projection(root: Path) -> dict:
         if topic in SAFE_METHODS
     })
     return {
-        "status": "fresh_metadata_review_candidates" if themes else "no_new_dual_source_leads",
+        "status": ("fresh_metadata_review_candidates" if fresh_matches and themes
+                   else "previously_verified_review_candidates" if themes
+                   else "no_usable_dual_source_leads"),
         "feed_sha256": _sha_file(p),
         "last_online_search_utc": record.get("checked_at_utc"),
         "new_candidate_count": record.get("candidate_count", 0),
-        "two_source_matches_from_last_cycle": len(matched),
+        "two_source_matches_from_last_cycle": fresh_matches,
+        "two_source_matched_or_previously_matched": len(matched),
         "priority_topics_for_human_review": themes,
         "locally_fixed_handoffs": [SAFE_METHODS[t][0] for t in themes],
         "model_change_authorized": False,
