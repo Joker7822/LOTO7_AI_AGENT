@@ -1,15 +1,15 @@
 {
   "version": "always-on-accuracy-research-v1",
-  "sequence": 22,
-  "last_record_sha256": "19d48f6ef1b02a5e9d16632bb7c6f649a5b2dc9957809d74ddf1a60e6c753eee",
-  "last_activity_jst": "2026-10-24T09:46:28+09:00",
-  "current_phase": "generalization",
-  "current_activity": "過去モデル比較・多重比較を点検",
+  "sequence": 23,
+  "last_record_sha256": "7e0f7fdd1b215ff38fab92fa63127b12f86ae105f673abe889df9089a76ef340",
+  "last_activity_jst": "2026-10-29T08:13:14+09:00",
+  "current_phase": "calibration",
+  "current_activity": "未来の校正と逐次e値を点検",
   "status": "active_bounded_research",
   "research_mode": "WAIT_FOR_NEW_DATA",
-  "latest_resolved_round": 699,
-  "two_source_verified": false,
-  "same_data_trials": 768,
+  "latest_resolved_round": 700,
+  "two_source_verified": true,
+  "same_data_trials": 800,
   "max_same_data_trials": 800,
   "future_verified_counts": {
     "holdout": 7,
@@ -134,10 +134,9 @@
   ],
   "new_papers_count": 0,
   "review_notes": [
-    "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
     "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
     "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-    "過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。"
+    "検証済み未来データに限るe値: 1"
   ],
   "promotion_authorized": false,
   "read_only_scientific_activity": true

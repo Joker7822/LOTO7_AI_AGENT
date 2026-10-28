@@ -1,7 +1,7 @@
 # Research-to-Application Scientific Gate
 
 Status: **Research-only; human validation required.**
-Two-source draw trust: **False**
+Two-source draw trust: **True**
 Research mode: **WAIT_FOR_NEW_DATA**
 Public paper records: **16**
 Two-provider matching DOI records: **0**

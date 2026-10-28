@@ -1,18 +1,17 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-10-24T09:46:28+09:00**
-- Completed audit cycles: **22**
-- This cycle: **generalization** / 過去モデル比較・多重比較を点検
+- Last executed: **2026-10-29T08:13:14+09:00**
+- Completed audit cycles: **23**
+- This cycle: **calibration** / 未来の校正と逐次e値を点検
 - Network discovery: **not_scheduled**
-- Trusted draw latest: **699**, two-source: **False**
-- Research guard: **WAIT_FOR_NEW_DATA**, same-data trials: **768/800**
+- Trusted draw latest: **700**, two-source: **True**
+- Research guard: **WAIT_FOR_NEW_DATA**, same-data trials: **800/800**
 - Future actuals: portfolio 7/26, v2 0, fifth-expert 0
 
 ## Completed evidence review
-- 独立2ソース未照合。未信頼結果で将来予測を採点しない。
 - 探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。
+- 検証済み未来データに限るe値: 1
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
 - [A note on adaptive conformal prediction for time series with structural breaks](https://doi.org/10.2139/ssrn.5946791) (2025) — UNREVIEWED
