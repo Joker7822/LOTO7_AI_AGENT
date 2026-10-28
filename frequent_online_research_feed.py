@@ -167,7 +167,25 @@ def run(root: Path, *,
             continue
     # Retain no more than MAX_STORED; prioritize NEW items. Neither a
     # search-result appearance nor count of providers is a verification.
-    choices = [p for doi, p in fresh.items() if doi not in anchored_dois]
+    new_dois = {doi for doi in fresh
+                if doi not in anchored_dois and doi not in known}
+    # Do not repeatedly query a known, recently checked DOI on each 2h
+    # pass, starving other topics and needlessly using external API budget.
+    def due(doi: str) -> bool:
+        prior = known.get(doi)
+        if prior is None:
+            return True
+        last = prior.get("last_checked_utc")
+        try:
+            dt = datetime.fromisoformat(last) if isinstance(last, str) else None
+            return (dt is None or dt.tzinfo is None
+                    or (now - dt).total_seconds() >= 24*3600
+                    or (now - dt).total_seconds() < 0)
+        except ValueError:
+            return True
+
+    choices = [p for doi, p in fresh.items()
+               if doi not in anchored_dois and due(doi)]
     choices.sort(key=lambda p: (p["doi"] in known, p["doi"]))
     selected = choices[:MAX_CHECKS]
     verified = {}
@@ -208,7 +226,8 @@ def run(root: Path, *,
                         reverse=True)[:MAX_STORED]
     counts = dict(sorted(Counter(p["status"] for p in candidates).items()))
     verified_relevant = [p for p in candidates
-                         if p["status"] == TWO_SOURCE]
+                         if p["status"] in (TWO_SOURCE, PREVIOUSLY)]
+    freshly_verified = [p for p in candidates if p["status"] == TWO_SOURCE]
     # Externally supplied titles may inform TOPIC CLASSIFICATION but never
     # become executable, persuasive instructions or model code.
     topics = sorted({
@@ -218,6 +237,7 @@ def run(root: Path, *,
     })
     handoffs = [
         {"topic": t,
+         "bibliographic_identity_scope": "some_previous_matches_may_be_stale",
          "fixed_safe_review_task": intelligence.SAFE_METHODS[t][0],
          "constraint": intelligence.SAFE_METHODS[t][1],
          "type": "human_review_only",
@@ -241,12 +261,16 @@ def run(root: Path, *,
         "search_providers": ["crossref", "openalex"],
         "provider_errors": provider_errors,
         "search_hits_before_dedup": len(results),
-        "new_unanchored_dois_seen": len(choices),
+        "new_unanchored_dois_seen": len(new_dois),
         "checked": checked,
         "candidate_count": len(candidates),
         "status_counts": counts,
         "candidates": candidates,
-        "verified_topics_this_cycle": topics,
+        "verified_topics_this_cycle": sorted({
+            t for p in freshly_verified for t in review.paper_topics(p["title"])
+            if t in intelligence.SAFE_METHODS
+        }),
+        "review_topics_from_current_or_prior_corroboration": topics,
         "safe_application_handoffs": handoffs,
         "unverified_external_inputs_do_not_change_models": True,
         "new_optimizer_trials": 0,
