@@ -199,3 +199,36 @@ def test_existing_known_doi_is_not_new_discovery(copy_repo):
 def test_unknown_fixed_topic_is_never_executed_from_web(copy_repo):
     assert "calibration" in feed.intelligence.SAFE_METHODS
     assert all(v[0] != "Run paper code" for v in feed.intelligence.SAFE_METHODS.values())
+
+
+def test_integrated_intelligence_consumes_only_verified_new_topics(copy_repo):
+    import research_intelligence_core as core
+    assert core.recent_online_research_projection(copy_repo)["status"] == "not_yet_published"
+    data = call(copy_repo)
+    store(copy_repo, data)
+    r = core.recent_online_research_projection(copy_repo)
+    assert r["status"] == "fresh_metadata_review_candidates"
+    assert r["priority_topics_for_human_review"] == ["calibration"]
+    assert r["locally_fixed_handoffs"] == [
+        feed.intelligence.SAFE_METHODS["calibration"][0]
+    ]
+    assert r["model_change_authorized"] is False
+    assert r["source_identity_only_not_methodology_validated"] is True
+
+
+def test_integrated_intelligence_refuses_outdated_and_forged_feed(copy_repo):
+    import research_intelligence_core as core
+    data = call(copy_repo)
+    store(copy_repo, data)
+    path = copy_repo/"loto7_agent_output"/feed.FILE
+    forged = copy.deepcopy(data)
+    forged["automatic_paper_method_execution"] = True
+    path.write_text(json.dumps(forged))
+    with pytest.raises(ValueError, match="unsafe external discovery"):
+        core.recent_online_research_projection(copy_repo)
+    forged["automatic_paper_method_execution"] = False
+    forged["discovery_state_sha256"] = "0"*64
+    path.write_text(json.dumps(forged))
+    stale = core.recent_online_research_projection(copy_repo)
+    assert stale["status"] == "stale_discovery_snapshot"
+    assert stale["model_change_authorized"] is False
