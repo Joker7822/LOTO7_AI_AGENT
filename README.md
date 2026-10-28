@@ -382,6 +382,17 @@ Champion・Random・32組のPermutation Ensemble対照条件を維持します�
 
 詳細: [研究知能コアの構造と安全性](RESEARCH_INTELLIGENCE_CORE.md)。
 
+## 新着研究を2時間ごとに自動収集・照合し、研究判断に活用
+
+CrossrefとOpenAlexの検索APIで最新180日分の論文候補を
+**2時間ごとに新規発見**し、DOI/タイトル/発行年を
+両サービスの詳細情報で独立照合する
+`frequent_online_research_feed.py` を追加しました。
+新着候補から生じた**人間による方法論レビュー課題**だけを
+統合研究知能コアに反映します。未確認候補は自動採用しません。
+
+[頻繁なオンライン収集・検証・実用化の運用手順](FREQUENT_ONLINE_RESEARCH_FEED.md)
+
 ## オンライン研究文献をCrossref・OpenAlexで自動巡回照合
 
 オンライン論文の検証を**全候補に届く巡回型**へ強化しました。

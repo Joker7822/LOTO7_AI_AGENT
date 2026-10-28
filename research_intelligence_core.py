@@ -395,6 +395,71 @@ def evidence_engine(
     }
 
 
+def recent_online_research_projection(root: Path) -> dict:
+    """Make *verified public metadata* usable by the established decision core."""
+    from frequent_online_research_feed import FILE, VERSION, TWO_SOURCE, PREVIOUSLY
+    import always_on_accuracy_agent as discovery
+    from research_literature_pipeline import paper_topics
+    from online_research_intelligence import SAFE_METHODS
+    p = root / "loto7_agent_output" / FILE
+    if not p.exists():
+        return {"status": "not_yet_published", "model_change_authorized": False}
+    record = json.loads(p.read_text(encoding="utf-8"))
+    if (not isinstance(record, dict) or record.get("version") != VERSION
+            or record.get("automatic_paper_method_execution") is not False
+            or record.get("champion_or_production_modified") is not False
+            or record.get("future_oos_modified") is not False
+            or record.get("claim_of_lottery_predictive_improvement") is not False
+            or record.get("new_optimizer_trials") != 0):
+        raise ValueError("unsafe external discovery sidecar")
+    state = root / "loto7_agent_output" / "always_on_accuracy_research_state.json"
+    journal = root / "loto7_agent_output" / "always_on_accuracy_research_journal.jsonl"
+    chain = discovery.read_chain(journal)
+    if (record.get("discovery_state_sha256") != _sha_file(state)
+            or not chain
+            or record.get("discovery_chain_tip") != chain[-1]["record_sha256"]):
+        return {"status": "stale_discovery_snapshot",
+                "model_change_authorized": False}
+    entries = record.get("candidates")
+    if not isinstance(entries, list) or len(entries) > 48:
+        raise ValueError("invalid bounded external DOI candidates")
+    matched = []
+    fresh_matches = 0
+    for paper in entries:
+        if (not isinstance(paper, dict)
+                or paper.get("status") not in (TWO_SOURCE, PREVIOUSLY)):
+            continue
+        if paper["status"] == TWO_SOURCE:
+            fresh_matches += 1
+        if (paper.get("crossref_consistent") is not True
+                or paper.get("openalex_consistent") is not True
+                or any(paper.get(flag) is not False for flag in (
+                    "full_text_reviewed", "peer_review_confirmed",
+                    "methods_reproduced_from_paper", "lottery_prediction_improved"
+                ))):
+            raise ValueError("untrusted source claims verified external method")
+        matched.append(paper)
+    themes = sorted({
+        topic for p in matched
+        for topic in paper_topics(p["title"])
+        if topic in SAFE_METHODS
+    })
+    return {
+        "status": ("fresh_metadata_review_candidates" if fresh_matches and themes
+                   else "previously_verified_review_candidates" if themes
+                   else "no_usable_dual_source_leads"),
+        "feed_sha256": _sha_file(p),
+        "last_online_search_utc": record.get("checked_at_utc"),
+        "new_candidate_count": record.get("candidate_count", 0),
+        "two_source_matches_from_last_cycle": fresh_matches,
+        "two_source_matched_or_previously_matched": len(matched),
+        "priority_topics_for_human_review": themes,
+        "locally_fixed_handoffs": [SAFE_METHODS[t][0] for t in themes],
+        "model_change_authorized": False,
+        "source_identity_only_not_methodology_validated": True,
+    }
+
+
 def run(root: Path) -> dict:
     root = root.resolve()
     # Snapshot BEFORE any analysis, then reject a concurrent source change.
@@ -410,10 +475,12 @@ def run(root: Path) -> dict:
     fresh = {name: _sha_file(root / path) for name, path in SOURCE_FILES.items()}
     if fresh != fingerprints:
         raise RuntimeError("concurrent evidence modification; retry on coherent snapshot")
-    return evidence_engine(
+    result = evidence_engine(
         reports, scholarly, fingerprints=fingerprints,
         champion_version=champion.get("model_version"),
     )
+    result["frequent_verified_online_research"] = recent_online_research_projection(root)
+    return result
 
 
 def markdown(result: dict) -> str:
@@ -428,6 +495,13 @@ def markdown(result: dict) -> str:
     ]
     for name, status in result["specialist_statuses"].items():
         lines.append(f"- **{name}**: {status}")
+    if "frequent_verified_online_research" in result:
+        fresh = result["frequent_verified_online_research"]
+        lines += ["", "## Frequently verified new online evidence",
+                  f"- Status: {fresh['status']}",
+                  "- Public bibliographic metadata only; no model authority."]
+        for topic in fresh.get("priority_topics_for_human_review", []):
+            lines.append(f"- Human review priority: {topic}")
     lines += ["", "## Ranked next steps (advisory only)"]
     for i, task in enumerate(result["work_plan"], 1):
         deps = ", ".join(task["required_prior_tasks"]) or "none"
