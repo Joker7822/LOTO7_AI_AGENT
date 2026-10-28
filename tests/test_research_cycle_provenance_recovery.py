@@ -60,7 +60,12 @@ def test_actual_current_repository_is_in_scientific_catchup_state():
     # between CI runs, so both states are legitimate; the guard is NEVER
     # allowed to authorize a new same-SHA optimizer search.
     assert current["latest_resolved_round"] >= 699
-    assert current["status"] in {"REFRESH_REGISTERED_SCIENCE", "READY_FOR_BOUNDED_RESEARCH"}
+    assert current["status"] in {
+        "WAIT_FOR_INDEPENDENT_SOURCE", "WAIT_FOR_RESEARCH_GUARD",
+        "REFRESH_REGISTERED_SCIENCE", "READY_FOR_BOUNDED_RESEARCH"
+    }
+    if not current["source_trusted"]:
+        assert not current["hourly_ledger_can_advance"]
     assert current["new_optimizer_trials_authorized"] is False
     assert current["production_champion_modified"] is False
     assert current["registered_26_draw_state_modified"] is False
