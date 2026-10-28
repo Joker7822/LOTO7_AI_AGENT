@@ -205,3 +205,22 @@ def test_previous_discovery_sha_change_resets_untrusted_old_matches(repo):
     assert report["verification_status_counts"]["not_yet_checked"] == (
         report["rotation_total_candidates"] - 3
     )
+
+
+def test_existing_hourly_verifier_preserves_dedicated_rotation_cursor(repo, monkeypatch):
+    # The hourly research pipeline may resume once its #700 science SHA
+    # catches up. It must not silently reset the independent DOI rotation.
+    report = agent.build(repo, fetch=provider_fetch(repo), now=NOW)
+    persist(repo, report)
+    assert report["rotation_next_index"] == 3
+    state = discovery.read_json(repo / "loto7_agent_output" / discovery.STATE)
+    assert state["current_phase"] != "literature_search"
+    monkeypatch.setattr(paper_guard.discovery, "inspect_evidence",
+                        lambda _: {"research_mode": state["research_mode"],
+                                   "latest_round": state["latest_resolved_round"]})
+    def should_not_call_api(url):
+        raise AssertionError("non-literature research phase should not query DOI API")
+    output = paper_guard.run(repo, fetch=should_not_call_api)
+    assert output["evidence"]["rotation_next_index"] == 3
+    assert output["evidence"]["rotation_attempted_dois"] == []
+    assert output["evidence"]["automatic_adoption"] is False
