@@ -398,6 +398,7 @@ def evidence_engine(
 def recent_online_research_projection(root: Path) -> dict:
     """Make *verified public metadata* usable by the established decision core."""
     from frequent_online_research_feed import FILE, VERSION, TWO_SOURCE
+    import always_on_accuracy_agent as discovery
     from research_literature_pipeline import paper_topics
     from online_research_intelligence import SAFE_METHODS
     p = root / "loto7_agent_output" / FILE
@@ -413,7 +414,7 @@ def recent_online_research_projection(root: Path) -> dict:
         raise ValueError("unsafe external discovery sidecar")
     state = root / "loto7_agent_output" / "always_on_accuracy_research_state.json"
     journal = root / "loto7_agent_output" / "always_on_accuracy_research_journal.jsonl"
-    chain = specialists.discovery.read_chain(journal)
+    chain = discovery.read_chain(journal)
     if (record.get("discovery_state_sha256") != _sha_file(state)
             or not chain
             or record.get("discovery_chain_tip") != chain[-1]["record_sha256"]):
