@@ -1,0 +1,115 @@
+name: Frequent Online Research Discovery and Verified Applications
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every two hours (GitHub best-effort schedule).
+    - cron: "19 */2 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "frequent_online_research_feed.py"
+      - "tests/test_frequent_online_research_feed.py"
+      - ".github/workflows/frequent_online_research_feed.yml"
+  pull_request:
+    paths:
+      - "frequent_online_research_feed.py"
+      - "tests/test_frequent_online_research_feed.py"
+      - ".github/workflows/frequent_online_research_feed.yml"
+      - "FREQUENT_ONLINE_RESEARCH_FEED.md"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: frequent-online-research-feed-main
+  cancel-in-progress: false
+
+jobs:
+  search-verify-triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install existing research dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Verify provenance and bounded scientific behavior
+        run: |
+          python -m compileall -q frequent_online_research_feed.py
+          python -m pytest -q tests/test_frequent_online_research_feed.py
+      - name: Discover recent papers, cross-check providers and persist research-only sidecar
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python frequent_online_research_feed.py --repo-root . --out-dir loto7_agent_output
+            python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          out=Path("loto7_agent_output")
+          data=json.loads((out/"online_fresh_research_feed.json").read_text())
+          assert data["discovery_state_sha256"] == hashlib.sha256(
+              (out/"always_on_accuracy_research_state.json").read_bytes()
+          ).hexdigest()
+          assert data["automatic_paper_method_execution"] is False
+          assert data["new_optimizer_trials"] == 0
+          assert data["champion_or_production_modified"] is False
+          assert data["future_oos_modified"] is False
+          assert not data["claim_of_lottery_predictive_improvement"]
+          assert len(data["checked"]) <= 3
+          print("research review candidates:", data["verified_topics_this_cycle"])
+          PY
+            git diff --exit-code -- \
+              loto7.csv STATUS.md \
+              loto7_agent_output/model_champion.json \
+              loto7_agent_output/research_cycle_guard.json \
+              loto7_agent_output/always_on_accuracy_research_state.json \
+              loto7_agent_output/always_on_accuracy_research_journal.jsonl \
+              research/disjoint_future_oos/ \
+              weekly_production_prediction.py production_ticket_geometry35.py
+            git add -- \
+              loto7_agent_output/online_fresh_research_feed.json \
+              loto7_agent_output/online_fresh_research_report.md
+            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/online_fresh_research_(feed.json|report.md)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Forbidden file staged: $unexpected"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "No new public research feed output."
+              break
+            fi
+            git commit -m "research: discover and independently verify recent online methods"
+            if git push origin HEAD:main; then
+              echo "Published public research leads and bounded action hints."
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "::error::Remote feed changed during commit; retry later."
+              exit 1
+            fi
+          done
+      - name: Show recent verified research and review actions
+        if: github.event_name != 'pull_request'
+        run: cat loto7_agent_output/online_fresh_research_report.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive research-only feed
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frequent-online-research-feed
+          path: |
+            loto7_agent_output/online_fresh_research_feed.json
+            loto7_agent_output/online_fresh_research_report.md
+          retention-days: 90
