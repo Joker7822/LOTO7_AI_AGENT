@@ -86,6 +86,59 @@ def _prior_records(previous: dict, state_sha: str, chain_tip: str,
     return checked, cursor
 
 
+def _priority_indices(out: Path, state_sha: str, chain_tip: str,
+                      papers: list[dict], known: dict[str, dict],
+                      previous: dict) -> tuple[list[int], str | None, int]:
+    """Trusted queue may steer ONE bounded DOI check; stale plans steer zero.
+
+    Recompute selection from actual corroboration statuses, never execute a
+    task's free-text instructions or let a task bypass source attestation.
+    """
+    path = out / "research_autonomy_priority_queue.json"
+    evidence = out / verify.EVIDENCE
+    if not path.is_file() or not evidence.is_file():
+        return [], None, 0
+    queue_sha = digest(path)
+    queue = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(queue, dict):
+        raise ValueError("priority queue is not an object")
+    if (queue.get("version") != "research-priority-orchestrator-v1"
+            or queue.get("input_evidence_sha256", {}).get("bibliography")
+                != digest(evidence)
+            or queue.get("source_two_verified") is not True
+            or queue.get("authority", {}).get("workflows_dispatched") is not False
+            or queue.get("authority", {}).get("production_or_champion_update") is not False):
+        return [], None, 0  # A stale queue must never be an authority.
+    codes = set()
+    for item in queue.get("tasks", []):
+        if not isinstance(item, dict):
+            raise ValueError("malformed research priority task")
+        if item.get("lane") != "bibliography":
+            continue
+        if (item.get("safe_autonomous_action") != "report_only"
+                or item.get("forecast_or_production_change_authorized") is not False
+                or item.get("new_optimizer_trials_authorized") is not False):
+            raise ValueError("attempt to elevate a bibliography priority")
+        codes.add(item.get("code"))
+    priority_statuses = []
+    for code, status in (
+        ("REVIEW_BIBLIO_CONFLICTS", "conflict_do_not_use"),
+        ("VERIFY_UNCHECKED_DOIS", "not_yet_checked"),
+        ("RETRY_SINGLE_PROVIDER", "single_provider_only"),
+    ):
+        if code in codes:
+            priority_statuses.append(status)
+    indices = [i for status in priority_statuses
+               for i, paper in enumerate(papers)
+               if known.get(paper["doi"], {}).get("status") == status]
+    if not indices:
+        return [], queue_sha, 0
+    cursor = previous.get("priority_rotation_cursor", 0)
+    if type(cursor) is not int or cursor < 0:
+        raise ValueError("invalid priority rotation cursor")
+    return indices, queue_sha, cursor % len(indices)
+
+
 def build(root: Path, *, fetch: Callable[[str], tuple[dict, int]] | None = None,
           now: datetime | None = None) -> dict:
     root = root.resolve()
@@ -116,7 +169,24 @@ def build(root: Path, *, fetch: Callable[[str], tuple[dict, int]] | None = None,
     stamp = now.astimezone(timezone.utc).isoformat(timespec="seconds")
     size = len(papers)
     count = min(MAX_PER_RUN, size)
-    selected = [(start + i) % size for i in range(count)] if size else []
+    priority, queue_sha, priority_cursor = _priority_indices(
+        out, state_sha, tip, papers, known, previous
+    )
+    selected = []
+    next_cursor = previous.get("priority_rotation_cursor", 0)
+    if priority and count:
+        selected.append(priority[priority_cursor])
+        next_cursor = (priority_cursor + 1) % len(priority)
+    # Reserve the remaining two slots for the round-robin so that stale or
+    # continually conflicting citations cannot starve the rest of the corpus.
+    rotation = []
+    for offset in range(size):
+        index = (start + offset) % size
+        if index not in selected:
+            rotation.append(index)
+            if len(selected) + len(rotation) == count:
+                break
+    selected.extend(rotation)
     positions = set(selected)
     refreshed = []
     failures = 0
@@ -174,7 +244,11 @@ def build(root: Path, *, fetch: Callable[[str], tuple[dict, int]] | None = None,
         "verification_reason": "independent_rotating_online_bibliography",
         "max_dois_per_cycle": MAX_PER_RUN,
         "rotation_start_index": start,
-        "rotation_next_index": (start + count) % size if size else 0,
+        "rotation_next_index": (start + len(rotation)) % size if size else 0,
+        "priority_queue_sha256": queue_sha,
+        "priority_rotation_cursor": next_cursor,
+        "priority_dois_checked": [papers[i]["doi"] for i in selected[:1]]
+            if priority else [],
         "rotation_total_candidates": size,
         "rotation_attempted_dois": [papers[i]["doi"] for i in selected],
         "verification_time_utc": stamp,

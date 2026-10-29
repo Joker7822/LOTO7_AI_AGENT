@@ -1,0 +1,163 @@
+name: Autonomous Research Data Quality and Priority Recovery
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every four hours, GitHub Actions best effort (JST 02:41/06:41/...).
+    - cron: "41 */4 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "research_data_quality_auto.py"
+      - "research_autonomy_orchestrator.py"
+      - "tests/test_research_data_quality_auto.py"
+      - ".github/workflows/research_data_quality_auto.yml"
+  pull_request:
+    paths:
+      - "research_data_quality_auto.py"
+      - "research_autonomy_orchestrator.py"
+      - "online_literature_auto_verify.py"
+      - "tests/test_research_data_quality_auto.py"
+      - ".github/workflows/research_data_quality_auto.yml"
+      - "AUTONOMOUS_RESEARCH_PRIORITY_QUALITY.md"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: autonomous-research-quality-recovery
+  cancel-in-progress: false
+
+jobs:
+  inspect-and-recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      TZ: Asia/Tokyo
+      PYTHONHASHSEED: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install audited research dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Data-quality and priority permissions regressions
+        run: |
+          python -m compileall -q research_data_quality_auto.py online_literature_auto_verify.py
+          python -m pytest -q tests/test_research_data_quality_auto.py tests/test_online_literature_auto_verify.py
+      - name: PR - audit without changing protected repository data
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          mkdir -p /tmp/loto7-pr-quality
+          python research_data_quality_auto.py --repo-root . --out-dir /tmp/loto7-pr-quality
+          git diff --exit-code -- .
+          test -z "$(git ls-files --others --exclude-standard)"
+      - name: Recheck integrity and publish only two QA reports
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python research_data_quality_auto.py --repo-root . --out-dir loto7_agent_output
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          q = json.loads(Path("loto7_agent_output/research_data_quality_auto_report.json").read_text())
+          assert q["main_number_invalid"] == 0
+          assert q["bonus_number_invalid_or_overlapping"] == 0
+          assert q["duplicate_or_missing_rounds"] == 0
+          assert q["auto_corrected_lottery_numbers"] is False
+          assert q["production_or_champion_modified"] is False
+          assert q["registered_future_oos_modified"] is False
+          assert q["new_optimizer_trials"] == 0
+          assert q["requested_recovery_workflow"] in [
+              None, "friday_result_check_watchdog.yml", "advanced_validation_lab.yml",
+              "always_on_accuracy_research.yml"
+          ]
+          print("Safe recovery decision:", q["requested_recovery_workflow"])
+          PY
+            git diff --exit-code -- \
+              loto7.csv STATUS.md \
+              loto7_agent_output/model_champion.json \
+              loto7_agent_output/source_validation.json \
+              loto7_agent_output/research_cycle_guard.json \
+              loto7_agent_output/research_autonomy_priority_queue.json \
+              research/disjoint_future_oos \
+              loto7_evolving_agent.py
+            git add -- \
+              loto7_agent_output/research_data_quality_auto_report.json \
+              loto7_agent_output/research_data_quality_auto_report.md
+            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/research_data_quality_auto_report\.(json|md)$' || true)"
+            test -z "$unexpected" || { echo "::error::Unauthorized output: $unexpected"; exit 1; }
+            if git diff --cached --quiet; then
+              echo "No quality-report changes"
+              break
+            fi
+            git commit -m "research: audit source integrity and safe research priority recovery"
+            if git push origin HEAD:main; then break; fi
+            if [ "$attempt" = 5 ]; then
+              echo "::error::Could not persist data quality report"
+              exit 1
+            fi
+          done
+      - name: Run ONLY allowlisted existing recovery workflow, with cooldown
+        if: github.event_name != 'pull_request'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TARGET="$(python - <<'PY'
+          import json
+          from pathlib import Path
+          r = json.loads(Path("loto7_agent_output/research_data_quality_auto_report.json").read_text())
+          assert r["auto_corrected_lottery_numbers"] is False
+          assert not r["registered_future_oos_modified"]
+          print(r["requested_recovery_workflow"] or "")
+          PY
+          )"
+          case "$TARGET" in
+            "") echo "Fresh or safety-held; no dispatch"; exit 0 ;;
+            friday_result_check_watchdog.yml|advanced_validation_lab.yml|always_on_accuracy_research.yml) ;;
+            *) echo "::error::Forbidden workflow dispatch"; exit 1 ;;
+          esac
+          # Respect other live workers. A dashboard warning should never
+          # cause an infinite dispatch loop or concurrent registry mutation.
+          CUTOFF="$(date -u -d '4 hours ago' +%Y-%m-%dT%H:%M:%SZ)"
+          RECENT="$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/${TARGET}/runs?per_page=20" \
+            --jq "[.workflow_runs[] | select(.created_at >= \"${CUTOFF}\")] | length")"
+          if [ "$RECENT" -gt 0 ]; then
+            echo "Existing recovery worker already active recently: $TARGET"
+            exit 0
+          fi
+          gh workflow run "$TARGET" --repo "$GITHUB_REPOSITORY" --ref main
+          echo "Requested verified existing recovery workflow: $TARGET"
+      - name: Summarize real source trust, evidence and actions
+        if: success()
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            cat /tmp/loto7-pr-quality/research_data_quality_auto_report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            cat loto7_agent_output/research_data_quality_auto_report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Preserve quality evidence (90 days)
+        if: github.event_name != 'pull_request' && success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: research-data-quality-and-recovery
+          path: |
+            loto7_agent_output/research_data_quality_auto_report.json
+            loto7_agent_output/research_data_quality_auto_report.md
+          retention-days: 90
