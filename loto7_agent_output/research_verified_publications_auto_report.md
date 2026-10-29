@@ -1,25 +1,25 @@
 # Online literature automatic verification
 
 - Research source draw (NOT current lottery result): #700
-- DOI candidates: 20
+- DOI candidates: 24
 - Attempted this cycle: 3 / 3 max
-- Next rotation index: 2
-- Source SHA256: `578aa736a313f7dd642cd7e79af25d66326f2317373ef3705ef0c56e4506127c`
-- SHA chain tip: `112272cb8b6181222c1b8cbb8c78d4595d99dd7d33b19be2f7df04684b3a8f37`
-- Run (UTC): 2026-10-29T22:27:48+00:00
+- Next rotation index: 5
+- Source SHA256: `32a0d5d49a57e2096409d146c17bd1300cd89c99643595880a78371eae8426ca`
+- SHA chain tip: `07fa10e66b81155eb9f1f6ba531d31d5c09447e68af21f6ebf4212e23b2ae572`
+- Run (UTC): 2026-10-29T22:39:45+00:00
 
 ## Bibliographic status
-- conflict_do_not_use: 1
+- conflict_do_not_use: 4
 - not_yet_checked: 8
-- previously_verified_not_refreshed: 8
+- previously_verified_not_refreshed: 10
 - single_provider_only: 1
-- two_provider_bibliography_matched: 2
+- two_provider_bibliography_matched: 1
 - unavailable: 0
 
 ## DOI records checked this cycle
-- `10.2139/ssrn.4689006`: **conflict_do_not_use**
+- `10.5194/egusphere-egu24-7913`: **conflict_do_not_use**
+- `10.5194/egusphere-egu24-8807`: **conflict_do_not_use**
 - `10.2139/ssrn.7350238`: **two_provider_bibliography_matched**
-- `10.2139/ssrn.6078546`: **two_provider_bibliography_matched**
 
 **Independent Crossref/OpenAlex matching checks DOI, title and year,
 not peer-review status, full-text accuracy, reproducibility or real

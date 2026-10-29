@@ -1,26 +1,33 @@
 {
   "version": "research-evidence-resilience-v1",
+  "auto_verifier_version": "online-bibliography-rotation-v1",
   "discovery_state_sha256": "32a0d5d49a57e2096409d146c17bd1300cd89c99643595880a78371eae8426ca",
   "discovery_tip_sha256": "07fa10e66b81155eb9f1f6ba531d31d5c09447e68af21f6ebf4212e23b2ae572",
   "research_mode": "WAIT_FOR_NEW_DATA",
   "latest_round": 700,
   "searched_this_cycle": true,
   "initial_verification_attempted": true,
-  "verification_reason": "scheduled_literature_search",
+  "verification_reason": "independent_rotating_online_bibliography",
   "max_dois_per_cycle": 3,
-  "rotation_start_index": 0,
-  "rotation_next_index": 3,
+  "rotation_start_index": 3,
+  "rotation_next_index": 5,
+  "priority_queue_sha256": "a9b6753db30043b59d880947a449092169296bf9bf62a57baf4450cc49bfafb0",
+  "priority_rotation_cursor": 1,
+  "priority_dois_checked": [
+    "10.5194/egusphere-egu24-7913"
+  ],
   "rotation_total_candidates": 24,
   "rotation_attempted_dois": [
-    "10.1201/9781003203971-10",
     "10.5194/egusphere-egu24-7913",
-    "10.22541/au.169169008.89657659/v2"
+    "10.5194/egusphere-egu24-8807",
+    "10.2139/ssrn.7350238"
   ],
+  "verification_time_utc": "2026-10-29T22:39:45+00:00",
   "verifications": [
     {
       "doi": "10.1201/9781003203971-10",
       "year": 2024,
-      "status": "two_provider_bibliography_matched",
+      "status": "previously_verified_not_refreshed",
       "crossref_consistent": true,
       "openalex_consistent": true,
       "abstract_metadata_present": true,
@@ -47,7 +54,10 @@
       "full_text_reviewed": false,
       "peer_review_confirmed": false,
       "methods_reproduced_from_paper": false,
-      "lottery_prediction_improved": false
+      "lottery_prediction_improved": false,
+      "last_checked_at_utc": "2026-10-29T22:39:45+00:00",
+      "verification_attempts": 1,
+      "last_two_provider_matched_at_utc": null
     },
     {
       "doi": "10.22541/au.169169008.89657659/v2",
@@ -69,15 +79,27 @@
     {
       "doi": "10.5194/egusphere-egu24-8807",
       "year": 2025,
-      "status": "not_yet_checked",
+      "status": "conflict_do_not_use",
+      "crossref_consistent": true,
+      "openalex_consistent": false,
+      "abstract_metadata_present": true,
+      "abstract_word_count_max": 157,
+      "source_errors": {
+        "openalex": "bibliographic_identity_conflict"
+      },
+      "transient_retry_count": 0,
       "full_text_reviewed": false,
       "peer_review_confirmed": false,
-      "lottery_prediction_improved": false
+      "methods_reproduced_from_paper": false,
+      "lottery_prediction_improved": false,
+      "last_checked_at_utc": "2026-10-29T22:39:45+00:00",
+      "verification_attempts": 1,
+      "last_two_provider_matched_at_utc": null
     },
     {
       "doi": "10.2139/ssrn.7350238",
       "year": 2026,
-      "status": "previously_verified_not_refreshed",
+      "status": "two_provider_bibliography_matched",
       "crossref_consistent": true,
       "openalex_consistent": true,
       "abstract_metadata_present": true,
@@ -88,9 +110,9 @@
       "peer_review_confirmed": false,
       "methods_reproduced_from_paper": false,
       "lottery_prediction_improved": false,
-      "last_checked_at_utc": "2026-10-29T22:27:48+00:00",
-      "verification_attempts": 1,
-      "last_two_provider_matched_at_utc": "2026-10-29T22:27:48+00:00"
+      "last_checked_at_utc": "2026-10-29T22:39:45+00:00",
+      "verification_attempts": 2,
+      "last_two_provider_matched_at_utc": "2026-10-29T22:39:45+00:00"
     },
     {
       "doi": "10.2139/ssrn.6078546",
@@ -350,6 +372,14 @@
     }
   ],
   "two_provider_matches_this_cycle": 1,
+  "verification_status_counts": {
+    "conflict_do_not_use": 4,
+    "not_yet_checked": 8,
+    "previously_verified_not_refreshed": 10,
+    "single_provider_only": 1,
+    "two_provider_bibliography_matched": 1
+  },
+  "provider_failures_or_conflicts_this_cycle": 2,
   "full_text_reviewed_count": 0,
   "automatic_adoption": false,
   "future_registry_changed": false,
