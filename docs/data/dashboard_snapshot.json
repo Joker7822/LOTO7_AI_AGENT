@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-29T08:13:04+09:00",
-  "source_commit": "4bf446a66b3471d948599b9e473892da7b8545bd",
-  "state_hashes_sha256": "4ad2028f134240b72e46fce3ca600db7f841a832f2c991f8feab5ecb7c9546af",
+  "generated_at_jst": "2026-10-29T09:23:30+09:00",
+  "source_commit": "18b2eae6553a3d10824fe96777108b6d4749e030",
+  "state_hashes_sha256": "45bcad450913cb83b6f9997fcb728a9f1cf9be0d7644df3a630b039ca7b2794f",
   "sources": {
     "source": {
       "status": "ok",
@@ -478,13 +478,13 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 22,
-    "last_activity_jst": "2026-10-24T09:46:28+09:00",
-    "current_phase": "generalization",
-    "current_activity": "過去モデル比較・多重比較を点検",
+    "sequence": 23,
+    "last_activity_jst": "2026-10-29T08:13:14+09:00",
+    "current_phase": "calibration",
+    "current_activity": "未来の校正と逐次e値を点検",
     "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
-    "two_source_verified": false,
+    "two_source_verified": true,
     "new_papers_count": 0,
     "papers": [
       {
@@ -538,25 +538,127 @@
     ],
     "promotion_authorized": false,
     "review_notes": [
-      "独立2ソース未照合。未信頼結果で将来予測を採点しない。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。"
+      "検証済み未来データに限るe値: 1"
     ]
   },
   "research_application": {
-    "status": "stale_or_unsafe"
+    "status": "research_review_ready_only",
+    "research_mode": "WAIT_FOR_NEW_DATA",
+    "trusted_result_source": true,
+    "papers": 16,
+    "verified_dois": 0,
+    "proposal_count": 5,
+    "synthetic_control": "passed",
+    "actual_prediction_accuracy_improvement_verified": false,
+    "tasks": [
+      {
+        "topic": "calibration",
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
+        "requires_human_approval": true
+      },
+      {
+        "topic": "online_evaluation",
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
+        "requires_human_approval": true
+      },
+      {
+        "topic": "anytime_evidence",
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
+        "requires_human_approval": true
+      },
+      {
+        "topic": "distribution_shift",
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
+        "requires_human_approval": true
+      },
+      {
+        "topic": "ensemble",
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
+        "requires_human_approval": true
+      }
+    ]
   },
   "research_priorities": {
-    "status": "stale_or_unsafe",
-    "tasks": []
+    "status": "audited_research_plan",
+    "research_mode": "WAIT_FOR_NEW_DATA",
+    "source_two_verified": true,
+    "total_tasks": 10,
+    "counts": {
+      "block": 0,
+      "watch": 7,
+      "info": 3
+    },
+    "tasks": [
+      {
+        "priority": "watch",
+        "lane": "bibliography",
+        "owner": "literature_verifier",
+        "title": "文献書誌情報の不一致を確認",
+        "reason": "1 件のDOIで独立サービスの書誌照合結果が不一致です。",
+        "next_step": "元のDOIと著者・タイトルを確認してください。対立するメタデータから研究計画を承認しないでください。",
+        "safe_autonomous_action": "report_only"
+      },
+      {
+        "priority": "watch",
+        "lane": "bibliography",
+        "owner": "literature_verifier",
+        "title": "未照合の学術文献を一次確認",
+        "reason": "7 件の候補DOIがCrossref/OpenAlexによる照合待ちです。",
+        "next_step": "既存の上限付き照合を次の定期サイクルで続けてください。未照合論文を学術的根拠として扱わないでください。",
+        "safe_autonomous_action": "report_only"
+      },
+      {
+        "priority": "watch",
+        "lane": "experiment_review",
+        "owner": "methodology_reviewer",
+        "title": "研究計画レビュー：anytime_evidence",
+        "reason": "候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。",
+        "next_step": "Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。",
+        "safe_autonomous_action": "report_only"
+      },
+      {
+        "priority": "watch",
+        "lane": "experiment_review",
+        "owner": "methodology_reviewer",
+        "title": "研究計画レビュー：calibration",
+        "reason": "候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。",
+        "next_step": "Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。",
+        "safe_autonomous_action": "report_only"
+      },
+      {
+        "priority": "watch",
+        "lane": "experiment_review",
+        "owner": "methodology_reviewer",
+        "title": "研究計画レビュー：distribution_shift",
+        "reason": "候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。",
+        "next_step": "Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。",
+        "safe_autonomous_action": "report_only"
+      },
+      {
+        "priority": "watch",
+        "lane": "experiment_review",
+        "owner": "methodology_reviewer",
+        "title": "研究計画レビュー：ensemble",
+        "reason": "候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。",
+        "next_step": "Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。",
+        "safe_autonomous_action": "report_only"
+      }
+    ],
+    "promotion_authorized": false
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "4bf446a66b3471d948599b9e473892da7b8545bd",
-    "snapshot_generated_at_jst": "2026-10-29T08:13:04+09:00",
-    "computed_at_jst": "2026-10-28T23:13:04+00:00",
+    "source_commit": "18b2eae6553a3d10824fe96777108b6d4749e030",
+    "snapshot_generated_at_jst": "2026-10-29T09:23:30+09:00",
+    "computed_at_jst": "2026-10-29T00:23:30+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
