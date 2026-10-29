@@ -168,3 +168,59 @@ def test_conflicts_and_papers_never_create_execute_or_elevate_permission(project
         priority:sum(task["priority"]==priority for task in data["tasks"])
         for priority in ("block","watch","info")
     }
+
+
+def test_recurrence_and_backlog_reorder_only_within_severity(project):
+    info, plans, _, _, _ = gate.verify_inputs(project)
+    app = gate.load(project / "loto7_agent_output" / gate.STATUS_FILE)
+    pubs = gate.load(project / "loto7_agent_output" / literature.EVIDENCE)
+    source = discovery.read_json(project / "loto7_agent_output" / discovery.FILES["source"])
+    pubs = copy.deepcopy(pubs)
+    pubs["verifications"][0]["status"] = "not_yet_checked"
+    pubs["verifications"][1]["status"] = "conflict_do_not_use"
+    initial = agent.build_queue(info, app, source, plans, pubs, NOW)
+    assert all(t["priority_score"] >= 0 for t in initial)
+    previous = {"tasks": initial}
+    next_round = agent.build_queue(info, app, source, plans, pubs, NOW, previous=previous)
+    assert {t["id"] for t in next_round} == {t["id"] for t in initial}
+    assert all(t["recurrence_cycles"] == 2 for t in next_round)
+    assert [agent.SEVERITY[t["priority"]] for t in next_round] == sorted(
+        agent.SEVERITY[t["priority"]] for t in next_round
+    )
+    assert all(t["safe_autonomous_action"] == "report_only" for t in next_round)
+
+
+def test_quality_block_is_not_automatically_repaired_or_trusted(project):
+    import research_data_quality as quality_guard
+
+    info, plans, _, _, _ = gate.verify_inputs(project)
+    app = gate.load(project / "loto7_agent_output" / gate.STATUS_FILE)
+    pubs = gate.load(project / "loto7_agent_output" / literature.EVIDENCE)
+    source = discovery.read_json(project / "loto7_agent_output" / discovery.FILES["source"])
+    quality = {
+        "version": quality_guard.VERSION,
+        "draw_csv_sha256": info["draw_history_sha256"],
+        "source_csv_modified": False,
+        "source_attestation_modified": False,
+        "production_or_oos_modified": False,
+        "status": "block",
+        "issues": [{"severity": "block", "code": "DRAW_SHA_MISMATCH"}],
+    }
+    tasks = agent.build_queue(info, app, source, plans, pubs, NOW, quality=quality)
+    flagged = next(t for t in tasks if t["code"] == "REVIEW_DATA_QUALITY")
+    assert flagged["priority"] == "block"
+    assert flagged["forecast_or_production_change_authorized"] is False
+    quality["status"] = "pass"
+    with pytest.raises(ValueError, match="data quality severity mismatch"):
+        agent.build_queue(info, app, source, plans, pubs, NOW, quality=quality)
+
+
+def test_weekly_freshness_waits_until_result_window(project):
+    import research_data_quality as quality_guard
+
+    last = datetime(2026, 10, 23, tzinfo=timezone(timedelta(hours=9))).date()
+    source = {"latest": {"round": 700, "date": "2026-10-23"},
+              "sources": {"official_schedule": {"round": 701, "date": "2026-10-30"}}}
+    threshold = quality_guard.next_result_deadline(last, source)
+    assert threshold == datetime(2026, 10, 30, 20, 30, tzinfo=timezone(timedelta(hours=9)))
+    assert datetime(2026, 10, 30, 7, tzinfo=timezone(timedelta(hours=9))) < threshold
