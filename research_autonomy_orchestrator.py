@@ -19,6 +19,7 @@ import always_on_accuracy_agent as discovery
 import research_application_gate as gate
 import research_evidence_resilience as verification
 import research_literature_pipeline as literature
+import research_data_quality as quality_guard
 
 VERSION = "research-priority-orchestrator-v1"
 QUEUE = "research_autonomy_priority_queue.json"
@@ -64,7 +65,8 @@ def safe_date(raw: object) -> date:
 
 def build_queue(info: dict, application: dict, raw_source: dict,
                 proposal_plan: dict, publications: dict,
-                clock: datetime) -> list[dict]:
+                clock: datetime, *, quality: dict | None = None,
+                previous: dict | None = None) -> list[dict]:
     clock = clock.astimezone(JST)
     latest = info["latest_round"]
     latest_date = safe_date(raw_source.get("latest", {}).get("date"))
@@ -96,7 +98,7 @@ def build_queue(info: dict, application: dict, raw_source: dict,
             "既存の結果検証workflowと独立した発表元を照合してください。単一ソースで成功扱いしません。",
             "round=" + str(latest) + ";verification=" + info["source_verification"],
         ))
-    if gap >= 7:
+    if clock >= quality_guard.next_result_deadline(latest_date, raw_source):
         pending.append(task(
             "CHECK_SOURCE_FRESHNESS", "watch", "source_integrity", "source_verifier",
             "最新の抽せんデータ更新を確認",
@@ -175,6 +177,33 @@ def build_queue(info: dict, application: dict, raw_source: dict,
             "single_count=" + str(counts["single_provider_only"]),
         ))
 
+    if quality is not None:
+        if (quality.get("version") != quality_guard.VERSION
+                or quality.get("draw_csv_sha256") != info["draw_history_sha256"]
+                or quality.get("source_csv_modified") is not False
+                or quality.get("source_attestation_modified") is not False
+                or quality.get("production_or_oos_modified") is not False):
+            raise ValueError("stale or unsafe data quality audit")
+        issues = quality.get("issues")
+        if (quality.get("status") not in {"pass", "watch", "block"}
+                or not isinstance(issues, list)
+                or any(not isinstance(x, dict)
+                       or x.get("severity") not in {"block", "watch"}
+                       or not isinstance(x.get("code"), str) for x in issues)):
+            raise ValueError("invalid data quality evidence")
+        level = "block" if any(x["severity"] == "block" for x in issues) else (
+            "watch" if issues else "pass")
+        if quality["status"] != level:
+            raise ValueError("data quality severity mismatch")
+        if issues:
+            pending.append(task(
+                "REVIEW_DATA_QUALITY", level, "source_integrity", "source_verifier",
+                "データ品質の失敗原因を確認",
+                str(len(issues)) + " 件のデータ品質問題があります。未検証結果は使用しません。",
+                "既存の検証workflowと原本を調査してください。派生レポート以外は自動変更しません。",
+                "quality_codes=" + ",".join(sorted({x["code"] for x in issues})),
+            ))
+
     queue = application.get("application_queue", [])
     if not isinstance(queue, list) or len(queue) != proposal_plan.get("count"):
         raise ValueError("application methodological review queue is incomplete")
@@ -203,11 +232,33 @@ def build_queue(info: dict, application: dict, raw_source: dict,
             next_step + " 人の明示的な承認がない限り研究試行も本番採用も行いません。",
             "proposal_id=" + str(draft["proposal_id"]),
         ))
+    # Severity is a hard barrier; counts and recurrence only sort within it.
+    impact = {
+        "VERIFY_RESULT_SOURCES": 95, "REVIEW_DATA_QUALITY": 90,
+        "CHECK_SOURCE_FRESHNESS": 75, "REVIEW_BIBLIO_CONFLICTS": 65,
+        "VERIFY_UNCHECKED_DOIS": 55, "RETRY_SINGLE_PROVIDER": 35,
+        "AUDIT_ENABLED_RESEARCH_BUDGET": 25, "AWAIT_GENUINE_OOS": 15,
+        "HOLD_SAME_DATA_SEARCH": 10,
+    }
+    old_tasks = {p["id"]: p for p in (previous or {}).get("tasks", [])
+                 if isinstance(p, dict) and isinstance(p.get("id"), str)
+                 and p.get("safe_autonomous_action") == "report_only"}
+    for item in pending:
+        found = re.search(r"(?:unchecked_count|conflict_count|single_count)=(\d+)",
+                          item["evidence"])
+        backlog = min(10, int(found.group(1))) if found else 0
+        cycles = old_tasks.get(item["id"], {}).get("recurrence_cycles", 0)
+        cycles = cycles if type(cycles) is int and 0 <= cycles <= 20 else 0
+        recurrence = min(20, cycles + 1) if previous is not None else 1
+        item["recurrence_cycles"] = recurrence
+        item["priority_factors"] = {
+            "impact": impact.get(item["code"], 20),
+            "verified_backlog": backlog,
+            "unresolved_recurrence": min(10, recurrence - 1),
+        }
+        item["priority_score"] = sum(item["priority_factors"].values())
     pending.sort(key=lambda t: (SEVERITY[t["priority"]],
-                                {"source_integrity": 0, "prospective_integrity": 1,
-                                 "bibliography": 2, "experiment_review": 3,
-                                 "research_governance": 4}[t["lane"]],
-                                t["code"]))
+                                -t["priority_score"], t["code"]))
     if len({item["id"] for item in pending}) != len(pending):
         raise ValueError("duplicate plan item IDs")
     return pending
@@ -230,7 +281,31 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
             readiness.get("synthetic_control", {}).get("status") != "synthetic_controls_passed" or
             readiness.get("read_only_science") is not True):
         raise ValueError("research application readiness stale or failed safety audit")
-    tasks = build_queue(info, readiness, source, plans, publication, clock)
+    quality_path = out / quality_guard.JSON_REPORT
+    quality = gate.load(quality_path) if quality_path.is_file() else None
+    if quality is not None and quality.get("source_sha256") != digest(
+            (out / discovery.FILES["source"]).read_bytes()):
+        raise ValueError("data quality audit used a different source receipt")
+    previous = None
+    queue_path = out / QUEUE
+    if queue_path.is_file():
+        try:
+            candidate = gate.load(queue_path)
+            previous_clock = datetime.fromisoformat(candidate["latest_audit_at_jst"])
+            if (candidate.get("version") == VERSION
+                    and candidate.get("draw_history_sha256") == info["draw_history_sha256"]
+                    and candidate.get("source_two_verified") is info["two_source_verified"]
+                    and candidate.get("research_mode") == info["research_mode"]
+                    and candidate.get("authority", {}).get("scope") ==
+                        "audited_advisory_queue_only"
+                    and previous_clock.tzinfo is not None
+                    and previous_clock + timedelta(hours=1) <= clock):
+                previous = candidate
+        except (ValueError, TypeError, KeyError):
+            # Corrupt derived queues are rebuilt from verified inputs.
+            pass
+    tasks = build_queue(info, readiness, source, plans, publication, clock,
+                        quality=quality, previous=previous)
     output = {
         "version": VERSION,
         "latest_audit_at_jst": clock.isoformat(timespec="seconds"),
