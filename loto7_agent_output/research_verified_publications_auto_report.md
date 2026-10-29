@@ -3,10 +3,10 @@
 - Research source draw (NOT current lottery result): #700
 - DOI candidates: 24
 - Attempted this cycle: 3 / 3 max
-- Next rotation index: 5
-- Source SHA256: `32a0d5d49a57e2096409d146c17bd1300cd89c99643595880a78371eae8426ca`
-- SHA chain tip: `07fa10e66b81155eb9f1f6ba531d31d5c09447e68af21f6ebf4212e23b2ae572`
-- Run (UTC): 2026-10-29T22:39:45+00:00
+- Next rotation index: 2
+- Source SHA256: `93cc978e9a84883367a437723a99e53f09f4d9abc418099e29a493500f414370`
+- SHA chain tip: `8536b3cc96e73d2bc2e584c95e0a9880510bd2dea88efbb5150da8266425fba1`
+- Run (UTC): 2026-10-29T23:15:37+00:00
 
 ## Bibliographic status
 - conflict_do_not_use: 4
@@ -18,8 +18,8 @@
 
 ## DOI records checked this cycle
 - `10.5194/egusphere-egu24-7913`: **conflict_do_not_use**
-- `10.5194/egusphere-egu24-8807`: **conflict_do_not_use**
-- `10.2139/ssrn.7350238`: **two_provider_bibliography_matched**
+- `10.1201/9781003203971-10`: **two_provider_bibliography_matched**
+- `10.22541/au.169169008.89657659/v2`: **conflict_do_not_use**
 
 **Independent Crossref/OpenAlex matching checks DOI, title and year,
 not peer-review status, full-text accuracy, reproducibility or real
