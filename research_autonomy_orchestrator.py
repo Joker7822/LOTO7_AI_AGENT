@@ -283,9 +283,14 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
         raise ValueError("research application readiness stale or failed safety audit")
     quality_path = out / quality_guard.JSON_REPORT
     quality = gate.load(quality_path) if quality_path.is_file() else None
-    if quality is not None and quality.get("source_sha256") != digest(
-            (out / discovery.FILES["source"]).read_bytes()):
-        raise ValueError("data quality audit used a different source receipt")
+    if quality is not None:
+        fresh_quality = quality_guard.audit(root, now=clock)
+        for key in ("version", "draw_csv_sha256", "source_sha256",
+                    "latest_round", "rows_checked", "status", "issues",
+                    "source_csv_modified", "source_attestation_modified",
+                    "production_or_oos_modified"):
+            if quality.get(key) != fresh_quality[key]:
+                raise ValueError("stale or altered data quality evidence: " + key)
     previous = None
     queue_path = out / QUEUE
     if queue_path.is_file():
