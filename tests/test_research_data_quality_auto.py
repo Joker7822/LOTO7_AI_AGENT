@@ -205,6 +205,21 @@ def test_priority_status_cannot_launder_changed_review_permissions(project):
     papers = literature.checked_papers(state, chain)
     prior = json.loads((out/biblios.EVIDENCE).read_text())
     known = {p["doi"]: p for p in prior["verifications"]}
+    # Authenticate all prerequisites so the forged action is actually
+    # inspected. Stale/unauthenticated queues are correctly ignored instead.
+    put(out/"research_autonomy_priority_queue.json",
+        lambda q: q.update(
+            version="research-priority-orchestrator-v1",
+            source_two_verified=True,
+            input_evidence_sha256={
+                **q["input_evidence_sha256"],
+                "bibliography": rotate.digest(out/biblios.EVIDENCE),
+            },
+            authority={
+                "workflows_dispatched": False,
+                "production_or_champion_update": False,
+            },
+        ))
     with pytest.raises(ValueError, match="elevate"):
         rotate._priority_indices(out, rotate.digest(out/discovery.STATE),
                                  chain[-1]["record_sha256"], papers, known, prior)
