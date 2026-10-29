@@ -216,7 +216,8 @@ def test_existing_hourly_verifier_preserves_dedicated_rotation_cursor(repo, monk
     # catches up. It must not silently reset the independent DOI rotation.
     report = agent.build(repo, fetch=provider_fetch(repo), now=NOW)
     persist(repo, report)
-    assert report["rotation_next_index"] == 3
+    expected_next = (report["rotation_start_index"] + 3) % report["rotation_total_candidates"]
+    assert report["rotation_next_index"] == expected_next
     state = discovery.read_json(repo / "loto7_agent_output" / discovery.STATE)
     assert state["current_phase"] != "literature_search"
     monkeypatch.setattr(paper_guard.discovery, "inspect_evidence",
@@ -225,7 +226,7 @@ def test_existing_hourly_verifier_preserves_dedicated_rotation_cursor(repo, monk
     def should_not_call_api(url):
         raise AssertionError("non-literature research phase should not query DOI API")
     output = paper_guard.run(repo, fetch=should_not_call_api)
-    assert output["evidence"]["rotation_next_index"] == 3
+    assert output["evidence"]["rotation_next_index"] == expected_next
     assert output["evidence"]["rotation_attempted_dois"] == []
     assert output["evidence"]["automatic_adoption"] is False
 
@@ -266,7 +267,8 @@ def test_priority_queue_checks_conflict_before_rotation_without_starving_others(
     assert report["priority_queue_sha256"] == agent.digest(
         out / "research_autonomy_priority_queue.json"
     )
-    assert report["rotation_next_index"] == 2
+    expected_next = (report["rotation_start_index"] + 2) % report["rotation_total_candidates"]
+    assert report["rotation_next_index"] == expected_next
     assert report["priority_rotation_cursor"] == 1
 
 
@@ -282,8 +284,10 @@ def test_stale_priority_queue_does_not_override_independent_rotation(repo):
         }), encoding="utf-8")
     report = agent.build(repo, fetch=provider_fetch(repo), now=NOW)
     assert report["priority_dois_checked"] == []
+    papers = papers_at(repo)
+    start = report["rotation_start_index"]
     assert report["rotation_attempted_dois"] == [
-        p["doi"] for p in papers_at(repo)[:3]
+        papers[(start + offset) % len(papers)]["doi"] for offset in range(3)
     ]
 
 
