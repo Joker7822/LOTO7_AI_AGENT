@@ -244,3 +244,25 @@ def test_seven_day_gap_is_not_a_problem_until_next_result_published(project):
     b = build_queue(info, application, original, proposals, publications, AFTER)
     assert "CHECK_SOURCE_FRESHNESS" not in {t["code"] for t in a}
     assert "CHECK_SOURCE_FRESHNESS" in {t["code"] for t in b}
+
+
+def test_stale_priority_queue_automatically_uses_existing_hourly_research(project):
+    path = project / "loto7_agent_output/research_autonomy_priority_queue.json"
+    put(path, lambda q: q["input_evidence_sha256"].update(bibliography="0"*64))
+    result = quality.audit(project, now=BEFORE)
+    assert result["candidate_priority_queue_stale"]
+    assert "REGENERATE_PRIORITY_QUEUE_AFTER_SOURCE_UPDATE" in result["quality_issues"]
+    assert result["requested_recovery_workflow"] == "always_on_accuracy_research.yml"
+    assert result["production_or_champion_modified"] is False
+
+
+def test_untrusted_source_cannot_dispatch_hourly_research_from_stale_queue(project, monkeypatch):
+    path = project / "loto7_agent_output/research_autonomy_priority_queue.json"
+    put(path, lambda q: q["input_evidence_sha256"].update(bibliography="0"*64))
+    from loto7_evolving_agent import read_csv_flexible, make_history
+    count = len(make_history(read_csv_flexible(project/"loto7.csv"))[0])
+    monkeypatch.setattr(quality, "validate_trusted_source",
+                        lambda *_: {"round": count, "trusted": False})
+    result = quality.audit(project, now=BEFORE)
+    assert result["requested_recovery_workflow"] is None
+    assert not result["source_two_independently_verified"]
