@@ -1,6 +1,6 @@
 # Research Data Quality
 
-- Checked: 2026-10-30T07:39:52+09:00
+- Checked: 2026-10-30T08:03:30+09:00
 - Status: **pass**
 - CSV rows: 700
 - Exact CSV SHA256: fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6
