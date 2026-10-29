@@ -1,6 +1,6 @@
 {
   "version": "open-ended-evolution-v1",
-  "generations_total": 52778,
+  "generations_total": 53919,
   "evaluated_history_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "recorded_rounds": 700,
   "evaluation_rounds": 700,
@@ -8,7 +8,7 @@
   "last_unverified_row_excluded": false,
   "independent_source_verified": true,
   "research_champion": {
-    "generation": 48096,
+    "generation": 52807,
     "genome": {
       "op": "blend",
       "alpha": 0.67852,
@@ -96,14 +96,14 @@
       }
     },
     "assessment": {
-      "mean_log_edge": 0.00044391040619019974,
+      "mean_log_edge": 0.0004439104061902002,
       "mean_top7_hits": 1.4791666666666667,
       "block_edges": [
-        0.00013674875428210023,
+        0.00013674875428210196,
         0.0009737527617259434,
-        0.0002212297025625559
+        0.00022122970256255504
       ],
-      "fitness": 0.00038747452014080647,
+      "fitness": 0.00038747452014080696,
       "historical_selection_only": true,
       "prospective_edge_confirmed": false
     },
@@ -111,7 +111,7 @@
   },
   "hall_of_fame": [
     {
-      "generation": 48096,
+      "generation": 52807,
       "genome": {
         "op": "blend",
         "alpha": 0.67852,
@@ -199,14 +199,14 @@
         }
       },
       "assessment": {
-        "mean_log_edge": 0.00044391040619019974,
+        "mean_log_edge": 0.0004439104061902002,
         "mean_top7_hits": 1.4791666666666667,
         "block_edges": [
-          0.00013674875428210023,
+          0.00013674875428210196,
           0.0009737527617259434,
-          0.0002212297025625559
+          0.00022122970256255504
         ],
-        "fitness": 0.00038747452014080647,
+        "fitness": 0.00038747452014080696,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
@@ -429,6 +429,119 @@
           0.0002234506555572466
         ],
         "fitness": 0.00038747118715882155,
+        "historical_selection_only": true,
+        "prospective_edge_confirmed": false
+      },
+      "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
+    },
+    {
+      "generation": 53208,
+      "genome": {
+        "op": "blend",
+        "alpha": 0.99,
+        "left": {
+          "op": "blend",
+          "alpha": 0.67852,
+          "left": {
+            "op": "blend",
+            "alpha": 0.19977,
+            "left": {
+              "op": "blend",
+              "alpha": 0.74645,
+              "left": {
+                "op": "gap",
+                "scale": 41.98272
+              },
+              "right": {
+                "op": "power",
+                "exponent": 2.16673,
+                "child": {
+                  "op": "power",
+                  "exponent": 2.30693,
+                  "child": {
+                    "op": "decay",
+                    "half_life": 13.58362
+                  }
+                }
+              }
+            },
+            "right": {
+              "op": "blend",
+              "alpha": 0.12536,
+              "left": {
+                "op": "blend",
+                "alpha": 0.24202,
+                "left": {
+                  "op": "blend",
+                  "alpha": 0.86498,
+                  "left": {
+                    "op": "decay",
+                    "half_life": 122.33941
+                  },
+                  "right": {
+                    "op": "decay",
+                    "half_life": 101.4379
+                  }
+                },
+                "right": {
+                  "op": "blend",
+                  "alpha": 0.07882,
+                  "left": {
+                    "op": "uniform"
+                  },
+                  "right": {
+                    "op": "frequency",
+                    "window": 37,
+                    "prior": 25.85091
+                  }
+                }
+              },
+              "right": {
+                "op": "blend",
+                "alpha": 0.66082,
+                "left": {
+                  "op": "power",
+                  "exponent": 1.77195,
+                  "child": {
+                    "op": "uniform"
+                  }
+                },
+                "right": {
+                  "op": "blend",
+                  "alpha": 0.1953,
+                  "left": {
+                    "op": "pair",
+                    "window": 214,
+                    "prior": 194.89904
+                  },
+                  "right": {
+                    "op": "uniform"
+                  }
+                }
+              }
+            }
+          },
+          "right": {
+            "op": "uniform"
+          }
+        },
+        "right": {
+          "op": "power",
+          "exponent": 1.16904,
+          "child": {
+            "op": "uniform"
+          }
+        }
+      },
+      "assessment": {
+        "mean_log_edge": 0.0004433164732670274,
+        "mean_top7_hits": 1.4791666666666667,
+        "block_edges": [
+          0.00013893388395745603,
+          0.0009675648802863791,
+          0.00022345065555724665
+        ],
+        "fitness": 0.00038747118715882144,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
@@ -874,112 +987,6 @@
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
-    },
-    {
-      "generation": 50018,
-      "genome": {
-        "op": "blend",
-        "alpha": 0.69992,
-        "left": {
-          "op": "blend",
-          "alpha": 0.19977,
-          "left": {
-            "op": "blend",
-            "alpha": 0.74645,
-            "left": {
-              "op": "gap",
-              "scale": 41.98272
-            },
-            "right": {
-              "op": "power",
-              "exponent": 2.16673,
-              "child": {
-                "op": "power",
-                "exponent": 2.30693,
-                "child": {
-                  "op": "decay",
-                  "half_life": 13.58362
-                }
-              }
-            }
-          },
-          "right": {
-            "op": "blend",
-            "alpha": 0.12536,
-            "left": {
-              "op": "blend",
-              "alpha": 0.24202,
-              "left": {
-                "op": "blend",
-                "alpha": 0.86498,
-                "left": {
-                  "op": "decay",
-                  "half_life": 122.33941
-                },
-                "right": {
-                  "op": "decay",
-                  "half_life": 101.4379
-                }
-              },
-              "right": {
-                "op": "blend",
-                "alpha": 0.07882,
-                "left": {
-                  "op": "uniform"
-                },
-                "right": {
-                  "op": "frequency",
-                  "window": 37,
-                  "prior": 25.85091
-                }
-              }
-            },
-            "right": {
-              "op": "blend",
-              "alpha": 0.66082,
-              "left": {
-                "op": "power",
-                "exponent": 1.77195,
-                "child": {
-                  "op": "uniform"
-                }
-              },
-              "right": {
-                "op": "blend",
-                "alpha": 0.1953,
-                "left": {
-                  "op": "pair",
-                  "window": 214,
-                  "prior": 194.89904
-                },
-                "right": {
-                  "op": "uniform"
-                }
-              }
-            }
-          }
-        },
-        "right": {
-          "op": "power",
-          "exponent": 2.46477,
-          "child": {
-            "op": "uniform"
-          }
-        }
-      },
-      "assessment": {
-        "mean_log_edge": 0.0004453164611359014,
-        "mean_top7_hits": 1.4791666666666667,
-        "block_edges": [
-          0.0001294232939905865,
-          0.0009928298338552216,
-          0.00021369625556189595
-        ],
-        "fitness": 0.00038701504781775826,
-        "historical_selection_only": true,
-        "prospective_edge_confirmed": false
-      },
-      "research_data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6"
     }
   ],
   "execution_limits": {
@@ -989,5 +996,5 @@
   },
   "scope": "indefinite_historical_model_program_evolution_not_production",
   "claim": "Selection on reused historical data cannot establish predictive advantage.",
-  "last_record_sha256": "0e0e1b9aa847993d97977d08128d8524133548ddf67dbff22da0066f09d4c6e6"
+  "last_record_sha256": "1832f32e77ac91678fe9fc9d7fff76f63f8634cce4775d8daf1b7fbfc2ef3e34"
 }
