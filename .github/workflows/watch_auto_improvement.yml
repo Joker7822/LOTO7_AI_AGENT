@@ -1,0 +1,135 @@
+name: Automated WATCH Triage and Research-only Repair
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Daily at 18:47 JST (best effort); incident-driven runs also fire below.
+    - cron: "47 9 * * *"
+  workflow_run:
+    workflows: ["LOTO7 Agent Role Council"]
+    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - "watch_auto_improvement.py"
+      - "tests/test_watch_auto_improvement.py"
+      - ".github/workflows/watch_auto_improvement.yml"
+  pull_request:
+    paths:
+      - "watch_auto_improvement.py"
+      - "tests/test_watch_auto_improvement.py"
+      - ".github/workflows/watch_auto_improvement.yml"
+      - "WATCH_AUTO_IMPROVEMENT.md"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: watch-triage-safe-auto-improvement-main
+  cancel-in-progress: false
+
+jobs:
+  bounded-auto-triage:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      TZ: Asia/Tokyo
+      PYTHONHASHSEED: "0"
+    steps:
+      - name: Checkout current audited branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Test algorithm correctness, bounded retrospective and strict permissions
+        run: |
+          python -m compileall -q watch_auto_improvement.py
+          python -m pytest -q tests/test_watch_auto_improvement.py
+          bash scripts/ci_verify_frozen_regressions.sh tests/test_agent_role_council.py
+      - name: PR only - check real incident with absolutely no tracked-data writes
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/loto7-watch-triage
+          python watch_auto_improvement.py --repo-root . --out-dir /tmp/loto7-watch-triage
+          git diff --exit-code --
+          test -z "$(git ls-files --others --exclude-standard)"
+      - name: Investigate WATCH and record research-only correction
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            python watch_auto_improvement.py --repo-root . --out-dir loto7_agent_output
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          j=json.loads(Path("loto7_agent_output/watch_auto_improvement_report.json").read_text())
+          assert j["new_optimizer_trials"] == 0
+          assert j["production_modified"] is False
+          assert j["champion_modified"] is False
+          assert j["registered_future_oos_modified"] is False
+          assert j["past_frozen_vectors_recomputed"] is False
+          assert j["fully_automatic_promotion_authorized"] is False
+          assert j["verified_predictive_edge"] is False
+          assert all(i.get("production_fix_deployed") is not True for i in j["issues"])
+          print("WATCH safety review:", j["status"])
+          PY
+            git diff --exit-code -- \
+              loto7.csv STATUS.md \
+              loto7_agent_output/model_champion.json \
+              loto7_agent_output/research_cycle_guard.json \
+              loto7_agent_output/source_validation.json \
+              research/disjoint_future_oos \
+              loto7_evolving_agent.py
+            git add -- \
+              loto7_agent_output/watch_auto_improvement_report.json \
+              loto7_agent_output/watch_auto_improvement_report.md
+            unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/watch_auto_improvement_report\.(json|md)$' || true)"
+            test -z "$unexpected" || { echo "::error::Forbidden staged path: $unexpected"; exit 1; }
+            if git diff --cached --quiet; then
+              echo "No WATCH triage report change"
+              break
+            fi
+            git commit -m "research: audit WATCH and test wide-integer research repair"
+            if git push origin HEAD:main; then
+              echo "Research-only WATCH improvement verified and published"
+              break
+            fi
+            if [ "$attempt" = 5 ]; then
+              echo "::error::WATCH audit could not persist after concurrent edits"
+              exit 1
+            fi
+          done
+      - name: Publish transparent triage in Actions summary
+        if: success()
+        shell: bash
+        run: |
+          {
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              cat /tmp/loto7-watch-triage/watch_auto_improvement_report.md
+            else
+              cat loto7_agent_output/watch_auto_improvement_report.md
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Archive safe repair research and evidence
+        if: github.event_name != 'pull_request' && success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: watch-automated-research-improvement
+          path: |
+            loto7_agent_output/watch_auto_improvement_report.json
+            loto7_agent_output/watch_auto_improvement_report.md
+          retention-days: 90
