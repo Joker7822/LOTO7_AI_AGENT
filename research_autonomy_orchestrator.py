@@ -86,7 +86,7 @@ def measured_backlog(item: dict | None) -> int | None:
 
 
 def previous_queue_is_eligible(candidate: dict, *, info: dict,
-                               clock: datetime) -> bool:
+                               clock: datetime, allow_same_timestamp: bool = False) -> bool:
     """Past advisory output is bounded telemetry, never an authority source."""
     if (candidate.get("version") != VERSION
             or candidate.get("draw_history_sha256") != info["draw_history_sha256"]
@@ -111,8 +111,11 @@ def previous_queue_is_eligible(candidate: dict, *, info: dict,
         timestamp = datetime.fromisoformat(candidate["latest_audit_at_jst"])
     except (KeyError, ValueError, TypeError):
         return False
-    if (timestamp.tzinfo is None or timestamp.utcoffset() is None
-            or not timedelta(hours=1) <= clock - timestamp <= timedelta(days=7)):
+    if timestamp.tzinfo is None or timestamp.utcoffset() is None:
+        return False
+    age = clock - timestamp
+    if not (timedelta(hours=1) <= age <= timedelta(days=7)
+            or (allow_same_timestamp and age == timedelta(0))):
         return False
     tasks = candidate.get("tasks")
     if not isinstance(tasks, list) or len(tasks) > 25:
@@ -412,14 +415,31 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
                     "production_or_oos_modified"):
             if quality.get(key) != fresh_quality[key]:
                 raise ValueError("stale or altered data quality evidence: " + key)
+    current_fingerprints = {
+        "application": digest(readiness_path.read_bytes()),
+        "proposals": digest(review_path.read_bytes()),
+        "bibliography": digest(publication_path.read_bytes()),
+        "source": digest((out / discovery.FILES["source"]).read_bytes()),
+    }
     previous = None
     queue_path = out / QUEUE
     if queue_path.is_file():
         try:
             candidate = gate.load(queue_path)
+            # Same-input, same-second reruns must NOT discard their earlier
+            # feedback basis or count another phantom research cycle.
+            same_time = candidate.get("latest_audit_at_jst") == clock.isoformat(timespec="seconds")
+            if (same_time and (out / REPORT).is_file()
+                    and candidate.get("input_evidence_sha256") == current_fingerprints
+                    and previous_queue_is_eligible(candidate, info=info, clock=clock,
+                                                   allow_same_timestamp=True)
+                    and candidate.get("action_feedback", {}).get("version") == FEEDBACK_VERSION
+                    and candidate["action_feedback"].get("new_training_or_release_authorized") is False
+                    and candidate["action_feedback"].get("causal_attribution_established") is False):
+                return candidate
             if previous_queue_is_eligible(candidate, info=info, clock=clock):
                 previous = candidate
-        except (ValueError, TypeError, KeyError):
+        except (ValueError, TypeError, KeyError, AttributeError):
             # Untrusted derived evidence cannot affect priority calculations.
             pass
     tasks = build_queue(info, readiness, source, plans, publication, clock,
@@ -431,12 +451,7 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
         "source_two_verified": info["two_source_verified"],
         "research_mode": info["research_mode"],
         "draw_history_sha256": info["draw_history_sha256"],
-        "input_evidence_sha256": {
-            "application": digest(readiness_path.read_bytes()),
-            "proposals": digest(review_path.read_bytes()),
-            "bibliography": digest(publication_path.read_bytes()),
-            "source": digest((out / discovery.FILES["source"]).read_bytes()),
-        },
+        "input_evidence_sha256": current_fingerprints,
         "counts": {key: sum(t["priority"] == key for t in tasks)
                    for key in ("block", "watch", "info")},
         "top_priority": tasks[0]["code"] if tasks else None,
