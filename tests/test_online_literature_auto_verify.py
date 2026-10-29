@@ -299,6 +299,5 @@ def test_priority_queue_rejects_elevated_external_actions(repo):
     }
     (out / "research_autonomy_priority_queue.json").write_text(
         json.dumps(plan), encoding="utf-8")
-    )
     with pytest.raises(ValueError, match="elevate"):
         agent.build(repo, fetch=provider_fetch(repo), now=NOW)
