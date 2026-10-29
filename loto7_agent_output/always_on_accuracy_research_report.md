@@ -1,9 +1,9 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-10-30T07:27:52+09:00**
-- Completed audit cycles: **31**
-- This cycle: **literature_search** / インターネットから最新の研究論文を検索
-- Network discovery: **searched**
+- Last executed: **2026-10-30T07:39:51+09:00**
+- Completed audit cycles: **32**
+- This cycle: **source_audit** / 結果の二重ソース照合と鮮度を点検
+- Network discovery: **not_scheduled**
 - Trusted draw latest: **700**, two-source: **True**
 - Research guard: **WAIT_FOR_NEW_DATA**, same-data trials: **800/800**
 - Future actuals: portfolio 7/26, v2 0, fifth-expert 0
@@ -11,8 +11,7 @@
 ## Completed evidence review
 - 探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。
-- オンライン検索: searched / 新規候補 4件
+- 最新信頼ステータス: verified_two_result_sources
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
 - [Probabilistic Forecast Verification](https://doi.org/10.1201/9781003203971-10) (2024) — UNREVIEWED

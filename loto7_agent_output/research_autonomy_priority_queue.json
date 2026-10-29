@@ -1,15 +1,15 @@
 {
   "version": "research-priority-orchestrator-v1",
-  "latest_audit_at_jst": "2026-10-30T07:27:54+09:00",
+  "latest_audit_at_jst": "2026-10-30T07:39:53+09:00",
   "latest_source_round": 700,
   "source_two_verified": true,
   "research_mode": "WAIT_FOR_NEW_DATA",
   "draw_history_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "input_evidence_sha256": {
-    "application": "7d7f608e06659dcfecb1ba87c95b58584b82ce4ec8eb6109861e37579660f586",
-    "proposals": "c88f3baad354e6494fabd9c792c0d41048d5dff545010bc816d982a8e5f8a31c",
-    "bibliography": "2b4d5fbaca20f2e25a653369c3726137cc922e84576461f11cd1eb742f880aab",
-    "source": "8474f7fd1bd52a2581c62aa118deee407ec8a43f419e426d5cdde283cce87f0b"
+    "application": "cfabc32fce8df1066214e8029ac98e434528507a50f49a7e95c3b0027ce3bed7",
+    "proposals": "9d4cac698e48a6fc38738184f5846a920d03b87136b32e6d5bbc95d667b9bf36",
+    "bibliography": "27d891fbdcd1854bae635e87fcb6f500ccae758b0385310a23657aef64425324",
+    "source": "7fd43886f73586e45af1ef7b8364e49c12e86ec2cd18c30eb3c5c85e6b40cb81"
   },
   "counts": {
     "block": 0,
@@ -25,14 +25,21 @@
       "lane": "bibliography",
       "owner": "literature_verifier",
       "title": "文献書誌情報の不一致を確認",
-      "reason": "3 件のDOIで独立サービスの書誌照合結果が不一致です。",
+      "reason": "4 件のDOIで独立サービスの書誌照合結果が不一致です。",
       "next_step": "元のDOIと著者・タイトルを確認してください。対立するメタデータから研究計画を承認しないでください。",
-      "evidence": "conflict_count=3",
+      "evidence": "conflict_count=4",
       "doi_url": null,
       "human_approval_required_for_model_change": true,
       "safe_autonomous_action": "report_only",
       "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 65,
+        "verified_backlog": 4,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 69
     },
     {
       "id": "f57688ee310e7a82",
@@ -41,14 +48,21 @@
       "lane": "bibliography",
       "owner": "literature_verifier",
       "title": "未照合の学術文献を一次確認",
-      "reason": "9 件の候補DOIがCrossref/OpenAlexによる照合待ちです。",
+      "reason": "8 件の候補DOIがCrossref/OpenAlexによる照合待ちです。",
       "next_step": "既存の上限付き照合を次の定期サイクルで続けてください。未照合論文を学術的根拠として扱わないでください。",
-      "evidence": "unchecked_count=9",
+      "evidence": "unchecked_count=8",
       "doi_url": null,
       "human_approval_required_for_model_change": true,
       "safe_autonomous_action": "report_only",
       "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 55,
+        "verified_backlog": 8,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 63
     },
     {
       "id": "ac1c77e9d382ec80",
@@ -64,7 +78,14 @@
       "human_approval_required_for_model_change": true,
       "safe_autonomous_action": "report_only",
       "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 20,
+        "verified_backlog": 0,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 20
     },
     {
       "id": "bb470a7532060cdb",
@@ -80,7 +101,14 @@
       "human_approval_required_for_model_change": true,
       "safe_autonomous_action": "report_only",
       "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 20,
+        "verified_backlog": 0,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 20
     },
     {
       "id": "11fa494d57a68aae",
@@ -96,7 +124,14 @@
       "human_approval_required_for_model_change": true,
       "safe_autonomous_action": "report_only",
       "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 20,
+        "verified_backlog": 0,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 20
     },
     {
       "id": "68068b7d6e3f9425",
@@ -112,7 +147,14 @@
       "human_approval_required_for_model_change": true,
       "safe_autonomous_action": "report_only",
       "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 20,
+        "verified_backlog": 0,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 20
     },
     {
       "id": "a011b838b53bbf23",
@@ -128,7 +170,14 @@
       "human_approval_required_for_model_change": true,
       "safe_autonomous_action": "report_only",
       "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 20,
+        "verified_backlog": 0,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 20
     },
     {
       "id": "5aa5496c0dc6dbfb",
@@ -144,23 +193,14 @@
       "human_approval_required_for_model_change": true,
       "safe_autonomous_action": "report_only",
       "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
-    },
-    {
-      "id": "1b47f572efc99de6",
-      "code": "AWAIT_GENUINE_OOS",
-      "priority": "info",
-      "lane": "prospective_integrity",
-      "owner": "oos_custodian",
-      "title": "真正将来検証の標本数を確保",
-      "reason": "第701回開始の登録済み検証で、精度改善と呼べるだけの実測がありません。",
-      "next_step": "既存の事前登録と凍結手順を守り、抽せん結果が出た後の遡及的な予測作成はしないでください。",
-      "evidence": "v2=0;candidate=0",
-      "doi_url": null,
-      "human_approval_required_for_model_change": true,
-      "safe_autonomous_action": "report_only",
-      "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 20,
+        "verified_backlog": 0,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 20
     },
     {
       "id": "98d56b44a6406ad5",
@@ -176,7 +216,37 @@
       "human_approval_required_for_model_change": true,
       "safe_autonomous_action": "report_only",
       "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 35,
+        "verified_backlog": 1,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 36
+    },
+    {
+      "id": "1b47f572efc99de6",
+      "code": "AWAIT_GENUINE_OOS",
+      "priority": "info",
+      "lane": "prospective_integrity",
+      "owner": "oos_custodian",
+      "title": "真正将来検証の標本数を確保",
+      "reason": "第701回開始の登録済み検証で、精度改善と呼べるだけの実測がありません。",
+      "next_step": "既存の事前登録と凍結手順を守り、抽せん結果が出た後の遡及的な予測作成はしないでください。",
+      "evidence": "v2=0;candidate=0",
+      "doi_url": null,
+      "human_approval_required_for_model_change": true,
+      "safe_autonomous_action": "report_only",
+      "new_optimizer_trials_authorized": false,
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 15,
+        "verified_backlog": 0,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 15
     },
     {
       "id": "1234ec28c1901b80",
@@ -192,7 +262,14 @@
       "human_approval_required_for_model_change": true,
       "safe_autonomous_action": "report_only",
       "new_optimizer_trials_authorized": false,
-      "forecast_or_production_change_authorized": false
+      "forecast_or_production_change_authorized": false,
+      "recurrence_cycles": 1,
+      "priority_factors": {
+        "impact": 10,
+        "verified_backlog": 0,
+        "unresolved_recurrence": 0
+      },
+      "priority_score": 10
     }
   ],
   "authority": {
