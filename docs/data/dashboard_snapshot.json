@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-29T16:41:59+09:00",
-  "source_commit": "552408dbfbc19f30a0a55481c71d3000f9412e2c",
-  "state_hashes_sha256": "b688a228c05a177d431624347ef9fe16fd92bbc6cfc18f84fa417a9f518f09c4",
+  "generated_at_jst": "2026-10-29T20:16:48+09:00",
+  "source_commit": "8c6b18e245f9280d55a57c32f2dc403977f47111",
+  "state_hashes_sha256": "a88ef252b7833a142a47d7000a9ad2ed2cf77c6f8b4ddcae45ac47426ee0ee6b",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-10-29T08:11:36+09:00",
+      "checked_at_jst": "2026-10-29T20:15:15+09:00",
       "latest": {
         "round": 700,
         "date": "2026-10-23",
@@ -196,9 +196,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 40785421253,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40785421253",
-      "updated_at": "2026-10-28T23:11:46Z",
+      "run_id": 40863663545,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40863663545",
+      "updated_at": "2026-10-29T11:15:25Z",
       "recent_failure_count": 0
     },
     {
@@ -262,9 +262,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 40785421374,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40785421374",
-      "updated_at": "2026-10-28T23:10:30Z",
+      "run_id": 40863663583,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40863663583",
+      "updated_at": "2026-10-29T11:13:16Z",
       "recent_failure_count": 0
     }
   ],
@@ -478,14 +478,14 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 25,
-    "last_activity_jst": "2026-10-29T15:24:19+09:00",
-    "current_phase": "literature_search",
-    "current_activity": "インターネットから最新の研究論文を検索",
-    "online_search_status": "searched",
+    "sequence": 26,
+    "last_activity_jst": "2026-10-29T17:33:17+09:00",
+    "current_phase": "source_audit",
+    "current_activity": "結果の二重ソース照合と鮮度を点検",
+    "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": true,
-    "new_papers_count": 4,
+    "new_papers_count": 0,
     "papers": [
       {
         "title": "How Much Sharpe is Illusory? Quantifying Backtest Overfitting in Crypto Factor Strategies",
@@ -540,8 +540,7 @@
     "review_notes": [
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
-      "オンライン検索: searched / 新規候補 4件"
+      "最新信頼ステータス: verified_two_result_sources"
     ]
   },
   "research_application": {
@@ -549,7 +548,7 @@
     "research_mode": "WAIT_FOR_NEW_DATA",
     "trusted_result_source": true,
     "papers": 20,
-    "verified_dois": 3,
+    "verified_dois": 0,
     "proposal_count": 6,
     "synthetic_control": "passed",
     "actual_prediction_accuracy_improvement_verified": false,
@@ -580,8 +579,8 @@
       },
       {
         "topic": "selection_bias",
-        "status": "awaiting_full_text_and_methodology_review",
-        "two_provider_matches": 3,
+        "status": "bibliography_needs_verification",
+        "two_provider_matches": 0,
         "requires_human_approval": true
       },
       {
@@ -663,9 +662,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "552408dbfbc19f30a0a55481c71d3000f9412e2c",
-    "snapshot_generated_at_jst": "2026-10-29T16:41:59+09:00",
-    "computed_at_jst": "2026-10-29T07:41:59+00:00",
+    "source_commit": "8c6b18e245f9280d55a57c32f2dc403977f47111",
+    "snapshot_generated_at_jst": "2026-10-29T20:16:48+09:00",
+    "computed_at_jst": "2026-10-29T11:16:48+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
