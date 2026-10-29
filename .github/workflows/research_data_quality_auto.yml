@@ -82,7 +82,8 @@ jobs:
           assert q["registered_future_oos_modified"] is False
           assert q["new_optimizer_trials"] == 0
           assert q["requested_recovery_workflow"] in [
-              None, "friday_result_check_watchdog.yml", "advanced_validation_lab.yml"
+              None, "friday_result_check_watchdog.yml", "advanced_validation_lab.yml",
+              "always_on_accuracy_research.yml"
           ]
           print("Safe recovery decision:", q["requested_recovery_workflow"])
           PY
@@ -128,7 +129,7 @@ jobs:
           )"
           case "$TARGET" in
             "") echo "Fresh or safety-held; no dispatch"; exit 0 ;;
-            friday_result_check_watchdog.yml|advanced_validation_lab.yml) ;;
+            friday_result_check_watchdog.yml|advanced_validation_lab.yml|always_on_accuracy_research.yml) ;;
             *) echo "::error::Forbidden workflow dispatch"; exit 1 ;;
           esac
           # Respect other live workers. A dashboard warning should never
