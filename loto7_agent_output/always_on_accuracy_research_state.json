@@ -1,10 +1,10 @@
 {
   "version": "always-on-accuracy-research-v1",
-  "sequence": 25,
-  "last_record_sha256": "15170b6b4cf5027199ab578a21f50cd0fc20b73b02ceb2b113811211ce5c79e1",
-  "last_activity_jst": "2026-10-29T15:24:19+09:00",
-  "current_phase": "literature_search",
-  "current_activity": "インターネットから最新の研究論文を検索",
+  "sequence": 26,
+  "last_record_sha256": "8411b1dfa6ff00fc96da493ab4fcf550fe2de3bd2cf0b1b1b4ac47a06529330d",
+  "last_activity_jst": "2026-10-29T17:33:17+09:00",
+  "current_phase": "source_audit",
+  "current_activity": "結果の二重ソース照合と鮮度を点検",
   "status": "active_bounded_research",
   "research_mode": "WAIT_FOR_NEW_DATA",
   "latest_resolved_round": 700,
@@ -17,7 +17,7 @@
     "adaptive": 0,
     "fifth_expert": 0
   },
-  "online_search_status": "searched",
+  "online_search_status": "not_scheduled",
   "papers": [
     {
       "doi": "10.2139/ssrn.7350238",
@@ -160,12 +160,11 @@
       "review_status": "unreviewed"
     }
   ],
-  "new_papers_count": 4,
+  "new_papers_count": 0,
   "review_notes": [
     "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
     "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-    "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
-    "オンライン検索: searched / 新規候補 4件"
+    "最新信頼ステータス: verified_two_result_sources"
   ],
   "promotion_authorized": false,
   "read_only_scientific_activity": true

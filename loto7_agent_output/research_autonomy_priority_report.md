@@ -1,6 +1,6 @@
 # Autonomous Research Priority Queue
 
-- Generated: 2026-10-29T15:24:21+09:00
+- Generated: 2026-10-29T17:33:19+09:00
 - Guard: **WAIT_FOR_NEW_DATA**; verified draw source: **True**
 - Priorities: block=0, watch=8, info=3
 - Read-only; does not launch workflows, change Production or create future grades.
@@ -36,7 +36,7 @@
 8. **[watch] 研究計画レビュー：selection_bias**
    - Assigned: methodology_reviewer / experiment_review
    - Reason: 候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。
-   - Next: Review complete paper, assumptions, data, code, license and relevance; log explicit human decision. 人の明示的な承認がない限り研究試行も本番採用も行いません。
+   - Next: Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。
 9. **[info] 真正将来検証の標本数を確保**
    - Assigned: oos_custodian / prospective_integrity
    - Reason: 第701回開始の登録済み検証で、精度改善と呼べるだけの実測がありません。

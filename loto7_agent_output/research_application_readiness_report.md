@@ -4,7 +4,7 @@ Status: **Research-only; human validation required.**
 Two-source draw trust: **True**
 Research mode: **WAIT_FOR_NEW_DATA**
 Public paper records: **20**
-Two-provider matching DOI records: **3**
+Two-provider matching DOI records: **0**
 Synthetic 7-of-37 controls: **synthetic_controls_passed**
 Real lottery predictive improvement established: **NO**
 
@@ -13,7 +13,7 @@ Real lottery predictive improvement established: **NO**
 - online_evaluation: bibliography_needs_verification — Verify DOI/title/year with both Crossref and OpenAlex before reading methodology.
 - anytime_evidence: bibliography_needs_verification — Verify DOI/title/year with both Crossref and OpenAlex before reading methodology.
 - distribution_shift: bibliography_needs_verification — Verify DOI/title/year with both Crossref and OpenAlex before reading methodology.
-- selection_bias: awaiting_full_text_and_methodology_review — Review complete paper, assumptions, data, code, license and relevance; log explicit human decision.
+- selection_bias: bibliography_needs_verification — Verify DOI/title/year with both Crossref and OpenAlex before reading methodology.
 - ensemble: bibliography_needs_verification — Verify DOI/title/year with both Crossref and OpenAlex before reading methodology.
 
 Evidence labels do not authorize code changes, new trials, prior-OOS

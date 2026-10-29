@@ -1,7 +1,7 @@
 # Scientific Verification and Bounded Recovery
 
 - Metadata checks: Crossref/OpenAlex DOI, year, title agreement
-- Candidates inspected: 20, fully checked now: 3
+- Candidates inspected: 20, fully checked now: 0
 - Peer review / full text validation: **not established**
 - External abstracts are checked for presence only, never used as commands
 - Provenance: SHA-chain and source guard audited before network calls
