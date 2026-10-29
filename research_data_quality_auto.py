@@ -26,7 +26,8 @@ OUTPUT = "research_data_quality_auto_report.json"
 MARKDOWN = "research_data_quality_auto_report.md"
 MIN_POST_DRAW_DELAY_MINUTES = 30
 ALLOWED_RECOVERY = {
-    "friday_result_check_watchdog.yml", "advanced_validation_lab.yml"
+    "friday_result_check_watchdog.yml", "advanced_validation_lab.yml",
+    "always_on_accuracy_research.yml"
 }
 
 
@@ -143,6 +144,10 @@ def audit(root: Path, *, now: datetime | None = None) -> dict:
     elif (verified and guard.get("data_sha256") == before["draw"]
           and "REGISTERED_SCIENCE_OUTDATED" in issues):
         recovery = "advanced_validation_lab.yml"
+    elif (verified and guard.get("data_sha256") == before["draw"]
+          and science.get("historical_data_sha256") == before["draw"]
+          and "REGENERATE_PRIORITY_QUEUE_AFTER_SOURCE_UPDATE" in issues):
+        recovery = "always_on_accuracy_research.yml"
     if recovery is not None and recovery not in ALLOWED_RECOVERY:
         raise AssertionError("unallowlisted recovery workflow")
     if before != {k: sha(p) for k, p in files.items()}:
