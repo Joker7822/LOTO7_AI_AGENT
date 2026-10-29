@@ -1,12 +1,12 @@
 {
   "version": "research-literature-review-and-design-v1",
-  "discovery_state_sha256": "ddc92ea3f3383b8141aec072f0defee8b9bf45115a90105f806da67dc63b11c2",
-  "discovery_chain_tip": "ad5f2d8a4c1b0d371f30398736567252d4bccbdc9afdccea9fb8f7efb4643b2b",
+  "discovery_state_sha256": "fc8763d9e5338d00956376ce6580b88978d0de43989824966171bc42073593e5",
+  "discovery_chain_tip": "15170b6b4cf5027199ab578a21f50cd0fc20b73b02ceb2b113811211ce5c79e1",
   "draw_history_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "research_mode": "WAIT_FOR_NEW_DATA",
   "last_resolved_round": 700,
   "scope": "metadata_only_no_paper_contents",
-  "count": 5,
+  "count": 6,
   "proposals": [
     {
       "proposal_id": "2848357447ba7e37",
@@ -136,6 +136,39 @@
         "new hypothesis not independently preregistered"
       ],
       "critical_risk": "Drift tools cannot manufacture a lottery prediction signal.",
+      "status": "draft_needs_human_method_review",
+      "experiment_approved": false,
+      "code_execution_authorized": false,
+      "new_trial_budget_granted": false,
+      "future_oos_registration_created": false,
+      "production_promotion_authorized": false,
+      "same_data_search_currently_permitted": false
+    },
+    {
+      "proposal_id": "9269db24be901e89",
+      "topic": "selection_bias",
+      "source_dois": [
+        "10.2139/ssrn.6078546",
+        "10.2139/ssrn.7346738",
+        "10.2139/ssrn.7350238"
+      ],
+      "hypothesis": "A selected winner may be an artifact of many attempted optimizers.",
+      "design": "Re-run the whole candidate-search pipeline including rejected trials on independent fair histories.",
+      "primary_metric": "familywise max-statistic under full-pipeline null",
+      "baseline": "uniform 7-of-37 draw plus an existing frozen comparator",
+      "required_controls": [
+        "identical chronological targets and matched compute budgets",
+        "full search-process reruns on synthetic fair 7-of-37 draws",
+        "include all attempted candidates in multiple-comparison correction",
+        "freeze every new genuinely prospective prediction before its outcome"
+      ],
+      "stop_conditions": [
+        "unverified result source or missing prefrozen forecast",
+        "model or draw-data SHA mismatch",
+        "per-data optimizer budget exceeded",
+        "new hypothesis not independently preregistered"
+      ],
+      "critical_risk": "Previously mined history is not independent confirmatory evidence.",
       "status": "draft_needs_human_method_review",
       "experiment_approved": false,
       "code_execution_authorized": false,

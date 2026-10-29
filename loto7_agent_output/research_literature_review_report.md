@@ -1,9 +1,9 @@
 # Literature metadata reviewer & experiment design queue
 
 This is not full-text paper review or an automated forecasting experiment.
-Discovery chain: ad5f2d8a4c1b0d371f30398736567252d4bccbdc9afdccea9fb8f7efb4643b2b
+Discovery chain: 15170b6b4cf5027199ab578a21f50cd0fc20b73b02ceb2b113811211ce5c79e1
 Research guard: WAIT_FOR_NEW_DATA; search permitted: False
-Triaged papers: 16; non-executable designs: 5
+Triaged papers: 20; non-executable designs: 6
 
 ## Read-next list (metadata only)
 - DOI 10.2139/ssrn.6617378 (2026) review_next topics=calibration,ensemble
@@ -11,13 +11,13 @@ Triaged papers: 16; non-executable designs: 5
 - DOI 10.5281/zenodo.21508920 (2026) review_next topics=calibration,online_evaluation,distribution_shift
 - DOI 10.1016/j.ijforecast.2026.04.009 (2026) review_next topics=calibration
 - DOI 10.1145/3765611.3815392 (2026) review_next topics=calibration
+- DOI 10.2139/ssrn.6078546 (2026) review_next topics=selection_bias
+- DOI 10.2139/ssrn.7346738 (2026) review_next topics=selection_bias
+- DOI 10.2139/ssrn.7350238 (2026) review_next topics=selection_bias
 - DOI 10.1093/jrsssb/qkaf014 (2025) background topics=anytime_evidence
 - DOI 10.1214/24-ejs2228 (2024) background topics=anytime_evidence
 - DOI 10.2139/ssrn.4689006 (2024) background topics=anytime_evidence
 - DOI 10.2139/ssrn.7599398 (2026) background topics=anytime_evidence
-- DOI 10.1007/s42081-026-00374-w (2026) background topics=online_evaluation
-- DOI 10.2139/ssrn.4896166 (2024) background topics=online_evaluation
-- DOI 10.2139/ssrn.5946791 (2025) background topics=distribution_shift
 
 ## Draft-only experiment templates
 ### calibration
@@ -39,6 +39,11 @@ Triaged papers: 16; non-executable designs: 5
 - Hypothesis: Chronological model performance may differ by era.
 - Metric: era-wise log/Brier edge and descriptive heterogeneity
 - Plan: Compare fixed non-overlapping eras, paired block uncertainty and fair-world histories.
+- Human approval, future preregistration, independent data required.
+### selection_bias
+- Hypothesis: A selected winner may be an artifact of many attempted optimizers.
+- Metric: familywise max-statistic under full-pipeline null
+- Plan: Re-run the whole candidate-search pipeline including rejected trials on independent fair histories.
 - Human approval, future preregistration, independent data required.
 ### ensemble
 - Hypothesis: Fixed probability averaging may reduce variance without improving true accuracy.
