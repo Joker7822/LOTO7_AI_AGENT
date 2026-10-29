@@ -69,7 +69,9 @@ def test_actual_repository_records_are_bounded_and_provenanced():
     assert report["rotation_total_candidates"] == len(papers_at(ROOT))
     assert len(report["rotation_attempted_dois"]) == 3
     assert sum(report["verification_status_counts"].values()) == len(papers_at(ROOT))
-    assert report["latest_round"] == 699
+    assert report["latest_round"] == discovery.read_json(
+        ROOT / "loto7_agent_output" / discovery.STATE
+    )["latest_resolved_round"]
     assert not report["automatic_adoption"]
     assert not report["production_changed"]
     assert not report["future_registry_changed"]
@@ -179,7 +181,9 @@ def test_only_verified_discovery_state_matters_not_old_lottery_snapshot(repo):
     # reviewer may continue safely; it cannot grade lottery predictions.
     assert not (repo / "loto7.csv").exists()
     report = agent.build(repo, fetch=provider_fetch(repo), now=NOW)
-    assert report["latest_round"] == 699
+    assert report["latest_round"] == discovery.read_json(
+        repo / "loto7_agent_output" / discovery.STATE
+    )["latest_resolved_round"]
     assert report["research_mode"] == "WAIT_FOR_NEW_DATA"
     assert report["automatic_adoption"] is False
 
