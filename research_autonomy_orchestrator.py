@@ -57,6 +57,114 @@ def task(code: str, severity: str, lane: str, owner: str, title: str,
     }
 
 
+
+FEEDBACK_VERSION = "research-action-feedback-v1"
+BACKLOG_KEYS = {
+    "VERIFY_UNCHECKED_DOIS": "unchecked_count",
+    "REVIEW_BIBLIO_CONFLICTS": "conflict_count",
+    "RETRY_SINGLE_PROVIDER": "single_count",
+}
+SAFE_TASK_CODE = re.compile(r"(?:[A-Z_]+|REVIEW_METHOD:[a-z_]+)\Z")
+HEX_SHA = re.compile(r"[0-9a-f]{64}\Z")
+
+
+def measured_backlog(item: dict | None) -> int | None:
+    """Strictly parse bounded counts from locally authored action evidence."""
+    if not isinstance(item, dict):
+        return None
+    key = BACKLOG_KEYS.get(item.get("code"))
+    evidence = item.get("evidence")
+    if not isinstance(evidence, str):
+        return None
+    if key:
+        match = re.fullmatch(re.escape(key) + r"=(0|[1-9]\d{0,5})", evidence)
+        return int(match.group(1)) if match else None
+    if item.get("code") == "REVIEW_DATA_QUALITY":
+        match = re.fullmatch(r"quality_codes=([A-Z_]+(?:,[A-Z_]+)*)", evidence)
+        return len(match.group(1).split(",")) if match else None
+    return None
+
+
+def previous_queue_is_eligible(candidate: dict, *, info: dict,
+                               clock: datetime, allow_same_timestamp: bool = False) -> bool:
+    """Past advisory output is bounded telemetry, never an authority source."""
+    if (candidate.get("version") != VERSION
+            or candidate.get("draw_history_sha256") != info["draw_history_sha256"]
+            or candidate.get("source_two_verified") is not info["two_source_verified"]
+            or candidate.get("research_mode") != info["research_mode"]):
+        return False
+    authority = candidate.get("authority")
+    if (not isinstance(authority, dict)
+            or authority.get("scope") != "audited_advisory_queue_only"
+            or any(authority.get(k) is not False for k in (
+                "automated_model_training", "research_budget_override",
+                "retroactive_future_freeze", "registered_oos_modification",
+                "production_or_champion_update", "workflows_dispatched"))):
+        return False
+    evidence = candidate.get("input_evidence_sha256")
+    if (not isinstance(evidence, dict)
+            or set(evidence) != {"application", "proposals", "bibliography", "source"}
+            or any(not isinstance(x, str) or not HEX_SHA.fullmatch(x)
+                   for x in evidence.values())):
+        return False
+    try:
+        timestamp = datetime.fromisoformat(candidate["latest_audit_at_jst"])
+    except (KeyError, ValueError, TypeError):
+        return False
+    if timestamp.tzinfo is None or timestamp.utcoffset() is None:
+        return False
+    age = clock - timestamp
+    if not (timedelta(hours=1) <= age <= timedelta(days=7)
+            or (allow_same_timestamp and age == timedelta(0))):
+        return False
+    tasks = candidate.get("tasks")
+    if not isinstance(tasks, list) or len(tasks) > 25:
+        return False
+    seen = set()
+    for item in tasks:
+        if not isinstance(item, dict):
+            return False
+        code = item.get("code")
+        if not isinstance(code, str) or not SAFE_TASK_CODE.fullmatch(code):
+            return False
+        identifier = digest((VERSION + "|" + code + "|").encode())[:16]
+        if (identifier != item.get("id") or identifier in seen
+                or item.get("priority") not in SEVERITY
+                or item.get("safe_autonomous_action") != "report_only"
+                or item.get("new_optimizer_trials_authorized") is not False
+                or item.get("forecast_or_production_change_authorized") is not False):
+            return False
+        seen.add(identifier)
+        cycles = item.get("recurrence_cycles")
+        factors = item.get("priority_factors")
+        if (type(cycles) is not int or not 1 <= cycles <= 20
+                or not isinstance(factors, dict)
+                or not {"impact", "verified_backlog", "unresolved_recurrence"} <= set(factors)
+                or any(type(n) is not int or n < -5 or n > 100
+                       for n in factors.values())
+                or item.get("priority_score") != sum(factors.values())):
+            return False
+    counts = candidate.get("counts")
+    return (isinstance(counts, dict)
+            and counts == {k: sum(t["priority"] == k for t in tasks) for k in SEVERITY}
+            and candidate.get("top_priority") == (tasks[0]["code"] if tasks else None))
+
+
+def summarize_feedback(tasks: list[dict], previous: dict | None) -> dict:
+    old = {item["id"]: item for item in (previous or {}).get("tasks", [])
+           if isinstance(item, dict) and isinstance(item.get("id"), str)}
+    ids = {item["id"] for item in tasks}
+    states = ("new", "improving", "worsening", "unchanged",
+              "still_pending_unmeasured")
+    return {
+        "version": FEEDBACK_VERSION,
+        "prior_queue_used": previous is not None,
+        "status_counts": {s: sum(x["feedback_state"] == s for x in tasks) for s in states},
+        "no_longer_in_queue": sorted({v["code"] for k, v in old.items() if k not in ids}),
+        "causal_attribution_established": False,
+        "new_training_or_release_authorized": False,
+    }
+
 def safe_date(raw: object) -> date:
     if not isinstance(raw, str):
         raise ValueError("missing source draw date")
@@ -244,17 +352,33 @@ def build_queue(info: dict, application: dict, raw_source: dict,
                  if isinstance(p, dict) and isinstance(p.get("id"), str)
                  and p.get("safe_autonomous_action") == "report_only"}
     for item in pending:
-        found = re.search(r"(?:unchecked_count|conflict_count|single_count)=(\d+)",
-                          item["evidence"])
-        backlog = min(10, int(found.group(1))) if found else 0
-        cycles = old_tasks.get(item["id"], {}).get("recurrence_cycles", 0)
+        count = measured_backlog(item)
+        prior = old_tasks.get(item["id"])
+        before = measured_backlog(prior)
+        if prior is None:
+            state = "new"
+        elif count is None or before is None:
+            state = "still_pending_unmeasured"
+        elif count < before:
+            state = "improving"
+        elif count > before:
+            state = "worsening"
+        else:
+            state = "unchanged"
+        trend = {"improving": -5, "worsening": 5}.get(state, 0)
+        cycles = prior.get("recurrence_cycles", 0) if prior is not None else 0
         cycles = cycles if type(cycles) is int and 0 <= cycles <= 20 else 0
         recurrence = min(20, cycles + 1) if previous is not None else 1
         item["recurrence_cycles"] = recurrence
+        item["feedback_state"] = state
+        item["backlog_observed"] = count
+        item["backlog_prior"] = before
+        item["backlog_delta"] = count - before if count is not None and before is not None else None
         item["priority_factors"] = {
             "impact": impact.get(item["code"], 20),
-            "verified_backlog": backlog,
+            "verified_backlog": min(10, count) if count is not None else 0,
             "unresolved_recurrence": min(10, recurrence - 1),
+            "observed_trend": trend,
         }
         item["priority_score"] = sum(item["priority_factors"].values())
     pending.sort(key=lambda t: (SEVERITY[t["priority"]],
@@ -291,23 +415,32 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
                     "production_or_oos_modified"):
             if quality.get(key) != fresh_quality[key]:
                 raise ValueError("stale or altered data quality evidence: " + key)
+    current_fingerprints = {
+        "application": digest(readiness_path.read_bytes()),
+        "proposals": digest(review_path.read_bytes()),
+        "bibliography": digest(publication_path.read_bytes()),
+        "source": digest((out / discovery.FILES["source"]).read_bytes()),
+    }
     previous = None
     queue_path = out / QUEUE
     if queue_path.is_file():
         try:
             candidate = gate.load(queue_path)
-            previous_clock = datetime.fromisoformat(candidate["latest_audit_at_jst"])
-            if (candidate.get("version") == VERSION
-                    and candidate.get("draw_history_sha256") == info["draw_history_sha256"]
-                    and candidate.get("source_two_verified") is info["two_source_verified"]
-                    and candidate.get("research_mode") == info["research_mode"]
-                    and candidate.get("authority", {}).get("scope") ==
-                        "audited_advisory_queue_only"
-                    and previous_clock.tzinfo is not None
-                    and previous_clock + timedelta(hours=1) <= clock):
+            # Same-input, same-second reruns must NOT discard their earlier
+            # feedback basis or count another phantom research cycle.
+            same_time = candidate.get("latest_audit_at_jst") == clock.isoformat(timespec="seconds")
+            if (same_time and (out / REPORT).is_file()
+                    and candidate.get("input_evidence_sha256") == current_fingerprints
+                    and previous_queue_is_eligible(candidate, info=info, clock=clock,
+                                                   allow_same_timestamp=True)
+                    and candidate.get("action_feedback", {}).get("version") == FEEDBACK_VERSION
+                    and candidate["action_feedback"].get("new_training_or_release_authorized") is False
+                    and candidate["action_feedback"].get("causal_attribution_established") is False):
+                return candidate
+            if previous_queue_is_eligible(candidate, info=info, clock=clock):
                 previous = candidate
-        except (ValueError, TypeError, KeyError):
-            # Corrupt derived queues are rebuilt from verified inputs.
+        except (ValueError, TypeError, KeyError, AttributeError):
+            # Untrusted derived evidence cannot affect priority calculations.
             pass
     tasks = build_queue(info, readiness, source, plans, publication, clock,
                         quality=quality, previous=previous)
@@ -318,16 +451,12 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
         "source_two_verified": info["two_source_verified"],
         "research_mode": info["research_mode"],
         "draw_history_sha256": info["draw_history_sha256"],
-        "input_evidence_sha256": {
-            "application": digest(readiness_path.read_bytes()),
-            "proposals": digest(review_path.read_bytes()),
-            "bibliography": digest(publication_path.read_bytes()),
-            "source": digest((out / discovery.FILES["source"]).read_bytes()),
-        },
+        "input_evidence_sha256": current_fingerprints,
         "counts": {key: sum(t["priority"] == key for t in tasks)
                    for key in ("block", "watch", "info")},
         "top_priority": tasks[0]["code"] if tasks else None,
         "tasks": tasks,
+        "action_feedback": summarize_feedback(tasks, previous),
         "authority": {
             "scope": "audited_advisory_queue_only",
             "automated_model_training": False,
@@ -350,16 +479,24 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
         "- Priorities: " + ", ".join(key + "=" + str(count)
                                    for key, count in output["counts"].items()),
         "- Read-only; does not launch workflows, change Production or create future grades.",
+        "- Observed backlog changes are NOT causal evidence of agent effectiveness.",
+        "- Feedback: " + ", ".join(k + "=" + str(v) for k, v in
+                                 output["action_feedback"]["status_counts"].items()),
         "",
     ]
     for n, item in enumerate(tasks[:16], start=1):
         lines.extend([
             str(n) + ". **[" + item["priority"] + "] " + item["title"] + "**",
             "   - Assigned: " + item["owner"] + " / " + item["lane"],
+            "   - Observed: " + item["feedback_state"] +
+            "; backlog=" + str(item["backlog_observed"]) +
+            "; delta=" + str(item["backlog_delta"]),
             "   - Reason: " + item["reason"],
             "   - Next: " + item["next_step"],
         ])
-    lines.extend(["", "Historical research alone is not evidence of lottery prediction ability."])
+    lines.extend(["", "No longer in current queue (not proof of action success): " +
+                  ", ".join(output["action_feedback"]["no_longer_in_queue"]),
+                  "", "Historical research alone is not evidence of lottery prediction ability."])
     (out / REPORT).write_text("\n".join(lines) + "\n", encoding="utf-8")
     return output
 
