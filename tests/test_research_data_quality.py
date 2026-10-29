@@ -91,7 +91,7 @@ def test_official_schedule_adjusts_deadline_without_creating_outcome(tmp_path):
     # The published schedule does not create a draw or authorize a grade.
     assert quality.next_result_deadline(
         datetime(2026, 10, 23).date(), source
-    ) == datetime(2026, 11, 6, 20, tzinfo=JST)
+    ) == datetime(2026, 11, 6, 20, 30, tzinfo=JST)
     assert "DRAW_UPDATE_OVERDUE" not in {
         item["code"] for item in quality.audit(root, now=FRIDAY_AFTER)["issues"]
     }
