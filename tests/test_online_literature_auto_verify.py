@@ -224,3 +224,82 @@ def test_existing_hourly_verifier_preserves_dedicated_rotation_cursor(repo, monk
     assert output["evidence"]["rotation_next_index"] == 3
     assert output["evidence"]["rotation_attempted_dois"] == []
     assert output["evidence"]["automatic_adoption"] is False
+
+
+def test_priority_queue_checks_conflict_before_rotation_without_starving_others(repo):
+    out = repo / "loto7_agent_output"
+    path = out / paper_guard.EVIDENCE
+    pub = json.loads(path.read_text(encoding="utf-8"))
+    assert len(pub["verifications"]) >= 5
+    pub["verifications"][0]["status"] = "conflict_do_not_use"
+    pub["verifications"][1]["status"] = "not_yet_checked"
+    path.write_text(json.dumps(pub), encoding="utf-8")
+    plan = {
+        "version": "research-priority-orchestrator-v1",
+        "source_two_verified": True,
+        "input_evidence_sha256": {"bibliography": agent.digest(path)},
+        "authority": {"workflows_dispatched": False,
+                      "production_or_champion_update": False},
+        "tasks": [
+            {"code": "REVIEW_BIBLIO_CONFLICTS", "lane": "bibliography",
+             "safe_autonomous_action": "report_only",
+             "forecast_or_production_change_authorized": False,
+             "new_optimizer_trials_authorized": False},
+            {"code": "VERIFY_UNCHECKED_DOIS", "lane": "bibliography",
+             "safe_autonomous_action": "report_only",
+             "forecast_or_production_change_authorized": False,
+             "new_optimizer_trials_authorized": False},
+        ]
+    }
+    (out / "research_autonomy_priority_queue.json").write_text(
+        json.dumps(plan), encoding="utf-8"
+    )
+    report = agent.build(repo, fetch=provider_fetch(repo), now=NOW)
+    assert len(report["rotation_attempted_dois"]) == 3
+    assert report["rotation_attempted_dois"][0] == pub["verifications"][0]["doi"]
+    assert len(set(report["rotation_attempted_dois"])) == 3
+    assert report["priority_dois_checked"] == [pub["verifications"][0]["doi"]]
+    assert report["priority_queue_sha256"] == agent.digest(
+        out / "research_autonomy_priority_queue.json"
+    )
+    assert report["rotation_next_index"] == 2
+    assert report["priority_rotation_cursor"] == 1
+
+
+def test_stale_priority_queue_does_not_override_independent_rotation(repo):
+    out = repo / "loto7_agent_output"
+    (out / "research_autonomy_priority_queue.json").write_text(
+        json.dumps({
+            "version": "research-priority-orchestrator-v1",
+            "input_evidence_sha256": {"bibliography": "0"*64},
+            "source_two_verified": True, "tasks": [],
+            "authority": {"workflows_dispatched": False,
+                          "production_or_champion_update": False}
+        }), encoding="utf-8")
+    )
+    report = agent.build(repo, fetch=provider_fetch(repo), now=NOW)
+    assert report["priority_dois_checked"] == []
+    assert report["rotation_attempted_dois"] == [
+        p["doi"] for p in papers_at(repo)[:3]
+    ]
+
+
+def test_priority_queue_rejects_elevated_external_actions(repo):
+    out = repo / "loto7_agent_output"
+    evidence = out / paper_guard.EVIDENCE
+    plan = {
+        "version": "research-priority-orchestrator-v1",
+        "source_two_verified": True,
+        "input_evidence_sha256": {"bibliography": agent.digest(evidence)},
+        "authority": {"workflows_dispatched": False,
+                      "production_or_champion_update": False},
+        "tasks": [{"code": "REVIEW_BIBLIO_CONFLICTS", "lane": "bibliography",
+                   "safe_autonomous_action": "run_paper_code",
+                   "forecast_or_production_change_authorized": True,
+                   "new_optimizer_trials_authorized": True}],
+    }
+    (out / "research_autonomy_priority_queue.json").write_text(
+        json.dumps(plan), encoding="utf-8")
+    )
+    with pytest.raises(ValueError, match="elevate"):
+        agent.build(repo, fetch=provider_fetch(repo), now=NOW)
