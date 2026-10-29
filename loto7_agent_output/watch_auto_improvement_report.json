@@ -1,0 +1,67 @@
+{
+  "version": "watch-auto-improvement-research-v1",
+  "checked_at_utc": "2026-10-29T11:13:56+00:00",
+  "source_round": 700,
+  "source_two_result_verified": true,
+  "guard_mode": "WAIT_FOR_NEW_DATA",
+  "same_data_trials_used": 800,
+  "same_data_trials_limit": 800,
+  "champion_version": "baseline-5fdb8dc2ad",
+  "status": "research_fix_checked_only_not_production_resolved",
+  "watched_incident_codes": [
+    "PAIR_CONTEXT_INT8_OVERFLOW",
+    "NO_EARLY_PORTFOLIO_CLAIM"
+  ],
+  "issues": [
+    {
+      "code": "PAIR_CONTEXT_INT8_OVERFLOW",
+      "legacy_corrupted_cooccurrence_cells": 27,
+      "resolution": "separately_versioned_research_candidate_validated",
+      "candidate_algorithm_version": "pair-context-wide-int-v2-research-only",
+      "candidate_software_sha256": "b9d7f5952495ce66d1f7c68755711940ef18e2316cfef967ae04c709784eb8de",
+      "corrected_distribution_sum": 1.0,
+      "candidate_numerical_overflow_cells": 0,
+      "current_champion_remains_unchanged": true,
+      "production_fix_deployed": false,
+      "requires_independent_future_oos_before_promotion": true,
+      "historical_diagnostics": {
+        "rounds": 120,
+        "first_historical_round": 581,
+        "last_historical_round": 700,
+        "legacy_mean_top7_hits": 1.466667,
+        "wide_v2_mean_top7_hits": 1.433333,
+        "delta_mean_top7_hits": -0.033333,
+        "legacy_mean_marginal_logscore": -3.85706101,
+        "wide_v2_mean_marginal_logscore": -3.90738998,
+        "delta_marginal_logscore": -0.05032897,
+        "max_absolute_expert_probability_change": 0.1428429137,
+        "independent_oos": false,
+        "retrospective_optimized_model_selection_authorized": false
+      }
+    },
+    {
+      "code": "NO_EARLY_PORTFOLIO_CLAIM",
+      "resolution": "expected_wait_for_genuinely_future_verified_draws",
+      "automatic_backfill_allowed": false,
+      "automatic_model_promotion_allowed": false,
+      "does_not_count_as_broken_software": true
+    }
+  ],
+  "source_files_sha256": {
+    "loto7.csv": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
+    "loto7_agent_output/agent_role_council_summary.json": "44bd1647677945a031b50ea7e1d692a6fe099044ecf08808340d812ffb9ff3a7",
+    "loto7_agent_output/source_validation.json": "276deaeaba985b014bc0dee603086ea71223f2c5fe7a8437239b24eaad4758e7",
+    "loto7_agent_output/research_cycle_guard.json": "ea23af1e9758ee0f7538910155c6371ec4b8b40bb93a1833e3e2089553ed0737",
+    "loto7_agent_output/model_champion.json": "045826e4078b41796c128b109d43e29686d6e542943e7a6ef8df79bff847cfe0",
+    "loto7_evolving_agent.py": "db2525299e9be45e679cec90f9b81a01b4404828cd771965431f9b5bfa2f395f",
+    "agent_role_council.py": "ef61b3842de85a1c2b87182abb07af05d6fd6b4c58147464685993a2a87bfd97",
+    "watch_auto_improvement.py": "b9d7f5952495ce66d1f7c68755711940ef18e2316cfef967ae04c709784eb8de"
+  },
+  "new_optimizer_trials": 0,
+  "past_frozen_vectors_recomputed": false,
+  "registered_future_oos_modified": false,
+  "production_modified": false,
+  "champion_modified": false,
+  "fully_automatic_promotion_authorized": false,
+  "verified_predictive_edge": false
+}
