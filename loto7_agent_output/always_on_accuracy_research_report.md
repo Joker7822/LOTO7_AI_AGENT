@@ -1,9 +1,9 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-10-30T06:10:56+09:00**
-- Completed audit cycles: **30**
-- This cycle: **budget_and_plan** / 試行予算を守り次の検証を計画
-- Network discovery: **not_scheduled**
+- Last executed: **2026-10-30T07:27:52+09:00**
+- Completed audit cycles: **31**
+- This cycle: **literature_search** / インターネットから最新の研究論文を検索
+- Network discovery: **searched**
 - Trusted draw latest: **700**, two-source: **True**
 - Research guard: **WAIT_FOR_NEW_DATA**, same-data trials: **800/800**
 - Future actuals: portfolio 7/26, v2 0, fifth-expert 0
@@ -11,9 +11,14 @@
 ## Completed evidence review
 - 探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 同一履歴の新規試行予算 800/800
+- オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。
+- オンライン検索: searched / 新規候補 4件
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
+- [Probabilistic Forecast Verification](https://doi.org/10.1201/9781003203971-10) (2024) — UNREVIEWED
+- [Forecast Verification Analysis of the CombiPrecip Ensemble](https://doi.org/10.5194/egusphere-egu24-7913) (2025) — UNREVIEWED
+- [The fractions skill score for ensemble forecast verification](https://doi.org/10.22541/au.169169008.89657659/v2) (2024) — UNREVIEWED
+- [The fractions skill score for ensemble forecast verification](https://doi.org/10.5194/egusphere-egu24-8807) (2025) — UNREVIEWED
 - [How Much Sharpe is Illusory? Quantifying Backtest Overfitting in Crypto Factor Strategies](https://doi.org/10.2139/ssrn.7350238) (2026) — UNREVIEWED
 - [An Empirical Evaluation of Cross-Sectional Equity Signals Under Backtest Overfitting Diagnostics](https://doi.org/10.2139/ssrn.6078546) (2026) — UNREVIEWED
 - [What a Backtest Overfitting Diagnostic Measures, and What Readers Take It to Mean](https://doi.org/10.2139/ssrn.7346738) (2026) — UNREVIEWED
@@ -22,10 +27,6 @@
 - [conformalForecast: Conformal Prediction Methods for Multistep-Ahead Time Series Forecasting](https://doi.org/10.32614/cran.package.conformalforecast) (2025) — UNREVIEWED
 - [RL-ConFormer: Reinforcement Learning-Enhanced Conformal Prediction with Transformer-Based Hybrid Forecasting for Multi-Horizon Time Series](https://doi.org/10.2139/ssrn.6263102) (2026) — UNREVIEWED
 - [Bias corrections and prediction intervals for time-series measurements with fouling and calibration drift](https://doi.org/10.5194/egusphere-2026-4028) (2026) — UNREVIEWED
-- [Merging sequential e-values via martingales](https://doi.org/10.1214/24-ejs2228) (2024) — UNREVIEWED
-- [Sequential Monte Carlo testing by betting](https://doi.org/10.1093/jrsssb/qkaf014) (2025) — UNREVIEWED
-- [Mimic Martingales in Sequential Auctions](https://doi.org/10.2139/ssrn.4689006) (2024) — UNREVIEWED
-- [Betting against the Field:&amp;nbsp;Optimal Elimination in Sequential Model Confidence Sets](https://doi.org/10.2139/ssrn.7599398) (2026) — UNREVIEWED
 
 Every scheduled cycle has a bounded evidence-check activity.
 Network errors are visible. An unattended hourly job is not guaranteed to
