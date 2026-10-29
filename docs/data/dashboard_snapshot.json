@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-29T22:40:01+09:00",
-  "source_commit": "3808453d75ac73a43a0ba92b74a63405ce07e038",
-  "state_hashes_sha256": "a88ef252b7833a142a47d7000a9ad2ed2cf77c6f8b4ddcae45ac47426ee0ee6b",
+  "generated_at_jst": "2026-10-30T04:18:21+09:00",
+  "source_commit": "55c96281e5ec4547ee1ee0b07f2c3477746a3476",
+  "state_hashes_sha256": "896d0b8354ea2abcc37e9a6b83d7817f5a6f282fc9f0c581cece3e7b5e109620",
   "sources": {
     "source": {
       "status": "ok",
@@ -478,10 +478,10 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 26,
-    "last_activity_jst": "2026-10-29T17:33:17+09:00",
-    "current_phase": "source_audit",
-    "current_activity": "結果の二重ソース照合と鮮度を点検",
+    "sequence": 28,
+    "last_activity_jst": "2026-10-30T01:10:35+09:00",
+    "current_phase": "generalization",
+    "current_activity": "過去モデル比較・多重比較を点検",
     "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": true,
@@ -540,7 +540,7 @@
     "review_notes": [
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "最新信頼ステータス: verified_two_result_sources"
+      "過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。"
     ]
   },
   "research_application": {
@@ -595,13 +595,22 @@
     "status": "audited_research_plan",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "source_two_verified": true,
-    "total_tasks": 11,
+    "total_tasks": 12,
     "counts": {
       "block": 0,
-      "watch": 8,
+      "watch": 9,
       "info": 3
     },
     "tasks": [
+      {
+        "priority": "watch",
+        "lane": "source_integrity",
+        "owner": "source_verifier",
+        "title": "最新の抽せんデータ更新を確認",
+        "reason": "記録された最終抽せん日から 7 日が経過しています。",
+        "next_step": "公式抽せん日程と検証済み結果を確認し、取得先HTTP 503等の通信障害は既存の再試行手順で調査してください。",
+        "safe_autonomous_action": "report_only"
+      },
       {
         "priority": "watch",
         "lane": "bibliography",
@@ -646,15 +655,6 @@
         "reason": "候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。",
         "next_step": "Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。",
         "safe_autonomous_action": "report_only"
-      },
-      {
-        "priority": "watch",
-        "lane": "experiment_review",
-        "owner": "methodology_reviewer",
-        "title": "研究計画レビュー：ensemble",
-        "reason": "候補論文は手法の有効性・公平な抽せんへの適合性を証明していません。",
-        "next_step": "Verify DOI/title/year with both Crossref and OpenAlex before reading methodology. 人の明示的な承認がない限り研究試行も本番採用も行いません。",
-        "safe_autonomous_action": "report_only"
       }
     ],
     "promotion_authorized": false
@@ -662,9 +662,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "3808453d75ac73a43a0ba92b74a63405ce07e038",
-    "snapshot_generated_at_jst": "2026-10-29T22:40:01+09:00",
-    "computed_at_jst": "2026-10-29T13:40:01+00:00",
+    "source_commit": "55c96281e5ec4547ee1ee0b07f2c3477746a3476",
+    "snapshot_generated_at_jst": "2026-10-30T04:18:21+09:00",
+    "computed_at_jst": "2026-10-29T19:18:21+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
