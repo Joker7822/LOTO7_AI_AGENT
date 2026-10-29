@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-30T07:29:37+09:00",
-  "source_commit": "136b40f2b7ab9248fa75026b2e7acc4fd623c779",
-  "state_hashes_sha256": "fbabff5c9c74f54a64cebe52d66d550da420baad6450507eb431830a7e9e8e4a",
+  "generated_at_jst": "2026-10-30T07:41:40+09:00",
+  "source_commit": "7e81555c9ed6d7f2824da5abf5966ddc4ce41f28",
+  "state_hashes_sha256": "cfe0d0c9cb79159474b1da684a5487c3ed23a78670503568fd65b7e23ff1cc34",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-10-30T07:28:01+09:00",
+      "checked_at_jst": "2026-10-30T07:40:03+09:00",
       "latest": {
         "round": 700,
         "date": "2026-10-23",
@@ -196,9 +196,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 40965909313,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40965909313",
-      "updated_at": "2026-10-29T22:28:11Z",
+      "run_id": 40967383825,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/40967383825",
+      "updated_at": "2026-10-29T22:40:16Z",
       "recent_failure_count": 0
     },
     {
@@ -478,14 +478,14 @@
   },
   "always_on_accuracy": {
     "status": "active_bounded_research",
-    "sequence": 31,
-    "last_activity_jst": "2026-10-30T07:27:52+09:00",
-    "current_phase": "literature_search",
-    "current_activity": "インターネットから最新の研究論文を検索",
-    "online_search_status": "searched",
+    "sequence": 32,
+    "last_activity_jst": "2026-10-30T07:39:51+09:00",
+    "current_phase": "source_audit",
+    "current_activity": "結果の二重ソース照合と鮮度を点検",
+    "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": true,
-    "new_papers_count": 4,
+    "new_papers_count": 0,
     "papers": [
       {
         "title": "Probabilistic Forecast Verification",
@@ -540,8 +540,7 @@
     "review_notes": [
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
-      "オンライン検索: searched / 新規候補 4件"
+      "最新信頼ステータス: verified_two_result_sources"
     ]
   },
   "research_application": {
@@ -549,7 +548,7 @@
     "research_mode": "WAIT_FOR_NEW_DATA",
     "trusted_result_source": true,
     "papers": 24,
-    "verified_dois": 1,
+    "verified_dois": 0,
     "proposal_count": 6,
     "synthetic_control": "passed",
     "actual_prediction_accuracy_improvement_verified": false,
@@ -608,7 +607,7 @@
         "lane": "bibliography",
         "owner": "literature_verifier",
         "title": "文献書誌情報の不一致を確認",
-        "reason": "3 件のDOIで独立サービスの書誌照合結果が不一致です。",
+        "reason": "4 件のDOIで独立サービスの書誌照合結果が不一致です。",
         "next_step": "元のDOIと著者・タイトルを確認してください。対立するメタデータから研究計画を承認しないでください。",
         "safe_autonomous_action": "report_only"
       },
@@ -617,7 +616,7 @@
         "lane": "bibliography",
         "owner": "literature_verifier",
         "title": "未照合の学術文献を一次確認",
-        "reason": "9 件の候補DOIがCrossref/OpenAlexによる照合待ちです。",
+        "reason": "8 件の候補DOIがCrossref/OpenAlexによる照合待ちです。",
         "next_step": "既存の上限付き照合を次の定期サイクルで続けてください。未照合論文を学術的根拠として扱わないでください。",
         "safe_autonomous_action": "report_only"
       },
@@ -663,9 +662,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "136b40f2b7ab9248fa75026b2e7acc4fd623c779",
-    "snapshot_generated_at_jst": "2026-10-30T07:29:37+09:00",
-    "computed_at_jst": "2026-10-29T22:29:37+00:00",
+    "source_commit": "7e81555c9ed6d7f2824da5abf5966ddc4ce41f28",
+    "snapshot_generated_at_jst": "2026-10-30T07:41:40+09:00",
+    "computed_at_jst": "2026-10-29T22:41:40+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
