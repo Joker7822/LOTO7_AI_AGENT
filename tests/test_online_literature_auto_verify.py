@@ -276,7 +276,6 @@ def test_stale_priority_queue_does_not_override_independent_rotation(repo):
             "authority": {"workflows_dispatched": False,
                           "production_or_champion_update": False}
         }), encoding="utf-8")
-    )
     report = agent.build(repo, fetch=provider_fetch(repo), now=NOW)
     assert report["priority_dois_checked"] == []
     assert report["rotation_attempted_dois"] == [
