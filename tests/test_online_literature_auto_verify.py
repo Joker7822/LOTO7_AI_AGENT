@@ -219,7 +219,11 @@ def test_existing_hourly_verifier_preserves_dedicated_rotation_cursor(repo, monk
     expected_next = (report["rotation_start_index"] + 3) % report["rotation_total_candidates"]
     assert report["rotation_next_index"] == expected_next
     state = discovery.read_json(repo / "loto7_agent_output" / discovery.STATE)
-    assert state["current_phase"] != "literature_search"
+    # Explicitly simulate the non-literature hourly phase; the live source
+    # rotates its phase and must not make this regression test flaky.
+    non_literature_state = {**state, "current_phase": "source_integrity"}
+    monkeypatch.setattr(paper_guard.discovery, "read_json",
+                        lambda _: non_literature_state)
     monkeypatch.setattr(paper_guard.discovery, "inspect_evidence",
                         lambda _: {"research_mode": state["research_mode"],
                                    "latest_round": state["latest_resolved_round"]})
