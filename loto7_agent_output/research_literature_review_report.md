@@ -1,9 +1,9 @@
 # Literature metadata reviewer & experiment design queue
 
 This is not full-text paper review or an automated forecasting experiment.
-Discovery chain: 112272cb8b6181222c1b8cbb8c78d4595d99dd7d33b19be2f7df04684b3a8f37
+Discovery chain: 07fa10e66b81155eb9f1f6ba531d31d5c09447e68af21f6ebf4212e23b2ae572
 Research guard: WAIT_FOR_NEW_DATA; search permitted: False
-Triaged papers: 20; non-executable designs: 6
+Triaged papers: 24; non-executable designs: 6
 
 ## Read-next list (metadata only)
 - DOI 10.2139/ssrn.6617378 (2026) review_next topics=calibration,ensemble
@@ -11,13 +11,13 @@ Triaged papers: 20; non-executable designs: 6
 - DOI 10.5281/zenodo.21508920 (2026) review_next topics=calibration,online_evaluation,distribution_shift
 - DOI 10.1016/j.ijforecast.2026.04.009 (2026) review_next topics=calibration
 - DOI 10.1145/3765611.3815392 (2026) review_next topics=calibration
+- DOI 10.1201/9781003203971-10 (2024) review_next topics=calibration
 - DOI 10.2139/ssrn.6078546 (2026) review_next topics=selection_bias
 - DOI 10.2139/ssrn.7346738 (2026) review_next topics=selection_bias
 - DOI 10.2139/ssrn.7350238 (2026) review_next topics=selection_bias
 - DOI 10.1093/jrsssb/qkaf014 (2025) background topics=anytime_evidence
 - DOI 10.1214/24-ejs2228 (2024) background topics=anytime_evidence
 - DOI 10.2139/ssrn.4689006 (2024) background topics=anytime_evidence
-- DOI 10.2139/ssrn.7599398 (2026) background topics=anytime_evidence
 
 ## Draft-only experiment templates
 ### calibration

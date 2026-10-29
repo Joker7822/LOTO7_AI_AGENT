@@ -3,8 +3,8 @@
 Status: **Research-only; human validation required.**
 Two-source draw trust: **True**
 Research mode: **WAIT_FOR_NEW_DATA**
-Public paper records: **20**
-Two-provider matching DOI records: **0**
+Public paper records: **24**
+Two-provider matching DOI records: **1**
 Synthetic 7-of-37 controls: **synthetic_controls_passed**
 Real lottery predictive improvement established: **NO**
 
