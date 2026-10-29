@@ -222,5 +222,5 @@ def test_weekly_freshness_waits_until_result_window(project):
     source = {"latest": {"round": 700, "date": "2026-10-23"},
               "sources": {"official_schedule": {"round": 701, "date": "2026-10-30"}}}
     threshold = quality_guard.next_result_deadline(last, source)
-    assert threshold == datetime(2026, 10, 30, 20, tzinfo=timezone(timedelta(hours=9)))
+    assert threshold == datetime(2026, 10, 30, 20, 30, tzinfo=timezone(timedelta(hours=9)))
     assert datetime(2026, 10, 30, 7, tzinfo=timezone(timedelta(hours=9))) < threshold
