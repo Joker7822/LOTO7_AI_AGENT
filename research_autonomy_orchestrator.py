@@ -96,7 +96,18 @@ def build_queue(info: dict, application: dict, raw_source: dict,
             "既存の結果検証workflowと独立した発表元を照合してください。単一ソースで成功扱いしません。",
             "round=" + str(latest) + ";verification=" + info["source_verification"],
         ))
-    if gap >= 7:
+    # Seven days is normal on the *morning* of a Friday draw. Do not
+    # advertise a false data-quality incident before the officially
+    # scheduled draw has happened and its result could be published.
+    official = raw_source.get("sources", {}).get("official_schedule", {})
+    pending_result = False
+    if isinstance(official, dict) and official.get("round") == latest + 1:
+        scheduled = safe_date(official.get("date"))
+        expected_ready = datetime.combine(
+            scheduled, datetime.min.time(), tzinfo=JST
+        ) + timedelta(hours=20, minutes=30)
+        pending_result = clock < expected_ready
+    if gap >= 7 and not pending_result:
         pending.append(task(
             "CHECK_SOURCE_FRESHNESS", "watch", "source_integrity", "source_verifier",
             "最新の抽せんデータ更新を確認",
