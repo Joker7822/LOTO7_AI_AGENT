@@ -57,7 +57,7 @@ def next_result_deadline(last_draw: date, source: dict) -> datetime:
                 next_day = scheduled
         except (TypeError, ValueError):
             pass
-    return datetime.combine(next_day, time(20, 0), JST)
+    return datetime.combine(next_day, time(20, 30), JST)
 
 
 def audit(root: Path, *, now: datetime | None = None) -> dict:
