@@ -224,3 +224,107 @@ def test_weekly_freshness_waits_until_result_window(project):
     threshold = quality_guard.next_result_deadline(last, source)
     assert threshold == datetime(2026, 10, 30, 20, 30, tzinfo=timezone(timedelta(hours=9)))
     assert datetime(2026, 10, 30, 7, tzinfo=timezone(timedelta(hours=9))) < threshold
+
+
+def test_action_feedback_recognizes_verified_backlog_change_without_causality(project):
+    info, plans, _, _, _ = gate.verify_inputs(project)
+    app = gate.load(project / "loto7_agent_output" / gate.STATUS_FILE)
+    pubs = gate.load(project / "loto7_agent_output" / literature.EVIDENCE)
+    source = discovery.read_json(project / "loto7_agent_output" / discovery.FILES["source"])
+    original = copy.deepcopy(pubs)
+    # Introduce an additional unverified DOI for a controlled past observation.
+    target = next(i for i in original["verifications"]
+                  if i["status"] != "not_yet_checked")
+    target["status"] = "not_yet_checked"
+    before = agent.build_queue(info, app, source, plans, original, NOW)
+    after = agent.build_queue(info, app, source, plans, pubs, NOW,
+                              previous={"tasks": before})
+    index = {i["code"]: i for i in after}
+    reduced = index["VERIFY_UNCHECKED_DOIS"]
+    assert reduced["feedback_state"] == "improving"
+    assert reduced["backlog_delta"] == -1
+    assert reduced["priority_factors"]["observed_trend"] == -5
+    assert reduced["safe_autonomous_action"] == "report_only"
+    assert reduced["new_optimizer_trials_authorized"] is False
+    assert reduced["forecast_or_production_change_authorized"] is False
+    summary = agent.summarize_feedback(after, {"tasks": before})
+    assert summary["status_counts"]["improving"] >= 1
+    assert summary["causal_attribution_established"] is False
+    assert summary["new_training_or_release_authorized"] is False
+
+
+def test_feedback_distinguishes_worsening_and_no_longer_present(project):
+    info, plans, _, _, _ = gate.verify_inputs(project)
+    app = gate.load(project / "loto7_agent_output" / gate.STATUS_FILE)
+    pubs = gate.load(project / "loto7_agent_output" / literature.EVIDENCE)
+    source = discovery.read_json(project / "loto7_agent_output" / discovery.FILES["source"])
+    before = agent.build_queue(info, app, source, plans, pubs, NOW)
+    changed = copy.deepcopy(pubs)
+    # One more conflict means measured backlog worsened, but severity cannot
+    # be lowered or an unapproved action run merely because of this change.
+    entry = next(x for x in changed["verifications"]
+                 if x["status"] not in {"conflict_do_not_use", "not_yet_checked"})
+    entry["status"] = "conflict_do_not_use"
+    after = agent.build_queue(info, app, source, plans, changed, NOW,
+                              previous={"tasks": before})
+    item = next(x for x in after if x["code"] == "REVIEW_BIBLIO_CONFLICTS")
+    assert item["feedback_state"] in {"new", "worsening"}
+    if item["feedback_state"] == "worsening":
+        assert item["backlog_delta"] == 1
+        assert item["priority_factors"]["observed_trend"] == 5
+    assert [agent.SEVERITY[x["priority"]] for x in after] == sorted(
+        agent.SEVERITY[x["priority"]] for x in after
+    )
+    shortened = [x for x in after if x["code"] != "REVIEW_BIBLIO_CONFLICTS"]
+    report = agent.summarize_feedback(shortened, {"tasks": after})
+    assert "REVIEW_BIBLIO_CONFLICTS" in report["no_longer_in_queue"]
+    assert report["causal_attribution_established"] is False
+
+
+def test_prior_queue_authority_sha_and_identity_fail_closed(project):
+    first = agent.run(project, now=NOW)
+    info, *_ = gate.verify_inputs(project)
+    later = NOW + timedelta(hours=2)
+    assert agent.previous_queue_is_eligible(first, info=info, clock=later)
+    forged = copy.deepcopy(first)
+    forged["tasks"][0]["id"] = "0000000000000000"
+    assert not agent.previous_queue_is_eligible(forged, info=info, clock=later)
+    forged = copy.deepcopy(first)
+    forged["authority"]["production_or_champion_update"] = True
+    assert not agent.previous_queue_is_eligible(forged, info=info, clock=later)
+    forged = copy.deepcopy(first)
+    forged["input_evidence_sha256"]["source"] = "not_a_sha"
+    assert not agent.previous_queue_is_eligible(forged, info=info, clock=later)
+    forged = copy.deepcopy(first)
+    forged["tasks"][0]["priority_score"] += 50
+    assert not agent.previous_queue_is_eligible(forged, info=info, clock=later)
+    assert not agent.previous_queue_is_eligible(first, info=info, clock=NOW)
+    assert not agent.previous_queue_is_eligible(
+        first, info=info, clock=NOW + timedelta(days=8)
+    )
+
+
+def test_hourly_feedback_is_observational_and_idempotent(project):
+    first = agent.run(project, now=NOW)
+    next_time = NOW + timedelta(hours=2)
+    later = agent.run(project, now=next_time)
+    assert later["action_feedback"]["prior_queue_used"] is True
+    assert later["action_feedback"]["causal_attribution_established"] is False
+    assert later["action_feedback"]["new_training_or_release_authorized"] is False
+    assert all(t["recurrence_cycles"] == 2 for t in later["tasks"])
+    replay = agent.run(project, now=next_time)
+    assert replay == later
+    # Never extrapolate a measured improvement into prospective lottery edge.
+    assert "No improvement in lottery forecast accuracy" in replay["evaluation_limit"]
+
+
+def test_corrupted_prior_queue_is_ignored_without_overriding_source(project):
+    first = agent.run(project, now=NOW)
+    q = project / "loto7_agent_output" / agent.QUEUE
+    tampered = copy.deepcopy(first)
+    tampered["tasks"][0]["new_optimizer_trials_authorized"] = True
+    q.write_text(json.dumps(tampered), encoding="utf-8")
+    next_run = agent.run(project, now=NOW + timedelta(hours=2))
+    assert next_run["action_feedback"]["prior_queue_used"] is False
+    assert next_run["authority"]["production_or_champion_update"] is False
+    assert next_run["authority"]["workflows_dispatched"] is False
