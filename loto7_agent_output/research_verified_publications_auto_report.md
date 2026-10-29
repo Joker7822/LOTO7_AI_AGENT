@@ -1,25 +1,25 @@
 # Online literature automatic verification
 
-- Research source draw (NOT current lottery result): #699
-- DOI candidates: 16
+- Research source draw (NOT current lottery result): #700
+- DOI candidates: 20
 - Attempted this cycle: 3 / 3 max
-- Next rotation index: 3
-- Source SHA256: `6982e30921eb57bd62406cbbe4508213a4cf7197441f9d4990ea7373a0bea42c`
-- SHA chain tip: `19d48f6ef1b02a5e9d16632bb7c6f649a5b2dc9957809d74ddf1a60e6c753eee`
-- Run (UTC): 2026-10-28T08:26:55+00:00
+- Next rotation index: 2
+- Source SHA256: `578aa736a313f7dd642cd7e79af25d66326f2317373ef3705ef0c56e4506127c`
+- SHA chain tip: `112272cb8b6181222c1b8cbb8c78d4595d99dd7d33b19be2f7df04684b3a8f37`
+- Run (UTC): 2026-10-29T22:27:48+00:00
 
 ## Bibliographic status
 - conflict_do_not_use: 1
-- not_yet_checked: 7
-- previously_verified_not_refreshed: 4
+- not_yet_checked: 8
+- previously_verified_not_refreshed: 8
 - single_provider_only: 1
-- two_provider_bibliography_matched: 3
+- two_provider_bibliography_matched: 2
 - unavailable: 0
 
 ## DOI records checked this cycle
-- `10.2139/ssrn.5946791`: **two_provider_bibliography_matched**
-- `10.32614/cran.package.conformalforecast`: **two_provider_bibliography_matched**
-- `10.2139/ssrn.6263102`: **two_provider_bibliography_matched**
+- `10.2139/ssrn.4689006`: **conflict_do_not_use**
+- `10.2139/ssrn.7350238`: **two_provider_bibliography_matched**
+- `10.2139/ssrn.6078546`: **two_provider_bibliography_matched**
 
 **Independent Crossref/OpenAlex matching checks DOI, title and year,
 not peer-review status, full-text accuracy, reproducibility or real
