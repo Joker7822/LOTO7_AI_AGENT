@@ -18,12 +18,13 @@ from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from balanced_uniform_portfolio import disjoint_portfolio, validate_portfolio
+from production_disjoint35_policy import (
+    VERSION, MIN_TARGET_ROUND, validate_issued_rows,
+)
 from joint_set_v2_signal_oos_guard import validate_trusted_source
 import loto7_v4_runner as v4
 from loto7_evolving_agent import fingerprint_file
 
-VERSION = "production-disjoint35-layout-v1"
-MIN_TARGET_ROUND = 702
 SEED_BASE = 10_000_000
 SEED_MULTIPLIER = 1009
 JST = timezone(timedelta(hours=9))
@@ -56,39 +57,6 @@ def portfolio_for_target(target_round: int) -> list[tuple[int, ...]]:
     tickets = disjoint_portfolio(SEED_BASE + target_round * SEED_MULTIPLIER)
     validate_portfolio(tickets)
     return tickets
-
-
-def validate_issued_rows(rows: list[dict], target_round: int) -> None:
-    """Fail closed on an active post-migration Production ledger.
-
-    Never reinterpret or mutate historical targets 701 and earlier. The caller
-    provides ONLY active rows for a single target (after invalidations).
-    """
-    if type(target_round) is not int or target_round < MIN_TARGET_ROUND:
-        raise ValueError("disjoint35 issued-row validator requires target 702+")
-    if len(rows) != 5:
-        raise ValueError("disjoint35 requires exactly five active Production tickets")
-    try:
-        ordered = sorted(rows, key=lambda r: int(r["ticket"]))
-        positions = [int(r["ticket"]) for r in ordered]
-        if positions != [1, 2, 3, 4, 5]:
-            raise ValueError("disjoint35 Production ticket positions are incomplete")
-        if any(not str(r.get("model_version", "")).endswith("+" + VERSION)
-               for r in ordered):
-            raise ValueError("disjoint35 Production model policy is missing or changed")
-        tickets = []
-        for row in ordered:
-            raw = str(row.get("predicted_numbers", ""))
-            tokens = raw.split()
-            if len(tokens) != 7 or any(not t.isdecimal() for t in tokens):
-                raise ValueError("invalid disjoint35 Production ticket numbers")
-            numbers = tuple(int(t) for t in tokens)
-            if numbers != tuple(sorted(numbers)):
-                raise ValueError("disjoint35 Production numbers must be sorted")
-            tickets.append(numbers)
-        validate_portfolio(tickets)
-    except (KeyError, TypeError, OverflowError) as exc:
-        raise ValueError("malformed disjoint35 Production ledger") from exc
 
 
 def render_ticket_csv(tickets: list[tuple[int, ...]]) -> str:
