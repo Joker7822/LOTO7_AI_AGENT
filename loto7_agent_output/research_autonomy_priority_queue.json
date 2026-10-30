@@ -1,14 +1,14 @@
 {
   "version": "research-priority-orchestrator-v1",
-  "latest_audit_at_jst": "2026-10-30T10:21:35+09:00",
+  "latest_audit_at_jst": "2026-10-30T10:28:49+09:00",
   "latest_source_round": 700,
   "source_two_verified": true,
   "research_mode": "WAIT_FOR_NEW_DATA",
   "draw_history_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "input_evidence_sha256": {
-    "application": "cfabc32fce8df1066214e8029ac98e434528507a50f49a7e95c3b0027ce3bed7",
-    "proposals": "e28321a6de75dcd553ecf9ace0c2576c14a9e3e28d52afa035566de7ea3b646e",
-    "bibliography": "4be9c12cf28d73de75b1bce43d3bd7900779f92c4968f8fadf01386cf8cf3147",
+    "application": "7d7f608e06659dcfecb1ba87c95b58584b82ce4ec8eb6109861e37579660f586",
+    "proposals": "7fb22aabd704b2149eefe244e05ff589dd1672810a13a4bda4797701a000175d",
+    "bibliography": "12f42ffc41bf57953afc8405779f02276959b407d974bc6f3166a15be89b43f7",
     "source": "79aebe1e497ff4278397524dc612f43e71b1a0f2c53f9759a5629911f449ced2"
   },
   "counts": {
@@ -45,7 +45,8 @@
         "verified_backlog": 4,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 69
     },
@@ -76,7 +77,8 @@
         "verified_backlog": 8,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 63
     },
@@ -107,7 +109,8 @@
         "verified_backlog": 0,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 20
     },
@@ -138,7 +141,8 @@
         "verified_backlog": 0,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 20
     },
@@ -169,7 +173,8 @@
         "verified_backlog": 0,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 20
     },
@@ -200,7 +205,8 @@
         "verified_backlog": 0,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 20
     },
@@ -231,7 +237,8 @@
         "verified_backlog": 0,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 20
     },
@@ -262,7 +269,8 @@
         "verified_backlog": 0,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 20
     },
@@ -293,7 +301,8 @@
         "verified_backlog": 1,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 36
     },
@@ -324,7 +333,8 @@
         "verified_backlog": 0,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 15
     },
@@ -355,7 +365,8 @@
         "verified_backlog": 0,
         "unresolved_recurrence": 0,
         "observed_trend": 0,
-        "observed_stagnation": 0
+        "observed_stagnation": 0,
+        "bounded_policy_bonus": 0
       },
       "priority_score": 10
     }
@@ -373,6 +384,24 @@
     "no_longer_in_queue": [],
     "causal_attribution_established": false,
     "new_training_or_release_authorized": false
+  },
+  "action_policy": {
+    "version": "safe-agent-policy-autotune-v1",
+    "selected_policy": "balanced",
+    "candidate_objectives": {
+      "balanced": 0,
+      "regression_focus": 0,
+      "stagnation_focus": 0
+    },
+    "objective": "bounded_advisory_attention_rank_minus_reordering_penalty",
+    "priority_bonus_cap": 8,
+    "reorders_only_within_severity": true,
+    "evaluation_is_operational_proxy_only": true,
+    "empirical_agent_productivity_improvement_established": false,
+    "lottery_prediction_improvement_established": false,
+    "automatic_code_or_model_change_authorized": false,
+    "research_budget_override_authorized": false,
+    "external_actions_dispatched": false
   },
   "agent_attention": {
     "version": "research-agent-attention-v1",

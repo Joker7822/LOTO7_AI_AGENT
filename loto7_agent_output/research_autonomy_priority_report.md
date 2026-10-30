@@ -1,12 +1,13 @@
 # Autonomous Research Priority Queue
 
-- Generated: 2026-10-30T10:21:35+09:00
+- Generated: 2026-10-30T10:28:49+09:00
 - Guard: **WAIT_FOR_NEW_DATA**; verified draw source: **True**
 - Priorities: block=0, watch=8, info=3
 - Read-only; does not launch workflows, change Production or create future grades.
 - Observed backlog changes are NOT causal evidence of agent effectiveness.
 - Feedback: new=11, improving=0, worsening=0, unchanged=0, still_pending_unmeasured=0
 - Attention due: 0 tasks (advisory only).
+- Auto-selected bounded policy: balanced (operational ranking proxy; not evidence of better prediction).
 
 1. **[watch] 文献書誌情報の不一致を確認**
    - Assigned: literature_verifier / bibliography
