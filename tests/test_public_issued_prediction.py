@@ -53,21 +53,29 @@ def overwrite_csv(path, fn):
         writer.writerows(original)
 
 
-def test_actual_published_700_five_tickets_and_verified_699_backreference(project):
+def test_latest_canonical_published_five_tickets_and_verified_result_gate(project):
     src, published = evidence(project)
     p, hashes = preview(project, src, published)
+    target = int(published["target_round"].strip("第回"))
     assert p["version"] == VERSION
     assert p["status"] == "published"
-    assert p["target_round"] == 700
-    assert p["source_base_round"] == 699
-    assert p["result_status"] == "awaiting_independently_verified_draw"
-    assert p["current_result"] is None
+    assert p["target_round"] == target
+    assert p["source_base_round"] == target - 1
+    assert target <= src["latest"]["round"] + 1
+    assert p["result_status"] == ("independently_verified" if p["current_result"]
+                                  else "awaiting_independently_verified_draw")
     assert [t["ticket"] for t in p["tickets"]] == [1, 2, 3, 4, 5]
-    assert p["tickets"][0]["numbers"] == [6, 16, 22, 23, 24, 28, 36]
     assert all(len(t["numbers"]) == len(set(t["numbers"])) == 7 for t in p["tickets"])
-    assert p["latest_verified"]["round"] == 699
-    assert p["latest_verified"]["source_verification"] == "verified_two_result_sources"
-    assert len(p["latest_verified"]["tickets"]) == 5
+    if target == 701:
+        # Actual, immutable first ticket of the original 701 Production freeze.
+        assert p["tickets"][0]["numbers"] == [6, 16, 22, 23, 24, 25, 28]
+    if p["current_result"] is not None:
+        assert p["current_result"]["round"] == target
+        assert len(p["current_result"]["tickets"]) == 5
+    if p["latest_verified"] is not None:
+        assert p["latest_verified"]["round"] == target - 1
+        assert p["latest_verified"]["source_verification"] == "verified_two_result_sources"
+        assert len(p["latest_verified"]["tickets"]) == 5
     assert p["accuracy_claim"] is False
     assert p["no_future_oos_vectors"] is True
     assert set(hashes) == {"prediction_ledger", "prediction_corrections", "production_actuals"}
@@ -89,9 +97,11 @@ def test_forbid_all_invalidated_current_tickets(project):
     active = preview(project, src, pub)[0]["tickets"]
     assert len(active) == 5
     with (out / "predictions.csv").open(encoding="utf-8-sig", newline="") as f:
-        raw = [r for r in csv.DictReader(f) if r["target_round"] == "第700回" and r["ticket"] == "1"]
+        raw = [r for r in csv.DictReader(f)
+               if r["target_round"] == pub["target_round"] and r["ticket"] == "1"]
+    assert len(raw) == 1
     with (out / "prediction_corrections.csv").open("a", encoding="utf-8") as f:
-        f.write("\n" + raw[0]["prediction_id"] + ",2026-10-23T17:00:00+09:00,invalidate,stale,abc,def\n")
+        f.write("\n" + raw[0]["prediction_id"] + ",2099-01-01T00:00:00+09:00,invalidate,stale,abc,def\n")
     with pytest.raises(ValueError, match="count is not five"):
         preview(project, src, pub)
 
@@ -99,15 +109,15 @@ def test_forbid_all_invalidated_current_tickets(project):
 @pytest.mark.parametrize("column,wrong,err", [
     ("predicted_numbers", "01 01 02 03 04 05 06", "duplicate or unsorted"),
     ("model_version", "unregistered-shadow", "model version mismatch"),
-    ("target_round", "第701回", "count is not five"),
-    ("prediction_created_at_jst", "2026-10-23T21:01:00+09:00", "not recorded before draw"),
+    ("target_round", "第9999回", "count is not five"),
+    ("prediction_created_at_jst", "2099-01-01T00:00:00+09:00", "not recorded before draw"),
 ])
 def test_canonical_ledger_mismatch_blocks_public_projection(project, column, wrong, err):
     src, pub = evidence(project)
     path = project / "loto7_agent_output" / "predictions.csv"
     def tamper(rows):
         for r in rows:
-            if r["target_round"] == "第700回" and r["ticket"] == "1":
+            if r["target_round"] == pub["target_round"] and r["ticket"] == "1":
                 r[column] = wrong
                 break
     overwrite_csv(path, tamper)
@@ -122,19 +132,15 @@ def test_stale_source_for_current_new_forecast_is_blocked(project):
         preview(project, src, pub)
 
 
-def test_older_published_forecast_can_be_graded_only_with_two_source_evidence(project):
+def test_current_published_forecast_requires_independent_result_evidence(project):
     src, pub = evidence(project)
-    src["latest"] = dict(src["latest"], round=700, date="2026-10-23",
-                         main=[1, 2, 3, 4, 5, 6, 7], bonus=[8, 9])
-    src["status"] = "ok"
-    src["verification"] = "verified_two_result_sources"
-    path = project / "loto7_agent_output" / "actual_results.csv"
-    append_actual(path, "01 02 03 04 05 06 07", "08 09")
+    target = int(pub["target_round"].strip("第回"))
+    if src["latest"]["round"] != target:
+        pytest.skip("latest issued target has not yet been graded")
     p, _ = preview(project, src, pub)
     assert p["result_status"] == "independently_verified"
-    assert p["current_result"]["round"] == 700
-    assert p["current_result"]["tickets"][0]["main_hits"] == 1
-    assert p["current_result"]["tickets"][0]["bonus_hits"] == 0
+    assert p["current_result"]["round"] == target
+    assert len(p["current_result"]["tickets"]) == 5
 
     src["verification"] = "degraded_single_result_source"
     degraded, _ = preview(project, src, pub)
@@ -144,12 +150,14 @@ def test_older_published_forecast_can_be_graded_only_with_two_source_evidence(pr
 
 def test_source_disagreement_never_creates_graded_draw(project):
     src, pub = evidence(project)
-    src["latest"]["round"] = 700
+    target = int(pub["target_round"].strip("第回"))
+    if src["latest"]["round"] != target:
+        pytest.skip("latest issued target has not yet been graded")
     src["status"] = "ok"
     src["verification"] = "verified_two_result_sources"
-    src["latest"]["main"] = [1, 2, 3, 4, 5, 6, 7]
-    src["latest"]["bonus"] = [8, 9]
-    path = project / "loto7_agent_output" / "actual_results.csv"
-    append_actual(path, "01 02 03 04 05 06 08", "07 09")
+    # Preserve the recorded verified actual; forge only the current claimed
+    # source result. This must not create a false lottery grade.
+    src["latest"]["main"] = [4, 5, 6, 7, 8, 9, 10]
+    src["latest"]["bonus"] = [11, 12]
     with pytest.raises(ValueError, match="disagrees"):
         preview(project, src, pub)

@@ -95,8 +95,20 @@ def frozen_inputs(root: Path) -> tuple[list[dict], dict, dict, dict, dict, dict,
     if (type(guard.get("search_enabled")) is not bool
             or (guard.get("mode") == "SEARCH") != guard["search_enabled"]):
         raise ValueError("trial budget guard grants inconsistent search authority")
+    # Plans are immutable evidence from the discovery snapshot (and can
+    # legitimately predate a new trusted draw). Reconstruct their historical
+    # permission bit from the SHA-anchored research_mode, NEVER from today's
+    # unrelated research budget. Doing otherwise rejects correct old plans
+    # whenever a new draw flips WAIT_FOR_NEW_DATA into SEARCH.
+    frozen_mode = plans.get("research_mode")
+    if frozen_mode not in {"SEARCH", "WAIT_FOR_NEW_DATA"}:
+        raise ValueError("unrecognized frozen research budget mode")
+    frozen_search = frozen_mode == "SEARCH"
+    if (plans.get("draw_history_sha256") == guard.get("data_sha256")
+            and frozen_search != guard["search_enabled"]):
+        raise ValueError("current research budget contradicts same-data frozen permission")
     expected_plans = review.proposals(
-        expected_reviews, {"search_enabled": guard["search_enabled"]}
+        expected_reviews, {"search_enabled": frozen_search}
     )
     if plans.get("proposals") != expected_plans:
         raise ValueError("proposal deviates from locked human-authored designs")
