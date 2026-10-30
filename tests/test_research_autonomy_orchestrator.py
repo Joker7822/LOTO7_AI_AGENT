@@ -328,3 +328,65 @@ def test_corrupted_prior_queue_is_ignored_without_overriding_source(project):
     assert next_run["action_feedback"]["prior_queue_used"] is False
     assert next_run["authority"]["production_or_champion_update"] is False
     assert next_run["authority"]["workflows_dispatched"] is False
+
+
+def test_agent_flags_three_consecutive_stagnant_checks_without_executing(project):
+    info, plans, _, _, _ = gate.verify_inputs(project)
+    app = gate.load(project / "loto7_agent_output" / gate.STATUS_FILE)
+    pubs = copy.deepcopy(gate.load(project / "loto7_agent_output" / literature.EVIDENCE))
+    source = discovery.read_json(project / "loto7_agent_output" / discovery.FILES["source"])
+    # Always have two independently tracked conflicting bibliography entries.
+    for item in pubs["verifications"][:2]:
+        item["status"] = "conflict_do_not_use"
+    queue = agent.build_queue(info, app, source, plans, pubs, NOW)
+    code = "REVIEW_BIBLIO_CONFLICTS"
+    task = next(t for t in queue if t["code"] == code)
+    initial_score = task["priority_score"]
+    for expected in range(1, 4):
+        queue = agent.build_queue(info, app, source, plans, pubs, NOW,
+                                  previous={"tasks": queue})
+        current = next(t for t in queue if t["code"] == code)
+        assert current["stagnation_cycles"] == expected
+        assert current["attention_state"] == (
+            "stalled_needs_review" if expected == 3 else "routine_monitoring")
+        assert current["safe_autonomous_action"] == "report_only"
+        assert current["new_optimizer_trials_authorized"] is False
+    assert current["priority_factors"]["observed_stagnation"] == 4
+    assert current["priority_score"] > initial_score
+    assert [agent.SEVERITY[t["priority"]] for t in queue] == sorted(
+        agent.SEVERITY[t["priority"]] for t in queue)
+
+
+def test_stall_clock_resets_when_real_backlog_decreases(project):
+    info, plans, _, _, _ = gate.verify_inputs(project)
+    app = gate.load(project / "loto7_agent_output" / gate.STATUS_FILE)
+    pubs = copy.deepcopy(gate.load(project / "loto7_agent_output" / literature.EVIDENCE))
+    source = discovery.read_json(project / "loto7_agent_output" / discovery.FILES["source"])
+    for item in pubs["verifications"][:2]:
+        item["status"] = "conflict_do_not_use"
+    queue = agent.build_queue(info, app, source, plans, pubs, NOW)
+    for _ in range(3):
+        queue = agent.build_queue(info, app, source, plans, pubs, NOW,
+                                  previous={"tasks": queue})
+    before = next(t for t in queue if t["code"] == "REVIEW_BIBLIO_CONFLICTS")
+    assert before["stagnation_cycles"] == 3
+    changed = copy.deepcopy(pubs)
+    changed["verifications"][0]["status"] = "not_yet_checked"
+    after = agent.build_queue(info, app, source, plans, changed, NOW,
+                              previous={"tasks": queue})
+    observed = next(t for t in after if t["code"] == "REVIEW_BIBLIO_CONFLICTS")
+    assert observed["feedback_state"] == "improving"
+    assert observed["stagnation_cycles"] == 0
+    assert observed["attention_state"] == "observed_progress"
+    assert observed["priority_factors"]["observed_stagnation"] == 0
+
+
+def test_forged_stagnation_history_is_not_used(project):
+    initial = agent.run(project, now=NOW)
+    info, *_ = gate.verify_inputs(project)
+    tampered = copy.deepcopy(initial)
+    tampered["tasks"][0]["stagnation_cycles"] = 1000000
+    assert not agent.previous_queue_is_eligible(
+        tampered, info=info, clock=NOW + timedelta(hours=2))
+    assert initial["agent_attention"]["automatic_escalation_or_training_authorized"] is False
+    assert initial["authority"]["registered_oos_modification"] is False
