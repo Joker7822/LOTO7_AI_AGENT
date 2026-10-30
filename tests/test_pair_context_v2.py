@@ -137,3 +137,73 @@ def test_never_label_incomplete_horizon_as_confirmed():
     assert plan["checkpoints"]["portfolio"]["fixed_horizon"] == 26
     assert plan["overall"] == "ok"
     assert "confirmed" not in json.dumps(plan).lower()
+
+
+@pytest.mark.parametrize("draws", [127, 128, 255, 256, 512, 700])
+def test_independent_reference_exact_across_integer_wrap_boundaries(draws):
+    x = np.zeros((draws, 37), dtype=np.int8)
+    x[:, :7] = 1
+    independent = v2.independent_cooccurrence(x)
+    np.testing.assert_array_equal(v2.checked_cooccurrence(x), independent)
+    assert independent.dtype == np.int64
+    assert np.all(independent[:7, :7] == draws)
+    assert np.all(independent[7:, :] == 0)
+    np.testing.assert_array_equal(
+        v2.checked_cooccurrence(x.astype(np.int16)), independent
+    )
+    np.testing.assert_array_equal(
+        v2.checked_cooccurrence(x.astype(np.int64)), independent
+    )
+    legacy = x.T @ x
+    if draws >= 128:
+        assert np.any(legacy.astype(np.int64) != independent)
+
+
+def test_independent_oracle_catches_silent_integer_wrap(monkeypatch):
+    x = np.zeros((256, 37), dtype=np.int8)
+    x[:, :7] = 1
+    # Simulate a plausible regression: a future contributor returns the
+    # wrapped legacy matrix as if it were the corrected int64 calculation.
+    monkeypatch.setattr(
+        v2, "exact_cooccurrence",
+        lambda history: (v2.validated_history(history).astype(np.int8).T @
+                         v2.validated_history(history).astype(np.int8)).astype(np.int64),
+    )
+    with pytest.raises(ArithmeticError, match="independent int64 verification"):
+        v2.checked_cooccurrence(x)
+
+
+def test_validation_never_publishes_false_pass_when_numeric_kernel_regresses(tmp_path, monkeypatch):
+    import sys
+
+    out = tmp_path / "pair_context_v2_validation.json"
+    before = Path("loto7.csv").read_bytes()
+    monkeypatch.setattr(
+        v2, "exact_cooccurrence",
+        lambda history: np.zeros((37, 37), dtype=np.int64),
+    )
+    monkeypatch.setattr(
+        sys, "argv", ["pair_context_v2.py", "--csv", "loto7.csv",
+                      "--out", str(out), "--last-n", "3"],
+    )
+    with pytest.raises(ArithmeticError, match="independent int64 verification"):
+        v2.main()
+    assert not out.exists()
+    assert Path("loto7.csv").read_bytes() == before
+
+
+def test_numeric_diagnostic_has_auditable_independent_oracle():
+    report = v2.diagnostics(Path("loto7.csv"), last_n=3)
+    check = report["numerical_verification"]
+    assert check["status"] == "pass"
+    assert check["independent_method"] == "pairwise_boolean_intersection_counts"
+    assert check["matrix_cells_checked"] == 37 * 37
+    assert check["diagonal_marginals_verified"] is True
+    assert check["symmetry_verified"] is True
+    assert check["int64_cast_before_matrix_product"] is True
+    assert check["fail_closed_on_any_mismatch"] is True
+    assert check["historical_only"] is True
+    assert check["automatic_model_promotion_authorized"] is False
+    assert report["int64_corrupted_cooccurrence_cells"] == 0
+    assert report["prospective_edge_confirmed"] is False
+    assert report["promotion_authorized"] is False
