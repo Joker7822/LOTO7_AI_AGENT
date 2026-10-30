@@ -8,17 +8,17 @@
     "final_uniform_mix": 0.6,
     "overlap_penalty": 0.9
   },
-  "last_candidate_version": "signal-g05281-c01-55a70e0b94",
+  "last_candidate_version": "evo-g05521-c04-e7be4b16fb",
   "data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637",
-  "replay_count": 1071,
+  "replay_count": 1072,
   "accept_count": 5,
   "last_candidate_config": {
-    "name": "signal-g05281-c01",
-    "eta": 0.446655,
-    "decay": 0.981466,
-    "expert_uniform_mix": 0.300954,
-    "final_uniform_mix": 0.6,
-    "overlap_penalty": 0.9
+    "name": "evo-g05521-c04",
+    "eta": 0.8,
+    "decay": 0.982,
+    "expert_uniform_mix": 0.300845,
+    "final_uniform_mix": 0.42,
+    "overlap_penalty": 0.96591
   },
   "accepted_parent_version": "signal-g05281-c01-55a70e0b94",
   "accepted_parent_summary": {
@@ -101,20 +101,22 @@
     "data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
   },
   "last_decision": {
-    "candidate_objective": 0.09405871810870774,
+    "candidate_objective": 0.08042236896838573,
     "incumbent_objective": 0.09405871810870774,
-    "objective_gain": 0.0,
+    "objective_gain": -0.01363634914032201,
     "checks": {
-      "same_model": true
+      "objective_improves": false,
+      "full_max_hits_not_regressed": false,
+      "recent120_score_not_regressed": false
     }
   },
-  "last_generation": 5520,
-  "optimizer_last_generation": 5520,
-  "optimizer_trials_total": 10418,
+  "last_generation": 5521,
+  "optimizer_last_generation": 5521,
+  "optimizer_trials_total": 10420,
   "optimizer_accept_count": 10,
   "optimizer_last_record": {
     "optimizer_version": "feedback-optimizer-v2-signal-gated",
-    "generation": 5520,
+    "generation": 5521,
     "data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637",
     "incumbent_version": "signal-g05281-c01-55a70e0b94",
     "trial_count": 2,
@@ -130,11 +132,11 @@
     "accepted_boundary_penalty": 2.444806723696834,
     "decisions": [
       {
-        "version": "feedback-g05520-c01-0a05deca22",
+        "version": "feedback-g05521-c01-1fb1e0667c",
         "accepted": false,
-        "candidate_objective": -0.11250461383804795,
+        "candidate_objective": 0.026992009844703048,
         "incumbent_objective": 0.09405871810870774,
-        "objective_gain": -0.2065633319467557,
+        "objective_gain": -0.06706670826400468,
         "checks": {
           "objective_improves": false,
           "full_max_hits_not_regressed": false,
@@ -145,30 +147,30 @@
           "signal_recent120_log_not_regressed": false,
           "boundary_penalty_not_worse": true
         },
-        "candidate_signal_objective": -0.06422403062505959,
+        "candidate_signal_objective": -0.057611835295392516,
         "incumbent_signal_objective": -0.0450397711948057,
-        "candidate_effective_objective": -0.14126881421668483,
+        "candidate_effective_objective": -0.005187050674060334,
         "incumbent_effective_objective": 0.05835070807303798
       },
       {
-        "version": "feedback-g05520-c02-ed65150c02",
+        "version": "feedback-g05521-c02-e727dcdcbd",
         "accepted": false,
-        "candidate_objective": -0.06806292637271234,
+        "candidate_objective": 0.08835738006100921,
         "incumbent_objective": 0.09405871810870774,
-        "objective_gain": -0.16212164448142008,
+        "objective_gain": -0.005701338047698526,
         "checks": {
           "objective_improves": false,
           "full_max_hits_not_regressed": false,
-          "recent120_score_not_regressed": false,
+          "recent120_score_not_regressed": true,
           "signal_full_log_not_regressed": false,
           "signal_full_top7_not_regressed": true,
           "signal_improves_when_incumbent_nonpositive": false,
           "signal_recent120_log_not_regressed": false,
           "boundary_penalty_not_worse": true
         },
-        "candidate_signal_objective": -0.3084204656869999,
+        "candidate_signal_objective": -0.22850453927287662,
         "incumbent_signal_objective": -0.0450397711948057,
-        "candidate_effective_objective": -0.16849918815175602,
+        "candidate_effective_objective": 0.031231245242790057,
         "incumbent_effective_objective": 0.05835070807303798
       }
     ],
@@ -176,9 +178,9 @@
     "production_promotion_eligible": false
   },
   "separated_optimizer_last_generation": 2598,
-  "separated_optimizer_trials_total": 6552,
+  "separated_optimizer_trials_total": 6554,
   "separated_optimizer_accept_count": 5,
-  "robust_optimizer_last_generation": 5520,
-  "robust_optimizer_trials_total": 5844,
+  "robust_optimizer_last_generation": 5521,
+  "robust_optimizer_trials_total": 5846,
   "robust_optimizer_accept_count": 20
 }
