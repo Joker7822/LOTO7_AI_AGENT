@@ -396,3 +396,22 @@ def test_incomplete_existing_v2_csv_fails_closed_before_any_scoring(project):
     )
     with pytest.raises(ValueError, match="v2 signal"):
         d.read_future_series(out, d.read_sources(out)[0])
+
+
+@pytest.mark.parametrize("bad_hits", ["2.5", "nan", "inf", "-1", "8"])
+def test_future_signal_rejects_noninteger_or_impossible_top7_hits(project, bad_hits):
+    out = project / "loto7_agent_output"
+    file = out / "joint_set_v2_signal_oos_results.csv"
+    with file.open(encoding="utf-8-sig", newline="") as handle:
+        reader = csv.DictReader(handle)
+        rows = list(reader)
+        fieldnames = reader.fieldnames
+    if not rows:
+        pytest.skip("no preregistered result yet")
+    rows[0]["top7_hits"] = bad_hits
+    with file.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+    with pytest.raises(ValueError, match="v2 signal"):
+        d.read_future_series(out, d.read_sources(out)[0])
