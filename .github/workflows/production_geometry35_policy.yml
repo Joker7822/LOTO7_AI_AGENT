@@ -6,6 +6,9 @@ on:
       - "production_ticket_geometry35.py"
       - "weekly_production_prediction.py"
       - "tests/test_production_ticket_geometry35.py"
+      - "tests/test_round701_disjoint35_supplement.py"
+      - "research/round701_disjoint35_supplement.json"
+      - "ROUND701_DISJOINT35_SUPPLEMENT.md"
       - ".github/workflows/production_geometry35_policy.yml"
       - ".github/workflows/weekly_production_publisher.yml"
       - ".github/workflows/weekly_production_fallback.yml"
@@ -27,12 +30,13 @@ jobs:
         with:
           python-version: "3.12"
       - run: python -m pip install -r requirements.txt pytest
-      - name: Test fresh 702-only Production geometry and ledger no-overwrite
+      - name: Test 702+ Production geometry and independent 701 supplement without ledger rewrite
         run: |
           python -m compileall -q \
             production_ticket_geometry35.py weekly_production_prediction.py
           python -m pytest -q \
             tests/test_production_ticket_geometry35.py \
+            tests/test_round701_disjoint35_supplement.py \
             tests/test_audit_ledger.py
           python - <<'PY'
           import production_ticket_geometry35 as p
