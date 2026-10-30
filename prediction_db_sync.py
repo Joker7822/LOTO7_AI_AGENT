@@ -15,7 +15,7 @@ import urllib.request
 from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Sequence
 
-import production_ticket_geometry35 as geometry35
+import production_disjoint35_policy as geometry35
 
 SCHEMA_VERSION = "loto7-db-sync-v1"
 DEFAULT_CREDENTIAL_GENERATION_FILE = Path("sakura/credential_generation.txt")
