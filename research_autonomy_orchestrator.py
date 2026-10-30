@@ -136,6 +136,9 @@ def previous_queue_is_eligible(candidate: dict, *, info: dict,
             return False
         seen.add(identifier)
         cycles = item.get("recurrence_cycles")
+        consecutive = item.get("stagnation_cycles", 0)
+        if type(consecutive) is not int or not 0 <= consecutive <= 20:
+            return False
         factors = item.get("priority_factors")
         if (type(cycles) is not int or not 1 <= cycles <= 20
                 or not isinstance(factors, dict)
@@ -369,7 +372,25 @@ def build_queue(info: dict, application: dict, raw_source: dict,
         cycles = prior.get("recurrence_cycles", 0) if prior is not None else 0
         cycles = cycles if type(cycles) is int and 0 <= cycles <= 20 else 0
         recurrence = min(20, cycles + 1) if previous is not None else 1
+        # Count only consecutive measured, unchanged intervals. A transient
+        # improvement resets the stall clock; unmeasurable work is not
+        # mislabelled a proven failure.
+        previous_stall = prior.get("stagnation_cycles", 0) if prior is not None else 0
+        previous_stall = previous_stall if type(previous_stall) is int and 0 <= previous_stall <= 20 else 0
+        stagnation = min(20, previous_stall + 1) if state == "unchanged" else 0
+        if state == "worsening":
+            attention = "regression_needs_review"
+        elif state == "improving":
+            attention = "observed_progress"
+        elif state == "unchanged" and stagnation >= 3:
+            attention = "stalled_needs_review"
+        elif state == "still_pending_unmeasured" and recurrence >= 4:
+            attention = "human_review_pending"
+        else:
+            attention = "routine_monitoring"
         item["recurrence_cycles"] = recurrence
+        item["stagnation_cycles"] = stagnation
+        item["attention_state"] = attention
         item["feedback_state"] = state
         item["backlog_observed"] = count
         item["backlog_prior"] = before
@@ -379,6 +400,7 @@ def build_queue(info: dict, application: dict, raw_source: dict,
             "verified_backlog": min(10, count) if count is not None else 0,
             "unresolved_recurrence": min(10, recurrence - 1),
             "observed_trend": trend,
+            "observed_stagnation": 4 if attention == "stalled_needs_review" else 0,
         }
         item["priority_score"] = sum(item["priority_factors"].values())
     pending.sort(key=lambda t: (SEVERITY[t["priority"]],
@@ -457,6 +479,18 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
         "top_priority": tasks[0]["code"] if tasks else None,
         "tasks": tasks,
         "action_feedback": summarize_feedback(tasks, previous),
+        "agent_attention": {
+            "version": "research-agent-attention-v1",
+            "review_due_count": sum(t["attention_state"] in {
+                "regression_needs_review", "stalled_needs_review",
+                "human_review_pending",
+            } for t in tasks),
+            "review_due_codes": [t["code"] for t in tasks if t["attention_state"] in {
+                "regression_needs_review", "stalled_needs_review",
+                "human_review_pending",
+            }],
+            "automatic_escalation_or_training_authorized": False,
+        },
         "authority": {
             "scope": "audited_advisory_queue_only",
             "automated_model_training": False,
@@ -482,6 +516,8 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
         "- Observed backlog changes are NOT causal evidence of agent effectiveness.",
         "- Feedback: " + ", ".join(k + "=" + str(v) for k, v in
                                  output["action_feedback"]["status_counts"].items()),
+        "- Attention due: " + str(output["agent_attention"]["review_due_count"]) +
+        " tasks (advisory only).",
         "",
     ]
     for n, item in enumerate(tasks[:16], start=1):
@@ -491,6 +527,9 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
             "   - Observed: " + item["feedback_state"] +
             "; backlog=" + str(item["backlog_observed"]) +
             "; delta=" + str(item["backlog_delta"]),
+            "   - Agent attention: " + item["attention_state"] +
+            "; consecutive unchanged observations=" +
+            str(item["stagnation_cycles"]),
             "   - Reason: " + item["reason"],
             "   - Next: " + item["next_step"],
         ])
