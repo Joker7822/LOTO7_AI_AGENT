@@ -2,11 +2,22 @@
   "version": "pair-context-v2-int64-prospective-candidate",
   "model_family": "pair_context",
   "data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
-  "implementation_sha256": "bad784e17d9c84526493950ac5c4734c0d821de1b81fa3bd7b0f77123b12ccc5",
+  "implementation_sha256": "4bee06e74cfd50bcc53c3e56f3e748f03495a4634aa54171c860eca3cf8f2902",
   "history_draws": 700,
   "latest_draw_date": "2026-10-23",
   "int8_corrupted_cooccurrence_cells": 27,
   "int64_corrupted_cooccurrence_cells": 0,
+  "numerical_verification": {
+    "status": "pass",
+    "independent_method": "pairwise_boolean_intersection_counts",
+    "matrix_cells_checked": 1369,
+    "diagonal_marginals_verified": true,
+    "symmetry_verified": true,
+    "int64_cast_before_matrix_product": true,
+    "fail_closed_on_any_mismatch": true,
+    "historical_only": true,
+    "automatic_model_promotion_authorized": false
+  },
   "last_n": 60,
   "evaluated_rounds": [
     641,
@@ -81,7 +92,7 @@
   "historical_mean_top7_hits_v2": 1.5,
   "historical_mean_top7_hits_v1": 1.5166666666666666,
   "latest_v1_v2_probability_l1": 0.5751569412429215,
-  "latest_v2_p_sha256": "0010925a4718d42d4e01352d3b024b9ea16e06e01aaddba83b20e36b826c9a0e",
+  "latest_v2_p_sha256": "7c34a418fea5531ae206e99703a8a67b8f86ce29286d91d18ff7364783b3db3e",
   "legacy_runtime_still_uses_v1": true,
   "migration_required": "separate versioned model ID and new prefrozen prospective registration"
 }
