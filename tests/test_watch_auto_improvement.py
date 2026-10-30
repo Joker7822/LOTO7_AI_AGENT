@@ -154,7 +154,10 @@ def test_unverified_source_is_never_scored(project, monkeypatch):
 
 def test_stale_council_and_csv_guard_refuse_to_publish_auto_resolved(project):
     p = project / "loto7_agent_output/agent_role_council_summary.json"
-    update(p, lambda j: j.update(latest_resolved_round=701))
+    # Use an actually stale round rather than a number that becomes
+    # current when the next real draw arrives.
+    current = council.round_id(make_history(read_csv_flexible(project / "loto7.csv"))[1]["回別"].iloc[-1])
+    update(p, lambda j: j.update(latest_resolved_round=current - 1))
     with pytest.raises(ValueError, match="stale council"):
         auto.evaluate(project, now=NOW)
 
