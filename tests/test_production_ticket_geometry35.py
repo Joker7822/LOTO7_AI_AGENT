@@ -181,3 +181,102 @@ def test_weekly_existing_frozen_target_returns_before_new_geometry(tmp_path, mon
     )
     assert result["reason"] == "republished_frozen_ledger_prediction"
     assert not (out_dir / "candidate_tickets.csv").exists()
+
+
+def issued_rows(target=702):
+    tickets = geometry.portfolio_for_target(target)
+    return [
+        {"ticket": str(i), "predicted_numbers": " ".join(f"{n:02d}" for n in numbers),
+         "model_version": "baseline-test+" + geometry.VERSION}
+        for i, numbers in enumerate(tickets, 1)
+    ]
+
+
+def test_shared_post_migration_ledger_validator_rejects_all_overlaps():
+    rows = issued_rows()
+    geometry.validate_issued_rows(rows, 702)
+    assert len({n for r in rows for n in r["predicted_numbers"].split()}) == 35
+
+    altered = [dict(x) for x in rows]
+    nums = altered[1]["predicted_numbers"].split()
+    nums[0] = altered[0]["predicted_numbers"].split()[0]
+    altered[1]["predicted_numbers"] = " ".join(sorted(nums, key=int))
+    with pytest.raises(ValueError, match="overlap|disjoint|tickets"):
+        geometry.validate_issued_rows(altered, 702)
+
+
+@pytest.mark.parametrize("change", ["drop", "position", "policy", "duplicate", "out_of_range"])
+def test_shared_validator_refuses_invalid_702_production(change):
+    rows = issued_rows()
+    if change == "drop":
+        rows.pop()
+    elif change == "position":
+        rows[1]["ticket"] = "1"
+    elif change == "policy":
+        rows[0]["model_version"] = "baseline-original"
+    elif change == "duplicate":
+        rows[0]["predicted_numbers"] = "01 01 02 03 04 05 06"
+    else:
+        rows[0]["predicted_numbers"] = "01 02 03 04 05 06 38"
+    with pytest.raises(ValueError):
+        geometry.validate_issued_rows(rows, 702)
+
+
+def test_canonical_append_never_writes_non_disjoint_702(tmp_path):
+    csv_path = tmp_path / "loto7.csv"
+    make_synthetic_csv(csv_path, 701)
+    loto_rows = ledger.read_csv(csv_path)
+    pred_path = tmp_path / "predictions.csv"
+    valid = geometry.portfolio_for_target(702)
+    bad = [tuple(numbers) for numbers in valid]
+    bad[1] = bad[0]
+    ticket_rows = [
+        {"ticket": str(i), "numbers": " ".join(map(str, numbers))}
+        for i, numbers in enumerate(bad, 1)
+    ]
+    state = {
+        "target_round": "第702回",
+        "latest_round": "第701回",
+        "data_sha256": ledger.sha_file(csv_path),
+        "production_ticket_policy_version": geometry.VERSION,
+        "model_version": "baseline-test+" + geometry.VERSION,
+    }
+    with pytest.raises(ValueError, match="overlap"):
+        ledger.append_current_predictions(loto_rows, ticket_rows, pred_path, state,
+                                          current_data_sha=ledger.sha_file(csv_path))
+    assert not pred_path.exists()
+
+    good_rows = [
+        {"ticket": str(i), "numbers": " ".join(map(str, numbers))}
+        for i, numbers in enumerate(valid, 1)
+    ]
+    state["production_ticket_policy_version"] = "champion_original"
+    with pytest.raises(RuntimeError, match="without disjoint35"):
+        ledger.append_current_predictions(loto_rows, good_rows, pred_path, state,
+                                          current_data_sha=ledger.sha_file(csv_path))
+    assert not pred_path.exists()
+
+
+def test_702_republish_rejects_edited_frozen_ledger(tmp_path, monkeypatch):
+    csv_path = tmp_path / "loto7.csv"
+    make_synthetic_csv(csv_path, 701)
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    (out_dir / "source_validation.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(geometry, "verify_source",
+                        lambda *_: {"trusted": True, "round": 701})
+    monkeypatch.setattr(geometry, "production_window_guard", lambda *_: None)
+    issued = weekly.publish(csv_path=csv_path, out_dir=out_dir,
+                            champion_file=tmp_path / "missing_champion.json",
+                            research_state=tmp_path / "missing_research.json")
+    assert issued["ticket_policy"] == geometry.VERSION
+    ledger_path = out_dir / "predictions.csv"
+    rows = ledger.read_csv(ledger_path)
+    rows[1]["predicted_numbers"] = rows[0]["predicted_numbers"]
+    ledger.write_csv(ledger_path, rows, ledger.PRED_FIELDS)
+    frozen_bytes = ledger_path.read_bytes()
+    with pytest.raises(ValueError, match="overlap"):
+        weekly.publish(csv_path=csv_path, out_dir=out_dir,
+                       champion_file=tmp_path / "missing_champion.json",
+                       research_state=tmp_path / "missing_research.json")
+    assert ledger_path.read_bytes() == frozen_bytes
