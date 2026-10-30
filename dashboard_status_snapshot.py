@@ -187,6 +187,15 @@ def read_signal(out: Path, summary: dict, state: dict) -> list[dict]:
         raise error("v2 signal grades disagree with source-of-truth state")
     if data and not all(result_is_trusted(r) and before_draw(r) for r in data):
         raise error("v2 signal result lacks trusted prefrozen vector")
+    # Do not let malformed/partially committed rows raise KeyError or be
+    # mistaken for a valid scored Future-OOS record.
+    required = {
+        "round", "draw_date", "bernoulli_log_edge_vs_uniform",
+        "bernoulli_brier_edge_vs_uniform", "top7_hits",
+    }
+    if any(not required.issubset(r) or any(not r.get(key) for key in required)
+           for r in data):
+        raise error("v2 signal result lacks required scoring evidence")
     log_edges = [float(r["bernoulli_log_edge_vs_uniform"]) for r in data]
     brier_edges = [float(r["bernoulli_brier_edge_vs_uniform"]) for r in data]
     top7 = [int(r["top7_hits"]) for r in data]
