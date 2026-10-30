@@ -207,3 +207,24 @@ def test_numeric_diagnostic_has_auditable_independent_oracle():
     assert report["int64_corrupted_cooccurrence_cells"] == 0
     assert report["prospective_edge_confirmed"] is False
     assert report["promotion_authorized"] is False
+
+
+def test_scheduled_publisher_script_parses_as_valid_bash():
+    # PR workflows skip publishing. Validate the exact production run-block
+    # without running any git commands or touching repository content.
+    import subprocess
+
+    yaml = Path(".github/workflows/pair_context_v2.yml").read_text(encoding="utf-8")
+    marker = "      - name: Persist only versioned diagnostic (never old forecasts)\n"
+    assert yaml.count(marker) == 1
+    block = yaml.split(marker, 1)[1].split("        run: |\n", 1)[1]
+    assert block.lstrip().startswith("set -euo pipefail")
+    shell_lines = block.splitlines()
+    assert all(not line.strip() or line.startswith("          ")
+               for line in shell_lines)
+    shell = "\n".join(line[10:] for line in shell_lines) + "\n"
+    result = subprocess.run(["bash", "-n"], input=shell, text=True,
+                            capture_output=True, check=False)
+    assert result.returncode == 0, result.stderr
+    assert "python - <<'PY'" in shell
+    assert "\nPY\n" in shell
