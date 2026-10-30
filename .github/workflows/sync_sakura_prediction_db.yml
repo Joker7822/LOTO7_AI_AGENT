@@ -1,6 +1,13 @@
 name: Sync Production Predictions to Sakura DB
 
 on:
+  pull_request:
+    paths:
+      - "prediction_db_sync.py"
+      - "production_disjoint35_policy.py"
+      - "tests/test_production_disjoint35_policy.py"
+      - "sakura/**"
+      - ".github/workflows/sync_sakura_prediction_db.yml"
   push:
     branches: [main]
     paths:
@@ -8,6 +15,7 @@ on:
       - "loto7_agent_output/prediction_corrections.csv"
       - "loto7_agent_output/reconciliation.csv"
       - "prediction_db_sync.py"
+      - "production_disjoint35_policy.py"
       - "sakura/**"
       - ".github/workflows/sync_sakura_prediction_db.yml"
   workflow_dispatch:
@@ -57,6 +65,7 @@ jobs:
         run: php -l sakura/prediction_ingest.php
 
       - name: Sync to Sakura MySQL
+        if: github.event_name != 'pull_request'
         env:
           SAKURA_PREDICTION_API_URL: ${{ secrets.SAKURA_PREDICTION_API_URL }}
           SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}
