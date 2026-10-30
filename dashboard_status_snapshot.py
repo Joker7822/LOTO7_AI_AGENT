@@ -198,7 +198,18 @@ def read_signal(out: Path, summary: dict, state: dict) -> list[dict]:
         raise error("v2 signal result lacks required scoring evidence")
     log_edges = [float(r["bernoulli_log_edge_vs_uniform"]) for r in data]
     brier_edges = [float(r["bernoulli_brier_edge_vs_uniform"]) for r in data]
-    top7 = [int(r["top7_hits"]) for r in data]
+    # The canonical upstream CSV serializes integral hit counts as "2.0".
+    # Accept mathematically exact integers only; reject fractions, NaN,
+    # infinity and out-of-range values without fabricating a score.
+    top7 = []
+    for r in data:
+        try:
+            n = float(r["top7_hits"])
+        except (TypeError, ValueError, OverflowError) as exc:
+            raise error("v2 signal has invalid Top7 hit count") from exc
+        if not n.is_integer() or not 0 <= n <= 7:
+            raise error("v2 signal has nonintegral or out-of-range Top7 hits")
+        top7.append(int(n))
     return [
         {"round": int(r["round"]), "date": r["draw_date"],
          "mean_log_edge": cumulative(log_edges)[i],
