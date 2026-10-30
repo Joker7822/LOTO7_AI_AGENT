@@ -209,3 +209,35 @@ def test_claimed_source_verification_cannot_override_independent_guard(monkeypat
             intel.current_source(ROOT)
     else:
         assert not intel.current_source(ROOT)["independent_two_source_verified"]
+
+
+def test_frozen_research_proposals_use_historically_registered_budget_not_new_round():
+    papers, reviewed, plans, verified, readiness, guard, statuses = intel.frozen_inputs(ROOT)
+    assert plans["research_mode"] == reviewed["research_mode"]
+    assert all(p["same_data_search_currently_permitted"] ==
+               (plans["research_mode"] == "SEARCH") for p in plans["proposals"])
+    assert all(not p["new_trial_budget_granted"] and
+               not p["production_promotion_authorized"] and
+               not p["code_execution_authorized"] for p in plans["proposals"])
+    report = intel.run(ROOT)
+    if guard["data_sha256"] != plans["draw_history_sha256"]:
+        assert report["quality_checks"]["literature_synced_to_current_draw"] is False
+        assert "online_literature_analysis_uses_older_draw_snapshot" in report["blockers"]
+    assert report["new_real_experiments"] == 0
+    assert report["new_predictions_generated"] == 0
+
+
+def test_frozen_proposal_cannot_claim_a_new_budget_on_same_source(monkeypatch):
+    original = intel.read
+    def same_data_guard(path):
+        obj = original(path)
+        if path.name == "research_cycle_guard.json":
+            obj = copy.deepcopy(obj)
+            frozen = original(ROOT / "loto7_agent_output/research_experiment_proposals.json")
+            obj["data_sha256"] = frozen["draw_history_sha256"]
+            obj["search_enabled"] = frozen["research_mode"] != "SEARCH"
+            obj["mode"] = "SEARCH" if obj["search_enabled"] else "WAIT_FOR_NEW_DATA"
+        return obj
+    monkeypatch.setattr(intel, "read", same_data_guard)
+    with pytest.raises(ValueError, match="same-data frozen permission"):
+        intel.frozen_inputs(ROOT)
