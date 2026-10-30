@@ -18,6 +18,8 @@ on:
       - "research_evidence_resilience.py"
       - "research_application_gate.py"
       - "research_autonomy_orchestrator.py"
+      - "research_action_policy.py"
+      - "tests/test_research_action_policy.py"
       - "research_data_quality.py"
       - "tests/test_research_data_quality.py"
       - "RESEARCH_DATA_QUALITY.md"
@@ -41,6 +43,8 @@ on:
       - "research_literature_pipeline.py"
       - "research_evidence_resilience.py"
       - "research_autonomy_orchestrator.py"
+      - "research_action_policy.py"
+      - "tests/test_research_action_policy.py"
       - "research_data_quality.py"
       - "tests/test_research_data_quality.py"
       - "RESEARCH_DATA_QUALITY.md"
@@ -84,8 +88,8 @@ jobs:
       - name: Verify safe research, DOI checking and self-recovery tests
         run: |
           python -m pip install -r requirements.txt pytest
-          python -m compileall -q always_on_accuracy_agent.py research_literature_pipeline.py research_evidence_resilience.py research_application_gate.py research_data_quality.py research_autonomy_orchestrator.py
-          python -m pytest -q tests/test_live_evidence_boundaries.py tests/test_research_data_quality.py
+          python -m compileall -q always_on_accuracy_agent.py research_literature_pipeline.py research_evidence_resilience.py research_application_gate.py research_data_quality.py research_action_policy.py research_autonomy_orchestrator.py
+          python -m pytest -q tests/test_live_evidence_boundaries.py tests/test_research_data_quality.py tests/test_research_action_policy.py
           bash scripts/ci_verify_frozen_regressions.sh             tests/test_always_on_accuracy_agent.py             tests/test_research_literature_pipeline.py             tests/test_research_evidence_resilience.py             tests/test_research_application_gate.py             tests/test_research_autonomy_orchestrator.py
       - name: Isolated PR smoke test without tracked-data writes
         if: github.event_name == 'pull_request'
@@ -126,6 +130,9 @@ jobs:
           queue=json.loads((out / "research_autonomy_priority_queue.json").read_text())
           assert queue["authority"]["workflows_dispatched"] is False
           assert queue["authority"]["production_or_champion_update"] is False
+          assert queue["action_policy"]["automatic_code_or_model_change_authorized"] is False
+          assert queue["action_policy"]["research_budget_override_authorized"] is False
+          assert queue["action_policy"]["priority_bonus_cap"] == 8
           assert all(t["safe_autonomous_action"] == "report_only" for t in queue["tasks"])
           print("safe research verification:", [r["status"] for r in paper["verifications"]])
           PY
