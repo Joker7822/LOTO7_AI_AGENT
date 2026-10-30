@@ -1,8 +1,8 @@
 {
   "version": "frequent-verified-research-feed-v1",
-  "checked_at_utc": "2026-10-30T13:09:35+00:00",
-  "discovery_state_sha256": "5c54fe56fb8eb2b1a540345bc48607ae1022c12fcd4eafc5cc805fe6622572f2",
-  "discovery_chain_tip": "3edb70e10d2cac5bf3475c4a991b1cfa0f962f39c97b441d104a348253fe596d",
+  "checked_at_utc": "2026-10-30T19:29:12+00:00",
+  "discovery_state_sha256": "29c4d688e7ca47aee53bbf182f6a7f26abef4a3bd7d7d2ecc61e00a1b41d9115",
+  "discovery_chain_tip": "7fb86a08242284d686d4c2e406d6e7c9aa52f3cd9ec8717e05fd5a5ed160efdd",
   "anchored_known_papers": 24,
   "topic_searched": "online probabilistic forecasting calibration",
   "next_topic_index": 1,
@@ -18,24 +18,46 @@
   "new_unanchored_dois_seen": 6,
   "checked": [
     {
-      "doi": "10.21203/rs.3.rs-10035640/v1",
-      "status": "two_provider_bibliography_matched"
-    },
-    {
       "doi": "10.21203/rs.3.rs-10484149/v1",
       "status": "two_provider_bibliography_matched"
     },
     {
       "doi": "10.48550/arxiv.2606.19642",
       "status": "single_provider_only"
+    },
+    {
+      "doi": "10.48550/arxiv.2608.13554",
+      "status": "single_provider_only"
     }
   ],
   "candidate_count": 3,
   "status_counts": {
-    "single_provider_only": 1,
-    "two_provider_bibliography_matched": 2
+    "single_provider_only": 2,
+    "two_provider_bibliography_matched": 1
   },
   "candidates": [
+    {
+      "doi": "10.48550/arxiv.2608.13554",
+      "title": "Defensive Boosting for Online Probabilistic Forecasting",
+      "year": 2026,
+      "status": "single_provider_only",
+      "crossref_consistent": false,
+      "openalex_consistent": true,
+      "abstract_metadata_present": true,
+      "abstract_word_count_max": 266,
+      "source_errors": {
+        "crossref": "permanent_provider_failure"
+      },
+      "transient_retry_count": 0,
+      "full_text_reviewed": false,
+      "peer_review_confirmed": false,
+      "methods_reproduced_from_paper": false,
+      "lottery_prediction_improved": false,
+      "first_seen_utc": "2026-10-30T19:29:12+00:00",
+      "last_checked_utc": "2026-10-30T19:29:12+00:00",
+      "last_two_provider_verified_utc": null,
+      "found_in_anchored_intake": false
+    },
     {
       "doi": "10.48550/arxiv.2606.19642",
       "title": "Rigorous uncertainty quantification of probabilistic AI weather forecasts with conformal prediction",
@@ -53,8 +75,8 @@
       "peer_review_confirmed": false,
       "methods_reproduced_from_paper": false,
       "lottery_prediction_improved": false,
-      "first_seen_utc": "2026-10-30T13:09:35+00:00",
-      "last_checked_utc": "2026-10-30T13:09:35+00:00",
+      "first_seen_utc": "2026-10-30T19:29:12+00:00",
+      "last_checked_utc": "2026-10-30T19:29:12+00:00",
       "last_two_provider_verified_utc": null,
       "found_in_anchored_intake": false
     },
@@ -73,41 +95,19 @@
       "peer_review_confirmed": false,
       "methods_reproduced_from_paper": false,
       "lottery_prediction_improved": false,
-      "first_seen_utc": "2026-10-30T13:09:35+00:00",
-      "last_checked_utc": "2026-10-30T13:09:35+00:00",
-      "last_two_provider_verified_utc": "2026-10-30T13:09:35+00:00",
-      "found_in_anchored_intake": false
-    },
-    {
-      "doi": "10.21203/rs.3.rs-10035640/v1",
-      "title": "Probabilistic dengue forecasting and early warning across Mexico (1985-2026): a machine-learning and statistical ensemble with conformal calibration",
-      "year": 2026,
-      "status": "two_provider_bibliography_matched",
-      "crossref_consistent": true,
-      "openalex_consistent": true,
-      "abstract_metadata_present": true,
-      "abstract_word_count_max": 323,
-      "source_errors": {},
-      "transient_retry_count": 0,
-      "full_text_reviewed": false,
-      "peer_review_confirmed": false,
-      "methods_reproduced_from_paper": false,
-      "lottery_prediction_improved": false,
-      "first_seen_utc": "2026-10-30T13:09:35+00:00",
-      "last_checked_utc": "2026-10-30T13:09:35+00:00",
-      "last_two_provider_verified_utc": "2026-10-30T13:09:35+00:00",
+      "first_seen_utc": "2026-10-30T19:29:12+00:00",
+      "last_checked_utc": "2026-10-30T19:29:12+00:00",
+      "last_two_provider_verified_utc": "2026-10-30T19:29:12+00:00",
       "found_in_anchored_intake": false
     }
   ],
   "verified_topics_this_cycle": [
     "calibration",
-    "distribution_shift",
-    "ensemble"
+    "distribution_shift"
   ],
   "review_topics_from_current_or_prior_corroboration": [
     "calibration",
-    "distribution_shift",
-    "ensemble"
+    "distribution_shift"
   ],
   "safe_application_handoffs": [
     {
@@ -124,15 +124,6 @@
       "bibliographic_identity_scope": "some_previous_matches_may_be_stale",
       "fixed_safe_review_task": "Check age and SHA agreement across research inputs",
       "constraint": "Do not infer a change in lottery ball probabilities",
-      "type": "human_review_only",
-      "automatic_method_adoption": false,
-      "requires_full_text_and_prospective_validation": true
-    },
-    {
-      "topic": "ensemble",
-      "bibliographic_identity_scope": "some_previous_matches_may_be_stale",
-      "fixed_safe_review_task": "Audit matched portfolio geometry and fixed references",
-      "constraint": "No cherry-picked comparator or candidate on graded outcomes",
       "type": "human_review_only",
       "automatic_method_adoption": false,
       "requires_full_text_and_prospective_validation": true
