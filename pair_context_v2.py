@@ -42,10 +42,39 @@ def exact_cooccurrence(history: np.ndarray) -> np.ndarray:
     return x.T @ x
 
 
+def independent_cooccurrence(history: np.ndarray) -> np.ndarray:
+    """Independent Boolean-intersection oracle, without any matrix product.
+
+    The reference does NOT repeat the integer-matmul implementation being
+    checked. It can expose an accidental dtype regression or a broken kernel.
+    """
+    x = validated_history(history).astype(bool, copy=False)
+    counts = np.zeros((N_NUMBERS, N_NUMBERS), dtype=np.int64)
+    for i in range(N_NUMBERS):
+        for j in range(i, N_NUMBERS):
+            n = np.count_nonzero(np.logical_and(x[:, i], x[:, j]))
+            counts[i, j] = counts[j, i] = int(n)
+    return counts
+
+
+def checked_cooccurrence(history: np.ndarray) -> np.ndarray:
+    """Fail closed on any disagreement with the independent exact oracle."""
+    x = validated_history(history)
+    exact = exact_cooccurrence(x)
+    reference = independent_cooccurrence(x)
+    if (exact.dtype != np.int64 or exact.shape != (N_NUMBERS, N_NUMBERS)
+            or not np.array_equal(exact, reference)
+            or not np.array_equal(np.diag(exact), x.sum(axis=0, dtype=np.int64))
+            or not np.array_equal(exact, exact.T)
+            or not np.all((exact >= 0) & (exact <= len(x)))):
+        raise ArithmeticError("pair-context-v2 co-occurrence failed independent int64 verification")
+    return exact
+
+
 def probability(history: np.ndarray) -> np.ndarray:
     """Reproduce v1 pair-context formula, except use exact wide arithmetic."""
     x = validated_history(history)
-    co = x.T @ x
+    co = exact_cooccurrence(x)
     last = np.flatnonzero(x[-1])
     den = np.maximum(x.sum(axis=0, dtype=np.int64).astype(float)[last], 1.0)
     pair = (co[:, last].astype(float) / den).mean(axis=1)
@@ -70,7 +99,7 @@ def diagnostics(csv_path: Path, last_n: int = DEFAULT_WINDOW) -> dict:
     if last_n < 1 or len(history) < last_n + 20:
         raise ValueError("too few rounds for chronological evaluation")
     x = validated_history(history)
-    co_exact = x.T @ x
+    co_exact = checked_cooccurrence(x)
     legacy = x.astype(np.int8).T @ x.astype(np.int8)
     overflow = int(np.count_nonzero(co_exact != legacy.astype(np.int64)))
     q = probability(history)
@@ -94,7 +123,19 @@ def diagnostics(csv_path: Path, last_n: int = DEFAULT_WINDOW) -> dict:
         "history_draws": len(x),
         "latest_draw_date": clean["抽せん日"].iloc[-1].date().isoformat(),
         "int8_corrupted_cooccurrence_cells": overflow,
-        "int64_corrupted_cooccurrence_cells": 0,
+        "int64_corrupted_cooccurrence_cells": int(np.count_nonzero(
+            co_exact != independent_cooccurrence(x))),
+        "numerical_verification": {
+            "status": "pass",
+            "independent_method": "pairwise_boolean_intersection_counts",
+            "matrix_cells_checked": int(co_exact.size),
+            "diagonal_marginals_verified": True,
+            "symmetry_verified": True,
+            "int64_cast_before_matrix_product": True,
+            "fail_closed_on_any_mismatch": True,
+            "historical_only": True,
+            "automatic_model_promotion_authorized": False,
+        },
         "last_n": last_n,
         "evaluated_rounds": list(range(len(x) - last_n + 1, len(x) + 1)),
         "chronological_prior_only": True,
@@ -121,6 +162,11 @@ def main() -> int:
     parser.add_argument("--last-n", type=int, default=DEFAULT_WINDOW)
     args = parser.parse_args()
     result = diagnostics(args.csv, args.last_n)
+    if (result["numerical_verification"]["status"] != "pass"
+            or result["int64_corrupted_cooccurrence_cells"] != 0
+            or result["numerical_verification"]["matrix_cells_checked"] != N_NUMBERS ** 2
+            or result["promotion_authorized"] is not False):
+        raise ArithmeticError("independent numerical verification did not pass")
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False) + "\n", encoding="utf-8")
     print(json.dumps({
