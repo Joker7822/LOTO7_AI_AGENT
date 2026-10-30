@@ -127,6 +127,10 @@ jobs:
             --out-dir loto7_agent_output \
             --status-md STATUS.md
 
+      - name: Verify canonical 702+ disjoint35 before commit and Sakura sync
+        if: steps.publication_gate.outputs.publish == 'true'
+        run: python production_ticket_geometry35.py --verify-canonical --out-dir loto7_agent_output
+
       - name: Commit Production checkpoint
         if: steps.publication_gate.outputs.publish == 'true'
         shell: bash
