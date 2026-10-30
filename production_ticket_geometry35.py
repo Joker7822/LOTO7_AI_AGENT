@@ -153,3 +153,58 @@ def prepare_new_production_outputs(
     (out_dir / "candidate_tickets.csv").write_text(text, encoding="utf-8")
     v4.write_json(out_dir / "agent_state.json", state)
     return state
+
+
+def verify_canonical_publication(out_dir: Path) -> dict:
+    """Check the immutable issued ledger before commit, display or DB sync.
+
+    This command is read-only. Historical 701 and earlier stay exactly as
+    issued; every newly issued target from 702 onward must be disjoint35.
+    """
+    import audit_ledger as ledger  # lazy to keep ledger's write guard importable
+
+    state_path = out_dir / "weekly_production_prediction_state.json"
+    if not state_path.is_file():
+        raise ValueError("missing canonical Production publication state")
+    state = json.loads(state_path.read_text(encoding="utf-8"))
+    target = v4.parse_round(state.get("target_round"))
+    if state.get("published") is not True or target is None:
+        raise ValueError("cannot verify an unpublished Production target")
+    active = [
+        r for r in ledger.active_prediction_rows(
+            out_dir / "predictions.csv",
+            out_dir / "prediction_corrections.csv",
+        )
+        if ledger.rno(r.get("target_round", "")) == target
+    ]
+    if len(active) != 5:
+        raise ValueError("canonical Production must contain exactly five active tickets")
+    if target >= MIN_TARGET_ROUND:
+        if state.get("ticket_policy") != VERSION:
+            raise ValueError("canonical Production is not marked disjoint35")
+        validate_issued_rows(active, target)
+        if len({r.get("model_version") for r in active}) != 1:
+            raise ValueError("mixed model policy in canonical Production")
+        if active[0]["model_version"] != state.get("model_version"):
+            raise ValueError("canonical Production state and rows disagree on policy")
+    return {
+        "target_round": target,
+        "status": "disjoint35_pass" if target >= MIN_TARGET_ROUND else "historical_immutable",
+        "covered_distinct_numbers": 35 if target >= MIN_TARGET_ROUND else None,
+        "checked_active_tickets": len(active),
+        "production_changed": False,
+    }
+
+
+def main() -> int:
+    import argparse
+    ap = argparse.ArgumentParser(description="Read-only canonical Production geometry gate")
+    ap.add_argument("--verify-canonical", action="store_true", required=True)
+    ap.add_argument("--out-dir", type=Path, default=Path("loto7_agent_output"))
+    args = ap.parse_args()
+    print(json.dumps(verify_canonical_publication(args.out_dir), sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
