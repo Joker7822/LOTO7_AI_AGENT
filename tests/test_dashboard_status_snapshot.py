@@ -33,7 +33,9 @@ def project(tmp_path):
     for filename in [
         "future_holdout_results.csv",
         "joint_set_v2_signal_oos_state.json",
+        "joint_set_v2_signal_oos_results.csv",
         "continuous_learning_agent_state.json",
+        "continuous_learning_agent_results.jsonl",
         "predictions.csv",
         "prediction_corrections.csv",
         "actual_results.csv",
