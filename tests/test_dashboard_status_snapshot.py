@@ -388,8 +388,8 @@ def test_incomplete_existing_v2_csv_fails_closed_before_any_scoring(project):
     out = project / "loto7_agent_output"
     csv_path = out / "joint_set_v2_signal_oos_results.csv"
     csv_path.write_text(
-        "round,draw_date,source_verification,trusted,frozen_at_jst\\n"
-        "701,2026-10-30,verified_two_result_sources,true,2026-10-24T18:31:02+09:00\\n",
+        "round,draw_date,source_verification,trusted,frozen_at_jst\n"
+        "701,2026-10-30,verified_two_result_sources,true,2026-10-24T18:31:02+09:00\n",
         encoding="utf-8",
     )
     with pytest.raises(ValueError, match="v2 signal"):
