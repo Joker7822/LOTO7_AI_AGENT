@@ -1,6 +1,6 @@
 {
   "version": "open-ended-evolution-v1",
-  "generations_total": 58049,
+  "generations_total": 59628,
   "evaluated_history_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637",
   "recorded_rounds": 701,
   "evaluation_rounds": 701,
@@ -790,87 +790,94 @@
       "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
     },
     {
-      "generation": 57728,
+      "generation": 59399,
       "genome": {
         "op": "blend",
-        "alpha": 0.63769,
+        "alpha": 0.98533,
         "left": {
           "op": "blend",
-          "alpha": 0.19977,
+          "alpha": 0.65489,
           "left": {
             "op": "blend",
-            "alpha": 0.74645,
+            "alpha": 0.19977,
             "left": {
-              "op": "gap",
-              "scale": 41.98272
+              "op": "blend",
+              "alpha": 0.74645,
+              "left": {
+                "op": "gap",
+                "scale": 41.98272
+              },
+              "right": {
+                "op": "power",
+                "exponent": 2.16673,
+                "child": {
+                  "op": "power",
+                  "exponent": 2.30693,
+                  "child": {
+                    "op": "decay",
+                    "half_life": 13.58362
+                  }
+                }
+              }
             },
             "right": {
-              "op": "power",
-              "exponent": 2.16673,
-              "child": {
-                "op": "power",
-                "exponent": 2.30693,
-                "child": {
-                  "op": "decay",
-                  "half_life": 13.58362
+              "op": "blend",
+              "alpha": 0.12536,
+              "left": {
+                "op": "blend",
+                "alpha": 0.24202,
+                "left": {
+                  "op": "blend",
+                  "alpha": 0.86498,
+                  "left": {
+                    "op": "decay",
+                    "half_life": 122.33941
+                  },
+                  "right": {
+                    "op": "decay",
+                    "half_life": 101.4379
+                  }
+                },
+                "right": {
+                  "op": "blend",
+                  "alpha": 0.07882,
+                  "left": {
+                    "op": "uniform"
+                  },
+                  "right": {
+                    "op": "frequency",
+                    "window": 37,
+                    "prior": 25.85091
+                  }
+                }
+              },
+              "right": {
+                "op": "blend",
+                "alpha": 0.66082,
+                "left": {
+                  "op": "power",
+                  "exponent": 1.77195,
+                  "child": {
+                    "op": "uniform"
+                  }
+                },
+                "right": {
+                  "op": "blend",
+                  "alpha": 0.1953,
+                  "left": {
+                    "op": "pair",
+                    "window": 214,
+                    "prior": 194.89904
+                  },
+                  "right": {
+                    "op": "uniform"
+                  }
                 }
               }
             }
           },
           "right": {
-            "op": "blend",
-            "alpha": 0.12536,
-            "left": {
-              "op": "blend",
-              "alpha": 0.24202,
-              "left": {
-                "op": "blend",
-                "alpha": 0.86498,
-                "left": {
-                  "op": "decay",
-                  "half_life": 122.33941
-                },
-                "right": {
-                  "op": "decay",
-                  "half_life": 101.4379
-                }
-              },
-              "right": {
-                "op": "blend",
-                "alpha": 0.07882,
-                "left": {
-                  "op": "uniform"
-                },
-                "right": {
-                  "op": "frequency",
-                  "window": 37,
-                  "prior": 25.85091
-                }
-              }
-            },
-            "right": {
-              "op": "blend",
-              "alpha": 0.66082,
-              "left": {
-                "op": "power",
-                "exponent": 1.77195,
-                "child": {
-                  "op": "uniform"
-                }
-              },
-              "right": {
-                "op": "blend",
-                "alpha": 0.1953,
-                "left": {
-                  "op": "pair",
-                  "window": 214,
-                  "prior": 194.89904
-                },
-                "right": {
-                  "op": "uniform"
-                }
-              }
-            }
+            "op": "uniform"
           }
         },
         "right": {
@@ -878,21 +885,21 @@
         }
       },
       "assessment": {
-        "mean_log_edge": 0.00046813301736758347,
+        "mean_log_edge": 0.00046954275255275973,
         "mean_top7_hits": 1.4791666666666667,
         "block_edges": [
-          -6.787912954787023e-05,
-          0.0013872938959682652,
-          8.498428568235567e-05
+          -7.247277460240508e-05,
+          0.0013994868363866107,
+          8.161419587407383e-05
         ],
-        "fitness": 0.00037019290710946874,
+        "fitness": 0.00037045697926182453,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
     },
     {
-      "generation": 57838,
+      "generation": 59605,
       "genome": {
         "op": "blend",
         "alpha": 0.99,
@@ -984,35 +991,33 @@
         },
         "right": {
           "op": "blend",
-          "alpha": 0.97862,
+          "alpha": 0.71868,
           "left": {
-            "op": "uniform"
-          },
-          "right": {
             "op": "blend",
-            "alpha": 0.95452,
+            "alpha": 0.92846,
             "left": {
-              "op": "frequency",
-              "window": 77,
-              "prior": 5.14769
+              "op": "uniform"
             },
             "right": {
               "op": "frequency",
-              "window": 16,
-              "prior": 179.75886
+              "window": 227,
+              "prior": 450.57007
             }
+          },
+          "right": {
+            "op": "uniform"
           }
         }
       },
       "assessment": {
-        "mean_log_edge": 0.0004694814952497303,
+        "mean_log_edge": 0.00046982750334125255,
         "mean_top7_hits": 1.4791666666666667,
         "block_edges": [
-          -7.535060384585154e-05,
-          0.0014042890944279865,
-          7.95059951670564e-05
+          -7.44790436250617e-05,
+          0.0014042832916828707,
+          7.967826196594852e-05
         ],
-        "fitness": 0.0003698777244494597,
+        "fitness": 0.00037026494757926167,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
@@ -1026,5 +1031,5 @@
   },
   "scope": "indefinite_historical_model_program_evolution_not_production",
   "claim": "Selection on reused historical data cannot establish predictive advantage.",
-  "last_record_sha256": "57b6ecc6918f35332e4e7bd46d84499620897b7bfcc2d0cad22b69fc7bf62afd"
+  "last_record_sha256": "09d0d8be2f0a06ac1dfd7a39374fe6e6e9761e204b494be3189c3336355fb2a2"
 }
