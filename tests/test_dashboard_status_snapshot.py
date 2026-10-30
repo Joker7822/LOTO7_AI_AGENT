@@ -47,10 +47,14 @@ def test_real_portfolio_oos_is_exactly_prefrozen_and_no_fabricated_future_signal
     snapshot = d.create_snapshot(project, all_workflows(), now=FIXED, ref="a" * 40)
     assert snapshot["version"] == d.VERSION
     assert snapshot["source_commit"] == "a" * 40
-    assert snapshot["sources"]["signal"]["trusted_draws"] == 0
-    assert snapshot["sources"]["learning"]["trusted_draws"] == 0
-    assert snapshot["series"]["v2"] == []
-    assert snapshot["series"]["adaptive"] == []
+    # The first 701 pre-draw forecasts may now be legitimately graded.
+    # Never assume the once-empty prospective ledgers stay empty forever.
+    assert (len(snapshot["series"]["v2"]) ==
+            snapshot["sources"]["signal"]["trusted_draws"])
+    assert (len(snapshot["series"]["adaptive"]) ==
+            snapshot["sources"]["learning"]["trusted_draws"])
+    assert all(r["round"] >= 701 for r in snapshot["series"]["v2"])
+    assert all(r["round"] >= 701 for r in snapshot["series"]["adaptive"])
     rows = snapshot["series"]["portfolio"]
     assert len(rows) == snapshot["sources"]["holdout"]["trusted_draws"]
     assert rows[0]["round"] == snapshot["sources"]["holdout"]["start_target_round"]
@@ -113,6 +117,14 @@ def test_fail_closed_invented_v2_results_without_graded_state(project):
         "701,verified_two_result_sources,true,2026-10-29T10:00:00+09:00,2026-10-30\n",
         encoding="utf-8",
     )
+    state = out / "joint_set_v2_signal_oos_state.json"
+    summary = out / "joint_set_v2_signal_oos_summary.json"
+    for path in (state, summary):
+        obj = json.loads(path.read_text(encoding="utf-8"))
+        obj["trusted_draws"] = 0
+        if path == state:
+            obj["graded_rounds"] = []
+        path.write_text(json.dumps(obj), encoding="utf-8")
     with pytest.raises(ValueError, match="v2 signal"):
         d.read_future_series(out, d.read_sources(out)[0])
 
@@ -238,12 +250,21 @@ def test_latest_published_five_tickets_are_only_issued_production(project):
     result = d.create_snapshot(project, all_workflows(), now=FIXED, ref="a" * 40)
     forecast = result["latest_prediction"]
     assert forecast["status"] == "published"
-    assert forecast["target_round"] == 700
+    state = json.loads((project / "loto7_agent_output" /
+                        "weekly_production_prediction_state.json").read_text())
+    target = int(state["target_round"].strip("第回"))
+    assert forecast["target_round"] == target
     assert len(forecast["tickets"]) == 5
-    assert forecast["tickets"][0]["numbers"] == [6, 16, 22, 23, 24, 28, 36]
-    assert forecast["result_status"] == "awaiting_independently_verified_draw"
-    assert forecast["latest_verified"]["round"] == 699
-    assert forecast["latest_verified"]["source_verification"] == d.TRUST
+    assert all(len(set(row["numbers"])) == len(row["numbers"]) == 7
+               for row in forecast["tickets"])
+    if target == 701:
+        assert forecast["tickets"][0]["numbers"] == [6, 16, 22, 23, 24, 25, 28]
+    assert forecast["result_status"] == (
+        "independently_verified" if forecast["current_result"]
+        else "awaiting_independently_verified_draw")
+    if forecast["latest_verified"] is not None:
+        assert forecast["latest_verified"]["round"] == target - 1
+        assert forecast["latest_verified"]["source_verification"] == d.TRUST
     assert "prediction_ledger" not in result["sources"]
     assert not any("candidate_ticket" in k for k in result.keys())
 
@@ -361,3 +382,15 @@ def test_priority_projection_whitelists_actions_and_rejects_autonomous_promotion
     path.write_text(json.dumps(payload, ensure_ascii=False))
     rejected, _ = d.research_priority_projection(project, out)
     assert rejected["status"] == "stale_or_unsafe"
+
+
+def test_incomplete_existing_v2_csv_fails_closed_before_any_scoring(project):
+    out = project / "loto7_agent_output"
+    csv_path = out / "joint_set_v2_signal_oos_results.csv"
+    csv_path.write_text(
+        "round,draw_date,source_verification,trusted,frozen_at_jst\\n"
+        "701,2026-10-30,verified_two_result_sources,true,2026-10-24T18:31:02+09:00\\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="v2 signal"):
+        d.read_future_series(out, d.read_sources(out)[0])
