@@ -1,9 +1,9 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-10-30T16:44:36+09:00",
-  "latest_resolved_round": 700,
+  "checked_at_jst": "2026-10-31T03:14:04+09:00",
+  "latest_resolved_round": 701,
   "overall": "watch",
-  "input_snapshot_sha256": "63e48d30d240465fe1680f7ca6a6762edd98fc76f78e38b65558c67cb1f5fdc7",
+  "input_snapshot_sha256": "12529bbd872bed8255bbdc2e7df9576741d608466f6e5dcffd2201422d6acb41",
   "governance": {
     "authority": "read_only_advisory",
     "permissions": {
@@ -25,13 +25,13 @@
         {
           "level": "ok",
           "code": "TRUSTED_RESULT_EXACT_MATCH",
-          "evidence": "round=700; secondary=loto7_tsushin",
+          "evidence": "round=701; secondary=loto7_tsushin",
           "next_action": "Continue predeclared workflow."
         },
         {
           "level": "watch",
           "code": "PAIR_CONTEXT_INT8_OVERFLOW",
-          "evidence": "corrupted_cooccurrence_cells=27; history_draws=700",
+          "evidence": "corrupted_cooccurrence_cells=27; history_draws=701",
           "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions."
         }
       ]
@@ -42,7 +42,7 @@
         {
           "level": "ok",
           "code": "V2_LOCK_AND_IMMUTABLE_HISTORY",
-          "evidence": "locked_manifest=e38bc090fe5d691f; trusted=0/26; target=701",
+          "evidence": "locked_manifest=e38bc090fe5d691f; trusted=1/26; target=702",
           "next_action": "Continue predeclared workflow."
         }
       ]
@@ -53,13 +53,13 @@
         {
           "level": "ok",
           "code": "OOS_REFERENCE_CONSISTENCY",
-          "evidence": "champion=baseline-5fdb8dc2ad; frozen=701; trusted=7/26",
+          "evidence": "champion=baseline-5fdb8dc2ad; frozen=702; trusted=8/26",
           "next_action": "Continue predeclared workflow."
         },
         {
           "level": "watch",
           "code": "NO_EARLY_PORTFOLIO_CLAIM",
-          "evidence": "holdout=7/26",
+          "evidence": "holdout=8/26",
           "next_action": "Keep all comparator evidence and wait until 26/26 for independent confirmation."
         }
       ]
@@ -70,7 +70,7 @@
         {
           "level": "ok",
           "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
-          "evidence": "history reused; mode=WAIT_FOR_NEW_DATA; trials=800/800",
+          "evidence": "history reused; mode=SEARCH; trials=154/800",
           "next_action": "Continue predeclared workflow."
         }
       ]
@@ -81,7 +81,7 @@
         {
           "level": "ok",
           "code": "RELEASE_SCHEDULE_GUARD",
-          "evidence": "next=701 on 2026-10-30; already_published=True",
+          "evidence": "next=702 on 2026-11-06; already_published=False",
           "next_action": "Continue predeclared workflow."
         }
       ]
@@ -92,7 +92,7 @@
       "priority": "watch",
       "owner": "data_steward",
       "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-      "evidence": "corrupted_cooccurrence_cells=27; history_draws=700",
+      "evidence": "corrupted_cooccurrence_cells=27; history_draws=701",
       "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
@@ -101,7 +101,7 @@
       "priority": "watch",
       "owner": "oos_risk_officer",
       "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
-      "evidence": "holdout=7/26",
+      "evidence": "holdout=8/26",
       "next_action": "Keep all comparator evidence and wait until 26/26 for independent confirmation.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
