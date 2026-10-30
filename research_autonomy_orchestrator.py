@@ -20,6 +20,7 @@ import research_application_gate as gate
 import research_evidence_resilience as verification
 import research_literature_pipeline as literature
 import research_data_quality as quality_guard
+import research_action_policy as auto_policy
 
 VERSION = "research-priority-orchestrator-v1"
 QUEUE = "research_autonomy_priority_queue.json"
@@ -177,7 +178,8 @@ def safe_date(raw: object) -> date:
 def build_queue(info: dict, application: dict, raw_source: dict,
                 proposal_plan: dict, publications: dict,
                 clock: datetime, *, quality: dict | None = None,
-                previous: dict | None = None) -> list[dict]:
+                previous: dict | None = None,
+                return_policy_metadata: bool = False) -> list[dict] | tuple[list[dict], dict]:
     clock = clock.astimezone(JST)
     latest = info["latest_round"]
     latest_date = safe_date(raw_source.get("latest", {}).get("date"))
@@ -407,7 +409,10 @@ def build_queue(info: dict, application: dict, raw_source: dict,
                                 -t["priority_score"], t["code"]))
     if len({item["id"] for item in pending}) != len(pending):
         raise ValueError("duplicate plan item IDs")
-    return pending
+    # Evaluate only three hard-coded advisory priority policies. Even a
+    # winning policy cannot execute a task, change severity or grant budget.
+    pending, policy_evaluation = auto_policy.autotune(pending)
+    return (pending, policy_evaluation) if return_policy_metadata else pending
 
 
 def run(root: Path, *, now: datetime | None = None) -> dict:
@@ -456,6 +461,8 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
                     and previous_queue_is_eligible(candidate, info=info, clock=clock,
                                                    allow_same_timestamp=True)
                     and candidate.get("action_feedback", {}).get("version") == FEEDBACK_VERSION
+                    and candidate.get("action_policy", {}).get("version") == auto_policy.VERSION
+                    and candidate["action_policy"].get("automatic_code_or_model_change_authorized") is False
                     and candidate["action_feedback"].get("new_training_or_release_authorized") is False
                     and candidate["action_feedback"].get("causal_attribution_established") is False):
                 return candidate
@@ -464,8 +471,9 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
         except (ValueError, TypeError, KeyError, AttributeError):
             # Untrusted derived evidence cannot affect priority calculations.
             pass
-    tasks = build_queue(info, readiness, source, plans, publication, clock,
-                        quality=quality, previous=previous)
+    tasks, policy_evaluation = build_queue(info, readiness, source, plans, publication,
+                                            clock, quality=quality, previous=previous,
+                                            return_policy_metadata=True)
     output = {
         "version": VERSION,
         "latest_audit_at_jst": clock.isoformat(timespec="seconds"),
@@ -479,6 +487,7 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
         "top_priority": tasks[0]["code"] if tasks else None,
         "tasks": tasks,
         "action_feedback": summarize_feedback(tasks, previous),
+        "action_policy": policy_evaluation,
         "agent_attention": {
             "version": "research-agent-attention-v1",
             "review_due_count": sum(t["attention_state"] in {
@@ -518,6 +527,8 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
                                  output["action_feedback"]["status_counts"].items()),
         "- Attention due: " + str(output["agent_attention"]["review_due_count"]) +
         " tasks (advisory only).",
+        "- Auto-selected bounded policy: " + policy_evaluation["selected_policy"] +
+        " (operational ranking proxy; not evidence of better prediction).",
         "",
     ]
     for n, item in enumerate(tasks[:16], start=1):
