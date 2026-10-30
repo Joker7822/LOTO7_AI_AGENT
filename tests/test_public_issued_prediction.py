@@ -161,3 +161,37 @@ def test_source_disagreement_never_creates_graded_draw(project):
     src["latest"]["bonus"] = [11, 12]
     with pytest.raises(ValueError, match="disagrees"):
         preview(project, src, pub)
+
+
+def test_future_702_dashboard_never_displays_overlapping_issued_tickets():
+    import production_ticket_geometry35 as geometry
+    from public_issued_prediction import forecast_group
+    tickets = geometry.portfolio_for_target(702)
+    rows = [
+        {"prediction_id": f"future-{i}", "target_round": "第702回",
+         "base_round": "第701回", "ticket": str(i),
+         "prediction_created_at_jst": "2026-11-06T15:00:00+09:00",
+         "target_draw_date_estimate": "2026-11-06",
+         "predicted_numbers": " ".join(f"{n:02d}" for n in numbers),
+         "model_version": "baseline-test+" + geometry.VERSION}
+        for i, numbers in enumerate(tickets, 1)
+    ]
+    assert len(forecast_group(rows, 702, required=True)) == 5
+    bad = [dict(r) for r in rows]
+    bad[1]["predicted_numbers"] = bad[0]["predicted_numbers"]
+    with pytest.raises(ValueError, match="overlap"):
+        forecast_group(bad, 702, required=True)
+    bad = [dict(r) for r in rows]
+    bad[2]["model_version"] = "champion_original"
+    with pytest.raises(ValueError, match="policy"):
+        forecast_group(bad, 702, required=True)
+
+
+def test_frozen_701_remains_displayable_even_with_overlapping_numbers(project):
+    src, state = evidence(project)
+    if state["target_round"] != "第701回":
+        pytest.skip("canonical file now tracks a later issued target")
+    result, _ = preview(project, src, state)
+    assert result["target_round"] == 701
+    assert len(result["tickets"]) == 5
+    assert len({n for r in result["tickets"] for n in r["numbers"]}) < 35

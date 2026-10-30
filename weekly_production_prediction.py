@@ -84,6 +84,8 @@ def _frozen_target_rows(out_dir: Path, target_round: int) -> List[Dict[str,str]]
         raise RuntimeError(
             f"frozen Production target 第{target_round}回 has {len(rows)} active tickets; expected 5"
         )
+    if rows and target_round >= geometry35.MIN_TARGET_ROUND:
+        geometry35.validate_issued_rows(rows, target_round)
     return rows
 
 
@@ -130,6 +132,8 @@ def publish(
             "target_round": f"第{target_round}回",
             "schedule_policy": "Friday 13:00-15:00 JST",
             "production_promotion_method": "future_oos_only",
+            "ticket_policy": (geometry35.VERSION if target_round >= geometry35.MIN_TARGET_ROUND
+                              else "champion_original"),
         }
         v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
         return result
@@ -201,6 +205,16 @@ def publish(
         raise RuntimeError("refusing weekly Production freeze: agent_state target round mismatch")
 
     ticket_rows = ledger.read_csv(out_dir / "candidate_tickets.csv")
+    if target_round >= geometry35.MIN_TARGET_ROUND:
+        # Belt-and-suspenders: no editable candidate file can change the
+        # audited geometry between model preparation and the canonical append.
+        from balanced_uniform_portfolio import validate_portfolio
+        if [int(r.get("ticket", 0)) for r in ticket_rows] != [1, 2, 3, 4, 5]:
+            raise RuntimeError("disjoint35 candidate ticket indices must be 1..5")
+        validate_portfolio([
+            tuple(int(n) for n in r.get("numbers", "").split())
+            for r in ticket_rows
+        ])
     added = ledger.append_current_predictions(
         loto_rows,
         ticket_rows,
@@ -232,7 +246,8 @@ def publish(
         "target_round": f"第{target_round}回",
         "schedule_policy": "Friday 13:00-15:00 JST",
         "production_promotion_method": "future_oos_only",
-        "ticket_policy": state.get("production_ticket_policy_version", "champion_original"),
+        "ticket_policy": (geometry35.VERSION if target_round >= geometry35.MIN_TARGET_ROUND
+                          else "champion_original"),
     }
     v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
     return result

@@ -15,6 +15,8 @@ import urllib.request
 from pathlib import Path
 from typing import Dict, Iterable, List, Mapping, Sequence
 
+import production_ticket_geometry35 as geometry35
+
 SCHEMA_VERSION = "loto7-db-sync-v1"
 DEFAULT_CREDENTIAL_GENERATION_FILE = Path("sakura/credential_generation.txt")
 
@@ -124,6 +126,21 @@ def build_payload(
     reconciliation_path: Path,
 ) -> Dict[str, object]:
     predictions = prediction_payload(read_csv(predictions_path), read_csv(corrections_path))
+    # Validate the entire *active* published 702+ portfolio as one atomic
+    # geometry unit; syncing isolated tickets would bypass the no-overlap gate.
+    future_groups: Dict[int, List[Dict[str, object]]] = {}
+    for row in predictions:
+        if not row["is_active"]:
+            continue
+        raw = str(row["target_round"])
+        if not (raw.startswith("第") and raw.endswith("回")
+                and raw[1:-1].isdecimal()):
+            raise ValueError("invalid active Production target round for database sync")
+        target = int(raw[1:-1])
+        if target >= geometry35.MIN_TARGET_ROUND:
+            future_groups.setdefault(target, []).append(row)
+    for target, group in future_groups.items():
+        geometry35.validate_issued_rows(group, target)
     active_ids = {str(row["prediction_id"]) for row in predictions if bool(row.get("is_active"))}
     results = [
         row for row in result_payload(read_csv(reconciliation_path))

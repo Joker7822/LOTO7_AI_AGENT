@@ -122,6 +122,15 @@ def test_current_production_outputs_reject_incomplete_ticket_set(tmp_path):
     assert weekly.current_production_outputs_are_current(out, "sha-a", "baseline-test") is False
 
 
+def test_every_publisher_validates_disjoint35_before_commit_and_sync():
+    for file in ("weekly_production_publisher.yml", "weekly_production_fallback.yml",
+                 "publish_production_now.yml"):
+        text = Path(".github/workflows", file).read_text(encoding="utf-8")
+        assert "production_ticket_geometry35.py --verify-canonical" in text
+        assert text.index("production_ticket_geometry35.py --verify-canonical") < text.index("git add")
+        assert text.index("production_ticket_geometry35.py --verify-canonical") < text.index("python prediction_db_sync.py") if "python prediction_db_sync.py" in text else True
+
+
 def test_publish_now_is_manual_republish_only():
     text = Path(".github/workflows/publish_production_now.yml").read_text(encoding="utf-8")
     assert "workflow_dispatch:" in text

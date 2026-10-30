@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from loto7_evolving_agent import fingerprint_file
+import production_ticket_geometry35 as geometry35
 
 JST = timezone(timedelta(hours=9))
 TRUST = "verified_two_result_sources"
@@ -82,6 +83,8 @@ def forecast_group(rows: list[dict], target: int, *, required: bool = False) -> 
         if made >= deadline:
             raise ValueError("Production forecast was not recorded before draw")
         checked_numbers(row.get("predicted_numbers"), 7)
+    if target >= geometry35.MIN_TARGET_ROUND:
+        geometry35.validate_issued_rows(found, target)
     return found
 
 
@@ -152,6 +155,9 @@ def preview(root: Path, source: dict, published: dict) -> tuple[dict, dict[str, 
     active = [r for r in read_csv(out / "predictions.csv")
               if r.get("prediction_id") not in invalidated]
     tickets = forecast_group(active, target, required=True)
+    if (target >= geometry35.MIN_TARGET_ROUND
+            and published.get("ticket_policy") != geometry35.VERSION):
+        raise ValueError("published disjoint35 Production state has wrong ticket policy")
     if any(r["model_version"] != published.get("model_version") for r in tickets):
         raise ValueError("model version mismatch in issued prediction ledger")
     if len({r["prediction_created_at_jst"] for r in tickets}) != 1:

@@ -11,6 +11,8 @@ import re
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
+import production_ticket_geometry35 as geometry35
+
 JST = dt.timezone(dt.timedelta(hours=9))
 PRED_FIELDS = [
     "prediction_id","prediction_created_at_jst","base_round","base_draw_date","target_round","target_draw_date_estimate",
@@ -217,6 +219,8 @@ def append_current_predictions(
     if existing:
         if len(existing)!=5:
             raise RuntimeError(f"frozen target 第{target}回 has {len(existing)} active tickets, expected 5")
+        if target >= geometry35.MIN_TARGET_ROUND:
+            geometry35.validate_issued_rows(existing, target)
         return 0
 
     if current_data_sha is not None and str(state.get("data_sha256","")) != current_data_sha:
@@ -227,6 +231,16 @@ def append_current_predictions(
         raise RuntimeError("refusing Production freeze: agent_state target_round is not next draw")
 
     tickets=_validated_ticket_rows(list(ticket_rows))
+    if target >= geometry35.MIN_TARGET_ROUND:
+        if (state.get("production_ticket_policy_version") != geometry35.VERSION
+                or not str(state.get("model_version", "")).endswith("+" + geometry35.VERSION)):
+            raise RuntimeError("refusing Production freeze without disjoint35 policy")
+        # A forged candidate CSV or a second publisher must not bypass the
+        # shared append-only ledger. Validate BEFORE any prediction is appended.
+        from balanced_uniform_portfolio import validate_portfolio
+        validate_portfolio([
+            tuple(nums(ticket["numbers"])) for ticket in tickets
+        ])
     created=created_at or now_jst()
     est=""
     try:

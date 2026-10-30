@@ -1,6 +1,8 @@
 import csv
 from pathlib import Path
 
+import pytest
+
 import prediction_db_sync as dbs
 
 
@@ -172,3 +174,43 @@ def test_configured_credential_generation_env_overrides_pin(monkeypatch, tmp_pat
     monkeypatch.setattr(dbs, "DEFAULT_CREDENTIAL_GENERATION_FILE", pin)
     monkeypatch.setenv("SAKURA_CREDENTIAL_GENERATION", "gen-env")
     assert dbs.configured_credential_generation() == "gen-env"
+
+
+def test_sakura_sync_rejects_all_incomplete_or_overlapping_702_portfolios(tmp_path):
+    import production_ticket_geometry35 as geometry
+    fields = [
+        "prediction_id", "prediction_created_at_jst", "base_round", "base_draw_date",
+        "target_round", "target_draw_date_estimate", "ticket", "predicted_numbers",
+        "model_version", "git_sha", "data_sha256", "strategy_weights_json",
+    ]
+    rows = [
+        {"prediction_id": f"702-{i}", "prediction_created_at_jst": "2026-11-06T15:00:00+09:00",
+         "base_round": "第701回", "base_draw_date": "2026-10-30",
+         "target_round": "第702回", "target_draw_date_estimate": "2026-11-06",
+         "ticket": str(i), "predicted_numbers": " ".join(f"{n:02d}" for n in ticket),
+         "model_version": "baseline-test+" + geometry.VERSION,
+         "git_sha": "sha", "data_sha256": "sha", "strategy_weights_json": "{}"}
+        for i, ticket in enumerate(geometry.portfolio_for_target(702), 1)
+    ]
+    preds = tmp_path / "predictions.csv"
+    corrections = tmp_path / "corrections.csv"
+    results = tmp_path / "results.csv"
+    write_csv(preds, fields, rows)
+    valid = dbs.build_payload(preds, corrections, results)
+    assert len(valid["predictions"]) == 5
+
+    bad = [dict(r) for r in rows]
+    bad[1]["predicted_numbers"] = bad[0]["predicted_numbers"]
+    write_csv(preds, fields, bad)
+    with pytest.raises(ValueError, match="overlap"):
+        dbs.build_payload(preds, corrections, results)
+
+    write_csv(preds, fields, rows[:4])
+    with pytest.raises(ValueError, match="five"):
+        dbs.build_payload(preds, corrections, results)
+
+    bad = [dict(r) for r in rows]
+    bad[0]["model_version"] = "baseline-test"
+    write_csv(preds, fields, bad)
+    with pytest.raises(ValueError, match="policy"):
+        dbs.build_payload(preds, corrections, results)
