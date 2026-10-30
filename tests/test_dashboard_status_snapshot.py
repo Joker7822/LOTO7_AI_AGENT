@@ -65,7 +65,13 @@ def test_real_portfolio_oos_is_exactly_prefrozen_and_no_fabricated_future_signal
     rows = snapshot["series"]["portfolio"]
     assert len(rows) == snapshot["sources"]["holdout"]["trusted_draws"]
     assert rows[0]["round"] == snapshot["sources"]["holdout"]["start_target_round"]
-    assert rows[-1]["round"] == rows[0]["round"] + len(rows) - 1
+    # Untrusted draws can occur between trusted rounds (e.g. round 700).
+    # Skipping them is mandatory, rather than inventing a contiguous graded
+    # sequence. Require the public view to match only truly trusted rows.
+    ledger = d.rows(project / "loto7_agent_output/future_holdout_results.csv")
+    trusted_rounds = [int(r["round"]) for r in ledger if d.result_is_trusted(r)]
+    assert [r["round"] for r in rows] == trusted_rounds
+    assert trusted_rounds == sorted(set(trusted_rounds))
     assert rows[-1]["mean_delta_vs_random"] < 0  # currently not a validated edge
     assert snapshot["series"]["scope"].startswith("genuinely_prospective")
 
