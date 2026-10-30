@@ -33,7 +33,16 @@ jobs:
 
       - name: Validate sync payload
         run: |
-          python -m py_compile prediction_db_sync.py
+          # Runtime intentionally has no NumPy/Pandas: validate lightweight
+          # geometry policy before building or sending any external payload.
+          python -S - <<'PY'
+          import production_disjoint35_policy as policy
+          import prediction_db_sync
+          assert policy.MIN_TARGET_ROUND == 702
+          assert prediction_db_sync.geometry35.VERSION == policy.VERSION
+          print("stdlib-only Production disjoint35 validation import: pass")
+          PY
+          python -m py_compile prediction_db_sync.py production_disjoint35_policy.py
           python prediction_db_sync.py --dry-run --output /tmp/sakura_payload.json
           python - <<'PY'
           import json
