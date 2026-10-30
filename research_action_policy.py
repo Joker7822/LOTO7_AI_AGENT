@@ -62,8 +62,12 @@ def _validate(tasks: list[dict]) -> None:
         delta, count = t.get("backlog_delta"), t.get("backlog_observed")
         stalled = t.get("stagnation_cycles")
         recurring = t.get("recurrence_cycles")
+        if (type(stalled) is not int or not 0 <= stalled <= 20
+                or type(recurring) is not int or not 1 <= recurring <= 20):
+            raise ValueError("untrusted bounded history counters")
         if (attention == "regression_needs_review"
-                and (type(delta) is not int or delta <= 0)):
+                and (t.get("feedback_state") != "worsening"
+                     or type(delta) is not int or delta <= 0)):
             raise ValueError("regression not supported by measured backlog")
         if (attention == "stalled_needs_review"
                 and (t.get("feedback_state") != "unchanged"
