@@ -1,12 +1,19 @@
 {
   "version": "research-data-quality-v1",
-  "checked_at_jst": "2026-10-30T19:26:38+09:00",
+  "checked_at_jst": "2026-10-30T23:14:25+09:00",
   "draw_csv_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
   "source_sha256": "3277e35067c6854b5cbc23779b7a36a0a97c98788bbd80f470e3b53ab23d1963",
   "latest_round": 700,
   "rows_checked": 700,
-  "status": "pass",
-  "issues": [],
+  "status": "watch",
+  "issues": [
+    {
+      "code": "DRAW_UPDATE_OVERDUE",
+      "severity": "watch",
+      "detail": "next scheduled draw has passed its 20:00 JST result threshold",
+      "action": "review_source_or_existing_validator"
+    }
+  ],
   "auto_repair_scope": "derived_quality_reports_only",
   "source_csv_modified": false,
   "source_attestation_modified": false,

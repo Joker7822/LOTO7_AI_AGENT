@@ -1,11 +1,11 @@
 # Research Data Quality
 
-- Checked: 2026-10-30T19:26:38+09:00
-- Status: **pass**
+- Checked: 2026-10-30T23:14:25+09:00
+- Status: **watch**
 - CSV rows: 700
 - Exact CSV SHA256: fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6
 
-- All configured data-integrity checks passed.
+- **watch / DRAW_UPDATE_OVERDUE**: next scheduled draw has passed its 20:00 JST result threshold
 
 Only these derived reports may be regenerated automatically.
 Unverified results must not be promoted or used for prospective scoring.
