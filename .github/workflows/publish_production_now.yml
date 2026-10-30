@@ -61,6 +61,10 @@ jobs:
             --out-dir loto7_agent_output \
             --status-md STATUS.md
 
+          # Read-only fail-closed gate before any persisted or external payload.
+          python production_ticket_geometry35.py --verify-canonical \
+            --out-dir loto7_agent_output
+
           git add -- loto7.csv STATUS.md loto7_agent_output
           if [ -n "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
             git commit -m "chore: republish frozen Production prediction"
