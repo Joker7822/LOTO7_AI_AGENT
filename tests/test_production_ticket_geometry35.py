@@ -115,6 +115,11 @@ def test_production_702_appends_once_and_republishes_without_replacing(tmp_path,
     assert result["published"]
     assert result["reason"] == "frozen_to_canonical_prediction_ledger"
     assert result["ticket_policy"] == geometry.VERSION
+    assert geometry.verify_canonical_publication(out_dir) == {
+        "target_round": 702, "status": "disjoint35_pass",
+        "covered_distinct_numbers": 35, "checked_active_tickets": 5,
+        "production_changed": False,
+    }
     rows = ledger.read_csv(out_dir / "predictions.csv")
     assert len(rows) == 5
     assert all(geometry.VERSION in r["model_version"] for r in rows)
