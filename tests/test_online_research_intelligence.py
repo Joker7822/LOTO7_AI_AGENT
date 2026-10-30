@@ -35,11 +35,34 @@ def test_stale_or_untrusted_latest_source_is_not_falsely_promoted():
              or previous["last_resolved_round"] != src["round"])
     assert r["quality_checks"]["literature_synced_to_current_draw"] is not stale
     assert ("online_literature_analysis_uses_older_draw_snapshot" in r["blockers"]) == stale
-    if src["round"] == 700:
-        assert stale and src["independent_two_source_verified"]
-    if src["round"] == 699:
-        assert not src["independent_two_source_verified"]
-        assert "latest_draw_requires_independent_source_corroboration" in r["blockers"]
+    # The live research pipeline can catch up within round 700. Trust and
+    # freshness must be evaluated from hashes, not a hardcoded round number.
+    assert src["round"] >= 1
+    assert ("latest_draw_requires_independent_source_corroboration" in
+            r["blockers"]) is not src["independent_two_source_verified"]
+
+
+def test_snapshot_freshness_transitions_do_not_depend_on_lottery_round(monkeypatch):
+    baseline = intel.run(ROOT)
+    original = baseline["source"]
+    # Reproduce the stale evidence path even when a regularly scheduled job
+    # has already updated the collected research journal.
+    stale_source = dict(original, round=original["round"] + 1)
+    monkeypatch.setattr(intel, "current_source", lambda _: stale_source)
+    outdated = intel.run(ROOT)
+    assert outdated["quality_checks"]["literature_synced_to_current_draw"] is False
+    assert "online_literature_analysis_uses_older_draw_snapshot" in outdated["blockers"]
+    for field in ("new_real_experiments", "new_predictions_generated"):
+        assert outdated[field] == 0
+    assert outdated["production_or_champion_changed"] is False
+    # Restore the verified source and require a consistent fresh judgment.
+    monkeypatch.setattr(intel, "current_source", lambda _: original)
+    current = intel.run(ROOT)
+    expected = (current["source"]["sha256"] ==
+                current["research_snapshot"]["draw_sha256"] and
+                current["source"]["round"] ==
+                current["research_snapshot"]["last_resolved_round"])
+    assert current["quality_checks"]["literature_synced_to_current_draw"] == expected
 
 
 def test_real_analytical_controls_do_not_run_new_predictors():
