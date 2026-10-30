@@ -40,9 +40,15 @@ def test_real_registered_source_and_algorithm_lock():
     oos.register_guard(reg, Path(oos.__file__).resolve(),
                        Path(geometry.__file__).resolve())
     freezes, grades = oos.archive_guard(REGISTRY, reg)
-    assert list(freezes) == [701]
-    assert grades == {}
-    assert oos.summary(REGISTRY, reg)["trusted_draws"] == 0
+    # Historical frozen/graded targets are append-only, not fixed at the
+    # initial 701 registration. A newly verified draw may add 702 safely.
+    frozen_rounds = sorted(freezes)
+    graded_rounds = sorted(grades)
+    assert frozen_rounds == list(range(701, max(frozen_rounds) + 1))
+    assert all(round_ in freezes for round_ in graded_rounds)
+    assert all(round_ < max(frozen_rounds) for round_ in graded_rounds)
+    assert graded_rounds == list(range(701, 701 + len(graded_rounds)))
+    assert oos.summary(REGISTRY, reg)["trusted_draws"] == len(graded_rounds)
     assert len({n for t in freezes[701]["candidate_tickets"] for n in t}) == 35
     assert len(set(tuple(x) for x in freezes[701]["random_reference_tickets"])) == 5
 
