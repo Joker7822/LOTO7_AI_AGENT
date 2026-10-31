@@ -124,9 +124,15 @@ export function normalizeIssuedPrediction(value) {
      !Number.isInteger(value.target_round) || value.target_round<1 ||
      value.source_base_round!==value.target_round-1 ||
      !dateOk(value.draw_date) || !timeOk(value.published_at_jst) ||
-     typeof value.model!=="string" || !/^[A-Za-z0-9._-]{1,100}$/.test(value.model) ||
+     typeof value.model!=="string" || !/^[A-Za-z0-9._+-]{1,150}$/.test(value.model) ||
      !Array.isArray(value.tickets) || value.tickets.length!==5) {
     throw new Error("公開済みProduction予測の整合性を確認できません");
+  }
+  // From draw 702, the Production model version contains a separate
+  // geometry policy suffix. Refuse incorrect labels or overlapping tickets.
+  if (value.target_round>=702 &&
+      !/^[A-Za-z0-9._-]{1,100}\+production-disjoint35-layout-v1$/.test(value.model)) {
+    throw new Error("第702回以降のProduction配置方式が不正です");
   }
   const tickets=value.tickets.map((t,i)=>{
     if(t.ticket!==i+1 || !validNumbers(t.numbers,7)){
@@ -134,6 +140,10 @@ export function normalizeIssuedPrediction(value) {
     }
     return {ticket:t.ticket,numbers:[...t.numbers]};
   });
+  if (value.target_round>=702 &&
+      new Set(tickets.flatMap(t=>t.numbers)).size!==35) {
+    throw new Error("第702回以降の5口35数字に重複があります");
+  }
   const gradeResult=(result,round)=>{
     if(result==null)return null;
     if(result.round!==round || !dateOk(result.date) ||
