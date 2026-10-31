@@ -60,7 +60,7 @@ test("unavailable Actions monitoring is a warning, not a success",()=>{
 });
 test("malformed mixed or invented prospective series is refused",()=>{
   const s=snapshot();s.series.v2=[{round:703},{round:701}];
-  assert.throws(()=>normalizeSnapshot(s,FIXED),/回別連続性/);
+  assert.throws(()=>normalizeSnapshot(s,FIXED),/回別順序・重複/);
   const t=snapshot();delete t.series.adaptive;
   assert.throws(()=>normalizeSnapshot(t,FIXED),/時系列データ/);
   const u=snapshot();u.version="unknown";
@@ -103,4 +103,21 @@ test("incident count mismatches cannot silently disappear",()=>{
   const x=snapshot();
   x.operations_plan.counts.watch=1;
   assert.throws(()=>normalizeSnapshot(x,FIXED),/件数/);
+});
+
+test("untrusted future draws may create valid gaps without inventing grades",()=>{
+  const s=snapshot();
+  s.series.portfolio=[
+    {round:699,date:"2026-10-16",mean_delta_vs_random:0.1},
+    {round:701,date:"2026-10-30",mean_delta_vs_random:-0.3}
+  ];
+  const v=normalizeSnapshot(s,FIXED);
+  assert.deepEqual(v.series.portfolio.map(p=>p.round),[699,701]);
+
+  s.series.portfolio[1].round=699;
+  assert.throws(()=>normalizeSnapshot(s,FIXED),/回別順序・重複/);
+  s.series.portfolio[1].round=698;
+  assert.throws(()=>normalizeSnapshot(s,FIXED),/回別順序・重複/);
+  s.series.portfolio[1].round=701.5;
+  assert.throws(()=>normalizeSnapshot(s,FIXED),/回別順序・重複/);
 });
