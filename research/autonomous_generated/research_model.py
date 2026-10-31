@@ -1,10 +1,10 @@
 # GENERATED RESEARCH MODEL — NOT AN AUTHORIZED PRODUCTION CHAMPION
-# autonomous-research-source-rewrite-v1; input draw sha256: fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6
+# autonomous-research-source-rewrite-v1; input draw sha256: e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637
 from __future__ import annotations
 from autonomous_evolution_lab import prior_probabilities
-CANDIDATE_ID = '3f16bdf7f2ea9003ae09'
-SOURCE_STATE_SHA256 = '36c2cdf33f4693cb7a27214ff18205641bfc9e1784a5447395d58b8a95f1810a'
-DRAW_HISTORY_SHA256 = 'fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6'
+CANDIDATE_ID = 'c1be4e5f99273d0d3c0e'
+SOURCE_STATE_SHA256 = '196bc8d447dcb31b4ca26fc0c2af97cc3ca0602b9213ea00918e5e1aaf9c2b81'
+DRAW_HISTORY_SHA256 = 'e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637'
 CONFIG = {"blend":0.25,"prior":100,"window":30}
 def probability_vector(prior_history):
     # Uses history strictly BEFORE the target draw.
