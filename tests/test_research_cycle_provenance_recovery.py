@@ -217,6 +217,6 @@ def test_missing_original_701_freeze_is_not_a_refreshable_science_cache(project,
     # the original, immutable freeze ledger before scientific inference.
     modify(root, "advanced_validation_lab_summary.json",
            lambda summary: summary.update(historical_data_sha256=sha))
-    assert recovery.check(root)["hourly_ledger_can_advance"]
-    # That READY status is only about SHA freshness; the lab itself must
-    # still reject an absent first frozen target before publishing inference.
+    forged_fresh = recovery.check(root)
+    assert forged_fresh["status"] == "BLOCKED_MISSING_PREFROZEN_701"
+    assert not forged_fresh["hourly_ledger_can_advance"]
