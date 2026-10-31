@@ -1,6 +1,6 @@
 # LOTO7 AI Agent Status
 
-- 更新日時 (JST): **2026-10-31T13:34:46+09:00**
+- 更新日時 (JST): **2026-10-31T13:38:43+09:00**
 - 最新取得回: **第701回 / 2026-10-30**
 - 最新Production対象: **第702回（未発行）**
 - 未照合予測: **0口**
@@ -13,25 +13,25 @@
 
 ## Continuous Research v4
 
-- 研究世代: **5626**
+- 研究世代: **5627**
 - Production Champion: **baseline-5fdb8dc2ad**
-- 最新Research Winner: **signal-g05626-c01-b6ee2714ac**
+- 最新Research Winner: **signal-g05627-c01-1e9e34f825**
 - 候補プール: **16モデル**
-- 累積研究評価数: **39381**
+- 累積研究評価数: **39388**
 - 過去データの研究スコアから本番昇格: **無効（禁止）**
 - 現在ソース検証: **verified_two_result_sources**
 - 本番昇格に利用可能なソース: **YES**
 
 ## Research Signal / Portfolio Separation
 
-- Research Parent: **signal-g05626-c01-b6ee2714ac**
-- 全期間 Top7 edge vs uniform: **+0.0234**
-- 全期間 actual-mass edge vs uniform: **+0.001356**
-- 全期間 log edge vs uniform: **-0.017905**
-- 全期間 Brier edge vs uniform: **-0.001326**
-- 直近120回 log edge vs uniform: **-0.017153**
-- Portfolio feedback objective: **+0.1373**
-- Signal objective: **-0.0448**
+- Research Parent: **signal-g05627-c01-1e9e34f825**
+- 全期間 Top7 edge vs uniform: **+0.0218**
+- 全期間 actual-mass edge vs uniform: **+0.001352**
+- 全期間 log edge vs uniform: **-0.017885**
+- 全期間 Brier edge vs uniform: **-0.001322**
+- 直近120回 log edge vs uniform: **-0.017085**
+- Portfolio feedback objective: **+0.1229**
+- Signal objective: **-0.0397**
 - Research採用: **Portfolio改善だけでは不可。Signal非劣化ゲートも必須**
 
 ## Historical Replay Accuracy
@@ -159,9 +159,9 @@
 
 ## Continuous Runtime
 
-- 最新1回の研究実行時間: **193秒**
-- 直近20回平均: **130.2秒**
-- 累積実測回数: **7082回**
+- 最新1回の研究実行時間: **231秒**
+- 直近20回平均: **136.8秒**
+- 累積実測回数: **7083回**
 - 実行方式: **終了後、待ち時間なしで次の研究世代へ**
 - Git checkpoint: **10世代ごと、または重要イベント発生時**
 
