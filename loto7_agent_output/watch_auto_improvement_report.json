@@ -1,16 +1,17 @@
 {
   "version": "watch-auto-improvement-research-v1",
-  "checked_at_utc": "2026-10-31T10:05:16+00:00",
+  "checked_at_utc": "2026-10-31T12:40:54+00:00",
   "source_round": 701,
   "source_two_result_verified": true,
   "guard_mode": "SEARCH",
-  "same_data_trials_used": 544,
+  "same_data_trials_used": 776,
   "same_data_trials_limit": 800,
   "champion_version": "baseline-5fdb8dc2ad",
-  "status": "research_fix_checked_only_not_production_resolved",
+  "status": "needs_existing_workflow_or_human_review",
   "watched_incident_codes": [
     "PAIR_CONTEXT_INT8_OVERFLOW",
-    "NO_EARLY_PORTFOLIO_CLAIM"
+    "NO_EARLY_PORTFOLIO_CLAIM",
+    "RESEARCH_TRIAL_LIMIT_APPROACHING"
   ],
   "issues": [
     {
@@ -45,13 +46,18 @@
       "automatic_backfill_allowed": false,
       "automatic_model_promotion_allowed": false,
       "does_not_count_as_broken_software": true
+    },
+    {
+      "code": "RESEARCH_TRIAL_LIMIT_APPROACHING",
+      "resolution": "safety_escalation_not_automatically_resolved",
+      "automatic_model_or_production_change_allowed": false
     }
   ],
   "source_files_sha256": {
     "loto7.csv": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637",
-    "loto7_agent_output/agent_role_council_summary.json": "57f6d68e7a64677dfd1749d21c24ccece043ed2903aedf93a62b339dadc538a4",
-    "loto7_agent_output/source_validation.json": "a4c623fadaa264eb040f0c92657ea8f88dd12705aa76ebefba0df8d56df31289",
-    "loto7_agent_output/research_cycle_guard.json": "f1ae169b51b9249d5a0d26e64a7e11ee104ffdf5bb2679e89b5205c9c8f6ff8e",
+    "loto7_agent_output/agent_role_council_summary.json": "fa63246656620820960cff5961c2f6a8624d519ab557224c10e3f5e9e121e464",
+    "loto7_agent_output/source_validation.json": "277709e0935366ae26a1f9e517ab2a9b0ddedda629de6265a6640a64c38d0527",
+    "loto7_agent_output/research_cycle_guard.json": "3e059df06488e1c3a0ca95bab489b3ed675ea362247c2421391ac88d18e64bb7",
     "loto7_agent_output/model_champion.json": "045826e4078b41796c128b109d43e29686d6e542943e7a6ef8df79bff847cfe0",
     "loto7_evolving_agent.py": "db2525299e9be45e679cec90f9b81a01b4404828cd771965431f9b5bfa2f395f",
     "agent_role_council.py": "ef61b3842de85a1c2b87182abb07af05d6fd6b4c58147464685993a2a87bfd97",

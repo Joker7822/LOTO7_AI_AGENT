@@ -1,10 +1,10 @@
 # Autonomous WATCH improvement (research-only, auditable)
 
-- Time UTC: 2026-10-31T10:05:16+00:00
-- Result: **research_fix_checked_only_not_production_resolved**
+- Time UTC: 2026-10-31T12:40:54+00:00
+- Result: **needs_existing_workflow_or_human_review**
 - Trusted source: True; round #701
 - Champion (unchanged): `baseline-5fdb8dc2ad`
-- Budget: SEARCH / 544/800
+- Budget: SEARCH / 776/800
 
 ## PAIR_CONTEXT_INT8_OVERFLOW
 - Research action: **separately_versioned_research_candidate_validated**
@@ -17,6 +17,10 @@
 
 ## NO_EARLY_PORTFOLIO_CLAIM
 - Research action: **expected_wait_for_genuinely_future_verified_draws**
+- Waiting cannot be solved by inventing future lottery results.
+
+## RESEARCH_TRIAL_LIMIT_APPROACHING
+- Research action: **safety_escalation_not_automatically_resolved**
 - Waiting cannot be solved by inventing future lottery results.
 
 No automatic Champion promotion, retroactive freeze, optimizer budget
