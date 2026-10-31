@@ -213,10 +213,26 @@ def validate_archive(root: Path, out: Path) -> dict[int, dict]:
                 raise ValueError("unexpected/duplicate freeze file")
             if entry.get("version") != VERSION or entry.get("policy") != TICKET_POLICY:
                 raise ValueError("changed prospective protocol")
+            if (entry.get("base_round") != target - 1 or
+                    entry.get("target_draw_date") is None or
+                    entry.get("first_prize_probability_per_portfolio_under_fair_draw")
+                    != PROSPECTIVE_FIRST_PRIZE_PROB or
+                    entry.get("control_selected_before_outcome") is not True or
+                    entry.get("research_only_no_production_or_promotion") is not True):
+                raise ValueError("altered prospective freeze metadata or baseline")
+            published = datetime.fromisoformat(entry["published_at_jst"])
+            if published.tzinfo is None:
+                raise ValueError("pre-draw freeze publication timestamp has no timezone")
+            frozen_now(published, entry["target_draw_date"])
             issued = ticket_rows(out, target)
             identity = ticket_identity(issued)
             if entry.get("prediction_rows_sha256") != sha_object(identity):
                 raise ValueError("issued prediction ledger changed since pre-draw freeze")
+            if (entry.get("prediction_ids") != [row["prediction_id"] for row in issued]
+                    or entry.get("target_draw_date") != issued[0]["target_draw_date_estimate"]
+                    or entry.get("production_model") != issued[0]["model_version"]
+                    or entry.get("base_csv_sha256") != issued[0]["data_sha256"]):
+                raise ValueError("altered prospective freeze or source provenance")
             if entry.get("production_tickets") != [numbers(row["predicted_numbers"], 7) for row in issued]:
                 raise ValueError("changed issued Production numbers")
             if entry.get("random_control_tickets") != baseline_tickets(target, entry["base_csv_sha256"]):
@@ -233,6 +249,11 @@ def validate_archive(root: Path, out: Path) -> dict[int, dict]:
             raise ValueError("grading a never-frozen target")
         if record.get("freeze_sha256") != sha_object(found[target]):
             raise ValueError("grading references a modified freeze")
+        if (record.get("source_verification") != TRUST
+                or record.get("draw_date") != found[target]["target_draw_date"]
+                or record.get("research_only_no_production_or_promotion") is not True):
+            raise ValueError("changed graded source evidence or research role")
+        numbers(" ".join(map(str, record.get("actual_main", []))), 7)
         for key, source in (("production", "production_tickets"), ("random_control", "random_control_tickets")):
             record_hits = record.get(key + "_main_hits")
             if record_hits != [len(set(ticket) & set(record.get("actual_main", [])))
