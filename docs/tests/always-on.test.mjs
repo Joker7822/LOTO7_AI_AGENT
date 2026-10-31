@@ -45,3 +45,11 @@ test("online outage is visibly differentiated from successful discovery",()=>{
   assert.equal(x.status,"online_unavailable");
   assert.match(x.searchStatus,/unavailable/);
 });
+
+test("older verified-round researcher remains explicitly stale after workflow success",()=>{
+  const x=state();x.status="stale_historical_activity";
+  const y=normalizeAlwaysOnActivity(x,NOW);
+  assert.equal(y.status,"stale_historical_activity");
+  assert.equal(y.stale,true);
+  assert.equal(y.papers.length,1);
+});
