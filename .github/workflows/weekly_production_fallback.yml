@@ -131,6 +131,20 @@ jobs:
         if: steps.publication_gate.outputs.publish == 'true'
         run: python production_ticket_geometry35.py --verify-canonical --out-dir loto7_agent_output
 
+      - name: Freeze independent first-prize research control before the draw
+        if: steps.publication_gate.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # The Production publication policy is unchanged; late recoveries
+          # cannot be recorded as *prospective* evidence after the cutoff.
+          if [ "$(TZ=Asia/Tokyo date +%H%M)" -lt 1800 ]; then
+            python first_prize_research.py --mode freeze
+            python first_prize_research.py --mode verify
+          else
+            echo "[FIRST-PRIZE] prospective freeze excluded after 18:00 JST"
+          fi
+
       - name: Commit Production checkpoint
         if: steps.publication_gate.outputs.publish == 'true'
         shell: bash
@@ -139,8 +153,15 @@ jobs:
           git config user.name "loto7-ai-agent[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if [ -n "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
+          if [ -n "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output research/first_prize_oos)" ]; then
             git add -- loto7.csv STATUS.md loto7_agent_output
+            if [ -d research/first_prize_oos ]; then
+              git add -A -- research/first_prize_oos
+              if git diff --cached --name-status -- research/first_prize_oos | grep -qvE '^A[[:space:]]+research/first_prize_oos/freeze_[0-9]{4}[.]json$'; then
+                echo "Refusing non-additive first-prize archive change" >&2
+                exit 1
+              fi
+            fi
             TARGET=$(python - <<'PY'
           import json
           from pathlib import Path

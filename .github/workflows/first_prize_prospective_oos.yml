@@ -1,0 +1,101 @@
+name: First Prize Prospective OOS & Fair-Draw Audit
+
+on:
+  pull_request:
+    paths:
+      - "first_prize_research.py"
+      - "tests/test_first_prize_research.py"
+      - "production_disjoint35_policy.py"
+      - ".github/workflows/first_prize_prospective_oos.yml"
+      - ".github/workflows/weekly_production_publisher.yml"
+      - ".github/workflows/weekly_production_fallback.yml"
+  push:
+    branches: [main]
+    paths:
+      - "loto7.csv"
+      - "loto7_agent_output/source_validation.json"
+      - "loto7_agent_output/predictions.csv"
+      - "loto7_agent_output/prediction_corrections.csv"
+      - "research/first_prize_oos/**"
+      - "first_prize_research.py"
+      - ".github/workflows/first_prize_prospective_oos.yml"
+  schedule:
+    # Saturday 09:00 JST, after Friday result verification whenever available.
+    - cron: "0 0 * * 6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: first-prize-prospective-oos
+  cancel-in-progress: false
+
+jobs:
+  prospective-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Read current repository and frozen evidence
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: ${{ github.event_name != 'pull_request' }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test immutable, prior-only comparisons and statistical controls
+        run: |
+          python -m compileall -q first_prize_research.py production_disjoint35_policy.py
+          python -m pip install pytest
+          python -m pytest -q tests/test_first_prize_research.py
+          python first_prize_research.py --mode verify
+
+      - name: Analyze 37-ball distribution under a fair 7-of-37 null
+        shell: bash
+        run: |
+          set -euo pipefail
+          # This is exploratory only: 37 simultaneous labels adjusted by
+          # max-stat Monte Carlo, NOT repeated-weekly-look adjusted.
+          if python first_prize_research.py --mode analyze \
+               --simulations 2048 --json-output /tmp/first_prize_fair_draw_audit.json; then
+            {
+              echo "## 1等研究：37数字の探索的偏り検定"
+              echo "最大偏差の帰無分布は独立な7-of-37抽せんのモンテカルロで評価。"
+              echo "毎週の反復閲覧を補正していないため、有意差や予測力を断定しない。"
+              echo '~~~json'
+              cat /tmp/first_prize_fair_draw_audit.json
+              echo '~~~'
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Source is not fully trusted: no bias conclusion or research grade" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Grade only an originally prefrozen target and trusted current draw
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python first_prize_research.py --mode grade
+          python first_prize_research.py --mode verify
+
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -d research/first_prize_oos ]; then
+            git add -A -- research/first_prize_oos
+          fi
+          if git diff --cached --quiet; then
+            echo "No new independently verified, pre-registered result."
+            exit 0
+          fi
+          changed="$(git diff --cached --name-status)"
+          if printf '%s\n' "$changed" | grep -qvE '^A[[:space:]]+research/first_prize_oos/grade_[0-9]{4}\.json$'; then
+            echo "Refusing edit, deletion or retrospective freeze creation" >&2
+            exit 1
+          fi
+          git commit -m "chore: append independently verified first-prize OOS grade"
+          git pull --rebase
+          git push
