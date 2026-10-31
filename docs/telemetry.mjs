@@ -24,7 +24,10 @@ export function normalizeScientificValidation(value) {
     return {status:"not_yet_published",futureDraws:null};
   }
   if (value.status !== "verified_diagnostic_only") {
-    return {status:"stale_or_mismatched_evidence",futureDraws:null};
+    return {
+      status:"stale_or_mismatched_evidence",futureDraws:null,
+      blocker:value.blocker==="missing_original_prefrozen_701" ? "missing_original_prefrozen_701" : null
+    };
   }
   const valid = n => typeof n === "number" && Number.isFinite(n);
   const tail = value.future_e_series;
@@ -78,7 +81,7 @@ export function normalizeAlwaysOnActivity(value, now = new Date()) {
   if (!value || value.status === "not_yet_started") {
     return {status:"not_yet_started",papers:[],sequence:0};
   }
-  if (!["active_bounded_research","online_unavailable"].includes(value.status) ||
+  if (!["active_bounded_research","online_unavailable","stale_historical_activity"].includes(value.status) ||
       value.promotion_authorized !== false ||
       !Number.isInteger(value.sequence) || value.sequence < 1 ||
       !Array.isArray(value.papers) || !Array.isArray(value.review_notes) ||
@@ -97,7 +100,7 @@ export function normalizeAlwaysOnActivity(value, now = new Date()) {
   }).filter(Boolean);
   return {
     status:value.status,
-    stale:ageHours>2.5 || ageHours < -1,
+    stale:ageHours>2.5 || ageHours < -1 || value.status==="stale_historical_activity",
     sequence:value.sequence,
     lastActivity:value.last_activity_jst,
     activity:String(value.current_activity||"").slice(0,150),
@@ -367,11 +370,11 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
   const alerts = [];
   if (alwaysOnActivity.stale || alwaysOnActivity.status === "invalid_or_unsafe") alerts.push({
     severity:"watch",source:"自律研究活動",
-    description:"定期監査が古いか、活動証跡を検証できません。研究workflowの最新実行を確認してください。"
+    description:alwaysOnActivity.status==="stale_historical_activity" ? "研究活動の証跡が最新の検証済み抽せん回に追いついていません。実行成功だけでは研究が更新された証拠になりません。" : "定期監査が古いか、活動証跡を検証できません。研究workflowの最新実行を確認してください。"
   });
   if (scientificValidation.status === "stale_or_mismatched_evidence") alerts.push({
     severity:"watch",source:"高度な研究データ",
-    description:"統計研究の状態が古いか、原データと一致していません。結果を採用せず専用CIを確認してください。"
+    description:scientificValidation.blocker==="missing_original_prefrozen_701" ? "第701回の事前凍結記録が欠落しています。過去の将来e値を後付け生成できません。新規の前向き登録が必要です。" : "統計研究の状態が古いか、原データと一致していません。結果を採用せず専用CIを確認してください。"
   });
   if (outdated) alerts.push({
     severity: "watch", source: "監視データの鮮度",
