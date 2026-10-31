@@ -75,12 +75,12 @@ def check(root: Path) -> dict:
         state = "WAIT_FOR_INDEPENDENT_SOURCE"
     elif guard.get("data_sha256") != digest:
         state = "WAIT_FOR_RESEARCH_GUARD"
+    elif missing_original_first_freeze(out, rounds):
+        # A matching summary hash cannot replace a missing original frozen
+        # first target; do not allow a forged 'fresh' cache to resume research.
+        state = "BLOCKED_MISSING_PREFROZEN_701"
     elif science.get("historical_data_sha256") != digest:
-        state = (
-            "BLOCKED_MISSING_PREFROZEN_701"
-            if missing_original_first_freeze(out, rounds)
-            else "REFRESH_REGISTERED_SCIENCE"
-        )
+        state = "REFRESH_REGISTERED_SCIENCE"
     elif science.get("source_code_frozen") is not True or (
             science.get("automatic_model_selection") is not False or
             science.get("production_changed") is not False or
