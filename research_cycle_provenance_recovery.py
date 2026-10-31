@@ -27,6 +27,30 @@ def _read(path: Path) -> dict:
     return data
 
 
+def missing_original_first_freeze(out: Path, latest_round: int) -> bool:
+    """Do not call a permanently missed initial target a refreshable cache.
+
+    This is a read-only status classification. No ledger is reconstructed;
+    a new forward-registered experiment would require a distinct protocol.
+    """
+    if latest_round < 701:
+        return False
+    registration_path = out / "accuracy_extension_agent_registration.json"
+    state_path = out / "accuracy_extension_agent_state.json"
+    if not registration_path.is_file() or not state_path.is_file():
+        return False
+    registration = _read(registration_path)
+    state = _read(state_path)
+    if registration.get("start_target_round") != 701:
+        return False
+    return (
+        state.get("trusted_draws") == 0
+        and state.get("current_target_round") is None
+        and not (out / "accuracy_extension_agent_freezes.jsonl").is_file()
+        and not (out / "accuracy_extension_agent_registry.json").is_file()
+    )
+
+
 def check(root: Path) -> dict:
     root = root.resolve()
     out = root / "loto7_agent_output"
@@ -52,7 +76,11 @@ def check(root: Path) -> dict:
     elif guard.get("data_sha256") != digest:
         state = "WAIT_FOR_RESEARCH_GUARD"
     elif science.get("historical_data_sha256") != digest:
-        state = "REFRESH_REGISTERED_SCIENCE"
+        state = (
+            "BLOCKED_MISSING_PREFROZEN_701"
+            if missing_original_first_freeze(out, rounds)
+            else "REFRESH_REGISTERED_SCIENCE"
+        )
     elif science.get("source_code_frozen") is not True or (
             science.get("automatic_model_selection") is not False or
             science.get("production_changed") is not False or
@@ -77,6 +105,10 @@ def check(root: Path) -> dict:
         "production_champion_modified": False,
         "hourly_ledger_can_advance": state == "READY_FOR_BOUNDED_RESEARCH",
         "needs_registered_lab_refresh": state == "REFRESH_REGISTERED_SCIENCE",
+        "irrecoverable_original_701_inference": state == "BLOCKED_MISSING_PREFROZEN_701",
+        "new_forward_registration_requires_separate_protocol": (
+            state == "BLOCKED_MISSING_PREFROZEN_701"
+        ),
         "expected_wait": (mode == "WAIT_FOR_NEW_DATA"),
     }
 
