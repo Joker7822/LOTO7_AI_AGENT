@@ -19,6 +19,7 @@ import production_disjoint35_policy as geometry35
 
 SCHEMA_VERSION = "loto7-db-sync-v1"
 DEFAULT_CREDENTIAL_GENERATION_FILE = Path("sakura/credential_generation.txt")
+DEFAULT_ROTATION_STATUS_FILE = Path("loto7_agent_output/sakura_credential_rotation_status.json")
 
 
 def configured_credential_generation() -> str:
@@ -28,6 +29,52 @@ def configured_credential_generation() -> str:
     if DEFAULT_CREDENTIAL_GENERATION_FILE.exists():
         return DEFAULT_CREDENTIAL_GENERATION_FILE.read_text(encoding="utf-8").strip()
     return ""
+
+
+def require_verified_rotation(
+    credential_generation: str,
+    *,
+    status_path: Path = DEFAULT_ROTATION_STATUS_FILE,
+    generation_path: Path | None = None,
+) -> None:
+    """Fail closed on all network syncs until a live rotation was verified.
+
+    The verification workflow is intentionally exempt: it sends its own empty
+    signed transaction via post_payload before creating this proof.
+    Dry-run exports remain available without any secret or verified status.
+    """
+    pin_path = generation_path or DEFAULT_CREDENTIAL_GENERATION_FILE
+    try:
+        status = json.loads(status_path.read_text(encoding="utf-8"))
+        pinned = pin_path.read_text(encoding="utf-8").strip()
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(
+            "Sakura sync blocked: rotation status and credential generation "
+            "pin must exist (run live rotation verification)"
+        ) from exc
+
+    if not isinstance(status, dict):
+        raise RuntimeError("Sakura sync blocked: malformed rotation status")
+    verified = status.get("live_verification")
+    verified = verified if isinstance(verified, dict) else {}
+    expected = str(status.get("credential_generation", "")).strip()
+    supplied = str(credential_generation or "").strip()
+    if (
+        status.get("version") != "sakura-credential-rotation-verification-v1"
+        or status.get("status") != "rotation_attested_and_live_verified"
+        or verified.get("hmac_authentication") != "verified"
+        or verified.get("credential_generation_match") is not True
+        or verified.get("database_connection_and_transaction") != "verified"
+        or not expected
+        or not pinned
+        or not supplied
+        or expected != pinned
+        or supplied != pinned
+    ):
+        raise RuntimeError(
+            "Sakura sync blocked: verified credential rotation and matching "
+            "non-secret generation are required"
+        )
 
 
 def read_csv(path: Path) -> List[Dict[str, str]]:
@@ -239,6 +286,7 @@ def main() -> int:
     )
     if args.dry_run:
         return 0
+    require_verified_rotation(args.credential_generation)
     if not args.endpoint or not args.secret:
         raise SystemExit("SAKURA_PREDICTION_API_URL and SAKURA_PREDICTION_HMAC_SECRET are required")
     result = post_payload(
