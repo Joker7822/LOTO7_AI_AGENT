@@ -53,6 +53,12 @@
     "statistical_semantics": "operational_prospective_confirmation; not a standalone mathematical proof of the portfolio e-process"
   },
   "confirmation_policy_registered_at_trusted_draws": 4,
+  "confirmation_policy_timing": {
+    "registration_recorded": true,
+    "registered_before_first_trusted_draw": false,
+    "eligible_for_confirmatory_claim": false,
+    "note": "Registration of the final confirmation policy after the first trusted outcome does not constitute strict preregistration. The original 26-draw evidence remains diagnostic and is never reset."
+  },
   "comparators": {
     "uniform_random": {
       "trusted_draws": 8,
@@ -75,6 +81,6 @@
       "passes_all": false
     }
   },
-  "claim_rule": "No confirmation before the full fixed holdout horizon. At completion, both Uniform Random and the prefrozen 32-member geometry-matched ensemble must meet every inherited Production threshold.",
+  "claim_rule": "No confirmation before the full fixed holdout horizon. At completion, both Uniform Random and the prefrozen 32-member geometry-matched ensemble must meet every inherited Production threshold. A confirmatory claim also requires the confirmation policy to have been locked before the first trusted outcome.",
   "statistical_scope": "This is an operational prospective confirmation rule. It does not by itself constitute a mathematical proof that the portfolio e-process is valid under every possible null model."
 }
