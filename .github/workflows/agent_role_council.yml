@@ -17,12 +17,14 @@ on:
       - "loto7.csv"
       - "loto7_agent_output/future_holdout_state.json"
       - "loto7_agent_output/joint_set_v2_signal_oos_state.json"
+      - "loto7_agent_output/research_cycle_guard.json"
+      - "loto7_agent_output/pair_context_v2_validation.json"
       - "loto7_agent_output/weekly_production_prediction_state.json"
   schedule:
     # 10:45 JST daily; also run when important cross-workflow evidence changes.
     - cron: "45 1 * * *"
   workflow_run:
-    workflows: ["LOTO7 Independent Result Corroboration", "Joint Set v2 Signal Future OOS", "Continuous Learning Agent Prospective"]
+    workflows: ["LOTO7 Independent Result Corroboration", "Joint Set v2 Signal Future OOS", "Continuous Learning Agent Prospective", "Continuous LOTO7 Research v4", "Pair Context v2 Numeric Verification"]
     types: [completed]
   workflow_dispatch:
 
