@@ -183,6 +183,8 @@ def test_workflows_have_fast_recovery_event_and_no_budget_reset():
     assert "python advanced_validation_lab.py --repo-root . --out-dir loto7_agent_output" in lab
     assert "git add --" in lab
     assert "advanced_validation_lab_summary.json" in lab
+    assert "steps.provenance.outputs.status != 'BLOCKED_MISSING_PREFROZEN_701'" in lab
+    assert "git diff --exit-code -- loto7.csv loto7_agent_output/" in lab
     assert "model_champion.json" not in lab
     assert "rewrite_locked_future_forecasts" not in lab
 

@@ -116,8 +116,23 @@ jobs:
           assert x["production_changed"] is False
           print("Scientific review:",x["historical_exploratory"]["matched_full_budget_fair_draws"])
           PY
-      - name: Commit ONLY lab-owned research registration and report
+      - name: Classify original pre-freeze provenance before main writes
         if: github.event_name != 'pull_request'
+        id: provenance
+        shell: bash
+        run: |
+          python research_cycle_provenance_recovery.py \
+            --repo-root . --github-output "$GITHUB_OUTPUT"
+      - name: Report missing original freeze as blocked (no fabricated science)
+        if: github.event_name != 'pull_request' && steps.provenance.outputs.status == 'BLOCKED_MISSING_PREFROZEN_701'
+        shell: bash
+        run: |
+          echo "::warning::Statistical lab blocked: original pre-draw target 701 is missing. A later retry cannot reconstruct prospective evidence."
+          echo "## Lab safety stop: original prefrozen #701 absent" >> "$GITHUB_STEP_SUMMARY"
+          echo "No future e-process or scientific summary was rewritten. Only a separately registered forward-only protocol can use genuinely unseen results." >> "$GITHUB_STEP_SUMMARY"
+          git diff --exit-code -- loto7.csv loto7_agent_output/
+      - name: Commit ONLY lab-owned research registration and report
+        if: github.event_name != 'pull_request' && steps.provenance.outputs.status != 'BLOCKED_MISSING_PREFROZEN_701'
         shell: bash
         run: |
           set -euo pipefail
@@ -149,7 +164,7 @@ jobs:
             fi
           done
       - name: Confirm scientific catch-up and research-cycle readiness
-        if: github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request' && steps.provenance.outputs.status != 'BLOCKED_MISSING_PREFROZEN_701'
         shell: bash
         run: |
           python research_cycle_provenance_recovery.py --repo-root .
