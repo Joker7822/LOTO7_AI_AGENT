@@ -62,7 +62,8 @@ def test_actual_current_repository_is_in_scientific_catchup_state():
     assert current["latest_resolved_round"] >= 699
     assert current["status"] in {
         "WAIT_FOR_INDEPENDENT_SOURCE", "WAIT_FOR_RESEARCH_GUARD",
-        "REFRESH_REGISTERED_SCIENCE", "READY_FOR_BOUNDED_RESEARCH"
+        "REFRESH_REGISTERED_SCIENCE", "READY_FOR_BOUNDED_RESEARCH",
+        "BLOCKED_MISSING_PREFROZEN_701"
     }
     if not current["source_trusted"]:
         assert not current["hourly_ledger_can_advance"]
