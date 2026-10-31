@@ -28,7 +28,7 @@ def fixture(tmp_path):
     out = tmp_path / "out"
     root = tmp_path / "prospective"
     out.mkdir()
-    first = datetime(2013, 4, 5)
+    first = datetime(2026, 10, 30) - timedelta(days=7 * 700)
     # Realistic sequential test source: valid but synthetic and non-predictive.
     records = []
     for i in range(701):
