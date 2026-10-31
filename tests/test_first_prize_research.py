@@ -195,3 +195,22 @@ def test_invalid_source_prefix_never_passes_bias_or_freeze(tmp_path):
     with pytest.raises(ValueError, match="verified"):
         fp.freeze(source, report, out, root, now=ISSUANCE)
     assert not root.exists()
+
+
+def test_late_ungraded_702_never_blocks_new_703_evidence(tmp_path, monkeypatch):
+    source, report, out, root = fixture(tmp_path)
+    fp.freeze(source, report, out, root, now=ISSUANCE)
+    first = fp.load_json(fp.freeze_file(root, 702))
+    second = {**first, "target_round": 703,
+              "target_draw_date": "2026-11-13"}
+    monkeypatch.setattr(fp, "validate_archive", lambda *_: {702: first, 703: second})
+    fake_draw = {"回別": "第703回", "抽せん日": "2026-11-13",
+                 "本数字": "01 03 05 07 09 11 13"}
+    monkeypatch.setattr(fp, "checked_source",
+                        lambda *_: ([fake_draw], {}, "f" * 64))
+    result = fp.grade(source, report, out, root)
+    assert result["status"] == "new_verified_grade"
+    assert result["target_round"] == 703
+    assert result["missed_past_targets"] == [702]
+    assert fp.grade_file(root, 703).exists()
+    assert not fp.grade_file(root, 702).exists()
