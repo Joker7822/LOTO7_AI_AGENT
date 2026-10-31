@@ -1,17 +1,16 @@
 {
   "version": "watch-auto-improvement-research-v1",
-  "checked_at_utc": "2026-10-31T21:53:45+00:00",
+  "checked_at_utc": "2026-10-31T21:55:29+00:00",
   "source_round": 701,
   "source_two_result_verified": true,
   "guard_mode": "VALIDATION_ONLY",
   "same_data_trials_used": 800,
   "same_data_trials_limit": 800,
   "champion_version": "baseline-5fdb8dc2ad",
-  "status": "needs_existing_workflow_or_human_review",
+  "status": "research_fix_checked_only_not_production_resolved",
   "watched_incident_codes": [
     "PAIR_CONTEXT_INT8_OVERFLOW",
-    "NO_EARLY_PORTFOLIO_CLAIM",
-    "RESEARCH_TRIAL_LIMIT_APPROACHING"
+    "NO_EARLY_PORTFOLIO_CLAIM"
   ],
   "issues": [
     {
@@ -46,16 +45,11 @@
       "automatic_backfill_allowed": false,
       "automatic_model_promotion_allowed": false,
       "does_not_count_as_broken_software": true
-    },
-    {
-      "code": "RESEARCH_TRIAL_LIMIT_APPROACHING",
-      "resolution": "safety_escalation_not_automatically_resolved",
-      "automatic_model_or_production_change_allowed": false
     }
   ],
   "source_files_sha256": {
     "loto7.csv": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637",
-    "loto7_agent_output/agent_role_council_summary.json": "8a876af17210187b9280feac403f67040fd4cbda2287ea157fd33406ca8afef8",
+    "loto7_agent_output/agent_role_council_summary.json": "50d5df549ef68752b3a69ca0cf92556ae1171796053ad044f34750c046e70bfa",
     "loto7_agent_output/source_validation.json": "199edfa6321e70588f0f27d67dd44bea703793877bbaf3ba6470b288e82b04c6",
     "loto7_agent_output/research_cycle_guard.json": "ddb5998712cd5a6e1a994e848b3acbfed484aacccedf7f815f30c778ba10a424",
     "loto7_agent_output/model_champion.json": "045826e4078b41796c128b109d43e29686d6e542943e7a6ef8df79bff847cfe0",
