@@ -1,4 +1,4 @@
-import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs";
+import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261031-dashboard-recovery";
 import {
   LEVEL_LABELS, buildView, percent, displayMetric
 } from "./model.mjs";
