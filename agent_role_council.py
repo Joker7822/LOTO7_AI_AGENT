@@ -21,6 +21,7 @@ from joint_set_v2_signal_oos import (
 )
 from joint_set_v2_signal_oos_guard import validate_trusted_source
 from loto7_evolving_agent import make_history, read_csv_flexible
+from pair_context_v2 import checked_cooccurrence
 import loto7_v4_runner as v4
 
 VERSION = "loto7-agent-role-council-v1"
@@ -106,12 +107,21 @@ def data_steward(root: Path, out: Path, now: datetime) -> dict:
                 "Use the existing source recovery workflow; no trusted OOS grading.",
             ))
         overflow_pairs = pair_context_overflow_count(x)
+        # Independently verify the versioned int64 implementation at EVERY
+        # council audit. Legacy int8 wrap remains a research-model limitation,
+        # not evidence that draw CSV records are corrupted. Never silently
+        # substitute corrected probabilities into a frozen or production model.
+        wide = checked_cooccurrence(x)
+        if wide.dtype != np.int64 or wide.shape != (37, 37):
+            raise ArithmeticError("corrected pair-context co-occurrence is not exact int64")
         if overflow_pairs:
             findings.append(finding(
                 "watch", "PAIR_CONTEXT_INT8_OVERFLOW",
-                f"corrupted_cooccurrence_cells={overflow_pairs}; history_draws={len(x)}",
-                "Use a separately versioned, revalidated model before changing "
-                "pair_context arithmetic. Do not rewrite frozen predictions.",
+                f"legacy_int8_corrupted_cooccurrence_cells={overflow_pairs}; "
+                f"corrected_int64_corrupted_cooccurrence_cells=0; history_draws={len(x)}",
+                "Legacy frozen model remains unchanged. A separately versioned int64 "
+                "candidate passes independent matrix verification, but needs new "
+                "pre-registered Future-OOS before any production adoption.",
             ))
         checked_at = source.get("checked_at_jst")
         if checked_at:
@@ -276,6 +286,15 @@ def research_skeptic(out: Path) -> dict:
                 "watch", "RESEARCH_TRIAL_LIMIT_APPROACHING",
                 "draw-specific exploration consumed " + str(used) + "/" + str(budget),
                 "Honor existing plateau guard, then validate or wait for genuinely new data.",
+            ))
+        if used == budget and mode != "SEARCH":
+            if guard.get("search_enabled") is not False:
+                raise ValueError("exhausted trial budget must disable all new same-data search")
+            findings.append(finding(
+                "ok", "RESEARCH_TRIAL_LIMIT_ENFORCED",
+                "draw-specific trials=" + str(used) + "/" + str(budget)
+                + "; mode=" + mode + "; search_enabled=false",
+                "Preserve the exhausted per-data budget; do not reset it without new data.",
             ))
         return done(findings)
     except Exception as exc:

@@ -242,6 +242,10 @@ def test_priority_queue_checks_conflict_before_rotation_without_starving_others(
     assert len(pub["verifications"]) >= 5
     pub["verifications"][0]["status"] = "conflict_do_not_use"
     pub["verifications"][1]["status"] = "not_yet_checked"
+    # A live bibliography may have already advanced its priority cursor.
+    # This test asserts the FIRST priority cycle, so make that synthetic
+    # starting position explicit rather than depending on checked-in state.
+    pub["priority_rotation_cursor"] = 0
     path.write_text(json.dumps(pub), encoding="utf-8")
     plan = {
         "version": "research-priority-orchestrator-v1",

@@ -154,10 +154,11 @@ def test_cannot_register_future_hypothesis_after_first_possible_result(lab_root)
 
 def test_full_readonly_pipeline_with_real_latest_prefix_evidence(lab_root, monkeypatch):
     out = lab_root / "loto7_agent_output"
-    original = {p.name: p.read_bytes() for p in out.iterdir()}
-    # The immutable registered hypothesis predates #701, but the real prefix
-    # can legitimately advance from #699 to #700 without changing the model.
     _, _, expected_round = lab.ledger.validated_draws(lab_root / "loto7.csv")
+    no_original_freeze = expected_round >= lab.FIRST_FUTURE and not Path("loto7_agent_output", candidate.FREEZES).is_file()
+    if no_original_freeze:
+        shutil.copyfile(Path("loto7_agent_output") / lab.REG, out / lab.REG)
+    original = {p.name: p.read_bytes() for p in out.iterdir()}
     # The costly fair-world experiment is verified in dedicated CI's PR real
     # dry-run; unit tests isolate ledger semantics and no-write permissions.
     synthetic = {
@@ -173,6 +174,11 @@ def test_full_readonly_pipeline_with_real_latest_prefix_evidence(lab_root, monke
         }
     }
     monkeypatch.setattr(lab, "historical_research", lambda _x: copy.deepcopy(synthetic))
+    if no_original_freeze:
+        with pytest.raises(ValueError, match="missing required prospective target freeze"):
+            lab.run(lab_root, out, now=CLOCK)
+        assert {p.name: p.read_bytes() for p in out.iterdir()} == original
+        return
     result = lab.run(lab_root, out, now=CLOCK)
     assert result["future_e_monitor"]["verified_prefrozen_draws"] == 0
     assert result["future_e_monitor"]["current_e_value"] == 1

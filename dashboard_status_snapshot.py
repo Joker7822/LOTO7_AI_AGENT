@@ -332,7 +332,18 @@ def scientific_research_projection(root: Path, out: Path) -> tuple[dict, str | N
     if (raw.get("historical_data_sha256") != current_history or not new_hypothesis
             or not isinstance(observed, int) or observed != candidate_state.get("trusted_draws")
             or len(future.get("series", [])) != observed):
-        return {"status": "stale_or_mismatched_evidence", "future_draws": None}, digest
+        no_initial_freeze = (
+            candidate_reg.get("start_target_round") == 701
+            and candidate_state.get("trusted_draws") == 0
+            and candidate_state.get("current_target_round") is None
+            and not (out / "accuracy_extension_agent_freezes.jsonl").is_file()
+        )
+        return {
+            "status": "stale_or_mismatched_evidence", "future_draws": None,
+            "blocker": ("missing_original_prefrozen_701" if no_initial_freeze
+                        else "scientific_input_mismatch"),
+            "promotion_eligible": False,
+        }, digest
     best = hist.get("matched_full_budget_fair_draws", {})
     bootstrap = hist.get("paired_block_bootstrap", {})
     original = hist.get("original_four", {})
@@ -370,7 +381,7 @@ def scientific_research_projection(root: Path, out: Path) -> tuple[dict, str | N
     return result, digest
 
 
-def always_on_research_projection(out: Path) -> tuple[dict, str | None]:
+def always_on_research_projection(out: Path, latest_verified_round: int | None = None) -> tuple[dict, str | None]:
     """Expose only nonsecret, unreviewed research bibliographic metadata."""
     path = out / "always_on_accuracy_research_state.json"
     if not path.exists():
@@ -392,8 +403,15 @@ def always_on_research_projection(out: Path) -> tuple[dict, str | None]:
             "title": str(paper.get("title", ""))[:200], "url": url[:240],
             "year": paper.get("year"), "review_status": "unreviewed"
         })
+    old_round = (
+        latest_verified_round is not None
+        and raw.get("latest_resolved_round") != latest_verified_round
+    )
     return {
-        "status": raw.get("status"),
+        "status": "stale_historical_activity" if old_round else raw.get("status"),
+        "activity_stale_vs_verified_round": old_round,
+        "activity_latest_round": raw.get("latest_resolved_round"),
+        "verified_latest_round": latest_verified_round,
         "sequence": raw.get("sequence"),
         "last_activity_jst": raw.get("last_activity_jst"),
         "current_phase": raw.get("current_phase"),
@@ -540,7 +558,9 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
     )
     sha.update(prediction_hashes)
     scientific, research_hash = scientific_research_projection(root, out)
-    always_on, activity_hash = always_on_research_projection(out)
+    always_on, activity_hash = always_on_research_projection(
+        out, sources["source"]["latest"]["round"]
+    )
     application, application_hash = research_application_projection(root, out)
     priorities, priority_hash = research_priority_projection(root, out)
     if priority_hash is not None:
