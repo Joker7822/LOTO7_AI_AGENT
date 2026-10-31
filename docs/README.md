@@ -17,7 +17,7 @@ No additional hosting, login, API key or GitHub Actions secret is needed. GitHub
 
 ## Current-state sources (public and read-only)
 
-The dashboard fetches JSON via raw.githubusercontent.com from main every **120 seconds** while visible (and on refresh button clicks). The currently displayed repository source status can lag due to GitHub CDN caching and scheduled workflow timings. It clearly shows **source verification time** and **browser refresh time** as separate times.
+The dashboard first fetches the published `/LOTO7_AI_AGENT/data/dashboard_snapshot.json` on the **same GitHub Pages origin** every **120 seconds** while visible (and on refresh button clicks). If that response cannot be fetched, validated, or is over 90 minutes old, it attempts the matching read-only `raw.githubusercontent.com` file from main. It never mixes multiple snapshots or treats outdated data as current. The currently displayed repository source status can lag due to GitHub CDN caching and scheduled workflow timings. It clearly shows **source verification time** and **browser refresh time** as separate times.
 
 - source_validation.json: latest verified draw/date, main/bonus result and next official schedule;
 - agent_role_council_summary.json: overall condition and five scoped agents, with named handoffs;
@@ -52,7 +52,7 @@ Run view-model tests without network:
 
 GitHub Actions uses .github/workflows/browser_dashboard_ci.yml for validation.
 
-If the official URL shows 404, enable GitHub Pages in Settings first and check the Pages deployment. An inaccessible webpage does not imply the AI agent has stopped. If status tiles say 未取得, check network access to raw.githubusercontent.com and retry 更新.
+If the official URL shows 404, check GitHub Pages activation and the latest deployment. A successful Pages deployment does not establish that the in-browser data request succeeded. If the status tiles show 未取得, open the same-origin [published JSON](data/dashboard_snapshot.json) and the [GitHub Raw mirror](https://raw.githubusercontent.com/Joker7822/LOTO7_AI_AGENT/main/docs/data/dashboard_snapshot.json) separately. The dashboard falls back to Raw when the Pages JSON is inaccessible, invalid, or stale. If both fail or the JSON schema is invalid, it shows an explicit error rather than fabricated results. If the data timestamp is more than 90 minutes old, it is labeled 更新遅延; check [Browser Ops Snapshot](https://github.com/Joker7822/LOTO7_AI_AGENT/actions/workflows/dashboard_ops_snapshot.yml) runs. Browser cache can retain older scripts; the HTML and telemetry import use versioned JS URLs to avoid this during dashboard upgrades.
 
 ## 運用監視と精度推移（第2・第3段階）
 
