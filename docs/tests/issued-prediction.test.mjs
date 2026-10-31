@@ -79,3 +79,22 @@ test("trusted graded ticket must match issued numbers",()=>{
   const p=normalizeIssuedPrediction(r);
   assert.equal(p.currentResult.tickets[0].mainHits,1);
 });
+
+test("702+ disjoint35 issued Production label and 35 distinct numbers render",()=>{
+  const r=data();
+  r.target_round=702;
+  r.source_base_round=701;
+  r.draw_date="2026-11-06";
+  r.published_at_jst="2026-11-06T13:30:00+09:00";
+  r.model="baseline-5fdb8dc2ad+production-disjoint35-layout-v1";
+  r.tickets=[0,1,2,3,4].map(i=>({
+    ticket:i+1,numbers:Array.from({length:7},(_,j)=>i*7+j+1)
+  }));
+  r.latest_verified=null;
+  assert.equal(normalizeIssuedPrediction(r).tickets.length,5);
+  r.tickets[1].numbers=[1,9,10,11,12,13,14];
+  assert.throws(()=>normalizeIssuedPrediction(r),/重複/);
+  r.tickets[1].numbers=[8,9,10,11,12,13,14];
+  r.model="baseline-5fdb8dc2ad";
+  assert.throws(()=>normalizeIssuedPrediction(r),/配置方式/);
+});
