@@ -136,3 +136,12 @@ def test_publish_now_is_manual_republish_only():
     assert "workflow_dispatch:" in text
     assert "\n  push:" not in text
     assert "--republish-only" in text
+
+
+def test_production_publishers_never_embed_sakura_endpoint():
+    for filename in ("weekly_production_publisher.yml", "weekly_production_fallback.yml"):
+        workflow = Path(".github/workflows", filename).read_text(encoding="utf-8")
+        assert "SAKURA_PREDICTION_API_URL: ${{ secrets.SAKURA_PREDICTION_API_URL }}" in workflow
+        assert "SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}" in workflow
+        assert "https://www.epic-creation.com/" not in workflow
+        assert 'if [ -z "${SAKURA_PREDICTION_API_URL:-}" ] ||' in workflow
