@@ -1,7 +1,11 @@
 // A single, committed main-branch snapshot eliminates mixed-time JSON reads.
 // GitHub Actions state itself is sampled, so the UI never claims real-time liveness.
 export const SNAPSHOT_VERSION = "loto7-ops-snapshot-v1";
-export const SNAPSHOT_URL = "https://raw.githubusercontent.com/Joker7822/LOTO7_AI_AGENT/main/docs/data/dashboard_snapshot.json";
+// Prefer the Pages-served JSON on the same origin as the dashboard. It works
+// even when a browser blocks third-party raw.githubusercontent.com requests.
+// The raw GitHub file is a read-only mirror for deployment lag or HTTP errors.
+export const SNAPSHOT_URL = new URL("./data/dashboard_snapshot.json", import.meta.url).href;
+export const SNAPSHOT_MIRROR_URL = "https://raw.githubusercontent.com/Joker7822/LOTO7_AI_AGENT/main/docs/data/dashboard_snapshot.json";
 export const WORKFLOW_HEALTH = Object.freeze({
   ok: "成功", running: "実行中", warning: "要確認",
   block: "失敗", unknown: "未取得"
@@ -120,9 +124,15 @@ export function normalizeIssuedPrediction(value) {
      !Number.isInteger(value.target_round) || value.target_round<1 ||
      value.source_base_round!==value.target_round-1 ||
      !dateOk(value.draw_date) || !timeOk(value.published_at_jst) ||
-     typeof value.model!=="string" || !/^[A-Za-z0-9._-]{1,100}$/.test(value.model) ||
+     typeof value.model!=="string" || !/^[A-Za-z0-9._+-]{1,150}$/.test(value.model) ||
      !Array.isArray(value.tickets) || value.tickets.length!==5) {
     throw new Error("公開済みProduction予測の整合性を確認できません");
+  }
+  // From draw 702, the Production model version contains a separate
+  // geometry policy suffix. Refuse incorrect labels or overlapping tickets.
+  if (value.target_round>=702 &&
+      !/^[A-Za-z0-9._-]{1,100}\+production-disjoint35-layout-v1$/.test(value.model)) {
+    throw new Error("第702回以降のProduction配置方式が不正です");
   }
   const tickets=value.tickets.map((t,i)=>{
     if(t.ticket!==i+1 || !validNumbers(t.numbers,7)){
@@ -130,6 +140,10 @@ export function normalizeIssuedPrediction(value) {
     }
     return {ticket:t.ticket,numbers:[...t.numbers]};
   });
+  if (value.target_round>=702 &&
+      new Set(tickets.flatMap(t=>t.numbers)).size!==35) {
+    throw new Error("第702回以降の5口35数字に重複があります");
+  }
   const gradeResult=(result,round)=>{
     if(result==null)return null;
     if(result.round!==round || !dateOk(result.date) ||
@@ -296,8 +310,12 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     }));
     for (let i = 0; i < series[key].length; i++) {
       const p = series[key][i];
-      if (!Number.isInteger(p.round) || (i > 0 && p.round !== series[key][i - 1].round + 1)) {
-        throw new Error("将来検証の回別連続性を確認できません");
+      // A draw excluded from trusted evidence (e.g. single-source round 700)
+      // creates a legitimate gap. Enforce increasing, unique, positive rounds
+      // instead of inventing an OOS grade for the missing draw.
+      if (!Number.isInteger(p.round) || p.round < 1 ||
+          (i > 0 && p.round <= series[key][i - 1].round)) {
+        throw new Error("将来検証の回別順序・重複を確認できません");
       }
     }
   }
@@ -383,6 +401,44 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     operationsPlan: { overall:plan.overall, counts:plan.counts, tasks:incidentTasks },
     healthyRuns: workflows.filter(x => x.health === "ok").length
   };
+}
+
+/**
+ * Load only published, schema-validated snapshots. Never mix timestamps or
+ * rebuild evidence in the browser. Prefer a fresh same-origin snapshot,
+ * falling back to the public GitHub raw mirror if unavailable or outdated.
+ * An older but valid record can be shown ONLY with its stale warning.
+ */
+export async function loadPublishedSnapshot(fetchFn, now = new Date(), timeoutMs = 7000) {
+  const urls = [SNAPSHOT_URL, SNAPSHOT_MIRROR_URL];
+  const errors = [];
+  let stale = null;
+  for (const url of urls) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetchFn(url + "?v=" + now.getTime(), {
+        cache: "no-store",
+        headers: {Accept: "application/json"},
+        signal: controller.signal
+      });
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const snapshot = normalizeSnapshot(await response.json(), now);
+      if (!snapshot.outdated) {
+        return {snapshot, source: url, errors};
+      }
+      if (!stale || new Date(snapshot.generatedAt) > new Date(stale.snapshot.generatedAt)) {
+        stale = {snapshot, source: url};
+      }
+    } catch (error) {
+      errors.push((url === SNAPSHOT_URL ? "GitHub Pages" : "GitHub Raw") + ": " +
+        String(error?.message || error));
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+  if (stale) return {...stale, errors};
+  throw new Error("公開状態JSONを取得・検証できません。" + (errors.length ? " " + errors.join(" / ") : ""));
 }
 
 export const SERIES_TABS = Object.freeze([
