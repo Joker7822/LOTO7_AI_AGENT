@@ -1,4 +1,5 @@
 import csv
+import json
 from pathlib import Path
 
 import pytest
@@ -214,3 +215,52 @@ def test_sakura_sync_rejects_all_incomplete_or_overlapping_702_portfolios(tmp_pa
     write_csv(preds, fields, bad)
     with pytest.raises(ValueError, match="policy"):
         dbs.build_payload(preds, corrections, results)
+
+
+def rotation_proof(generation="gen-rotated"):
+    return {
+        "version": "sakura-credential-rotation-verification-v1",
+        "status": "rotation_attested_and_live_verified",
+        "credential_generation": generation,
+        "live_verification": {
+            "hmac_authentication": "verified",
+            "credential_generation_match": True,
+            "database_connection_and_transaction": "verified",
+        },
+    }
+
+
+def test_network_sync_requires_verified_rotation(tmp_path):
+    status = tmp_path / "rotation.json"
+    pin = tmp_path / "credential_generation.txt"
+    pin.write_text("gen-rotated\n", encoding="utf-8")
+
+    with pytest.raises(RuntimeError, match="rotation status"):
+        dbs.require_verified_rotation("gen-rotated", status_path=status, generation_path=pin)
+
+    record = rotation_proof()
+    record["status"] = "pending_external_rotation_verification"
+    status.write_text(json.dumps(record), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="verified credential rotation"):
+        dbs.require_verified_rotation("gen-rotated", status_path=status, generation_path=pin)
+
+
+def test_network_sync_accepts_only_matching_verified_generation(tmp_path):
+    status = tmp_path / "rotation.json"
+    pin = tmp_path / "credential_generation.txt"
+    status.write_text(json.dumps(rotation_proof()), encoding="utf-8")
+    pin.write_text("gen-rotated\n", encoding="utf-8")
+    dbs.require_verified_rotation("gen-rotated", status_path=status, generation_path=pin)
+
+    with pytest.raises(RuntimeError, match="matching"):
+        dbs.require_verified_rotation("wrong-generation", status_path=status, generation_path=pin)
+    pin.write_text("wrong-generation\n", encoding="utf-8")
+    with pytest.raises(RuntimeError, match="matching"):
+        dbs.require_verified_rotation("wrong-generation", status_path=status, generation_path=pin)
+
+    pin.write_text("gen-rotated\n", encoding="utf-8")
+    proof = rotation_proof()
+    proof["live_verification"]["database_connection_and_transaction"] = "pending"
+    status.write_text(json.dumps(proof), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="verified credential rotation"):
+        dbs.require_verified_rotation("gen-rotated", status_path=status, generation_path=pin)

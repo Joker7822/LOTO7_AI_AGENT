@@ -220,15 +220,17 @@ jobs:
       - name: Sync Production to Sakura MySQL
         if: steps.publication_gate.outputs.publish == 'true'
         env:
-          SAKURA_PREDICTION_API_URL: https://www.epic-creation.com/Epic/Epic-Creation/sakura_loto7_php/prediction_ingest.php
+          SAKURA_PREDICTION_API_URL: ${{ secrets.SAKURA_PREDICTION_API_URL }}
           SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${SAKURA_PREDICTION_HMAC_SECRET:-}" ]; then
-            echo "SAKURA_PREDICTION_HMAC_SECRET is not configured; refusing silent skip"
+          if [ -z "${SAKURA_PREDICTION_API_URL:-}" ] || [ -z "${SAKURA_PREDICTION_HMAC_SECRET:-}" ]; then
+            echo "::error::Both Sakura URL and HMAC secrets are required; refusing network sync"
             exit 1
           fi
+          # prediction_db_sync.py also requires live-verified rotation status
+          # and a matching credential generation before any network request.
           python prediction_db_sync.py
 
       - name: Show Production state
