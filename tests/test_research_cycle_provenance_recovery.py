@@ -184,3 +184,39 @@ def test_workflows_have_fast_recovery_event_and_no_budget_reset():
     assert "advanced_validation_lab_summary.json" in lab
     assert "model_champion.json" not in lab
     assert "rewrite_locked_future_forecasts" not in lab
+
+
+def test_missing_original_701_freeze_is_not_a_refreshable_science_cache(project, monkeypatch):
+    root, _, sha = project
+    monkeypatch.setattr(
+        recovery, "validate_trusted_source",
+        lambda *_: {"round": 701, "trusted": True}
+    )
+    out = root / "loto7_agent_output"
+    modify(root, "source_validation.json",
+           lambda report: report["latest"].update(round=701))
+    (out / "accuracy_extension_agent_registration.json").write_text(
+        json.dumps({"start_target_round": 701}), encoding="utf-8"
+    )
+    (out / "accuracy_extension_agent_state.json").write_text(
+        json.dumps({"trusted_draws": 0, "current_target_round": None}),
+        encoding="utf-8"
+    )
+    report = recovery.check(root)
+    assert report["draw_csv_sha256"] == sha
+    assert report["status"] == "BLOCKED_MISSING_PREFROZEN_701"
+    assert report["irrecoverable_original_701_inference"]
+    assert report["new_forward_registration_requires_separate_protocol"]
+    assert not report["needs_registered_lab_refresh"]
+    assert not report["hourly_ledger_can_advance"]
+    assert not report["new_optimizer_trials_authorized"]
+    assert not (out / "accuracy_extension_agent_freezes.jsonl").exists()
+
+    # Even a fresh scientific cache hash alone cannot authorize a made-up
+    # future score. The underlying registered laboratory separately audits
+    # the original, immutable freeze ledger before scientific inference.
+    modify(root, "advanced_validation_lab_summary.json",
+           lambda summary: summary.update(historical_data_sha256=sha))
+    assert recovery.check(root)["hourly_ledger_can_advance"]
+    # That READY status is only about SHA freshness; the lab itself must
+    # still reject an absent first frozen target before publishing inference.
