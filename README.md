@@ -108,7 +108,7 @@ historical replay / reconciliation / nested replayはすべて**精度確認用�
 
 ## GitHub Actions構成
 
-現在 `.github/workflows/` には **14本**のworkflowがあります。継続研究とCIの中核は次の2本です。
+`.github/workflows/` には多数のworkflowがあります（2026-10-31時点で49本）。workflow数は変更され得るため、現行の全件は [`.github/workflows/`](.github/workflows/) を参照してください。継続研究とCIの中核は次の2本です。
 
 - `.github/workflows/continuous_loto7_v4.yml` — 継続研究・OOS評価・過去回精度replay・独立照合・nested比較・監査
 - `.github/workflows/ci.yml` — コード変更時のcompile / pytest / Sakura secret-file guard
@@ -124,8 +124,8 @@ historical replay / reconciliation / nested replayはすべて**精度確認用�
 - `.github/workflows/signal_meta_research.yml`
 - `.github/workflows/strict_oos_bootstrap.yml`
 - `.github/workflows/sync_sakura_prediction_db.yml`
-- `.github/workflows/weekly_production_publisher.yml` — 金曜13:00 JSTのProduction発行。OOS完了イベントでも13:00〜14:59 JSTに回復起動
-- `.github/workflows/weekly_production_fallback.yml` — 金曜14:00 JSTのProduction fallback。15:00 JST以降は新規freezeをfail closed
+- `.github/workflows/weekly_production_publisher.yml` — 金曜13:00 JSTのProduction発行。遅延時は金曜19:59 JSTまで回復起動可能
+- `.github/workflows/weekly_production_fallback.yml` — 金曜14:00 JSTのProduction fallback。20:00 JST以降は新規freezeをfail closed
 - `.github/workflows/verify_sakura_credential_rotation.yml` — Sakura DB/HMAC rotationをattestation + live HMAC/DB transactionで検証し、非secret generationを固定
 
 旧v3の `weekly_loto7.yml` と、一回性の `start_continuous_now.yml` は削除しています。
@@ -194,7 +194,7 @@ Sakura側でMySQL passwordとHMAC secretを変更し、`credential_generation` �
 - Sakuraが実DB transactionを成功させること
 - secret値をGitへ保存しないこと
 
-成功後は `sakura/credential_generation.txt` をcommitし、以後のsyncはgeneration mismatchをfail closedします。
+成功後は `sakura/credential_generation.txt` をcommitし、以後のsyncはgeneration mismatchをfail closedします。**2026-10-31現在は外部ローテーション未検証であり、ライブDB同期は事前検証に失敗すると送信しません。**本番PublisherのSakura URLは固定URLではなく `SAKURA_PREDICTION_API_URL` GitHub Actions secret を使用します。復旧手順は [SECURITY_AND_OOS_AUDIT.md](SECURITY_AND_OOS_AUDIT.md) を参照。
 旧DB password/HMACが実際に拒否されること自体は秘密値を再使用して試験せず、rotation timestampのattestationとして記録します。
 
 ### Fixed Future OOS holdout
@@ -208,7 +208,7 @@ SHA-256を `future_holdout_state.json` の `protocol_lock_sha256` に固定し�
 **26/26 trusted drawsが完了するまでは必ず `not_confirmed_holdout_incomplete`** とし、
 完了後に両比較が既存Production閾値（平均score差 >= +0.05、勝率 >= 55%、e-value telemetry >= 20）をすべて満たした場合だけ
 `confirmed_operational_future_oos_edge` とします。
-これは運用上のprospective confirmation ruleであり、portfolio e-processの数学的妥当性そのものを証明する主張ではありません。
+これは運用上のprospective confirmation ruleであり、portfolio e-processの数学的妥当性そのものを証明する主張ではありません。また、既存の固定holdoutでは `confirmation_policy_registered_at_trusted_draws=4`（結果4回を確認後に最終確認ルールが登録）と記録されています。そのため**26回に達しても、このholdoutを「最初の結果より前に確認ルールを登録した厳密な確認的証拠」とは主張しません**。結果は診断として保持し、固定台帳はリセットしません。
 
 ## Git checkpointとCI負荷
 
