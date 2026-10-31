@@ -131,6 +131,20 @@ jobs:
         if: steps.publication_gate.outputs.publish == 'true'
         run: python production_ticket_geometry35.py --verify-canonical --out-dir loto7_agent_output
 
+      - name: Freeze independent first-prize research control before the draw
+        if: steps.publication_gate.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Actual Production continues unchanged if GitHub's recovery is too late.
+          # Never fabricate a pre-draw research baseline after the 18:00 JST cutoff.
+          if [ "$(TZ=Asia/Tokyo date +%H%M)" -lt 1800 ]; then
+            python first_prize_research.py --mode freeze
+            python first_prize_research.py --mode verify
+          else
+            echo "[FIRST-PRIZE] prospective freeze excluded: past 18:00 JST; no backfill"
+          fi
+
       - name: Commit Production checkpoint
         if: steps.publication_gate.outputs.publish == 'true'
         shell: bash
@@ -139,8 +153,65 @@ jobs:
           git config user.name "loto7-ai-agent[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if [ -n "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output)" ]; then
+          if [ -n "$(git status --porcelain -- loto7.csv STATUS.md loto7_agent_output research/first_prize_oos)" ]; then
             git add -- loto7.csv STATUS.md loto7_agent_output
+            # The immutable research freeze is committed with the original
+            # five Production predictions, never in a later recovery run.
+            if [ -d research/first_prize_oos ]; then
+              git add -A -- research/first_prize_oos
+              if git diff --cached --name-status -- research/first_prize_oos | grep -qvE '^A[[:space:]]+research/first_prize_oos/freeze_[0-9]{4}\.json
+            TARGET=$(python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('loto7_agent_output/weekly_production_prediction_state.json')
+          obj = json.loads(p.read_text(encoding='utf-8')) if p.exists() else {}
+          print(obj.get('target_round', 'unknown'))
+          PY
+            )
+            git commit -m "chore: weekly Production fallback ${TARGET}"
+            git pull --rebase
+            git push
+          else
+            echo "[PRODUCTION-FALLBACK] canonical Production already current"
+          fi
+
+      - name: Validate Sakura sync payload
+        if: steps.publication_gate.outputs.publish == 'true'
+        run: |
+          python -m py_compile prediction_db_sync.py
+          python prediction_db_sync.py --dry-run --output /tmp/sakura_payload.json
+          python - <<'PY'
+          import json
+          p = json.load(open('/tmp/sakura_payload.json', encoding='utf-8'))
+          assert p['schema_version'] == 'loto7-db-sync-v1'
+          print(f"payload predictions={len(p['predictions'])} results={len(p['results'])}")
+          PY
+
+      - name: Sync Production to Sakura MySQL
+        if: steps.publication_gate.outputs.publish == 'true'
+        env:
+          SAKURA_PREDICTION_API_URL: https://www.epic-creation.com/Epic/Epic-Creation/sakura_loto7_php/prediction_ingest.php
+          SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${SAKURA_PREDICTION_HMAC_SECRET:-}" ]; then
+            echo "SAKURA_PREDICTION_HMAC_SECRET is not configured; refusing silent skip"
+            exit 1
+          fi
+          python prediction_db_sync.py
+
+      - name: Show Production state
+        if: always() && steps.publication_gate.outputs.publish == 'true'
+        run: |
+          if [ -f loto7_agent_output/weekly_production_prediction_state.json ]; then
+            cat loto7_agent_output/weekly_production_prediction_state.json
+          fi
+; then
+                echo "Refusing non-additive first-prize archive change" >&2
+                exit 1
+              fi
+            fi
             TARGET=$(python - <<'PY'
           import json
           from pathlib import Path
