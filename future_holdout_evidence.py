@@ -73,6 +73,10 @@ def build_report(state: Dict[str, object]) -> Tuple[Dict[str, object], bool]:
         policy,
     )
 
+    registration_draws = state.get("confirmation_policy_registered_at_trusted_draws")
+    registration_known = type(registration_draws) is int and registration_draws >= 0
+    registration_pre_outcome = registration_known and registration_draws == 0
+
     full_horizon = (
         horizon > 0
         and trusted >= horizon
@@ -88,6 +92,12 @@ def build_report(state: Dict[str, object]) -> Tuple[Dict[str, object], bool]:
         confirmed = False
     elif not full_horizon:
         claim_status = "not_confirmed_holdout_incomplete"
+        confirmed = False
+    elif not registration_pre_outcome:
+        # Preserve the original locked holdout and every graded result.
+        # A confirmation rule recorded after outcomes were seen can be
+        # reported diagnostically, but cannot become a preregistered claim.
+        claim_status = "not_confirmed_policy_registration_not_pre_outcome"
         confirmed = False
     elif random["passes_all"] and matched["passes_all"]:
         claim_status = "confirmed_operational_future_oos_edge"
@@ -117,9 +127,17 @@ def build_report(state: Dict[str, object]) -> Tuple[Dict[str, object], bool]:
             "verified": lock_ok,
         },
         "confirmation_policy": policy,
-        "confirmation_policy_registered_at_trusted_draws": int(
-            state.get("confirmation_policy_registered_at_trusted_draws", 0) or 0
-        ),
+        "confirmation_policy_registered_at_trusted_draws": registration_draws,
+        "confirmation_policy_timing": {
+            "registration_recorded": registration_known,
+            "registered_before_first_trusted_draw": registration_pre_outcome,
+            "eligible_for_confirmatory_claim": registration_pre_outcome,
+            "note": (
+                "Registration of the final confirmation policy after the first "
+                "trusted outcome does not constitute strict preregistration. "
+                "The original 26-draw evidence remains diagnostic and is never reset."
+            ),
+        },
         "comparators": {
             "uniform_random": random,
             "matched_ensemble32": matched,
@@ -127,7 +145,9 @@ def build_report(state: Dict[str, object]) -> Tuple[Dict[str, object], bool]:
         "claim_rule": (
             "No confirmation before the full fixed holdout horizon. At completion, both "
             "Uniform Random and the prefrozen 32-member geometry-matched ensemble must "
-            "meet every inherited Production threshold."
+            "meet every inherited Production threshold. A confirmatory claim also "
+            "requires the confirmation policy to have been locked before the first "
+            "trusted outcome."
         ),
         "statistical_scope": (
             "This is an operational prospective confirmation rule. It does not by itself "
@@ -154,6 +174,11 @@ def render_markdown(report: Dict[str, object]) -> str:
             f"(Matched Ensemble {p['matched_ensemble_trusted_draws']}/{p['horizon_trusted_draws']})"
         ),
         f"- Protocol lock verified: **{report['protocol_lock']['verified']}**",
+        (
+            "- Confirmation policy registered before first trusted draw: "
+            f"**{report['confirmation_policy_timing']['registered_before_first_trusted_draw']}** "
+            f"(at trusted draw count {report['confirmation_policy_registered_at_trusted_draws']})"
+        ),
         "",
         "## Uniform Random",
         f"- Mean score delta: **{rnd['mean_score_delta']:+.6f}**",
@@ -221,6 +246,10 @@ def main() -> int:
                 f"/ Matched **{progress['matched_ensemble_trusted_draws']}/{progress['horizon_trusted_draws']}**\n"
             )
             fh.write(f"- Protocol lock verified: **{report['protocol_lock']['verified']}**\n")
+            fh.write(
+                "- Confirmation policy preregistered before first outcome: "
+                f"**{report['confirmation_policy_timing']['registered_before_first_trusted_draw']}**\n"
+            )
             fh.write(
                 f"- vs Random: mean delta **{random['mean_score_delta']:+.4f}** / "
                 f"win **{random['win_rate']:.1%}** / e **{random['e_value']:.4f}**\n"
