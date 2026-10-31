@@ -4,13 +4,14 @@
 - Independently verified source: **True**
 - Registered research mode: **SEARCH**
 - Action: **EVALUATE_SANDBOX_MUTATION**
-- Bounded diagnostic mutations this history: **2/4**
-- Diagnostic leader (not Production): **c1be4e5f99273d0d3c0e**
+- Bounded diagnostic mutations this history: **3/4**
+- Diagnostic leader (not Production): **1de01f1f105567e0ae6f**
 
 | Trial | Prior window | Smoothing | Uniform blend | Historical log edge |
 |---:|---:|---:|---:|---:|
 | 1 | 30 | 100 | 0.25 | -0.0003857 |
 | 2 | 70 | 180 | 0.35 | -0.0011972 |
+| 3 | 140 | 300 | 0.50 | -0.0003606 |
 
 **RESEARCH ONLY.** Same historical data were used for choosing the diagnostic leader.
 No independent prospective validation, no evidence of superior lottery odds,
