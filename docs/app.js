@@ -1,9 +1,8 @@
-import { SNAPSHOT_URL, normalizeSnapshot, SERIES_TABS } from "./telemetry.mjs";
+import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs";
 import {
   LEVEL_LABELS, buildView, percent, displayMetric
 } from "./model.mjs";
 
-const ROOT = "https://raw.githubusercontent.com/Joker7822/LOTO7_AI_AGENT/main/loto7_agent_output/";
 const REFRESH_MS = 120_000;
 let busy = false;
 const el = id => document.getElementById(id);
@@ -468,15 +467,20 @@ export async function refresh(){
   if(busy)return;
   busy=true;const button=el("refresh");
   if(button)button.disabled=true;set("refresh-label","更新中");
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),13000);
   try{
-    const response=await fetch(SNAPSHOT_URL+"?v="+Date.now(),{cache:"no-store",headers:{Accept:"application/json"},signal:controller.signal});
-    if(!response.ok)throw new Error("監視JSONを取得できません (HTTP "+response.status+")");
-    const ops=normalizeSnapshot(await response.json(),new Date());
-    const view=buildView(ops.sources,{},new Date());
+    const now=new Date();
+    const loaded=await loadPublishedSnapshot(fetch,now);
+    const ops=loaded.snapshot;
+    const view=buildView(ops.sources,{},now);
     if(ops.outdated&&view.state==="ok"){view.state="watch";view.stateLabel="監視データが古くなっています";}
     if((ops.alerts.some(a=>a.severity==="block")||ops.operationsPlan.overall==="block")&&view.state!=="unknown"){view.state="block";view.stateLabel="一部の自動処理で異常を確認";}
-    renderOverview(view);renderProgress(view);renderResearch(view);renderOperations(view);renderIssuedPredictions(ops);
+    renderOverview(view);
+    set("fetched-at",
+      "画面再取得: "+asJst(now.toISOString())+
+      " ／ 公開データ作成: "+asJst(ops.generatedAt)+
+      " ／ 取得先: "+(loaded.source.includes("raw.githubusercontent.com")?"GitHub Raw":"GitHub Pages")+
+      (ops.outdated?" ／ 更新遅延あり":""));
+    renderProgress(view);renderResearch(view);renderOperations(view);renderIssuedPredictions(ops);
     renderWorkflowStatus(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderResearchApplication(ops);renderResearchPriorities(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
     set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
     document.title=(view.state==="ok"?"● ":view.state==="watch"?"◐ ":"！ ")+"LOTO7 AI AGENT | 現在の状態";
@@ -491,7 +495,7 @@ export async function refresh(){
     set("science-future-pill","情報を取得できません");
     set("command-center-overall","司令塔の判定を取得できません");
     const grid=clear("command-center-grid");grid.append(node("p","error-line","安全な判断のため状態の再取得が必要です。"));
-  }finally{clearTimeout(timeout);busy=false;if(button)button.disabled=false;set("refresh-label","更新");}
+  }finally{busy=false;if(button)button.disabled=false;set("refresh-label","更新");}
 }
 el("refresh")?.addEventListener("click",refresh);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh();});
