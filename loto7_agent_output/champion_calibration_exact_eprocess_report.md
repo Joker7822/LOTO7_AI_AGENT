@@ -3,7 +3,7 @@
 - version: **champion-calibration-exact-eprocess-v1**
 - preregistered at JST: **2026-09-01T12:31:54+09:00**
 - starts target: **round 693**
-- fixed horizon: **8/26 trusted draws**
+- fixed horizon: **9/26 trusted draws**
 - null: **conditional_on_the_past_each_future_winning_7_set_is_uniform_over_all_C(37,7)_subsets**
 - exact MGF: **without-replacement elementary-symmetric DP**
 - lambda mixture: **0.25, 0.5, 1.0, 2.0, 4.0**
@@ -12,12 +12,12 @@
 
 ## Current evidence
 
-- mean log edge vs Uniform: **+0.00230085**
-- log-score mixture e-value: **0.39801852**
-- mean Brier improvement vs Uniform: **+0.00013816**
-- Brier mixture e-value: **0.40842147**
-- mean actual-mass delta vs Uniform: **+0.00085685**
-- rank preserved: **8/8**
+- mean log edge vs Uniform: **+0.00305640**
+- log-score mixture e-value: **0.45749302**
+- mean Brier improvement vs Uniform: **+0.00017634**
+- Brier mixture e-value: **0.46066085**
+- mean actual-mass delta vs Uniform: **+0.00097703**
+- rank preserved: **9/9**
 
 ## Fixed claim rule
 
