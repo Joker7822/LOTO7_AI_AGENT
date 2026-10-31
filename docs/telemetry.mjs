@@ -310,8 +310,12 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     }));
     for (let i = 0; i < series[key].length; i++) {
       const p = series[key][i];
-      if (!Number.isInteger(p.round) || (i > 0 && p.round !== series[key][i - 1].round + 1)) {
-        throw new Error("将来検証の回別連続性を確認できません");
+      // A draw excluded from trusted evidence (e.g. single-source round 700)
+      // creates a legitimate gap. Enforce increasing, unique, positive rounds
+      // instead of inventing an OOS grade for the missing draw.
+      if (!Number.isInteger(p.round) || p.round < 1 ||
+          (i > 0 && p.round <= series[key][i - 1].round)) {
+        throw new Error("将来検証の回別順序・重複を確認できません");
       }
     }
   }
