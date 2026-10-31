@@ -214,3 +214,17 @@ def test_late_ungraded_702_never_blocks_new_703_evidence(tmp_path, monkeypatch):
     assert result["missed_past_targets"] == [702]
     assert fp.grade_file(root, 703).exists()
     assert not fp.grade_file(root, 702).exists()
+
+
+def test_primary_and_fallback_commit_freeze_with_original_issued_production():
+    for filename in ("weekly_production_publisher.yml", "weekly_production_fallback.yml"):
+        text = Path(".github/workflows", filename).read_text(encoding="utf-8")
+        freeze = text.index("python first_prize_research.py --mode freeze")
+        publication_gate = text.index("python production_ticket_geometry35.py --verify-canonical")
+        commit = text.index('git commit -m "chore:')
+        assert publication_gate < freeze < commit
+        assert "research/first_prize_oos" in text
+        assert "Refusing non-additive first-prize archive change" in text
+        assert 'date +%H%M)" -lt 1800' in text
+        assert text.count("      - name: Commit Production checkpoint") == 1
+        assert text.count("      - name: Validate Sakura sync payload") == 1
