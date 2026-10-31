@@ -1,9 +1,9 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-10-31T21:42:38+09:00",
+  "checked_at_jst": "2026-11-01T06:53:54+09:00",
   "latest_resolved_round": 701,
   "overall": "watch",
-  "input_snapshot_sha256": "9c49d96f17db6b43c7971a80809ba693f467ff9079779fd6ccc1709befac14fc",
+  "input_snapshot_sha256": "d389856e453de816def2acb0aab0f7c09abd1b6796cd8ac9594a6ef25923ac38",
   "governance": {
     "authority": "read_only_advisory",
     "permissions": {
@@ -31,8 +31,8 @@
         {
           "level": "watch",
           "code": "PAIR_CONTEXT_INT8_OVERFLOW",
-          "evidence": "corrupted_cooccurrence_cells=27; history_draws=701",
-          "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions."
+          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=701",
+          "next_action": "Legacy frozen model remains unchanged. A separately versioned int64 candidate passes independent matrix verification, but needs new pre-registered Future-OOS before any production adoption."
         }
       ]
     },
@@ -65,19 +65,19 @@
       ]
     },
     "research_skeptic": {
-      "status": "watch",
+      "status": "ok",
       "findings": [
         {
           "level": "ok",
           "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
-          "evidence": "history reused; mode=SEARCH; trials=776/800",
+          "evidence": "history reused; mode=VALIDATION_ONLY; trials=800/800",
           "next_action": "Continue predeclared workflow."
         },
         {
-          "level": "watch",
-          "code": "RESEARCH_TRIAL_LIMIT_APPROACHING",
-          "evidence": "draw-specific exploration consumed 776/800",
-          "next_action": "Honor existing plateau guard, then validate or wait for genuinely new data."
+          "level": "ok",
+          "code": "RESEARCH_TRIAL_LIMIT_ENFORCED",
+          "evidence": "draw-specific trials=800/800; mode=VALIDATION_ONLY; search_enabled=false",
+          "next_action": "Preserve the exhausted per-data budget; do not reset it without new data."
         }
       ]
     },
@@ -98,8 +98,8 @@
       "priority": "watch",
       "owner": "data_steward",
       "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-      "evidence": "corrupted_cooccurrence_cells=27; history_draws=701",
-      "next_action": "Use a separately versioned, revalidated model before changing pair_context arithmetic. Do not rewrite frozen predictions.",
+      "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=701",
+      "next_action": "Legacy frozen model remains unchanged. A separately versioned int64 candidate passes independent matrix verification, but needs new pre-registered Future-OOS before any production adoption.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
     },
@@ -109,15 +109,6 @@
       "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
       "evidence": "holdout=8/26",
       "next_action": "Keep all comparator evidence and wait until 26/26 for independent confirmation.",
-      "existing_workflow_or_human_required": true,
-      "autonomous_production_write_allowed": false
-    },
-    {
-      "priority": "watch",
-      "owner": "research_skeptic",
-      "issue_code": "RESEARCH_TRIAL_LIMIT_APPROACHING",
-      "evidence": "draw-specific exploration consumed 776/800",
-      "next_action": "Honor existing plateau guard, then validate or wait for genuinely new data.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
     }
