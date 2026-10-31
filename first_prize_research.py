@@ -329,12 +329,18 @@ def grade(csv_path: Path, source_path: Path, out: Path, root: Path) -> dict:
                if not grade_file(root, target).exists()]
     if not pending:
         return {"status": "all_frozen_targets_graded", "graded_count": len(found)}
-    target = pending[0]
-    if latest < target:
-        return {"status": "awaiting_verified_result", "target_round": target}
-    if latest > target:
-        # Cannot backfill after source validation moved to another draw.
-        return {"status": "missed_verification_window_no_backfill", "target_round": target}
+    # Never backfill an old draw, but also never let ONE missed historical
+    # verification window block new valid future OOS comparisons forever.
+    missed = [target for target in pending if target < latest]
+    if latest in pending:
+        target = latest
+    else:
+        upcoming = [target for target in pending if target > latest]
+        if upcoming:
+            return {"status": "awaiting_verified_result",
+                    "target_round": upcoming[0], "missed_past_targets": missed}
+        return {"status": "missed_verification_window_no_backfill",
+                "missed_past_targets": missed}
     freeze_obj = found[target]
     if history[-1]["抽せん日"] != freeze_obj["target_draw_date"]:
         raise ValueError("result draw date disagrees with prospective freeze")
@@ -357,6 +363,7 @@ def grade(csv_path: Path, source_path: Path, out: Path, root: Path) -> dict:
         json.dump(record, stream, ensure_ascii=False, sort_keys=True, indent=2)
         stream.write("\n")
     return {"status": "new_verified_grade", "target_round": target,
+            "missed_past_targets": missed,
             "production_first_prizes": scored["production_first_prize_count"],
             "random_control_first_prizes": scored["random_control_first_prize_count"]}
 
