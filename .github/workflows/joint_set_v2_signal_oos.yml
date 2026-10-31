@@ -98,13 +98,36 @@ jobs:
           import sys
           root = pathlib.Path(sys.argv[1])
           source = json.loads(pathlib.Path("loto7_agent_output/source_validation.json").read_text())
+          before = json.loads(pathlib.Path("loto7_agent_output/joint_set_v2_signal_oos_state.json").read_text())
           state = json.loads((root / "joint_set_v2_signal_oos_state.json").read_text())
-          if source["verification"] == "verified_two_result_sources" and source["latest"]["round"] == 700:
-              assert state["current_target_round"] == 701
-              assert (root / "joint_set_v2_signal_oos_registry.json").exists()
+          before_count = int(before["trusted_draws"])
+          after_count = int(state["trusted_draws"])
+          assert before_count <= after_count <= before_count + 1
+          before_target = before.get("current_target_round")
+          trusted_source = source["verification"] == "verified_two_result_sources"
+          latest_round = int(source["latest"]["round"])
+          after_target = state.get("current_target_round")
+          if before_target is None:
+              # Only the registered #700 verified prefix may create #701
+              # as the FIRST frozen target. An untrusted prefix cannot do so.
+              if trusted_source and latest_round == 700:
+                  assert after_count == before_count == 0
+                  assert after_target == 701
+              else:
+                  assert after_count == before_count
+                  assert after_target is None
+          elif after_target == before_target:
+              # Existing frozen predictions must survive an idempotent replay.
+              assert after_count == before_count
           else:
-              assert state["trusted_draws"] == 0
-          print("V2 prospective dry-run target:", state["current_target_round"])
+              # A new target is valid only immediately after the old frozen
+              # target was independently verified and scored exactly once.
+              assert trusted_source and latest_round == before_target
+              assert after_count == before_count + 1
+              assert after_target == before_target + 1
+          if after_target is not None:
+              assert (root / "joint_set_v2_signal_oos_registry.json").exists()
+          print("V2 prospective dry-run target:", after_target, "trusted:", after_count)
           PY
           git diff --exit-code -- loto7.csv loto7_agent_output/
 
