@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-10-31T20:01:44+09:00",
-  "source_commit": "42c4ff8d3d6f81512b268dcf1b2e7b534157419e",
-  "state_hashes_sha256": "b929ef642772aa82cf4146b557bd6684e57502940aef8ae5a78f8c6a52ee522d",
+  "generated_at_jst": "2026-10-31T21:40:03+09:00",
+  "source_commit": "047765b6ca008087df9c33fa48123a1d04c1e370",
+  "state_hashes_sha256": "59e31c272d3f3ac4083fb40074df66cb5cbecce9815abc0fbeb106a5d99d8a38",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-10-31T19:07:16+09:00",
+      "checked_at_jst": "2026-10-31T21:02:37+09:00",
       "latest": {
         "round": 701,
         "date": "2026-10-30",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-10-31T19:02:54+09:00",
+      "checked_at_jst": "2026-10-31T21:39:31+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -77,12 +77,17 @@
           ]
         },
         "research_skeptic": {
-          "status": "ok",
+          "status": "watch",
           "findings": [
             {
               "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
               "level": "ok",
-              "evidence": "history reused; mode=SEARCH; trials=544/800"
+              "evidence": "history reused; mode=SEARCH; trials=776/800"
+            },
+            {
+              "code": "RESEARCH_TRIAL_LIMIT_APPROACHING",
+              "level": "watch",
+              "evidence": "draw-specific exploration consumed 776/800"
             }
           ]
         },
@@ -109,15 +114,21 @@
           "priority": "watch",
           "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
           "evidence": "holdout=8/26"
+        },
+        {
+          "owner": "research_skeptic",
+          "priority": "watch",
+          "issue_code": "RESEARCH_TRIAL_LIMIT_APPROACHING",
+          "evidence": "draw-specific exploration consumed 776/800"
         }
       ],
       "latest_resolved_round": 701
     },
     "research": {
-      "generation": 5788,
-      "total_research_evaluations": 40515,
+      "generation": 5878,
+      "total_research_evaluations": 41145,
       "champion_version": "baseline-5fdb8dc2ad",
-      "last_run_jst": "2026-10-31T19:59:14+09:00"
+      "last_run_jst": "2026-10-31T21:30:29+09:00"
     },
     "holdout": {
       "status": "active",
@@ -186,7 +197,7 @@
     },
     "budget": {
       "mode": "SEARCH",
-      "signal_trials_this_data": 596,
+      "signal_trials_this_data": 776,
       "max_signal_trials_per_data": 800
     }
   },
@@ -197,9 +208,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 41195028234,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41195028234",
-      "updated_at": "2026-10-31T11:00:30Z",
+      "run_id": 41202084360,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41202084360",
+      "updated_at": "2026-10-31T12:39:51Z",
       "recent_failure_count": 1
     },
     {
@@ -219,20 +230,20 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 41190961914,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41190961914",
-      "updated_at": "2026-10-31T10:02:58Z",
+      "run_id": 41201979732,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41201979732",
+      "updated_at": "2026-10-31T12:39:35Z",
       "recent_failure_count": 0
     },
     {
       "file": "joint_set_v2_signal_oos.yml",
       "label": "v2将来検証",
-      "health": "block",
-      "status": "completed",
-      "conclusion": "failure",
-      "run_id": 41190859115,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41190859115",
-      "updated_at": "2026-10-31T10:00:30Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 41202084336,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41202084336",
+      "updated_at": "2026-10-31T12:39:36Z",
       "recent_failure_count": 2
     },
     {
@@ -554,13 +565,13 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "42c4ff8d3d6f81512b268dcf1b2e7b534157419e",
-    "snapshot_generated_at_jst": "2026-10-31T20:01:44+09:00",
-    "computed_at_jst": "2026-10-31T11:01:44+00:00",
-    "overall": "block",
+    "source_commit": "047765b6ca008087df9c33fa48123a1d04c1e370",
+    "snapshot_generated_at_jst": "2026-10-31T21:40:03+09:00",
+    "computed_at_jst": "2026-10-31T12:40:03+00:00",
+    "overall": "watch",
     "counts": {
-      "block": 1,
-      "watch": 1,
+      "block": 0,
+      "watch": 2,
       "info": 1
     },
     "checkpoints": {
@@ -579,19 +590,6 @@
     },
     "tasks": [
       {
-        "id": "49c7331b26091dbc",
-        "priority": "block",
-        "code": "WORKFLOW_FAILED:joint_set_v2_signal_oos.yml",
-        "owner": "将来検証エージェント",
-        "title": "v2将来検証：最新実行が失敗",
-        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
-        "evidence": "41190859115",
-        "recommended_action": "SHA固定されたv2台帳を確認し、未凍結予測の事後復元は行わないでください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41190859115"
-      },
-      {
         "id": "bef623a2503719e7",
         "priority": "watch",
         "code": "COUNCIL:PAIR_CONTEXT_INT8_OVERFLOW",
@@ -599,6 +597,19 @@
         "title": "旧pair_context計算で整数オーバーフローが検出されました。モデルの別バージョンで修正・検証が必要です。",
         "detail": "監査の判定と元の公表記録を照合してください。",
         "evidence": "PAIR_CONTEXT_INT8_OVERFLOW",
+        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
+      },
+      {
+        "id": "70d2802340081a69",
+        "priority": "watch",
+        "code": "COUNCIL:RESEARCH_TRIAL_LIMIT_APPROACHING",
+        "owner": "研究評価エージェント",
+        "title": "同じ抽せん履歴での探索予算が上限に近づいています。",
+        "detail": "監査の判定と元の公表記録を照合してください。",
+        "evidence": "RESEARCH_TRIAL_LIMIT_APPROACHING",
         "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
