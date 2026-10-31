@@ -48,5 +48,10 @@ def test_verified_results_trigger_registered_701_freeze_workflows():
         assert "types: [completed]" in workflow
     v2 = (ROOT / ".github/workflows/joint_set_v2_signal_oos.yml").read_text()
     assert "Dry-run registered prospective freeze without main writes" in v2
-    assert 'state["current_target_round"] == 701' in v2
+    # The first frozen target is #701, but after grading it the current
+    # target advances. Guard PR dry-run against the actual immutable state.
+    assert "before_target = before.get(\"current_target_round\")" in v2
+    assert "assert after_target == 701" in v2
+    assert "assert after_target == before_target + 1" in v2
+    assert "assert after_count == before_count + 1" in v2
     assert 'git diff --exit-code -- loto7.csv loto7_agent_output/' in v2

@@ -200,10 +200,15 @@ def test_real_registration_lifecycle_699_700_701_702_and_miss(tmp_path, monkeypa
 
 
 def test_guard_rejects_registry_without_matching_freeze_history(tmp_path):
-    for name in (shadow.REGISTRATION_NAME, shadow.STATE_NAME):
-        src = Path("loto7_agent_output") / name
-        (tmp_path / name).write_bytes(src.read_bytes())
+    # Isolate a genuine *pre-freeze* registration. Reusing a live state
+    # (which already has #701 result rows and #702 frozen) without its
+    # append-only evidence would fail an earlier, unrelated invariant.
+    src = Path("loto7_agent_output") / shadow.REGISTRATION_NAME
+    (tmp_path / shadow.REGISTRATION_NAME).write_bytes(src.read_bytes())
     reg = json.loads((tmp_path / shadow.REGISTRATION_NAME).read_text(encoding="utf-8"))
+    (tmp_path / shadow.STATE_NAME).write_text(
+        json.dumps(shadow.default_state(reg)), encoding="utf-8"
+    )
     p = np.full(shadow.N_NUMBERS, shadow.PICKS / shadow.N_NUMBERS)
     canonical = shadow.canonical_vector(p)
     registry = {
@@ -221,8 +226,10 @@ def test_real_prefrozen_target_rejects_missing_freeze_history(tmp_path):
     state, registry, history = copy_existing_shadow_fixture(tmp_path)
     if not registry:
         pytest.skip("pinned historical #699 fixture predates the first #701 freeze")
-    assert state["current_target_round"] == 701
-    assert history[701] == registry
+    # The real current target advances after a trusted grade. Never assume
+    # a hard-coded #701 when the immutable registry has already frozen #702.
+    assert state["current_target_round"] == registry["target_round"]
+    assert history[registry["target_round"]] == registry
     (tmp_path / shadow.FREEZE_HISTORY_NAME).unlink()
     with pytest.raises(ValueError, match="immutable freeze history"):
         guard.validate_existing_shadow(tmp_path)
