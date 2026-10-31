@@ -241,3 +241,35 @@ def test_pair_context_overflow_diagnostic_is_exact_and_non_mutating(root):
     assert "corrupted_cooccurrence_cells=" in finding[0]["evidence"]
     assert role["status"] == "watch"
     assert report_path.read_bytes() == before
+
+
+def test_repaired_pair_context_kernel_failure_blocks_source_governance(root, monkeypatch):
+    import numpy as np
+
+    # Even if the old int8 issue is known, a regression in the independently
+    # checked int64 candidate must never be presented as source-health OK.
+    monkeypatch.setattr(council, "checked_cooccurrence",
+                        lambda _x: np.zeros((37, 37), dtype=np.int8))
+    role = council.data_steward(root, root / "loto7_agent_output", NOW)
+    assert role["status"] == "block"
+    assert role["findings"][0]["code"] == "DATA_INTEGRITY_BLOCK"
+
+
+def test_exhausted_search_budget_is_enforced_without_wiping_history(root):
+    path = root / "loto7_agent_output" / "research_cycle_guard.json"
+    state = json.loads(path.read_text(encoding="utf-8"))
+    state.update(
+        signal_trials_this_data=800, max_signal_trials_per_data=800,
+        mode="VALIDATION_ONLY", search_enabled=False,
+    )
+    path.write_text(json.dumps(state), encoding="utf-8")
+    result = council.research_skeptic(root / "loto7_agent_output")
+    assert result["status"] == "ok"
+    assert any(f["code"] == "RESEARCH_TRIAL_LIMIT_ENFORCED" for f in result["findings"])
+    assert not any(f["code"] == "RESEARCH_TRIAL_LIMIT_APPROACHING" for f in result["findings"])
+
+    state["search_enabled"] = True
+    path.write_text(json.dumps(state), encoding="utf-8")
+    result = council.research_skeptic(root / "loto7_agent_output")
+    assert result["status"] == "block"
+    assert result["findings"][0]["code"] == "RESEARCH_EVIDENCE_BOUNDARY_BLOCK"
