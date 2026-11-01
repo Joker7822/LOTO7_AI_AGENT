@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-02T07:44:24+09:00",
-  "source_commit": "8c1d3dc68eccf9ecfc3b1040135a744dd3985a68",
-  "state_hashes_sha256": "5b2b2a15abf910387a8aa980c5f218d5d97244c0b02166b5e3ad1fa491c2e90b",
+  "generated_at_jst": "2026-11-02T08:20:01+09:00",
+  "source_commit": "aae291ec0f310d7f614734cd2dbe0572f248230e",
+  "state_hashes_sha256": "db802da431a54e4206f06c4d88095bf21469a1747a2d8b2a735f7b413e93fbb4",
   "sources": {
     "source": {
       "status": "ok",
@@ -199,12 +199,12 @@
     {
       "file": "continuous_loto7_v4.yml",
       "label": "継続研究",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 41349251462,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41349251462",
-      "updated_at": "2026-11-01T20:57:13Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 41361470644,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41361470644",
+      "updated_at": "2026-11-01T23:18:40Z",
       "recent_failure_count": 0
     },
     {
@@ -221,12 +221,12 @@
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 41349458605,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41349458605",
-      "updated_at": "2026-11-01T20:58:49Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 41361476750,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41361476750",
+      "updated_at": "2026-11-01T23:18:43Z",
       "recent_failure_count": 0
     },
     {
@@ -268,9 +268,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 41245600811,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41245600811",
-      "updated_at": "2026-10-31T21:52:38Z",
+      "run_id": 41361457790,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41361457790",
+      "updated_at": "2026-11-01T23:18:36Z",
       "recent_failure_count": 0
     }
   ],
@@ -561,12 +561,86 @@
     "status": "stale_or_unsafe",
     "tasks": []
   },
+  "prediction_metrics": {
+    "version": "prediction-metrics-scorecard-v1",
+    "scope": "read_only_aggregate_diagnostics",
+    "prediction_skill_confirmed": false,
+    "historical": {
+      "status": "historical_only",
+      "rounds": 601,
+      "start_round": 101,
+      "end_round": 701,
+      "top7_mean_hits": 1.3693843594009982,
+      "uniform_expected_hits": 1.3243243243243243,
+      "top7_delta_vs_uniform": 0.04506003507667389,
+      "p_value_exploratory": 0.24289398977865218
+    },
+    "random_baseline": {
+      "status": "historical_only",
+      "rounds": 601,
+      "portfolio_mean_max_hits": 2.249584026622296,
+      "random_mean_max_hits": 2.424604825291181,
+      "mean_max_hits_delta": -0.1750207986688852,
+      "portfolio_mean_score": 2.567587354409318,
+      "random_mean_score": 2.7580944292845255,
+      "mean_score_delta": -0.19050707487520757,
+      "random_portfolios_per_round": 32
+    },
+    "calibration": {
+      "status": "descriptive_only",
+      "trusted_draws": 9,
+      "horizon_draws": 26,
+      "mean_log_improvement_vs_uniform": 0.003056401448568508,
+      "mean_brier_improvement_vs_uniform": 0.00017633740270782405,
+      "mean_log_improvement_vs_base": 0.14308171970046857,
+      "mean_brier_improvement_vs_base": 0.01717103681674132,
+      "ece": null,
+      "reliability_binning": "not_available_from_aggregate_state",
+      "skill_claim": false
+    },
+    "reference_payout": {
+      "status": "historical_hypothetical_only",
+      "tickets": 3005,
+      "winning_tickets": 127,
+      "reference_cost_yen": 901500,
+      "reference_payout_yen": 175900,
+      "reference_net_yen": -725600,
+      "reference_roi": 0.19511924570160843,
+      "actual_profit": null
+    },
+    "future_oos": {
+      "status": "diagnostic_only",
+      "trusted_draws": 8,
+      "horizon_draws": 26,
+      "policy_registered_before_first_outcome": false,
+      "claim_status": "not_confirmed_holdout_incomplete",
+      "confirmed": false
+    },
+    "provenance": {
+      "historical": {
+        "file": "historical_replay_summary.json",
+        "sha256": "30da6bc633a1444450e0cb70cf3668aee6ed95d34a44e489857ec3f759d1e5dd"
+      },
+      "reconciliation": {
+        "file": "historical_reconciliation_summary.json",
+        "sha256": "728c00dc91a3f458dce941a1be48f8677dedbd11b451b119fc0fc4c388f9257e"
+      },
+      "calibration": {
+        "file": "champion_calibration_oos_state.json",
+        "sha256": "c236e05f53d6609e9de8839c66db3e537aac1cacbb7b8f138f8331967342c320"
+      },
+      "future_oos": {
+        "file": "future_holdout_evidence.json",
+        "sha256": "88bb9c0bc2c2da96fc31be4cd2c898b52087e4a5fbfd5a209aa906b54033b2d2"
+      }
+    }
+  },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "8c1d3dc68eccf9ecfc3b1040135a744dd3985a68",
-    "snapshot_generated_at_jst": "2026-11-02T07:44:24+09:00",
-    "computed_at_jst": "2026-11-01T22:44:24+00:00",
+    "source_commit": "aae291ec0f310d7f614734cd2dbe0572f248230e",
+    "snapshot_generated_at_jst": "2026-11-02T08:20:01+09:00",
+    "computed_at_jst": "2026-11-01T23:20:01+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
