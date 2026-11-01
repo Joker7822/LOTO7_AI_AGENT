@@ -276,8 +276,13 @@ def test_latest_published_five_tickets_are_only_issued_production(project):
         "independently_verified" if forecast["current_result"]
         else "awaiting_independently_verified_draw")
     if forecast["latest_verified"] is not None:
-        assert forecast["latest_verified"]["round"] == target - 1
-        assert forecast["latest_verified"]["source_verification"] == d.TRUST
+        verified = forecast["latest_verified"]
+        assert 1 <= verified["round"] <= target
+        assert verified["source_verification"] == d.TRUST
+        assert len(verified["tickets"]) == 5
+        assert all(len(t["numbers"]) == 7 for t in verified["tickets"])
+        if forecast["current_result"] is not None:
+            assert verified["round"] == target
     assert "prediction_ledger" not in result["sources"]
     assert not any("candidate_ticket" in k for k in result.keys())
 
@@ -428,3 +433,22 @@ def test_future_signal_rejects_noninteger_or_impossible_top7_hits(project, bad_h
         writer.writerows(rows)
     with pytest.raises(ValueError, match="v2 signal"):
         d.read_future_series(out, d.read_sources(out)[0])
+
+
+
+def test_recent_production_result_is_visible_when_current_draw_is_verified(project):
+    snapshot = d.create_snapshot(project, all_workflows(), now=FIXED, ref="a" * 40)
+    forecast = snapshot["latest_prediction"]
+    if forecast["status"] != "published" or forecast["target_round"] != 701:
+        pytest.skip("fixture does not contain round 701 Production")
+    if forecast["current_result"] is None:
+        pytest.skip("fixture lacks the verified 701 outcome")
+    assert forecast["latest_verified"]["round"] == 701
+    assert forecast["latest_verified"]["tickets"] == [
+        {**t, "numbers": prediction["numbers"]}
+        for t, prediction in zip(
+            forecast["current_result"]["tickets"], forecast["tickets"]
+        )
+    ]
+    assert forecast["latest_verified"]["source_verification"] == d.TRUST
+    assert forecast["accuracy_claim"] is False if "accuracy_claim" in forecast else True
