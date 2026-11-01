@@ -207,6 +207,42 @@
         </div>
       </section>
 
+      <section class="section" id="prediction-metrics" aria-labelledby="prediction-metrics-title">
+        <div class="section-heading">
+          <div><span class="section-index">METRICS / SEPARATE EVIDENCE</span><h2 id="prediction-metrics-title">予測指標の分離レポート</h2></div>
+          <p>過去一致数・ランダム対照・確率予測・参考払戻を混同しない</p>
+        </div>
+        <div class="science-grid">
+          <article class="panel science-panel">
+            <div class="panel-heading"><h3>過去の一致数</h3><span class="label-outline">過去検証のみ</span></div>
+            <p class="science-note" id="metric-history-scope">集計中</p>
+            <div class="fact-row"><span>Top7平均（公平抽せん理論）</span><b id="metric-history-hits">—</b></div>
+            <div class="fact-row"><span>理論との差（個）</span><b id="metric-history-delta">—</b></div>
+          </article>
+          <article class="panel science-panel">
+            <div class="panel-heading"><h3>同条件ランダム対照</h3><span class="label-outline">過去検証のみ</span></div>
+            <p class="science-note" id="metric-random-scope">集計中</p>
+            <div class="fact-row"><span>5口最大一致の平均差</span><b id="metric-random-max">—</b></div>
+            <div class="fact-row"><span>複合スコア差</span><b id="metric-random-score">—</b></div>
+          </article>
+          <article class="panel science-panel">
+            <div class="panel-heading"><h3>確率予測の校正関連スコア</h3><span class="label-outline">未来・診断のみ</span></div>
+            <p class="science-note" id="metric-calibration-scope">集計中</p>
+            <div class="fact-row"><span>一様予測比のlog-score改善</span><b id="metric-calibration-log">—</b></div>
+            <div class="fact-row"><span>一様予測比のBrier改善</span><b id="metric-calibration-brier">—</b></div>
+            <p class="science-note">正は損失の改善。ECE・reliability diagramは未計算で、校正の実証ではありません。</p>
+          </article>
+          <article class="panel science-panel">
+            <div class="panel-heading"><h3>参考払戻率</h3><span class="label-outline">実購入損益ではない</span></div>
+            <p class="science-note" id="metric-payout-scope">集計中</p>
+            <div class="fact-row"><span>参考購入額</span><b id="metric-payout-cost">—</b></div>
+            <div class="fact-row"><span>参考回収率・払戻</span><b id="metric-payout-return">—</b></div>
+            <p class="science-note">当時の公表当選額を用いた参考値であり、実際の収益を表しません。</p>
+          </article>
+        </div>
+        <p class="science-note">26回固定の将来検証：<strong id="metric-future-evidence">未確認</strong>。上記4種類のスコアを合算して予測能力を宣言しません。</p>
+      </section>
+
       <section class="section" id="operations" aria-labelledby="section-operations">
         <div class="section-heading"><div><span class="section-index">04 / GOVERNANCE</span><h2 id="section-operations">役割ごとの稼働状態</h2></div><p>5つの監査役が独立して確認</p></div>
         <div id="role-grid" class="role-grid"></div>
