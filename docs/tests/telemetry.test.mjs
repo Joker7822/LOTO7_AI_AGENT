@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {SNAPSHOT_VERSION, normalizeSnapshot, SERIES_TABS} from "../telemetry.mjs";
+import {SNAPSHOT_VERSION, normalizeSnapshot, normalizePredictionMetrics, SERIES_TABS} from "../telemetry.mjs";
 
 const FIXED = new Date("2026-10-18T12:16:00Z");
 const snapshot = () => ({
@@ -120,4 +120,34 @@ test("untrusted future draws may create valid gaps without inventing grades",()=
   assert.throws(()=>normalizeSnapshot(s,FIXED),/回別順序・重複/);
   s.series.portfolio[1].round=701.5;
   assert.throws(()=>normalizeSnapshot(s,FIXED),/回別順序・重複/);
+});
+
+test("prediction metrics remain segregated and can never claim realized payout",()=>{
+  const raw={
+    version:"prediction-metrics-scorecard-v1",
+    scope:"read_only_aggregate_diagnostics",prediction_skill_confirmed:false,
+    historical:{status:"historical_only",rounds:601,start_round:101,end_round:701,
+      top7_mean_hits:1.3694,uniform_expected_hits:1.3243,top7_delta_vs_uniform:0.0451},
+    random_baseline:{status:"historical_only",rounds:601,
+      portfolio_mean_max_hits:2.2496,random_mean_max_hits:2.4246,
+      mean_max_hits_delta:-0.175,mean_score_delta:-0.19},
+    calibration:{status:"descriptive_only",trusted_draws:9,horizon_draws:26,
+      mean_log_improvement_vs_uniform:0.003,mean_brier_improvement_vs_uniform:0.00017,
+      ece:null},
+    reference_payout:{status:"historical_hypothetical_only",tickets:3005,
+      reference_cost_yen:901500,reference_payout_yen:175900,
+      reference_roi:0.1951,actual_profit:null},
+    future_oos:{status:"diagnostic_only",trusted_draws:8,horizon_draws:26,
+      policy_registered_before_first_outcome:false,confirmed:false,claim_status:"not_confirmed"}
+  };
+  const x=normalizePredictionMetrics(raw);
+  assert.equal(x.randomBaseline.maxDelta,-0.175);
+  assert.equal(x.calibration.trusted,9);
+  assert.equal(x.referencePayout.roi,0.1951);
+  assert.equal(x.futureOos.policyPreRegistered,false);
+  assert.equal(normalizePredictionMetrics(null).calibration.status,"unavailable");
+  const bad=structuredClone(raw);bad.reference_payout.actual_profit=725600;
+  assert.throws(()=>normalizePredictionMetrics(bad),/参考収支/);
+  const bad2=structuredClone(raw);bad2.prediction_skill_confirmed=true;
+  assert.throws(()=>normalizePredictionMetrics(bad2),/権限/);
 });
