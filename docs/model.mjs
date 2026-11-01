@@ -26,6 +26,7 @@ export const ISSUE_JA = Object.freeze({
   RESEARCH_TRIAL_LIMIT_APPROACHING: "同じ履歴での研究探索数が上限に近づいています。",
   SOURCE_REFRESH_OVERDUE: "抽せん結果の確認時刻が古くなっています。",
   RESULT_NOT_TWO_SOURCE_VERIFIED: "最新結果の2ソース照合がまだ完了していません。",
+  PAIR_CONTEXT_INT8_OVERFLOW: "旧int8の誤計算は残存。別版int64の数値修正は検証済みですが、前向き検証と承認までProductionへ移行しません。",
   FREEZE_701_NOW: "第700回の確認後、第701回の予測を結果公表前に凍結してください。",
   PRODUCTION_DEADLINE_PASSED: "発行期限を過ぎています。事後発行はできません。"
 });
