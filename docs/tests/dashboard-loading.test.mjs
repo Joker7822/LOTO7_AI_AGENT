@@ -22,15 +22,15 @@ test("actual checked-in public snapshot is safe to normalize", () => {
   assert.equal(rendered.issuedPrediction.status,s.latest_prediction.status);
 });
 
-test("same-origin Pages snapshot loads without third-party requests", async () => {
+test("Pages wins equal-timestamp mirror comparison", async () => {
   const s=published(),calls=[];
   const got=await loadPublishedSnapshot(async url=>{
     calls.push(url);
     return response(s);
   },new Date(s.generated_at_jst));
-  assert.equal(calls.length,1);
-  assert.ok(calls[0].startsWith(SNAPSHOT_URL));
-  assert.ok(!calls[0].startsWith(SNAPSHOT_MIRROR_URL));
+  assert.equal(calls.length,2);
+  assert.ok(calls.some(x=>x.startsWith(SNAPSHOT_URL)));
+  assert.ok(calls.some(x=>x.startsWith(SNAPSHOT_MIRROR_URL)));
   assert.equal(got.source,SNAPSHOT_URL);
   assert.equal(got.snapshot.outdated,false);
 });
@@ -84,4 +84,29 @@ test("if both sources fail, the UI must show an error, never a fabricated green 
     loadPublishedSnapshot(async()=>response({},503),new Date(),50),
     /公開状態JSONを取得・検証できません/
   );
+});
+
+
+test("fresh but older Pages must not hide the newer raw/main data", async () => {
+  const current=published();
+  const pages=structuredClone(current);
+  pages.generated_at_jst=new Date(Date.parse(current.generated_at_jst)-60_000).toISOString();
+  const got=await loadPublishedSnapshot(async url=>response(
+    url.startsWith(SNAPSHOT_URL)?pages:current
+  ),new Date(current.generated_at_jst));
+  assert.equal(got.source,SNAPSHOT_MIRROR_URL);
+  assert.equal(got.snapshot.outdated,false);
+  assert.equal(got.snapshot.generatedAt,new Date(current.generated_at_jst).toISOString());
+});
+
+test("an invalid newer mirror cannot displace validated Pages evidence", async () => {
+  const current=published(),bad=structuredClone(current);
+  bad.generated_at_jst=new Date(Date.parse(current.generated_at_jst)+30_000).toISOString();
+  bad.operations_plan.authority.production_publication=true;
+  const got=await loadPublishedSnapshot(async url=>response(
+    url.startsWith(SNAPSHOT_URL)?current:bad
+  ),new Date(current.generated_at_jst));
+  assert.equal(got.source,SNAPSHOT_URL);
+  assert.equal(got.errors.length,1);
+  assert.equal(got.snapshot.outdated,false);
 });
