@@ -5,21 +5,21 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_dashboard_refreshes_on_evidence_workflow_completion():
+def test_dashboard_refreshes_on_critical_evidence_without_research_fanout():
     text = (ROOT / ".github/workflows/dashboard_ops_snapshot.yml").read_text()
     assert "  workflow_run:" in text
     assert "    types: [completed]" in text
+    run_section = text.split("  workflow_run:", 1)[1].split("  workflow_dispatch:", 1)[0]
+    for name in ("LOTO7 Independent Result Corroboration", "Weekly Production Publisher"):
+        assert f'- "{name}"' in run_section
     for name in (
-        "LOTO7 Independent Result Corroboration",
-        "Continuous Learning Agent Prospective",
-        "Joint Set v2 Signal Future OOS",
-        "Predictive Expert Agent Research",
-        "Continuous LOTO7 Research v4",
-        "LOTO7 Agent Role Council",
+        "Continuous Learning Agent Prospective", "Joint Set v2 Signal Future OOS",
+        "Predictive Expert Agent Research", "Continuous LOTO7 Research v4",
+        "LOTO7 Agent Role Council", "Pair Context v2 Numeric Diagnostics",
+        "Browser Ops Snapshot",
     ):
-        assert f'- "{name}"' in text
-    # The snapshot itself cannot trigger a workflow_run feedback loop.
-    assert '"Browser Ops Snapshot"' not in text.split("  workflow_run:", 1)[1].split("  workflow_dispatch:", 1)[0]
+        assert f'- "{name}"' not in run_section
+    assert '- cron: "13,43 * * * *"' in text
     assert "git add -- docs/data/dashboard_snapshot.json" in text
 
 
