@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import re
 from pathlib import Path
@@ -33,7 +34,13 @@ def scan_workflows(directory: Path) -> list[dict]:
                     triggers.append(active_trigger)
                 in_workflow_names = False
             if line.startswith("    workflows:") and active_trigger == "workflow_run":
-                in_workflow_names = True
+                payload = line.split(":", 1)[1].strip()
+                if payload.startswith("[") and payload.endswith("]"):
+                    values = next(csv.reader([payload[1:-1]], skipinitialspace=True))
+                    dependencies.extend(value.strip().strip("'\"") for value in values if value.strip())
+                    in_workflow_names = False
+                else:
+                    in_workflow_names = True
                 continue
             if in_workflow_names and not line.startswith("      ") and line.strip():
                 in_workflow_names = False
