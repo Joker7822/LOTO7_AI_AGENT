@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-02T08:20:01+09:00",
-  "source_commit": "aae291ec0f310d7f614734cd2dbe0572f248230e",
-  "state_hashes_sha256": "db802da431a54e4206f06c4d88095bf21469a1747a2d8b2a735f7b413e93fbb4",
+  "generated_at_jst": "2026-11-02T08:36:26+09:00",
+  "source_commit": "d994b4326acbc4d752aad1c7abc33b1c51072240",
+  "state_hashes_sha256": "04c16274adbb7cd4ec72de266732c0e38d1f19efac699587a1650f7a9dcb0597",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-02T05:57:02+09:00",
+      "checked_at_jst": "2026-11-02T08:20:51+09:00",
       "latest": {
         "round": 701,
         "date": "2026-10-30",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-02T05:58:44+09:00",
+      "checked_at_jst": "2026-11-02T08:35:24+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -202,9 +202,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 41361470644,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41361470644",
-      "updated_at": "2026-11-01T23:18:40Z",
+      "run_id": 41362858710,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41362858710",
+      "updated_at": "2026-11-01T23:35:36Z",
       "recent_failure_count": 0
     },
     {
@@ -224,9 +224,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 41361476750,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41361476750",
-      "updated_at": "2026-11-01T23:18:43Z",
+      "run_id": 41362858643,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41362858643",
+      "updated_at": "2026-11-01T23:35:36Z",
       "recent_failure_count": 0
     },
     {
@@ -638,9 +638,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "aae291ec0f310d7f614734cd2dbe0572f248230e",
-    "snapshot_generated_at_jst": "2026-11-02T08:20:01+09:00",
-    "computed_at_jst": "2026-11-01T23:20:01+00:00",
+    "source_commit": "d994b4326acbc4d752aad1c7abc33b1c51072240",
+    "snapshot_generated_at_jst": "2026-11-02T08:36:26+09:00",
+    "computed_at_jst": "2026-11-01T23:36:26+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
@@ -667,7 +667,7 @@
         "priority": "watch",
         "code": "COUNCIL:PAIR_CONTEXT_INT8_OVERFLOW",
         "owner": "データ管理エージェント",
-        "title": "旧pair_context計算で整数オーバーフローが検出されました。モデルの別バージョンで修正・検証が必要です。",
+        "title": "旧pair_context（int8）には共起回数のオーバーフローが残ります。別版int64は数値修正済みです。最新の検証記録と新規Future-OOSを確認するまでProductionには移行しません。",
         "detail": "監査の判定と元の公表記録を照合してください。",
         "evidence": "PAIR_CONTEXT_INT8_OVERFLOW",
         "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
