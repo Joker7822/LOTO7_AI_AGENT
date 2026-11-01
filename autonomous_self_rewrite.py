@@ -167,6 +167,37 @@ def prospective_promotion_status(root: Path, info: dict) -> dict:
     }
 
 
+
+# Cross-platform NumPy aggregation can differ by a few floating-point ULPs.
+# Never compare serialized diagnostic floats bit-for-bit, but reject any
+# material disagreement, missing fields, nonfinite values or changed flags.
+DIAGNOSTIC_ABS_TOL = 1e-12
+
+
+def diagnostics_reproduce(actual: dict, stored: dict) -> bool:
+    if not isinstance(stored, dict) or actual.keys() != stored.keys():
+        return False
+    for field in ("evaluated_historical_draws", "historical_only",
+                  "independent_future_evidence", "production_eligible"):
+        if type(stored[field]) is not type(actual[field]) or stored[field] != actual[field]:
+            return False
+    for field in ("mean_log_edge", "mean_top7_hits", "uniform_expected_top7_hits"):
+        value = stored[field]
+        if (type(value) not in (float, int)
+                or not math.isfinite(value)
+                or not math.isclose(float(actual[field]), float(value),
+                                    rel_tol=0.0, abs_tol=DIAGNOSTIC_ABS_TOL)):
+            return False
+    blocks = stored["chronological_block_log_edges"]
+    expected = actual["chronological_block_log_edges"]
+    if not isinstance(blocks, list) or len(blocks) != len(expected):
+        return False
+    return all(type(value) in (float, int) and math.isfinite(value)
+               and math.isclose(float(reference), float(value), rel_tol=0.0,
+                                abs_tol=DIAGNOSTIC_ABS_TOL)
+               for reference, value in zip(expected, blocks))
+
+
 def plan(root: Path) -> tuple[dict, str | None]:
     root = root.resolve()
     info, history = lab.inspect(root)
@@ -213,12 +244,7 @@ def plan(root: Path) -> tuple[dict, str | None]:
     # new configurations, reopen a research budget, or enter future OOS.
     actual = lab.score_candidate(history, cfg)
     stored = winner["diagnostic"]
-    if (actual.keys() != stored.keys()
-            or any(abs(float(a) - float(b)) > 1e-10
-                   for k in ("mean_log_edge", "mean_top7_hits")
-                   for a, b in [(actual[k], stored[k])])
-            or actual["chronological_block_log_edges"] !=
-               stored["chronological_block_log_edges"]):
+    if not diagnostics_reproduce(actual, stored):
         raise ValueError("historical learned result cannot be independently reproduced")
     state_sha = hashlib.sha256(
         (root / "loto7_agent_output" / lab.STATE).read_bytes()
