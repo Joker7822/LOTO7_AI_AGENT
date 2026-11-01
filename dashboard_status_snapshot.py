@@ -572,6 +572,10 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         sha["always_on_research"] = activity_hash
     if research_hash is not None:
         sha["scientific_validation"] = research_hash
+    metric_scorecard = build_scorecard(out)
+    for key, provenance in metric_scorecard["provenance"].items():
+        if provenance["sha256"]:
+            sha["prediction_metric_" + key] = provenance["sha256"]
     if len(workflows) != len(WORKFLOWS):
         raise error("workflow telemetry missing items")
     filenames = [x.get("file") for x in workflows]
@@ -590,7 +594,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         "always_on_accuracy": always_on,
         "research_application": application,
         "research_priorities": priorities,
-        "prediction_metrics": build_scorecard(out),
+        "prediction_metrics": metric_scorecard,
         "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
     }
     snapshot["operations_plan"] = build_plan(snapshot, now=moment)
