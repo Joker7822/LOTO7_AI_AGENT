@@ -173,18 +173,6 @@ def preview(root: Path, source: dict, published: dict) -> tuple[dict, dict[str, 
         raise ValueError("issued future ticket source hash does not match current historical data")
 
     draws = trusted_draws(out)
-    latest_previous = draws.get(target - 1)
-    historical = None
-    if latest_previous:
-        prev_tickets = forecast_group(active, target - 1)
-        if prev_tickets:
-            historical = {
-                "round": target - 1, "date": latest_previous["date"],
-                "main": latest_previous["main"],
-                "bonus": latest_previous["bonus"],
-                "tickets": grade(prev_tickets, latest_previous),
-                "source_verification": TRUST,
-            }
     # The current target must not be assumed graded just because its scheduled
     # date has passed; actuals are accepted ONLY from an independently verified
     # result event. Cross-check result and source report when they refer to it.
@@ -197,6 +185,33 @@ def preview(root: Path, source: dict, published: dict) -> tuple[dict, dict[str, 
             actual = None
         elif actual["main"] != source["latest"].get("main") or actual["bonus"] != source["latest"].get("bonus"):
             raise ValueError("official verified result disagrees with current source")
+    # "Most recently verified" is NOT necessarily target - 1. A draw may
+    # be single-source/degraded (round 700), and the latest issued target
+    # itself may already be verified (round 701). Search the immutable issued
+    # ledger backwards; never manufacture a past forecast or grade an
+    # invalidated ticket. The current target is eligible only after passing
+    # the same source-consistency check as current_result.
+    eligible_rounds = [r for r in draws if r < target and r <= source_round]
+    if actual is not None:
+        eligible_rounds.append(target)
+    historical = None
+    for rnd in sorted(eligible_rounds, reverse=True):
+        historical_tickets = tickets if rnd == target else forecast_group(active, rnd)
+        if not historical_tickets:
+            continue
+        verified = actual if rnd == target else draws[rnd]
+        historical = {
+            "round": rnd, "date": verified["date"],
+            "main": verified["main"], "bonus": verified["bonus"],
+            "source_verification": TRUST,
+            "issued_at_jst": historical_tickets[0]["prediction_created_at_jst"],
+            "tickets": [
+                {**scored, "numbers": checked_numbers(issued["predicted_numbers"], 7)}
+                for scored, issued in zip(grade(historical_tickets, verified),
+                                          historical_tickets)
+            ],
+        }
+        break
     if source_round >= target and actual is None:
         result_status = "awaiting_independently_verified_draw"
     elif actual:

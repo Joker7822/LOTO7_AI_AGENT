@@ -98,3 +98,50 @@ test("702+ disjoint35 issued Production label and 35 distinct numbers render",()
   r.model="baseline-5fdb8dc2ad";
   assert.throws(()=>normalizeIssuedPrediction(r),/配置方式/);
 });
+
+
+test("verified round 701 must appear in recent history, not as absent",()=>{
+  const r=data();
+  r.target_round=701;
+  r.source_base_round=700;
+  r.draw_date="2026-10-30";
+  r.published_at_jst="2026-10-30T15:20:56+09:00";
+  r.tickets=[
+    [6,16,22,23,24,25,28],
+    [8,10,12,15,22,24,36],
+    [6,8,22,23,24,35,36],
+    [6,10,12,21,22,23,24],
+    [8,10,20,22,23,24,25]
+  ].map((numbers,i)=>({ticket:i+1,numbers}));
+  r.result_status="independently_verified";
+  const result={
+    round:701,date:"2026-10-30",
+    main:[1,2,3,13,21,23,24],bonus:[6,25],
+    tickets:[2,1,2,3,2].map((main_hits,i)=>({
+      ticket:i+1,main_hits,bonus_hits:[2,0,1,1,1][i],
+      grade:i===3?"6等":"はずれ"
+    }))
+  };
+  r.current_result=result;
+  r.latest_verified={
+    ...structuredClone(result),
+    source_verification:"verified_two_result_sources",
+    issued_at_jst:r.published_at_jst,
+    tickets:result.tickets.map((t,i)=>({...t,numbers:r.tickets[i].numbers}))
+  };
+  const view=normalizeIssuedPrediction(r);
+  assert.equal(view.currentResult.round,701);
+  assert.equal(view.lastVerified.round,701);
+  assert.equal(view.lastVerified.tickets.length,5);
+  assert.equal(view.lastVerified.tickets[3].grade,"6等");
+  assert.deepEqual(view.lastVerified.tickets[3].numbers,[6,10,12,21,22,23,24]);
+
+  r.latest_verified.tickets[3].numbers=[1,2,3,4,5,7,8];
+  assert.throws(()=>normalizeIssuedPrediction(r),/不一致/);
+  r.latest_verified.tickets[3].numbers=[6,10,12,21,22,23,24];
+  r.latest_verified.tickets[3].grade="はずれ";
+  assert.throws(()=>normalizeIssuedPrediction(r),/不正/);
+  r.latest_verified.tickets[3].grade="6等";
+  r.latest_verified.issued_at_jst="2026-10-30T20:01:00+09:00";
+  assert.throws(()=>normalizeIssuedPrediction(r),/抽せん前/);
+});

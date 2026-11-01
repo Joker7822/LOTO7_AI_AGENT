@@ -73,9 +73,13 @@ def test_latest_canonical_published_five_tickets_and_verified_result_gate(projec
         assert p["current_result"]["round"] == target
         assert len(p["current_result"]["tickets"]) == 5
     if p["latest_verified"] is not None:
-        assert p["latest_verified"]["round"] == target - 1
-        assert p["latest_verified"]["source_verification"] == "verified_two_result_sources"
-        assert len(p["latest_verified"]["tickets"]) == 5
+        last = p["latest_verified"]
+        assert 1 <= last["round"] <= target
+        assert last["source_verification"] == "verified_two_result_sources"
+        assert len(last["tickets"]) == 5
+        assert all(len(t["numbers"]) == 7 for t in last["tickets"])
+        if p["current_result"] is not None:
+            assert last["round"] == target
     assert p["accuracy_claim"] is False
     assert p["no_future_oos_vectors"] is True
     assert set(hashes) == {"prediction_ledger", "prediction_corrections", "production_actuals"}
@@ -195,3 +199,50 @@ def test_frozen_701_remains_displayable_even_with_overlapping_numbers(project):
     assert result["target_round"] == 701
     assert len(result["tickets"]) == 5
     assert len({n for r in result["tickets"] for n in r["numbers"]}) < 35
+
+
+
+def test_verified_current_701_is_also_recent_history_not_empty(project):
+    src, pub = evidence(project)
+    if src["latest"]["round"] != 701 or pub["target_round"] != "第701回":
+        pytest.skip("this fixture does not have a verified current 701 target")
+    result, hashes = preview(project, src, pub)
+    assert result["current_result"] is not None
+    assert result["latest_verified"]["round"] == 701
+    assert result["latest_verified"]["source_verification"] == "verified_two_result_sources"
+    assert [r["main_hits"] for r in result["latest_verified"]["tickets"]] == [2, 1, 2, 3, 2]
+    assert result["latest_verified"]["tickets"][3]["grade"] == "6等"
+    assert result["latest_verified"]["tickets"][3]["numbers"] == [6, 10, 12, 21, 22, 23, 24]
+    assert result["latest_verified"]["issued_at_jst"] == "2026-10-30T15:20:56+09:00"
+    assert set(hashes) == {"prediction_ledger", "prediction_corrections", "production_actuals"}
+
+
+def test_degraded_700_does_not_hide_older_verified_699(project):
+    src, pub = evidence(project)
+    if src["latest"]["round"] != 701 or pub["target_round"] != "第701回":
+        pytest.skip("fixture does not include round 701")
+    # Untrust ONLY the present 701 result in this isolated fixture.
+    # The archived 700 draw is already single-source, so the latest safe
+    # earlier grade must skip 700 and select a genuinely trusted prior draw.
+    src["verification"] = "degraded_single_result_source"
+    result, _ = preview(project, src, pub)
+    assert result["current_result"] is None
+    assert result["result_status"] == "awaiting_independently_verified_draw"
+    assert result["latest_verified"]["round"] == 699
+    assert len(result["latest_verified"]["tickets"]) == 5
+    assert all("numbers" in t for t in result["latest_verified"]["tickets"])
+
+
+def test_previously_issued_history_rejects_backdated_tickets(project):
+    src, pub = evidence(project)
+    if src["latest"]["round"] != 701 or pub["target_round"] != "第701回":
+        pytest.skip("fixture does not include round 701")
+    src["verification"] = "degraded_single_result_source"
+    path = project / "loto7_agent_output" / "predictions.csv"
+    def make_late(rows):
+        for r in rows:
+            if r["target_round"] == "第699回":
+                r["prediction_created_at_jst"] = "2026-10-16T20:01:00+09:00"
+    overwrite_csv(path, make_late)
+    with pytest.raises(ValueError, match="not recorded before draw"):
+        preview(project, src, pub)
