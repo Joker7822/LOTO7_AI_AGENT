@@ -265,6 +265,58 @@ export function normalizeResearchPriorities(value) {
           sourceTwoVerified:value.source_two_verified};
 }
 
+// Diagnostics are aggregate-only and cannot authorize changes to Production.
+export function normalizePredictionMetrics(value) {
+  const missing = {status:"unavailable"};
+  const base = {
+    historical:missing, randomBaseline:missing, calibration:missing,
+    referencePayout:missing, futureOos:missing,
+  };
+  if (!value) return base; // compatibility with older committed snapshots
+  if (value.version!=="prediction-metrics-scorecard-v1" ||
+      value.scope!=="read_only_aggregate_diagnostics" ||
+      value.prediction_skill_confirmed!==false) {
+    throw new Error("予測指標の権限・形式が不正です");
+  }
+  const statuses = {
+    historical:["historical_only","unavailable","invalid_evidence"],
+    random_baseline:["historical_only","unavailable","invalid_evidence"],
+    calibration:["descriptive_only","waiting_for_future_draws","unavailable","invalid_evidence"],
+    reference_payout:["historical_hypothetical_only","unavailable","invalid_evidence"],
+    future_oos:["diagnostic_only","unavailable","invalid_evidence"],
+  };
+  for(const [key,allowed] of Object.entries(statuses)){
+    if(!value[key] || !allowed.includes(value[key].status)) {
+      throw new Error("予測指標の状態が不正です: "+key);
+    }
+  }
+  const num = n => finite(n) ? n : null;
+  const count = n => Number.isInteger(n) && n>=0 ? n : null;
+  const h=value.historical, r=value.random_baseline, c=value.calibration;
+  const p=value.reference_payout, o=value.future_oos;
+  if(p.actual_profit!==null || o.confirmed!==false || c.ece!==null) {
+    throw new Error("参考収支・未来検証・未算出校正値を誤表示できません");
+  }
+  return {
+    historical:{status:h.status,rounds:count(h.rounds),start:count(h.start_round),
+      end:count(h.end_round),top7:num(h.top7_mean_hits),uniform:num(h.uniform_expected_hits),
+      delta:num(h.top7_delta_vs_uniform)},
+    randomBaseline:{status:r.status,rounds:count(r.rounds),
+      maxHits:num(r.portfolio_mean_max_hits),randomMax:num(r.random_mean_max_hits),
+      maxDelta:num(r.mean_max_hits_delta),scoreDelta:num(r.mean_score_delta)},
+    calibration:{status:c.status,trusted:count(c.trusted_draws),horizon:count(c.horizon_draws),
+      logImprovement:num(c.mean_log_improvement_vs_uniform),
+      brierImprovement:num(c.mean_brier_improvement_vs_uniform)},
+    referencePayout:{status:p.status,tickets:count(p.tickets),
+      cost:count(p.reference_cost_yen),payout:count(p.reference_payout_yen),
+      roi:num(p.reference_roi)},
+    futureOos:{status:o.status,trusted:count(o.trusted_draws),
+      horizon:count(o.horizon_draws),
+      policyPreRegistered:o.policy_registered_before_first_outcome===true,
+      claimStatus:String(o.claim_status||"").slice(0,100)},
+  };
+}
+
 export function normalizeSnapshot(snapshot, now = new Date()) {
   if (!snapshot || typeof snapshot !== "object" ||
       snapshot.version !== SNAPSHOT_VERSION ||
@@ -367,6 +419,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
   const alwaysOnActivity = normalizeAlwaysOnActivity(snapshot.always_on_accuracy, now);
   const researchApplication = normalizeResearchApplication(snapshot.research_application);
   const researchPriorities = normalizeResearchPriorities(snapshot.research_priorities);
+  const predictionMetrics = normalizePredictionMetrics(snapshot.prediction_metrics);
   const alerts = [];
   if (alwaysOnActivity.stale || alwaysOnActivity.status === "invalid_or_unsafe") alerts.push({
     severity:"watch",source:"自律研究活動",
@@ -401,6 +454,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     alwaysOnActivity,
     researchApplication,
     researchPriorities,
+    predictionMetrics,
     operationsPlan: { overall:plan.overall, counts:plan.counts, tasks:incidentTasks },
     healthyRuns: workflows.filter(x => x.health === "ok").length
   };
