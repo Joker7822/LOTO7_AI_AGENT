@@ -1,7 +1,7 @@
 # Open-ended Autonomous Evolution
 
-- Total research generations: **71856** (no predefined global cap)
-- Latest execution: **1204** candidate evaluations
+- Total research generations: **73049** (no predefined global cap)
+- Latest execution: **1193** candidate evaluations
 - Data SHA256: e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637
 - Source verification: verified_two_result_sources
 - Latest unverified draw excluded: False
