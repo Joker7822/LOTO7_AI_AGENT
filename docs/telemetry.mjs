@@ -525,9 +525,12 @@ export async function loadPublishedSnapshot(fetchFn, now = new Date(), timeoutMs
     throw new Error("公開状態JSONを取得・検証できません。" + (errors.length ? " " + errors.join(" / ") : ""));
   }
   valid.sort((a,b)=>{
+    // A future-dated but schema-valid timestamp must not override an
+    // otherwise healthy snapshot; "fresh" is a bounded time interval.
+    const freshFirst=Number(a.snapshot.outdated)-Number(b.snapshot.outdated);
     const delta=new Date(b.snapshot.generatedAt)-new Date(a.snapshot.generatedAt);
     // On equal timestamps prefer the first-party Pages endpoint.
-    return delta || urls.indexOf(a.source)-urls.indexOf(b.source);
+    return freshFirst || delta || urls.indexOf(a.source)-urls.indexOf(b.source);
   });
   return {...valid[0],errors};
 }
