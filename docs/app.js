@@ -1,7 +1,7 @@
 import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261102-verified-history-freshest";
 import {
   LEVEL_LABELS, buildView, percent, displayMetric
-} from "./model.mjs";
+} from "./model.mjs?v=20261102-verified-history-freshest";
 
 const REFRESH_MS = 120_000;
 let busy = false;
