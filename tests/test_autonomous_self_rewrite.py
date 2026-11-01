@@ -158,7 +158,7 @@ def test_forged_positive_historical_score_is_rejected(monkeypatch):
         if path.name == rw.lab.STATE:
             doc = copy.deepcopy(doc)
             for trial in doc["trials"]:
-                trial["diagnostic"]["mean_log_edge"] = 9.9
+                trial["diagnostic"]["mean_log_edge"] += 1.0
         return doc
     monkeypatch.setattr(rw.lab, "load_required", forged)
     with pytest.raises(ValueError, match="cannot be independently reproduced"):
@@ -209,3 +209,59 @@ def test_research_run_never_changes_protected_paths(tmp_path):
     after = {p: hashlib.sha256((root / p).read_bytes()).hexdigest()
              for p in protected}
     assert after == before
+
+
+def test_diagnostic_replay_allows_ulp_roundoff_but_not_material_drift():
+    root = root_if_consistent()
+    _, history = old.inspect(root)
+    saved = old.load_required(root / "loto7_agent_output" / old.STATE)
+    winner = max(saved["trials"], key=lambda t: (t["diagnostic"]["mean_log_edge"], -t["trial"]))
+    reference = old.score_candidate(history, winner["config"])
+    near = copy.deepcopy(reference)
+    near["mean_log_edge"] += 2e-15
+    near["chronological_block_log_edges"][1] += 3e-15
+    assert rw.diagnostics_reproduce(reference, near)
+    material = copy.deepcopy(reference)
+    material["chronological_block_log_edges"][1] += 1e-7
+    assert not rw.diagnostics_reproduce(reference, material)
+    missing = copy.deepcopy(reference)
+    del missing["mean_top7_hits"]
+    assert not rw.diagnostics_reproduce(reference, missing)
+    flags = copy.deepcopy(reference)
+    flags["production_eligible"] = True
+    assert not rw.diagnostics_reproduce(reference, flags)
+    bad = copy.deepcopy(reference)
+    bad["mean_log_edge"] = float("nan")
+    assert not rw.diagnostics_reproduce(reference, bad)
+
+
+def test_plan_accepts_tiny_serialized_block_rounding_and_rejects_tampering(monkeypatch):
+    root = root_if_consistent()
+    original = rw.lab.load_required
+
+    def rounded(path):
+        doc = original(path)
+        if path.name == rw.lab.STATE:
+            doc = copy.deepcopy(doc)
+            # Decimal serialization roundoff should not change the chosen
+            # leader or authorize new research trials.
+            winner = max(doc["trials"], key=lambda t: (t["diagnostic"]["mean_log_edge"], -t["trial"]))
+            winner["diagnostic"]["chronological_block_log_edges"][0] += 2e-15
+        return doc
+
+    monkeypatch.setattr(rw.lab, "load_required", rounded)
+    report, generated = rw.plan(root)
+    assert report["decision"] == "GENERATE_RESEARCH_SOURCE_ONLY"
+    assert generated is not None
+
+    def tampered(path):
+        doc = original(path)
+        if path.name == rw.lab.STATE:
+            doc = copy.deepcopy(doc)
+            winner = max(doc["trials"], key=lambda t: (t["diagnostic"]["mean_log_edge"], -t["trial"]))
+            winner["diagnostic"]["chronological_block_log_edges"][0] += 1e-7
+        return doc
+
+    monkeypatch.setattr(rw.lab, "load_required", tampered)
+    with pytest.raises(ValueError, match="cannot be independently reproduced"):
+        rw.plan(root)
