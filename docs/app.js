@@ -1,4 +1,4 @@
-import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261031-dashboard-recovery";
+import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261102-verified-history-freshest";
 import {
   LEVEL_LABELS, buildView, percent, displayMetric
 } from "./model.mjs";
@@ -161,8 +161,11 @@ function renderIssuedPredictions(ops){
   set("issued-next-check",prediction.currentResult?
       "2ソース検証済みの実結果だけで一致数を採点しました":
       "結果が確認されるまで当否は表示しません。抽せん予定: "+prediction.drawDate);
-  const prev=prediction.lastVerified;
-  set("issued-previous-status",prev?"第"+prev.round+"回 検証済み":"照合済み結果なし");
+  // Older safe snapshots may contain a verified current target but no
+  // separate historical slot. Never hide an already independently graded
+  // current draw in the "recent verified results" panel.
+  const prev=prediction.lastVerified || prediction.currentResult;
+  set("issued-previous-status",prev?"第"+prev.round+"回・照合済み":"照合済み結果なし");
   if(!prev){
     history?.append(node("p","muted","照合済みの過去予測成績がありません。"));
     return;
@@ -178,6 +181,10 @@ function renderIssuedPredictions(ops){
     line.append(node("strong","","予測 "+t.ticket));
     line.append(node("span","","本 "+t.mainHits+"個 / B "+t.bonusHits+"個"));
     line.append(node("b","",t.grade));
+    if(t.numbers?.length===7){
+      line.append(node("span","issued-result-numbers",
+        "事前発行: "+t.numbers.map(n=>String(n).padStart(2,"0")).join(" ")));
+    }
     table.append(line);
   }
   history?.append(table);
@@ -309,7 +316,9 @@ function renderResearchApplication(ops){
   if(g.status!=="research_review_ready_only"){
     set("application-health",g.status==="not_yet_published"?"初回研究結果待ち":"整合性を要確認");
     for(const id of ["application-papers","application-verified","application-null"])set(id,"—");
-    if(list)list.append(node("p","muted","研究ゲートの結果が未公開、または検証できません。"));
+    if(list)list.append(node("p","muted",g.status==="stale_or_unsafe"?
+      "過去の研究ゲート報告は、現在の抽せん履歴・研究ガード・安全条件で再検証できません。旧数値を最新成果として表示しません。":
+      "研究ゲートの結果が未公開、または検証できません。"));
     return;
   }
   set("application-health",g.trustedSource?"人の手法審査待ち":"抽せん結果の二重照合待ち");
@@ -346,7 +355,9 @@ function renderResearchPriorities(ops){
   if(p.status!=="audited_research_plan"){
     set("research-queue-status",p.status==="not_yet_published"?"初回計画待ち":"整合性を要確認");
     set("research-queue-count","安全な最新アクションはまだ確定していません。");
-    if(list)list.append(node("p","muted","研究プランナーの報告を待機中です。"));
+    if(list)list.append(node("p","muted",p.status==="stale_or_unsafe"?
+      "既存の研究計画は現在のデータ・検証状態・安全条件と整合していません。更新済みの新しい計画が届くまで掲載を保留します。":
+      "研究プランナーの報告を待機中です。"));
     return;
   }
   set("research-queue-status",p.counts.block?"優先対応あり":p.counts.watch?"要確認事項あり":"監視継続");
@@ -405,7 +416,10 @@ function renderScientific(ops){
   const v=ops.scientificValidation;
   const plot=clear("science-e-plot");
   if(v.status!=="verified_diagnostic_only"){
-    const label=v.status==="not_yet_published"?"最初の研究レポートを待っています。":"原データとの整合を確認できないため研究指標を非表示にしています。";
+    const label=v.status==="not_yet_published"?"最初の研究レポートを待っています。":
+      v.blocker==="missing_original_prefrozen_701"?
+      "第701回の事前凍結記録がないため研究用e値を遡及計算できません。新規の将来検証登録が必要です。":
+      "現在の原データ・登録証拠との整合を確認できず、研究指標を非表示にしています。";
     set("science-future-pill",v.status==="not_yet_published"?"研究データ待ち":"要確認");
     for(const id of ["science-four-top7","science-five-top7","science-log-delta","science-ci",
                      "science-p","science-e","science-max-e","science-trusted"])set(id,"—");
