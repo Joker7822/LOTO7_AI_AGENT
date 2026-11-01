@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-02T08:36:26+09:00",
-  "source_commit": "d994b4326acbc4d752aad1c7abc33b1c51072240",
-  "state_hashes_sha256": "04c16274adbb7cd4ec72de266732c0e38d1f19efac699587a1650f7a9dcb0597",
+  "generated_at_jst": "2026-11-02T08:56:29+09:00",
+  "source_commit": "2ef09001a11bd2fe9c6c478b370928f045616434",
+  "state_hashes_sha256": "ef34279035930954973c993a121810f3dfe065ee8b7c4660b8c5a748dc76b7f2",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-02T08:20:51+09:00",
+      "checked_at_jst": "2026-11-02T08:37:26+09:00",
       "latest": {
         "round": 701,
         "date": "2026-10-30",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-02T08:35:24+09:00",
+      "checked_at_jst": "2026-11-02T08:40:13+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -47,7 +47,7 @@
             {
               "code": "PAIR_CONTEXT_INT8_OVERFLOW",
               "level": "watch",
-              "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=701"
+              "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=701; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified"
             }
           ]
         },
@@ -107,7 +107,7 @@
           "owner": "data_steward",
           "priority": "watch",
           "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=701"
+          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=701; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified"
         },
         {
           "owner": "oos_risk_officer",
@@ -202,9 +202,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 41362858710,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41362858710",
-      "updated_at": "2026-11-01T23:35:36Z",
+      "run_id": 41364428558,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41364428558",
+      "updated_at": "2026-11-01T23:55:18Z",
       "recent_failure_count": 0
     },
     {
@@ -221,12 +221,12 @@
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "running",
-      "status": "in_progress",
-      "conclusion": null,
-      "run_id": 41362858643,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41362858643",
-      "updated_at": "2026-11-01T23:35:36Z",
+      "health": "ok",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 41363027525,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41363027525",
+      "updated_at": "2026-11-01T23:40:19Z",
       "recent_failure_count": 0
     },
     {
@@ -268,9 +268,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 41361457790,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41361457790",
-      "updated_at": "2026-11-01T23:18:36Z",
+      "run_id": 41364428529,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41364428529",
+      "updated_at": "2026-11-01T23:55:26Z",
       "recent_failure_count": 0
     }
   ],
@@ -479,7 +479,102 @@
         }
       ]
     },
-    "latest_verified": null,
+    "latest_verified": {
+      "round": 701,
+      "date": "2026-10-30",
+      "main": [
+        1,
+        2,
+        3,
+        13,
+        21,
+        23,
+        24
+      ],
+      "bonus": [
+        6,
+        25
+      ],
+      "source_verification": "verified_two_result_sources",
+      "issued_at_jst": "2026-10-30T15:20:56+09:00",
+      "tickets": [
+        {
+          "ticket": 1,
+          "main_hits": 2,
+          "bonus_hits": 2,
+          "grade": "はずれ",
+          "numbers": [
+            6,
+            16,
+            22,
+            23,
+            24,
+            25,
+            28
+          ]
+        },
+        {
+          "ticket": 2,
+          "main_hits": 1,
+          "bonus_hits": 0,
+          "grade": "はずれ",
+          "numbers": [
+            8,
+            10,
+            12,
+            15,
+            22,
+            24,
+            36
+          ]
+        },
+        {
+          "ticket": 3,
+          "main_hits": 2,
+          "bonus_hits": 1,
+          "grade": "はずれ",
+          "numbers": [
+            6,
+            8,
+            22,
+            23,
+            24,
+            35,
+            36
+          ]
+        },
+        {
+          "ticket": 4,
+          "main_hits": 3,
+          "bonus_hits": 1,
+          "grade": "6等",
+          "numbers": [
+            6,
+            10,
+            12,
+            21,
+            22,
+            23,
+            24
+          ]
+        },
+        {
+          "ticket": 5,
+          "main_hits": 2,
+          "bonus_hits": 1,
+          "grade": "はずれ",
+          "numbers": [
+            8,
+            10,
+            20,
+            22,
+            23,
+            24,
+            25
+          ]
+        }
+      ]
+    },
     "exposure": "publicly_issued_production_only",
     "no_future_oos_vectors": true,
     "accuracy_claim": false
@@ -638,9 +733,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "d994b4326acbc4d752aad1c7abc33b1c51072240",
-    "snapshot_generated_at_jst": "2026-11-02T08:36:26+09:00",
-    "computed_at_jst": "2026-11-01T23:36:26+00:00",
+    "source_commit": "2ef09001a11bd2fe9c6c478b370928f045616434",
+    "snapshot_generated_at_jst": "2026-11-02T08:56:29+09:00",
+    "computed_at_jst": "2026-11-01T23:56:29+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
