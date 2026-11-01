@@ -427,6 +427,35 @@ function renderScientific(ops){
   if(!v.series.length)plot.append(node("p","science-empty","まだ独立した将来結果はありません。将来e値は中立値1で開始します。"));
   else plot.append(renderSeriesGraph(v.series,"e_value",1));
 }
+function renderPredictionMetrics(ops){
+  const m=ops.predictionMetrics;
+  const show=(id,value)=>set(id,value);
+  const format=(v,digits=4)=>typeof v==="number"&&Number.isFinite(v)?
+    (v>=0?"+":"")+v.toFixed(digits):"—";
+  const amount=v=>typeof v==="number"&&Number.isFinite(v)?v.toLocaleString("ja-JP")+" 円":"—";
+  const h=m.historical,r=m.randomBaseline,c=m.calibration,p=m.referencePayout,o=m.futureOos;
+  show("metric-history-scope",h.status==="historical_only"?
+    "第"+h.start+"〜"+h.end+"回 / "+h.rounds+"回 / 過去検証":"未確認（"+h.status+"）");
+  show("metric-history-hits",h.status==="historical_only"?
+    h.top7.toFixed(4)+"個（理論 "+h.uniform.toFixed(4)+"個）":"—");
+  show("metric-history-delta",format(h.delta));
+  show("metric-random-scope",r.status==="historical_only"?
+    r.rounds+"回 / 同条件ランダム比較":"未確認（"+r.status+"）");
+  show("metric-random-max",r.status==="historical_only"?format(r.maxDelta)+"個":"—");
+  show("metric-random-score",format(r.scoreDelta));
+  show("metric-calibration-scope",c.status==="descriptive_only"?
+    c.trusted+"/"+c.horizon+"回 / 未来OOS・途中経過":"未確認（"+c.status+"）");
+  show("metric-calibration-log",format(c.logImprovement,8));
+  show("metric-calibration-brier",format(c.brierImprovement,8));
+  show("metric-payout-scope",p.status==="historical_hypothetical_only"?
+    p.tickets+"口 / 公表当選額による仮定の試算":"未確認（"+p.status+"）");
+  show("metric-payout-cost",amount(p.cost));
+  show("metric-payout-return",p.roi==null?"—":(p.roi*100).toFixed(2)+"%（"+amount(p.payout)+"）");
+  show("metric-future-evidence",o.status==="diagnostic_only"?
+    o.trusted+"/"+o.horizon+"回 / 予測優位性は未確認"+(o.policyPreRegistered?"":" / 確認規則の登録が事後"):
+    "正式な未来証拠は未確認");
+}
+
 function renderProspective(ops){
   const host=clear("prospective-trends");
   for(const tab of SERIES_TABS){
@@ -481,7 +510,7 @@ export async function refresh(){
       " ／ 取得先: "+(loaded.source.includes("raw.githubusercontent.com")?"GitHub Raw":"GitHub Pages")+
       (ops.outdated?" ／ 更新遅延あり":""));
     renderProgress(view);renderResearch(view);renderOperations(view);renderIssuedPredictions(ops);
-    renderWorkflowStatus(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderResearchApplication(ops);renderResearchPriorities(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
+    renderWorkflowStatus(ops);renderPredictionMetrics(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderResearchApplication(ops);renderResearchPriorities(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
     set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
     document.title=(view.state==="ok"?"● ":view.state==="watch"?"◐ ":"！ ")+"LOTO7 AI AGENT | 現在の状態";
   }catch(e){
