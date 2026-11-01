@@ -21,7 +21,7 @@ from joint_set_v2_signal_oos import (
 )
 from joint_set_v2_signal_oos_guard import validate_trusted_source
 from loto7_evolving_agent import make_history, read_csv_flexible
-from pair_context_v2 import checked_cooccurrence
+from pair_context_v2 import VERSION as PAIR_CONTEXT_V2_VERSION, checked_cooccurrence
 import loto7_v4_runner as v4
 
 VERSION = "loto7-agent-role-council-v1"
@@ -82,6 +82,42 @@ def pair_context_overflow_count(history: np.ndarray) -> int:
     return int(np.count_nonzero(legacy.astype(np.int64) != exact))
 
 
+def pair_context_v2_evidence_current(root: Path, out: Path, csv_file: Path,
+                                     overflow_pairs: int, history_draws: int) -> bool:
+    """Only a matching code/data snapshot can support a v2 verification claim.
+
+    A stale or absent *research-only* diagnostic must never be silently treated
+    as current, and must not be confused with draw-result source integrity.
+    """
+    try:
+        report = obj(out / "pair_context_v2_validation.json", required=False)
+        source_file = root / "pair_context_v2.py"
+        if not report or not source_file.is_file():
+            return False
+        check = report.get("numerical_verification") or {}
+        return (
+            report.get("version") == PAIR_CONTEXT_V2_VERSION
+            and report.get("data_sha256") == hashlib.sha256(csv_file.read_bytes()).hexdigest()
+            and report.get("implementation_sha256") == hashlib.sha256(source_file.read_bytes()).hexdigest()
+            and report.get("history_draws") == history_draws
+            and report.get("int8_corrupted_cooccurrence_cells") == overflow_pairs
+            and report.get("int64_corrupted_cooccurrence_cells") == 0
+            and check.get("status") == "pass"
+            and check.get("independent_method") == "pairwise_boolean_intersection_counts"
+            and check.get("matrix_cells_checked") == 37 * 37
+            and check.get("int64_cast_before_matrix_product") is True
+            and check.get("fail_closed_on_any_mismatch") is True
+            and check.get("historical_only") is True
+            and check.get("automatic_model_promotion_authorized") is False
+            and report.get("prospective_edge_confirmed") is False
+            and report.get("promotion_authorized") is False
+            and report.get("legacy_runtime_still_uses_v1") is True
+        )
+    except (OSError, ValueError, TypeError):
+        return False
+
+
+
 def data_steward(root: Path, out: Path, now: datetime) -> dict:
     try:
         csv_file = root / "loto7.csv"
@@ -115,13 +151,21 @@ def data_steward(root: Path, out: Path, now: datetime) -> dict:
         if wide.dtype != np.int64 or wide.shape != (37, 37):
             raise ArithmeticError("corrected pair-context co-occurrence is not exact int64")
         if overflow_pairs:
+            report_current = pair_context_v2_evidence_current(
+                root, out, csv_file, overflow_pairs, len(x)
+            )
             findings.append(finding(
                 "watch", "PAIR_CONTEXT_INT8_OVERFLOW",
                 f"legacy_int8_corrupted_cooccurrence_cells={overflow_pairs}; "
-                f"corrected_int64_corrupted_cooccurrence_cells=0; history_draws={len(x)}",
-                "Legacy frozen model remains unchanged. A separately versioned int64 "
-                "candidate passes independent matrix verification, but needs new "
-                "pre-registered Future-OOS before any production adoption.",
+                f"corrected_int64_corrupted_cooccurrence_cells=0; history_draws={len(x)}; "
+                f"corrected_candidate_version={PAIR_CONTEXT_V2_VERSION}; "
+                "candidate_report=" + ("current_independently_verified" if report_current
+                                       else "missing_or_stale_do_not_claim_verified"),
+                ("The separate v2 int64 candidate is independently numerically verified "
+                 "for this exact code/data snapshot. " if report_current else
+                 "Refresh the separate v2 numerical evidence using its existing workflow. ")
+                + "Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and "
+                "explicit approval are required before any Production migration.",
             ))
         checked_at = source.get("checked_at_jst")
         if checked_at:
@@ -365,10 +409,11 @@ def evaluate(root: Path, now: Optional[datetime] = None) -> dict:
     } for priority in ("block", "watch") for owner in ROLES
         for item in roles[owner]["findings"] if item["level"] == priority]
     tracked = [
-        root / "loto7.csv", root / "joint_set_v2_signal_oos.py",
+        root / "loto7.csv", root / "pair_context_v2.py", root / "joint_set_v2_signal_oos.py",
         root / "joint_set_v2_model.py", root / "joint_set_v2_research.py",
         *(out / s for s in (
-            "source_validation.json", "model_champion.json", "shadow_registry.json",
+            "source_validation.json", "pair_context_v2_validation.json",
+            "model_champion.json", "shadow_registry.json",
             "future_holdout_state.json", "future_holdout_registry.json",
             "joint_set_v2_signal_oos_registration.json", "joint_set_v2_signal_oos_state.json",
             "joint_set_v2_signal_oos_registry.json", "research_cycle_guard.json",
