@@ -4,6 +4,13 @@ LOTO7履歴を使って研究モデルを**待ち時間なしで連続探索**�
 
 > 予測は当せんを保証しません。過去データを大量に探索して良く見えたモデルを、そのまま本番採用しないことを最優先にしています。
 
+## 予測指標の分離レポートとActions負荷の整理
+
+- [一致数・ランダム対照・確率校正関連・参考払戻の4区分と運用方針](PREDICTION_EVALUATION_AND_WORKFLOWS.md)
+- python evaluation_scorecard.py --format markdown で、既存の履歴・将来校正・照合済み参考払戻を読み取り専用で集計します。
+- python workflow_inventory.py で49個のGitHub Actionsのcron・依存関係を棚卸しできます。
+- ブラウザ監視の定期スナップショットは30分間隔、結果照合とProduction発行のみ即時通知を残します。将来予測の精度改善や実現収益を主張しません。
+
 ## v4の基本構造
 
 ### 1. Continuous Research
