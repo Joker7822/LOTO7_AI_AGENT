@@ -136,7 +136,7 @@ test("verified round 701 must appear in recent history, not as absent",()=>{
   assert.equal(view.lastVerified.tickets[3].grade,"6等");
   assert.deepEqual(view.lastVerified.tickets[3].numbers,[6,10,12,21,22,23,24]);
 
-  r.latest_verified.tickets[3].numbers=[1,2,3,4,5,6,7];
+  r.latest_verified.tickets[3].numbers=[1,2,3,4,5,7,8];
   assert.throws(()=>normalizeIssuedPrediction(r),/不一致/);
   r.latest_verified.tickets[3].numbers=[6,10,12,21,22,23,24];
   r.latest_verified.tickets[3].grade="はずれ";
