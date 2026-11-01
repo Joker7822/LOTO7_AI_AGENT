@@ -32,7 +32,7 @@ def scan_workflows(directory: Path) -> list[dict]:
                 if active_trigger and active_trigger not in triggers:
                     triggers.append(active_trigger)
                 in_workflow_names = False
-            if line.startswith("      workflows:") and active_trigger == "workflow_run":
+            if line.startswith("    workflows:") and active_trigger == "workflow_run":
                 in_workflow_names = True
                 continue
             if in_workflow_names and not line.startswith("      ") and line.strip():
