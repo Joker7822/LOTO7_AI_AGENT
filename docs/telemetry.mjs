@@ -147,43 +147,72 @@ export function normalizeIssuedPrediction(value) {
       new Set(tickets.flatMap(t=>t.numbers)).size!==35) {
     throw new Error("第702回以降の5口35数字に重複があります");
   }
-  const gradeResult=(result,round)=>{
+  const prize=(main,bonus)=>main===7?"1等":main===6&&bonus>=1?"2等":
+    main===6?"3等":main===5?"4等":main===4?"5等":
+    main===3&&bonus>=1?"6等":"はずれ";
+  const gradeResult=(result,round,historical=false)=>{
     if(result==null)return null;
     if(result.round!==round || !dateOk(result.date) ||
        !validNumbers(result.main,7) || !validNumbers(result.bonus,2) ||
        result.bonus.some(n=>result.main.includes(n)) ||
        !Array.isArray(result.tickets) || result.tickets.length!==5 ||
-       (round!==value.target_round && result.source_verification!=="verified_two_result_sources")) {
+       (historical && result.source_verification!=="verified_two_result_sources")) {
       throw new Error("公開済み予測の当選照合根拠が不正です");
+    }
+    // Compatibility with older valid public snapshots, which omitted the
+    // historical prediction numbers. New snapshots include all five so the
+    // browser can independently recompute the score of archived tickets.
+    const hasHistoricalNumbers=historical && result.tickets.some(t=>t.numbers!==undefined);
+    if(hasHistoricalNumbers && !result.tickets.every(t=>validNumbers(t.numbers,7))){
+      throw new Error("過去の公開予測の数字が不正です");
+    }
+    if(historical && result.issued_at_jst!==undefined){
+      const issued=Date.parse(result.issued_at_jst);
+      const cutoff=Date.parse(result.date+"T20:00:00+09:00");
+      if(!timeOk(result.issued_at_jst) || !(issued<cutoff)){
+        throw new Error("過去の公開予測が抽せん前に発行されていません");
+      }
     }
     const checked=result.tickets.map((t,i)=>{
       if(t.ticket!==i+1 || !Number.isInteger(t.main_hits) ||
          !Number.isInteger(t.bonus_hits) ||
          t.main_hits<0 || t.main_hits>7 || t.bonus_hits<0 || t.bonus_hits>2 ||
-         typeof t.grade!=="string" ||
-         !["1等","2等","3等","4等","5等","6等","はずれ"].includes(t.grade)){
+         t.grade!==prize(t.main_hits,t.bonus_hits)){
         throw new Error("公開済み予測の当選結果が不正です");
       }
-      return {ticket:t.ticket,mainHits:t.main_hits,bonusHits:t.bonus_hits,grade:t.grade};
-    });
-    if(round===value.target_round){
-      for(const t of checked){
-        const p=tickets[t.ticket-1].numbers;
-        const mh=p.filter(n=>result.main.includes(n)).length;
-        const bh=p.filter(n=>result.bonus.includes(n)).length;
-        if(mh!==t.mainHits || bh!==t.bonusHits)throw new Error("当選結果が公開予測と不一致です");
+      const numbers=historical&&hasHistoricalNumbers?t.numbers:
+        historical?null:tickets[i].numbers;
+      if(numbers){
+        const mh=numbers.filter(n=>result.main.includes(n)).length;
+        const bh=numbers.filter(n=>result.bonus.includes(n)).length;
+        if(mh!==t.main_hits || bh!==t.bonus_hits){
+          throw new Error("当選結果が公開予測と不一致です");
+        }
       }
-    }
+      return {ticket:t.ticket,mainHits:t.main_hits,bonusHits:t.bonus_hits,
+              grade:t.grade,numbers:numbers?[...numbers]:null};
+    });
     return {round:result.round,date:result.date,main:[...result.main],
-            bonus:[...result.bonus],tickets:checked};
+            bonus:[...result.bonus],tickets:checked,
+            issuedAt:historical?(result.issued_at_jst||null):null};
   };
   const currentResult=gradeResult(value.current_result,value.target_round);
   if(!["awaiting_independently_verified_draw","independently_verified"].includes(value.result_status) ||
       (value.result_status==="independently_verified")!==Boolean(currentResult)){
     throw new Error("公開済み予測の結果検証状態が不正です");
   }
+  const historicalRound=value.latest_verified?.round;
+  if(value.latest_verified && (!Number.isInteger(historicalRound) ||
+      historicalRound<1 || historicalRound>value.target_round)){
+    throw new Error("公開済み過去予測の回別が不正です");
+  }
   const lastVerified=value.latest_verified
-    ? gradeResult(value.latest_verified,value.target_round-1) : null;
+    ? gradeResult(value.latest_verified,historicalRound,true) : null;
+  if(lastVerified && currentResult && lastVerified.round===value.target_round &&
+      lastVerified.tickets.some((t,i)=>t.mainHits!==currentResult.tickets[i].mainHits ||
+        t.bonusHits!==currentResult.tickets[i].bonusHits || t.grade!==currentResult.tickets[i].grade)){
+    throw new Error("現在と過去の公開予測照合結果が一致しません");
+  }
   return {
     status:"published",targetRound:value.target_round,drawDate:value.draw_date,
     publishedAt:value.published_at_jst,model:value.model,
@@ -462,15 +491,17 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
 
 /**
  * Load only published, schema-validated snapshots. Never mix timestamps or
- * rebuild evidence in the browser. Prefer a fresh same-origin snapshot,
- * falling back to the public GitHub raw mirror if unavailable or outdated.
- * An older but valid record can be shown ONLY with its stale warning.
+ * rebuild evidence in the browser. Fetch Pages and the raw/main mirror
+ * concurrently and choose the newest validated timestamp. Even a snapshot
+ * under 90 minutes old can lag a newer commit. Stale evidence remains marked
+ * stale and source inputs from two snapshots are NEVER mixed.
  */
 export async function loadPublishedSnapshot(fetchFn, now = new Date(), timeoutMs = 7000) {
   const urls = [SNAPSHOT_URL, SNAPSHOT_MIRROR_URL];
-  const errors = [];
-  let stale = null;
-  for (const url of urls) {
+  // Both endpoints can be "fresh" by the 90-minute monitoring threshold
+  // while GitHub Pages is still behind raw/main. Compare their timestamps,
+  // rather than accepting the first fresh response and hiding newer evidence.
+  const results = await Promise.all(urls.map(async url => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
@@ -480,22 +511,25 @@ export async function loadPublishedSnapshot(fetchFn, now = new Date(), timeoutMs
         signal: controller.signal
       });
       if (!response.ok) throw new Error("HTTP " + response.status);
-      const snapshot = normalizeSnapshot(await response.json(), now);
-      if (!snapshot.outdated) {
-        return {snapshot, source: url, errors};
-      }
-      if (!stale || new Date(snapshot.generatedAt) > new Date(stale.snapshot.generatedAt)) {
-        stale = {snapshot, source: url};
-      }
+      return {snapshot:normalizeSnapshot(await response.json(),now),source:url};
     } catch (error) {
-      errors.push((url === SNAPSHOT_URL ? "GitHub Pages" : "GitHub Raw") + ": " +
-        String(error?.message || error));
+      return {error:(url===SNAPSHOT_URL?"GitHub Pages":"GitHub Raw")+": "+
+        String(error?.message||error)};
     } finally {
       clearTimeout(timer);
     }
+  }));
+  const valid=results.filter(x=>x.snapshot);
+  const errors=results.filter(x=>x.error).map(x=>x.error);
+  if(!valid.length) {
+    throw new Error("公開状態JSONを取得・検証できません。" + (errors.length ? " " + errors.join(" / ") : ""));
   }
-  if (stale) return {...stale, errors};
-  throw new Error("公開状態JSONを取得・検証できません。" + (errors.length ? " " + errors.join(" / ") : ""));
+  valid.sort((a,b)=>{
+    const delta=new Date(b.snapshot.generatedAt)-new Date(a.snapshot.generatedAt);
+    // On equal timestamps prefer the first-party Pages endpoint.
+    return delta || urls.indexOf(a.source)-urls.indexOf(b.source);
+  });
+  return {...valid[0],errors};
 }
 
 export const SERIES_TABS = Object.freeze([
