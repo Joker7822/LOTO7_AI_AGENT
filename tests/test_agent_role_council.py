@@ -26,7 +26,7 @@ OUT = [
     "joint_set_v2_signal_oos_state.json", "joint_set_v2_conversion_audit_summary.json",
     "research_cycle_guard.json", "weekly_production_prediction_state.json",
 ]
-CODE = ["joint_set_v2_signal_oos.py", "joint_set_v2_model.py", "joint_set_v2_research.py"]
+CODE = ["pair_context_v2.py", "joint_set_v2_signal_oos.py", "joint_set_v2_model.py", "joint_set_v2_research.py"]
 
 
 @pytest.fixture()
@@ -273,3 +273,38 @@ def test_exhausted_search_budget_is_enforced_without_wiping_history(root):
     result = council.research_skeptic(root / "loto7_agent_output")
     assert result["status"] == "block"
     assert result["findings"][0]["code"] == "RESEARCH_EVIDENCE_BOUNDARY_BLOCK"
+
+
+def test_pair_context_v2_report_requires_matching_data_and_implementation(root):
+    import pair_context_v2 as pc
+    out = root / "loto7_agent_output"
+    csv = root / "loto7.csv"
+    # The historical audit is generated only in a disposable test fixture.
+    report = pc.diagnostics(csv, last_n=3)
+    (out / "pair_context_v2_validation.json").write_text(json.dumps(report), encoding="utf-8")
+    overflow = report["int8_corrupted_cooccurrence_cells"]
+    assert council.pair_context_v2_evidence_current(root, out, csv, overflow, report["history_draws"])
+    role = council.data_steward(root, out, NOW)
+    old = next(x for x in role["findings"] if x["code"] == "PAIR_CONTEXT_INT8_OVERFLOW")
+    assert role["status"] == "watch"  # v1 remains locked; not Production migrated
+    assert "candidate_report=current_independently_verified" in old["evidence"]
+    assert "pre-registered Future-OOS" in old["next_action"]
+
+    report["implementation_sha256"] = "0" * 64
+    (out / "pair_context_v2_validation.json").write_text(json.dumps(report), encoding="utf-8")
+    assert not council.pair_context_v2_evidence_current(root, out, csv, overflow, report["history_draws"])
+    role = council.data_steward(root, out, NOW)
+    old = next(x for x in role["findings"] if x["code"] == "PAIR_CONTEXT_INT8_OVERFLOW")
+    assert "candidate_report=missing_or_stale_do_not_claim_verified" in old["evidence"]
+    assert role["status"] == "watch"
+
+
+def test_pair_context_v2_report_must_not_claim_promotability(root):
+    import pair_context_v2 as pc
+    out = root / "loto7_agent_output"
+    csv = root / "loto7.csv"
+    report = pc.diagnostics(csv, last_n=3)
+    report["promotion_authorized"] = True
+    (out / "pair_context_v2_validation.json").write_text(json.dumps(report), encoding="utf-8")
+    assert not council.pair_context_v2_evidence_current(root, out, csv, report["int8_corrupted_cooccurrence_cells"], report["history_draws"])
+    assert council.data_steward(root, out, NOW)["status"] == "watch"
