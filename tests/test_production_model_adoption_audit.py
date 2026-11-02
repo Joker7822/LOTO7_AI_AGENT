@@ -141,3 +141,5 @@ def test_production_publisher_includes_audit_before_freeze():
     yml = Path(".github/workflows/weekly_production_publisher.yml").read_text(encoding="utf-8")
     assert "production_model_adoption_audit.py" in yml
     assert yml.index("production_model_adoption_audit.py") < yml.index("Freeze or safely republish canonical Production")
+    fallback = Path(".github/workflows/weekly_production_fallback.yml").read_text(encoding="utf-8")
+    assert fallback.index("production_model_adoption_audit.py") < fallback.index("Freeze or safely republish canonical Production")
