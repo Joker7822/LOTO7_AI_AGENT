@@ -148,12 +148,12 @@ jobs:
           p = Path(os.environ["RUNNER_TEMP"]) / "production_model_adoption_audit.json"
           r = json.loads(p.read_text(encoding="utf-8"))
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
-              f.write("### AI Production adoption evidence (read-only)\\n\\n")
-              f.write(f"- Status: \`{r['status']}\`\\n")
-              f.write(f"- Candidate: \`{r['proposal']}\`\\n")
-              f.write(f"- Future-OOS trusted: {r['trusted_future_draws']}/{r['required_future_draws']}\\n")
-              f.write(f"- Production model changed: \`{r['production_changed']}\`\\n")
-              f.write(f"- Blockers: {', '.join(r['reasons']) or 'none'}\\n")
+              f.write("### AI Production adoption evidence (read-only)\n\n")
+              f.write(f"- Status: `{r['status']}`\n")
+              f.write(f"- Candidate: `{r['proposal']}`\n")
+              f.write(f"- Future-OOS trusted: {r['trusted_future_draws']}/{r['required_future_draws']}\n")
+              f.write(f"- Production model changed: `{r['production_changed']}`\n")
+              f.write(f"- Blockers: {', '.join(r['reasons']) or 'none'}\n")
           PY
 
       - name: Freeze or safely republish canonical Production
