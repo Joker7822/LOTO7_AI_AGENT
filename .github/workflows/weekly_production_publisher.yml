@@ -134,6 +134,28 @@ jobs:
             --months 3 \
             --production-snapshot
 
+      - name: Check AI-model adoption evidence before Production freeze
+        if: steps.publication_gate.outputs.publish == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python production_model_adoption_audit.py \
+            --output "${RUNNER_TEMP}/production_model_adoption_audit.json"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          p = Path(os.environ["RUNNER_TEMP"]) / "production_model_adoption_audit.json"
+          r = json.loads(p.read_text(encoding="utf-8"))
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+              f.write("### AI Production adoption evidence (read-only)\n\n")
+              f.write(f"- Status: `{r['status']}`\n")
+              f.write(f"- Candidate: `{r['proposal']}`\n")
+              f.write(f"- Future-OOS trusted: {r['trusted_future_draws']}/{r['required_future_draws']}\n")
+              f.write(f"- Production model changed: `{r['production_changed']}`\n")
+              f.write(f"- Blockers: {', '.join(r['reasons']) or 'none'}\n")
+          PY
+
       - name: Freeze or safely republish canonical Production
         if: steps.publication_gate.outputs.publish == 'true'
         shell: bash
