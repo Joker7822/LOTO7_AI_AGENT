@@ -85,7 +85,8 @@ def audit(
             or lock.get("stored_sha256") != lock.get("observed_sha256")):
         reasons.append("unverified_protocol_lock")
 
-    if holdout.get("confirmation_policy_registered_at_trusted_draws") != 0:
+    registration_draws = holdout.get("confirmation_policy_registered_at_trusted_draws")
+    if type(registration_draws) is not int or registration_draws != 0:
         reasons.append("confirmation_rule_not_prefrozen_before_first_outcome")
 
     if (policy.get("claim_requires_full_horizon") is not True
