@@ -83,6 +83,12 @@ def test_post_outcome_registration_fails_closed():
     assert "confirmation_rule_not_prefrozen_before_first_outcome" in result["reasons"]
 
 
+def test_boolean_registration_count_is_not_an_integer_freeze_record():
+    report = complete_report()
+    report["confirmation_policy_registered_at_trusted_draws"] = False
+    assert "confirmation_rule_not_prefrozen_before_first_outcome" in assess(report)["reasons"]
+
+
 def test_interim_results_or_false_flags_cannot_authorize():
     report = complete_report()
     report["progress"]["trusted_draws"] = 8
