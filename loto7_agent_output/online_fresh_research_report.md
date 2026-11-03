@@ -1,18 +1,18 @@
 # Frequent independent online research — audit
 
-- UTC: 2026-11-02T20:25:22+00:00
-- Search topic: ensemble probabilistic forecast verification
+- UTC: 2026-11-03T03:30:31+00:00
+- Search topic: online probabilistic forecasting calibration
 - Source catalog: 24 SHA-anchored works
-- Search results before dedup: 5
-- New leads identified: 2
+- Search results before dedup: 8
+- New leads identified: 1
 - DOI detail checks this cycle: 3
 - API failures: 0
 
 ## Current research sidecar verification
 - conflict_do_not_use: 2
-- previously_verified_not_refreshed: 13
+- previously_verified_not_refreshed: 15
 - single_provider_only: 10
-- two_provider_bibliography_matched: 3
+- two_provider_bibliography_matched: 2
 
 ## Fixed, human-review-only applications
 - anytime_evidence: Check registered, prefrozen 26-draw evidence horizons
