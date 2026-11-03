@@ -1,18 +1,18 @@
 # Frequent independent online research — audit
 
-- UTC: 2026-11-03T12:03:13+00:00
-- Search topic: prequential prediction test then train
+- UTC: 2026-11-03T19:36:54+00:00
+- Search topic: betting martingales e values sequential testing
 - Source catalog: 24 SHA-anchored works
-- Search results before dedup: 5
+- Search results before dedup: 7
 - New leads identified: 1
 - DOI detail checks this cycle: 3
 - API failures: 0
 
 ## Current research sidecar verification
 - conflict_do_not_use: 2
-- previously_verified_not_refreshed: 16
-- single_provider_only: 11
-- two_provider_bibliography_matched: 1
+- previously_verified_not_refreshed: 15
+- single_provider_only: 12
+- two_provider_bibliography_matched: 2
 
 ## Fixed, human-review-only applications
 - anytime_evidence: Check registered, prefrozen 26-draw evidence horizons
