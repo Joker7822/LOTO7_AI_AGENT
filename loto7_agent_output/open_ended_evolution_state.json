@@ -1,6 +1,6 @@
 {
   "version": "open-ended-evolution-v1",
-  "generations_total": 76645,
+  "generations_total": 77870,
   "evaluated_history_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637",
   "recorded_rounds": 701,
   "evaluation_rounds": 701,
@@ -8,10 +8,10 @@
   "last_unverified_row_excluded": false,
   "independent_source_verified": true,
   "research_champion": {
-    "generation": 65683,
+    "generation": 77087,
     "genome": {
       "op": "blend",
-      "alpha": 0.99,
+      "alpha": 0.97829,
       "left": {
         "op": "blend",
         "alpha": 0.964,
@@ -111,45 +111,147 @@
         }
       },
       "right": {
-        "op": "blend",
-        "alpha": 0.86834,
-        "left": {
-          "op": "blend",
-          "alpha": 0.30953,
-          "left": {
-            "op": "decay",
-            "half_life": 187.33989
-          },
-          "right": {
-            "op": "gap",
-            "scale": 2.36315
-          }
-        },
-        "right": {
-          "op": "power",
-          "exponent": 0.34114,
-          "child": {
-            "op": "decay",
-            "half_life": 193.09898
-          }
-        }
+        "op": "gap",
+        "scale": 3.00754
       }
     },
     "assessment": {
-      "mean_log_edge": 0.0005148105830092424,
+      "mean_log_edge": 0.0005226784140192874,
       "mean_top7_hits": 1.5416666666666667,
       "block_edges": [
-        -6.70278221598029e-05,
-        0.0015690466151765609,
-        4.24129560109692e-05
+        -7.792380163572187e-05,
+        0.001616824035137012,
+        2.9135008556572454e-05
       ],
-      "fitness": 0.00040279130813065906,
+      "fitness": 0.00040644171301429513,
       "historical_selection_only": true,
       "prospective_edge_confirmed": false
     },
     "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
   },
   "hall_of_fame": [
+    {
+      "generation": 77087,
+      "genome": {
+        "op": "blend",
+        "alpha": 0.97829,
+        "left": {
+          "op": "blend",
+          "alpha": 0.964,
+          "left": {
+            "op": "blend",
+            "alpha": 0.65489,
+            "left": {
+              "op": "blend",
+              "alpha": 0.19977,
+              "left": {
+                "op": "blend",
+                "alpha": 0.74645,
+                "left": {
+                  "op": "gap",
+                  "scale": 41.98272
+                },
+                "right": {
+                  "op": "power",
+                  "exponent": 2.16673,
+                  "child": {
+                    "op": "power",
+                    "exponent": 2.30693,
+                    "child": {
+                      "op": "decay",
+                      "half_life": 13.58362
+                    }
+                  }
+                }
+              },
+              "right": {
+                "op": "blend",
+                "alpha": 0.12536,
+                "left": {
+                  "op": "blend",
+                  "alpha": 0.24202,
+                  "left": {
+                    "op": "blend",
+                    "alpha": 0.86498,
+                    "left": {
+                      "op": "decay",
+                      "half_life": 122.33941
+                    },
+                    "right": {
+                      "op": "decay",
+                      "half_life": 101.4379
+                    }
+                  },
+                  "right": {
+                    "op": "blend",
+                    "alpha": 0.07882,
+                    "left": {
+                      "op": "uniform"
+                    },
+                    "right": {
+                      "op": "frequency",
+                      "window": 37,
+                      "prior": 25.85091
+                    }
+                  }
+                },
+                "right": {
+                  "op": "blend",
+                  "alpha": 0.66082,
+                  "left": {
+                    "op": "power",
+                    "exponent": 1.77195,
+                    "child": {
+                      "op": "uniform"
+                    }
+                  },
+                  "right": {
+                    "op": "blend",
+                    "alpha": 0.1953,
+                    "left": {
+                      "op": "pair",
+                      "window": 214,
+                      "prior": 194.89904
+                    },
+                    "right": {
+                      "op": "uniform"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "op": "uniform"
+            }
+          },
+          "right": {
+            "op": "power",
+            "exponent": 0.84155,
+            "child": {
+              "op": "gap",
+              "scale": 2.19099
+            }
+          }
+        },
+        "right": {
+          "op": "gap",
+          "scale": 3.00754
+        }
+      },
+      "assessment": {
+        "mean_log_edge": 0.0005226784140192874,
+        "mean_top7_hits": 1.5416666666666667,
+        "block_edges": [
+          -7.792380163572187e-05,
+          0.001616824035137012,
+          2.9135008556572454e-05
+        ],
+        "fitness": 0.00040644171301429513,
+        "historical_selection_only": true,
+        "prospective_edge_confirmed": false
+      },
+      "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
+    },
     {
       "generation": 65683,
       "genome": {
@@ -1036,138 +1138,6 @@
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
-    },
-    {
-      "generation": 74327,
-      "genome": {
-        "op": "blend",
-        "alpha": 0.99,
-        "left": {
-          "op": "blend",
-          "alpha": 0.964,
-          "left": {
-            "op": "blend",
-            "alpha": 0.65489,
-            "left": {
-              "op": "blend",
-              "alpha": 0.19977,
-              "left": {
-                "op": "blend",
-                "alpha": 0.74645,
-                "left": {
-                  "op": "gap",
-                  "scale": 41.98272
-                },
-                "right": {
-                  "op": "power",
-                  "exponent": 2.16673,
-                  "child": {
-                    "op": "power",
-                    "exponent": 2.30693,
-                    "child": {
-                      "op": "decay",
-                      "half_life": 13.58362
-                    }
-                  }
-                }
-              },
-              "right": {
-                "op": "blend",
-                "alpha": 0.12536,
-                "left": {
-                  "op": "blend",
-                  "alpha": 0.24202,
-                  "left": {
-                    "op": "blend",
-                    "alpha": 0.86498,
-                    "left": {
-                      "op": "decay",
-                      "half_life": 122.33941
-                    },
-                    "right": {
-                      "op": "decay",
-                      "half_life": 101.4379
-                    }
-                  },
-                  "right": {
-                    "op": "blend",
-                    "alpha": 0.07882,
-                    "left": {
-                      "op": "uniform"
-                    },
-                    "right": {
-                      "op": "frequency",
-                      "window": 37,
-                      "prior": 25.85091
-                    }
-                  }
-                },
-                "right": {
-                  "op": "blend",
-                  "alpha": 0.66082,
-                  "left": {
-                    "op": "power",
-                    "exponent": 1.77195,
-                    "child": {
-                      "op": "uniform"
-                    }
-                  },
-                  "right": {
-                    "op": "blend",
-                    "alpha": 0.1953,
-                    "left": {
-                      "op": "pair",
-                      "window": 214,
-                      "prior": 194.89904
-                    },
-                    "right": {
-                      "op": "uniform"
-                    }
-                  }
-                }
-              }
-            },
-            "right": {
-              "op": "uniform"
-            }
-          },
-          "right": {
-            "op": "power",
-            "exponent": 0.84155,
-            "child": {
-              "op": "gap",
-              "scale": 2.19099
-            }
-          }
-        },
-        "right": {
-          "op": "power",
-          "exponent": 0.56601,
-          "child": {
-            "op": "blend",
-            "alpha": 0.72327,
-            "left": {
-              "op": "uniform"
-            },
-            "right": {
-              "op": "uniform"
-            }
-          }
-        }
-      },
-      "assessment": {
-        "mean_log_edge": 0.0005121107615826104,
-        "mean_top7_hits": 1.5625,
-        "block_edges": [
-          -6.239994144348554e-05,
-          0.0015409725414593496,
-          5.775968473196731e-05
-        ],
-        "fitness": 0.0004027356954905844,
-        "historical_selection_only": true,
-        "prospective_edge_confirmed": false
-      },
-      "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
     }
   ],
   "execution_limits": {
@@ -1177,5 +1147,5 @@
   },
   "scope": "indefinite_historical_model_program_evolution_not_production",
   "claim": "Selection on reused historical data cannot establish predictive advantage.",
-  "last_record_sha256": "a7bfdce879a21568d50013ea8fe25db722bdb59e180a6c4992c6833fd70a4448"
+  "last_record_sha256": "92e4f97fa6d60cf496c96231c8a5198410dce192b970dfa295c97c45f63f6ed2"
 }
