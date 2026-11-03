@@ -1,0 +1,98 @@
+name: Autonomous Full-Text Paper Method Lab
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Independent research process: daily at 02:31 JST, best effort.
+    - cron: "31 17 * * *"
+  pull_request:
+    paths:
+      - "paper_method_autonomy.py"
+      - "paper_method_future_shadow.py"
+      - "tests/test_paper_method_autonomy.py"
+      - "PAPER_AUTONOMOUS_IMPLEMENTATION.md"
+      - ".github/workflows/autonomous_fulltext_paper_lab.yml"
+
+permissions:
+  contents: read
+  models: read
+
+concurrency:
+  group: autonomous-fulltext-paper-lab-main
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install research-only dependencies
+        run: python -m pip install -r requirements.txt pytest pypdf
+      - name: Verify full-text sandbox, reproduction and future-lock tests
+        run: |
+          python -m compileall -q paper_method_autonomy.py paper_method_future_shadow.py
+          python -m pytest -q tests/test_paper_method_autonomy.py tests/test_research_cycle_round2_replay.py
+      - name: No tracked research or operational mutation in tests
+        run: git diff --exit-code -- loto7.csv loto7_agent_output/ research/
+
+  autonomous-research:
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      models: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PDF extraction and restricted expression engine
+        run: python -m pip install -r requirements.txt pypdf
+      - name: Extract full paper / propose safe math / validate future pre-registration
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            # Failure to fetch an OA paper or a rate limit is recorded as blocked.
+            # Never invent a paper's full text or claim reproduction from metadata.
+            python paper_method_autonomy.py --repo-root .
+            if [ -f research/autonomous_paper_methods/candidate.json ]; then
+              python paper_method_future_shadow.py --repo-root .
+            fi
+            git diff --exit-code -- loto7.csv STATUS.md loto7_agent_output/               research/disjoint_future_oos/               research/first_prize_prospective/               weekly_production_prediction.py
+            git add --               research/autonomous_paper_methods/candidate.json               research/autonomous_paper_methods/future_state.json
+            unexpected="$(git diff --cached --name-only | grep -Ev '^research/autonomous_paper_methods/(candidate|future_state).json$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Unauthorized file mutation $unexpected"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "No new paper or future audit transition."
+              exit 0
+            fi
+            git commit -m "research: audit full-text method and append future-only paper evaluation"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+          done
+          echo "::error::Could not publish prospective audit after retries"
+          exit 1
