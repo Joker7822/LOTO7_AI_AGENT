@@ -268,6 +268,9 @@ def discover(root: Path, *, model=None, get_pdf=None, lookup=None) -> dict:
     registry_path = root / REGISTRY
     previous = json.loads(registry_path.read_text(encoding="utf-8")) if registry_path.exists() else None
     attempted = set(previous.get("attempted_dois", [])) if previous else set()
+    candidates = list(previous.get("candidates", [])) if previous else []
+    if previous and not candidates and previous.get("candidate"):
+        candidates = [previous["candidate"]]
     works = bibliography(root)
     options = [p for p in works if p["doi"] not in attempted]
     if not options:
@@ -313,16 +316,20 @@ def discover(root: Path, *, model=None, get_pdf=None, lookup=None) -> dict:
         "last_processed_doi": paper["doi"],
         "status": status,
         "attempted_dois": sorted(attempted),
-        "candidate": candidate if status == "synthetic_verified" else
-                      (previous.get("candidate") if previous else None),
+        "candidate": None,
+        "candidates": candidates,
         "last_failure": details,
         "production_changed": False,
         "future_oos_changed": False,
         "automatic_production_promotion": False,
     }
-    # Retain the first selected valid candidate until its future study completes.
-    if previous and previous.get("candidate"):
-        entry["candidate"] = previous["candidate"]
+    # Keep a persistent queue: no candidate is discarded or promoted just
+    # because a later literature item is reviewed. Future experiments are
+    # evaluated sequentially with a preallocated alpha budget.
+    if candidate is not None and all(z["doi"] != candidate["doi"] for z in candidates):
+        candidates.append(candidate)
+    entry["candidates"] = candidates
+    entry["candidate"] = candidates[0] if candidates else None
     registry_path.parent.mkdir(parents=True, exist_ok=True)
     registry_path.write_text(json.dumps(entry, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return entry
