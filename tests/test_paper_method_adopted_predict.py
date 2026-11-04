@@ -59,8 +59,8 @@ def test_adoption_rejects_unmatched_paper_sha_or_expression():
         choose_model(s, {"candidate": c})
 
 
-def test_missing_model_provider_fails_closed(monkeypatch):
+def test_local_engine_rejects_unsupported_paper_without_an_api_key(monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     paper = {"doi": "10.1006/jcss.1997.1504", "title": "Test", "year": 1997}
-    with pytest.raises(ValueError, match="OPENAI_API_KEY"):
-        model_proposal("test paper" * 150, paper)
+    with pytest.raises(ValueError, match="locally supported"):
+        model_proposal("This publication has no relevant algorithm. " * 55, paper)
