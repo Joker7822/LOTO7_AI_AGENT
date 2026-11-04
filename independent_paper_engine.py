@@ -92,6 +92,11 @@ def infer_from_fulltext(text: str, paper: dict) -> dict:
         raise ValueError("full-text body is too short for local method analysis")
     if not isinstance(paper, dict) or not paper.get("doi"):
         raise ValueError("paper identity is required")
+    if INJECTION.search(text):
+        # Fail closed: never extract a usable research candidate from an
+        # instruction-injection document, even if other passages look normal.
+        raise ValueError("paper has no locally supported safe method: "
+                         "instruction-injection text detected")
     sentences = [s.strip() for s in BREAK.split(text) if len(s.strip()) >= 20]
     possibilities: list[Evidence] = []
     offset = 0
@@ -109,7 +114,10 @@ def infer_from_fulltext(text: str, paper: dict) -> dict:
                     or not COMBINE.search(context)):
                 continue
             quote = _quote(context)
-            if not 20 <= len(quote) <= 150 or quote not in text:
+            if (not 20 <= len(quote) <= 150 or quote not in text
+                    or len(_detected_signals(quote)) < 2):
+                # The literal excerpt must show the two actual grounded
+                # algorithm concepts, not only the word "method".
                 continue
             score = 10 * len(signals) + int(bool(re.search(
                 r"\b(?:we propose|we introduce|we combine)\b", context, re.I))) * 3
