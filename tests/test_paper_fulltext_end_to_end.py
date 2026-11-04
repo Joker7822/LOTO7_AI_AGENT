@@ -79,3 +79,13 @@ def test_openalex_tries_second_safe_oa_location():
                 ]}
     url, _ = lab.openalex_pdf(DOI, request_json=alternate)
     assert url == "https://arxiv.org/pdf/1234"
+
+def test_temporary_openalex_failure_does_not_consume_paper(tmp_path, monkeypatch):
+    import urllib.error
+    monkeypatch.setattr(lab, "bibliography", lambda root: [PAPER])
+    def broken(_):
+        raise urllib.error.URLError("temporary API outage")
+    result = lab.discover(tmp_path, model=model, lookup=broken)
+    assert result["status"] == "retry_pending"
+    assert result["attempted_dois"] == []
+    assert json.loads((tmp_path / lab.REGISTRY).read_text())["candidate"] is None
