@@ -71,12 +71,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+      # This step MUST run for schedule and workflow_run too. Both skip
+      # the PR/push-only validation step, but still build the dashboard.
+      - name: Install dashboard runtime dependencies for all triggers
+        run: |
+          python -m pip install -r requirements.txt
+          python -c "import numpy, pandas; print('Dashboard runtime imports OK')"
       - name: Validate telemetry builder and UI
         if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
-          python -m pip install -r requirements.txt pytest
+          python -m pip install pytest
           python -m compileall -q dashboard_status_snapshot.py evaluation_scorecard.py agent_operations_planner.py public_issued_prediction.py
-          python -m pytest -q tests/test_dashboard_status_snapshot.py tests/test_evaluation_scorecard.py tests/test_agent_operations_planner.py tests/test_ephemeral_research_caches.py tests/test_public_issued_prediction.py
+          python -m pytest -q tests/test_dashboard_status_snapshot.py tests/test_evaluation_scorecard.py tests/test_agent_operations_planner.py tests/test_ephemeral_research_caches.py tests/test_public_issued_prediction.py tests/test_dashboard_workflow_runtime_deps.py
           node --check docs/app.js
           node --check docs/telemetry.mjs
           node --test docs/tests/*.test.mjs
