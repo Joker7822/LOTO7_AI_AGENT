@@ -393,7 +393,12 @@ def discover(root: Path, *, model=None, get_pdf=None, lookup=None) -> dict:
         status = "synthetic_and_historical_screen_passed"
     except (ValueError, OSError, KeyError, TypeError, IndexError,
             urllib.error.URLError) as exc:
-        status = "blocked_requires_review"
+        transient = isinstance(exc, urllib.error.URLError)
+        if transient:
+            # Unavailable provider / rate limit / network outage cannot
+            # permanently consume a paper that has never been interpreted.
+            attempted.discard(paper["doi"])
+        status = "retry_pending" if transient else "blocked_requires_review"
         details = {"reason": type(exc).__name__, "message": str(exc)[:300]}
     entry = {
         "version": VERSION,
