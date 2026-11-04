@@ -22,6 +22,7 @@ from pathlib import Path
 
 import numpy as np
 
+from loto7_evolving_agent import make_history, read_csv_flexible
 from recursive_self_evolution_agent import (
     NUMBERS, PICKS, feature_vectors, parse_expression,
     predict_inclusion_probability,
@@ -277,6 +278,36 @@ def reproducibility(expression: str) -> dict:
     }
 
 
+def historical_prequential_screen(root: Path, expression: str) -> dict:
+    """Fixed 48-target chronological *triage*, not independent paper replication.
+
+    Never fit on the scored target. Selection over literature and formulas still
+    makes this retrospective and requires future-only evidence for adoption.
+    """
+    prior, _frame = make_history(read_csv_flexible(root / "loto7.csv"))
+    if len(prior) < 149:
+        raise ValueError("insufficient prior-only history for 48-target screening")
+    edges = []
+    for target_index in range(len(prior) - 48, len(prior)):
+        p = predict_inclusion_probability(prior[:target_index], expression)
+        y = prior[target_index].astype(np.float64)
+        q = PICKS / NUMBERS
+        edges.append(float(np.mean((q - y) ** 2 - (p - y) ** 2)))
+    mean_edge = float(np.mean(edges))
+    return {
+        "targets": 48,
+        "first_target_index_one_based": len(prior) - 47,
+        "last_target_index_one_based": len(prior),
+        "mean_brier_edge_vs_fair_uniform": mean_edge,
+        "blocks_of_16_mean_edges": [
+            float(np.mean(edges[i:i + 16])) for i in (0, 16, 32)],
+        "chronological_prior_only": True,
+        "retrospective_selection_bias": True,
+        "independent_future_evidence": False,
+        "screen_passed": mean_edge > 0.0,
+    }
+
+
 def discover(root: Path, *, model=None, get_pdf=None, lookup=None) -> dict:
     """Read one new verified paper per invocation, fail closed for unavailable full text."""
     root = root.resolve()
@@ -288,6 +319,12 @@ def discover(root: Path, *, model=None, get_pdf=None, lookup=None) -> dict:
         candidates = [previous["candidate"]]
     works = bibliography(root)
     options = [p for p in works if p["doi"] not in attempted]
+    if model is None and not os.getenv("OPENAI_API_KEY") and options:
+        # Preserve the queue: no paper may be marked irreversibly processed
+        # simply because its AI provider was not configured yet.
+        return {"status": "awaiting_openai_api_key",
+                "pending_verified_papers": len(options),
+                "attempted": len(attempted)}
     if not options:
         return {"status": "no_unreviewed_verified_papers", "attempted": len(attempted)}
     paper = options[0]
@@ -302,8 +339,32 @@ def discover(root: Path, *, model=None, get_pdf=None, lookup=None) -> dict:
         else:
             data, mime = fetch(source_url)
         body, pages = paper_text(data, mime)
-        proposed = model_proposal(body, paper, request_model=model)
-        report = reproducibility(proposed["expression"])
+        proposed = None
+        report = None
+        history_screen = None
+        failures = []
+        # Inspect multiple, overlapping sections of a real PDF. Abstract-only
+        # metadata cannot be a substitute for full-text mathematical methods.
+        step = MAX_SOURCE_CHARS - 1500
+        chunks = [body[i:i + MAX_SOURCE_CHARS] for i in
+                  range(0, min(len(body), 8 * step), step)]
+        for chunk in chunks:
+            if len(chunk) < 1500:
+                continue
+            try:
+                proposed = model_proposal(chunk, paper, request_model=model)
+                report = reproducibility(proposed["expression"])
+                history_screen = historical_prequential_screen(
+                    root, proposed["expression"])
+                if history_screen["screen_passed"]:
+                    break
+            except (ValueError, KeyError, TypeError, IndexError) as inner:
+                failures.append(type(inner).__name__)
+            proposed, report, history_screen = None, None, None
+        if proposed is None:
+            raise ValueError("no paper section supplied a safe, reproducible "
+                             "method beating the historical uniform screen; "
+                             + ",".join(failures[:5]))
         candidate = {
             "doi": paper["doi"], "title": paper["title"], "year": paper["year"],
             "fulltext_url": source_url,
@@ -317,11 +378,14 @@ def discover(root: Path, *, model=None, get_pdf=None, lookup=None) -> dict:
             "method_label": proposed["method"],
             "limitations": proposed["limitation"],
             "synthetic_reproducibility": report,
+            "retrospective_historical_screen": history_screen,
+            "paper_body_characters": len(body),
+            "paper_sections_examined": len(chunks),
             "faithful_paper_replication_proven": False,
             "eligible_for_future_only_shadow": True,
             "research_candidate_only": True,
         }
-        status = "synthetic_verified"
+        status = "synthetic_and_historical_screen_passed"
     except (ValueError, OSError, KeyError, TypeError, IndexError,
             urllib.error.URLError) as exc:
         status = "blocked_requires_review"
