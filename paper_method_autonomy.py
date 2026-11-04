@@ -36,6 +36,11 @@ HOSTS = frozenset({
     "www.schapire.net", "schapi.re", "www.eecs.harvard.edu",
     "www2.cs.uh.edu", "openreview.net", "cdn.openreview.net",
     "proceedings.mlr.press", "jmlr.org", "www.jmlr.org",
+    "papers.ssrn.com", "www.ssrn.com", "deliverypdf.ssrn.com",
+    "projecteuclid.org", "www.projecteuclid.org",
+    "academic.oup.com", "link.springer.com", "static-content.springer.com",
+    "www.nature.com", "www.mdpi.com", "www.frontiersin.org",
+    "pmc.ncbi.nlm.nih.gov", "www.ncbi.nlm.nih.gov",
 })
 MAX_BYTES = 5_000_000
 MAX_PAGES = 40
