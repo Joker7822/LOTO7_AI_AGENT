@@ -86,7 +86,9 @@ jobs:
               python research_paper_adopted_predict.py --repo-root .
             fi
             git diff --exit-code -- loto7.csv STATUS.md loto7_agent_output/ research/disjoint_future_oos/ research/first_prize_prospective/ weekly_production_prediction.py
-            git add -A -- research/autonomous_paper_methods/
+            if [ -d research/autonomous_paper_methods ]; then
+              git add -A -- research/autonomous_paper_methods/
+            fi
             unexpected="$(git diff --cached --name-only | grep -Ev '^research/autonomous_paper_methods/(candidate|future_state|adopted_model_preview)[.]json$' || true)"
             if [ -n "$unexpected" ]; then
               echo "::error::Unauthorized paper research mutation: $unexpected"
