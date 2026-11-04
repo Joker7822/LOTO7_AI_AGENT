@@ -1,113 +1,116 @@
-# Full-text paper adaptation → synthetic reproduction → future-only automatic research adoption
+# Autonomous open-access paper method laboratory
 
-Last implemented: **2026-11-03 JST**.
+Updated **2026-11-04 JST**. This is a **safe, bounded, automated research-method
+adaptation**, not universal autonomous reproduction of arbitrary source code.
 
-## What is actually automated
+## Current architecture
 
-The new workflow `.github/workflows/autonomous_fulltext_paper_lab.yml` runs
-daily, independently of the legacy DOI/abstract-only bibliographic researcher.
-It uses the existing checked bibliography as its discovery feed.
+Daily GitHub Actions runs `paper_method_autonomy.py` on the trusted
+Crossref/OpenAlex two-provider bibliography. For one previously unattempted DOI:
 
-1. Select one DOI whose title/year identity matched **both** OpenAlex and Crossref.
-   Unverified, conflicting, or unknown DOIs are not selected.
-2. Ask OpenAlex for the best open-access PDF, and allow only explicitly approved
-   scholarly hosts via HTTPS with redirect validation. Refuse missing,
-   unavailable, unauthorised, oversized or unextractable full text. **A DOI,
-   title, abstract, or landing page is not passed off as the full paper.**
-3. Download the actual PDF and extract its text using `pypdf` (max 5 MB,
-   max 40 pages; a text body must have >=1500 characters).
-4. GitHub Models (`models: read`, `GITHUB_TOKEN`) reads the paper content
-   as untrusted data. It must propose a **closed JSON shape** with an excerpt
-   literally anchored in the downloaded full text and a candidate mathematical
-   expression. The source text is never treated as executable instructions.
-5. Validate the expression with the repository's existing restricted AST
-   (7 historical feature vectors; numeric constants and basic arithmetic plus
-   `sqrt`, `abs`, `tanh`, `log1p`; no imports, file/network access,
-   arbitrary Python statements, calls to other APIs, or external scripts).
-6. Reproduce the same candidate probabilities twice for **four**
-   independently generated synthetic 7-of-37 histories; check value ranges,
-   exact determinism, normalization to seven expected selected numbers, and
-   target-leakage invariance. Reject uniform-equivalent and invalid methods.
-   **This is NOT a claim to reproduce the original publication's empirical
-   experiments, proofs, or code.**
-7. Automatically register the first acceptable candidate as an isolated
-   **experimental paper-derived model**. Maintain a SHA-256 paper hash,
-   mathematical expression hash, method quote, DOI and limitations.
-8. Independently, **freeze the next unobserved draw** in
-   `research/autonomous_paper_methods/future_state.json`: 37 full
-   probabilities, model expression hash, verified history prefix,
-   official scheduled draw date, freeze timestamp, SHA-chained event hash.
-   Only forecasts issued before the draw's **JST calendar day** are eligible.
-9. After the trusted result is confirmed, recompute frozen Brier loss
-   against the fair model `7/37` and append a SHA-chained grading event.
-   Data revision, event gaps, changed predictions or untrusted draw results
-   make the process stop rather than retroactively rebuild evidence.
-10. After a fixed **26** future trusted draws, use an anytime-valid,
-    precommitted evidence process to decide whether to auto-adopt the
-    **research-only shadow candidate**:
-    `e_t = 1 + (Brier_uniform - Brier_candidate)` (per-ball averages);
-    `E = product(e_t)`. Under the conditional fair 7-of-37 null,
-    the expected Brier advantage is nonpositive, each factor is
-    nonnegative, and the conditional expected factor is <=1.
-    The pre-registered first candidate uses `alpha=0.025`,
-    requiring `E >= 40` and all 26 grades. A failed candidate is
-    automatically marked `insufficient_future_evidence_do_not_adopt`.
-    This version permits **only one** prospective paper candidate, preventing
-    uncorrected repeated future selection; other candidates remain queued
-    for future explicit multiplicity-governed expansions.
+1. **Fetch the real open-access article body** via an OpenAlex OA PDF location
+   on an explicit HTTPS allowlist. Reject missing/unsupported/unextractable
+   text, untrusted redirect hosts, oversized PDF (5 MB), or more than 40 pages.
+   An abstract or DOI landing page does not count as the paper.
+2. **Read the paper's mathematical and experimental text** in bounded,
+   overlapping 28,000-character windows (up to 8 windows). The article is
+   untrusted model input, never executable code.
+3. **Extract and instantiate a new algorithmic expression** through an
+   explicitly configured OpenAI inference API. The model must return only
+   `method`, `exact_quote`, `expression`, `limitation` JSON. The quoted
+   20–150 characters must literally occur in the paper section. The expression
+   must satisfy the repository's constrained arithmetic AST: 7 prior-only
+   feature vectors, numeric constants, mathematical operators and 4 numeric
+   functions. It can generate expressions not authored in repository code.
+   Python statements, imports, attribute access, arbitrary library calls,
+   external downloaded scripts, and executable paper text are forbidden.
+4. **Reproduce the derived algorithm's outputs** on four independent
+   synthetic 7-of-37 histories. Verify determinism, 37 finite
+   probabilities, sum of 7, nonuniform behavior, and exact result-target
+   exclusion. Also measure a **fixed last-48-draw prior-only historical
+   Brier-screen** against the uniform 7/37 baseline; reject candidates
+   whose average advantage is not positive. This historical screen is
+   affected by candidate/DOI selection and does **not** prove real skill.
+5. **Register the candidate** with DOI, paper-body SHA256, expression SHA256,
+   literal paper excerpt, deterministic tests, and historical screen result.
+   New valid papers accumulate in a bounded-math candidate queue. They are
+   not inserted into Production.
+6. **Start a precommitted 26-draw future-only study** using
+   `paper_method_future_shadow.py`. Issue full 37-number probability
+   vectors before each next official draw's JST calendar day, audit
+   hashes and timestamps, grade only verified future results, and maintain
+   an e-process against the mathematically fair baseline.
+7. **Automatically adopt the research model**, and actually run it for
+   the next research forecast via `research_paper_adopted_predict.py`,
+   only after all 26 new draws have occurred and the research e-value
+   reaches at least 40 (precommitted alpha = 0.025). The output is
+   `research/autonomous_paper_methods/adopted_model_preview.json`.
+   If the evidence fails or has not arrived, there is no adopted preview.
 
-## Boundaries — essential to honest interpretation
+Existing Production, Champion, public purchasing outputs, real draw
+history, and all previously registered prospective OOS books remain
+**untouched**. This new model is only an automatically adopted **research
+shadow** model, pending a separately authorized Production promotion gate.
+The first prospective study is fixed to one candidate; queued candidates
+do **not** automatically start second prospective trials in this version.
+That requires a preregistered multiplicity-adjusted protocol.
 
-A general scientific publication cannot automatically be converted into an
-arbitrary faithful experimental replication by a finite allowlisted formula
-interpreter. Novel techniques outside the permitted mathematical grammar are
-**rejected** and need a separately reviewed extension. GitHub Models can
-misinterpret articles; a literal excerpt anchor verifies grounding, not the
-semantic fidelity of the derived model. Conversion produces a
-**research-domain adaptation**, not publication-level replication.
+## Provider setup (required to activate paper analysis)
 
-Nor does a paper's success in another domain establish lotteries are
-forecastable. On a conditionally fair 7-of-37 draw, an arbitrary ticket
-is still one of `C(37,7) = 10,295,472` possibilities.
+**GitHub Models was retired on 2026-07-30.** Its old
+`models.github.ai` API and `models: read` workflow permission are not
+used; past advice to rely on GitHub Models is outdated.
 
-**Automatic adoption means research shadow only.** This system never edits
-the existing Champion, `loto7.csv`, issued Production tickets, previously
-registered prospective evidence, or registered OOS ledgers.
-No production changes are made. To allow later Production promotion, a
-separate explicitly governed policy with independent validation is required.
+Add `OPENAI_API_KEY` as a **GitHub Actions repository secret**, in the
+repository settings, not in Git, and enable sufficient API quota. The workflow
+uses the Chat Completions endpoint
+`https://api.openai.com/v1/chat/completions`, configurable via the
+`PAPER_LLM_MODEL` environment variable (default `gpt-4o-mini`).
 
-## Sources
+With no key, the discovery step returns
+`awaiting_openai_api_key` **without marking papers as attempted**.
+It must not claim any article was interpreted. Existing future studies
+can still grade their already registered predictions.
 
-- **Freund & Schapire (1997)**, *A Decision-Theoretic Generalization of
-  On-Line Learning and an Application to Boosting*, JCSS 55(1), 119–139.
-  DOI: https://doi.org/10.1006/jcss.1997.1504
-  (related methodology for multiplicative weights and sequential evidence).
-  Open full-text copy:
-  https://www.eecs.harvard.edu/cs286r/courses/fall10/papers/hedge.pdf
-- **OpenAlex documentation (as of 2026-11-03)** on
-  `best_oa_location.pdf_url`:
-  https://help.openalex.org/data/locations/
-- **GitHub Models and Actions (2025-05 onward)**:
-  https://github.blog/ai-and-ml/llms/solving-the-inference-problem-for-open-source-ai-projects-with-github-models/
+Other runtime requirements: online access to OpenAlex and an accessible
+allowlisted OA full-text PDF, Python 3.12, NumPy, pandas and `pypdf`.
+The public CI validates deterministic processing without a real API key.
+It does not prove that a live OA paper and live AI service completed.
 
-## Running
+## Scientific limitations
+
+A new expression based on a paper is a **domain adaptation**. Anchoring a
+quote and executing the mathematics in a sandbox is not a faithful
+independent replication of the paper's original empirical results or proof.
+Some methodologies cannot be represented by the allowed grammar; these
+are automatically rejected, not silently replaced by arbitrary code.
+
+Even a positive historical score is selected with hindsight. The next
+**26 future draws**, and the preregistered e-process, are what can
+provide conditional fair-lottery evidence. If all published choices are
+independent and uniformly distributed, no historical algorithm is known
+to make their actual numbers inherently more predictable.
+
+To run validation:
 
 ```bash
 python -m pip install -r requirements.txt pytest pypdf
-python -m pytest -q tests/test_paper_method_autonomy.py
-# Requires online scholarly PDF access and GitHub Models token;
-# the local CSV and the existing trusted bibliography are used.
-GITHUB_TOKEN=... python paper_method_autonomy.py --repo-root .
+python -m pytest -q tests/test_paper_method_autonomy.py \
+  tests/test_paper_method_adopted_predict.py
+OPENAI_API_KEY=... python paper_method_autonomy.py --repo-root .
 python paper_method_future_shadow.py --repo-root .
+python research_paper_adopted_predict.py --repo-root .
 ```
 
-The first command does **not** guarantee an eligible method: a paper may lack
-OpenAlex OA full text, be inaccessible, or not be expressible in the safety
-grammar. In that case the output contains a blocker, not fabricated success.
-The second command does not backdate forecasts; until the 26 new verified
-draws occur, it reports pending evidence rather than "adopted".
+## Primary sources
 
-The independent `research_cycle_round2_replay.py` created in the parent PR
-continues to re-run the latest recursive model from round 2 as an explicitly
-retrospective exploratory comparison. Historical replay cannot replace this
-new future-only scientific confirmation.
+- GitHub: GitHub Models retirement, effective 2026-07-30:
+  https://docs.github.com/en/github-models
+- OpenAlex: Open access locations and `best_oa_location`:
+  https://help.openalex.org/data/locations/
+- OpenAI: Chat Completions and structured/JSON outputs:
+  https://developers.openai.com/api/docs/guides/structured-outputs?api-mode=chat
+- Freund & Schapire (1997), *A Decision-Theoretic Generalization of
+  On-Line Learning and an Application to Boosting*, DOI
+  https://doi.org/10.1006/jcss.1997.1504 (example of a candidate
+  method, not proof of reproduced lottery prediction accuracy).
