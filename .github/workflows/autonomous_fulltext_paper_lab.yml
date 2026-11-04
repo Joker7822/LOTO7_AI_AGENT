@@ -8,14 +8,13 @@ on:
   pull_request:
     paths:
       - "paper_method_autonomy.py"
-      - "paper_method_future_shadow.py"
+      - "paper_method_future_shadow.py"\n      - "research_paper_adopted_predict.py"
       - "tests/test_paper_method_autonomy.py"
       - "PAPER_AUTONOMOUS_IMPLEMENTATION.md"
       - ".github/workflows/autonomous_fulltext_paper_lab.yml"
 
 permissions:
   contents: read
-  models: read
 
 concurrency:
   group: autonomous-fulltext-paper-lab-main
@@ -37,8 +36,8 @@ jobs:
         run: python -m pip install -r requirements.txt pytest pypdf
       - name: Verify full-text sandbox, reproduction and future-lock tests
         run: |
-          python -m compileall -q paper_method_autonomy.py paper_method_future_shadow.py
-          python -m pytest -q tests/test_paper_method_autonomy.py tests/test_research_cycle_round2_replay.py
+          python -m compileall -q paper_method_autonomy.py paper_method_future_shadow.py research_paper_adopted_predict.py
+          python -m pytest -q tests/test_paper_method_autonomy.py tests/test_paper_method_adopted_predict.py tests/test_research_cycle_round2_replay.py
       - name: No tracked research or operational mutation in tests
         run: git diff --exit-code -- loto7.csv loto7_agent_output/ research/
 
@@ -49,8 +48,7 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: write
-      models: read
-    steps:
+        steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -63,7 +61,7 @@ jobs:
         run: python -m pip install -r requirements.txt pypdf
       - name: Extract full paper / propose safe math / validate future pre-registration
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}\n          PAPER_LLM_MODEL: gpt-4o-mini
         shell: bash
         run: |
           set -euo pipefail
@@ -76,11 +74,27 @@ jobs:
             # Never invent a paper's full text or claim reproduction from metadata.
             python paper_method_autonomy.py --repo-root .
             if [ -f research/autonomous_paper_methods/candidate.json ]; then
-              python paper_method_future_shadow.py --repo-root .
+              python paper_method_future_shadow.py --repo-root .\n              python research_paper_adopted_predict.py --repo-root .
             fi
             git diff --exit-code -- loto7.csv STATUS.md loto7_agent_output/               research/disjoint_future_oos/               research/first_prize_prospective/               weekly_production_prediction.py
-            git add --               research/autonomous_paper_methods/candidate.json               research/autonomous_paper_methods/future_state.json
-            unexpected="$(git diff --cached --name-only | grep -Ev '^research/autonomous_paper_methods/(candidate|future_state).json$' || true)"
+            git add --               research/autonomous_paper_methods/candidate.json               research/autonomous_paper_methods/future_state.json \\\n              research/autonomous_paper_methods/adopted_model_preview.json
+            unexpected="$(git diff --cached --name-only | grep -Ev '^research/autonomous_paper_methods/(candidate|future_state|adopted_model_preview).json || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Unauthorized file mutation $unexpected"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "No new paper or future audit transition."
+              exit 0
+            fi
+            git commit -m "research: audit full-text method and append future-only paper evaluation"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+          done
+          echo "::error::Could not publish prospective audit after retries"
+          exit 1
+ || true)"
             if [ -n "$unexpected" ]; then
               echo "::error::Unauthorized file mutation $unexpected"
               exit 1
