@@ -2,6 +2,13 @@ name: Autonomous Full-Text Paper Method Lab
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "paper_method_autonomy.py"
+      - "paper_method_future_shadow.py"
+      - "research_paper_adopted_predict.py"
+      - ".github/workflows/autonomous_fulltext_paper_lab.yml"
   schedule:
     - cron: "31 17 * * *"
   pull_request:
