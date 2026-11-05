@@ -1,9 +1,9 @@
 # LOTO7 AI Agent — Role Council
 
-- checked JST: **2026-11-05T17:31:27+09:00**
+- checked JST: **2026-11-06T07:32:15+09:00**
 - latest round: **701**
 - overall: **WATCH**
-- input snapshot SHA256: 927e638dd79163de9ddf13cfc7bb711ce1dfff5f230e936bef1609f2f330dc18
+- input snapshot SHA256: e273d6d38bac334a9247d21ac1b53f81cccd90ad6b5e6f8e04b793daa5d317de
 - **Read-only advice; never promote, publish, freeze or backfill.**
 
 ## Role checks
@@ -13,7 +13,7 @@
 | prospective_signal_custodian | OK | V2_LOCK_AND_IMMUTABLE_HISTORY |
 | oos_risk_officer | WATCH | OOS_REFERENCE_CONSISTENCY, NO_EARLY_PORTFOLIO_CLAIM |
 | research_skeptic | OK | DIAGNOSTIC_RESEARCH_ISOLATION, RESEARCH_TRIAL_LIMIT_ENFORCED |
-| release_operations | OK | RELEASE_SCHEDULE_GUARD |
+| release_operations | WATCH | DRAW_SCHEDULE_NOT_VERIFIED |
 
 ## Prioritized handoffs
 ### WATCH — data_steward: PAIR_CONTEXT_INT8_OVERFLOW
@@ -24,6 +24,11 @@
 ### WATCH — oos_risk_officer: NO_EARLY_PORTFOLIO_CLAIM
 - evidence: holdout=8/26
 - next action: Keep all comparator evidence and wait until 26/26 for independent confirmation.
+- executor: **existing workflow / human review only**
+
+### WATCH — release_operations: DRAW_SCHEDULE_NOT_VERIFIED
+- evidence: expected target=702
+- next action: Verify the official next draw date; do not infer publishing deadlines.
 - executor: **existing workflow / human review only**
 
 
