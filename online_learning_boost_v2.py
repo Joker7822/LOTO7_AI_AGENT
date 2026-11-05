@@ -46,6 +46,9 @@ LOCKED_CODE = (
     "online_learning_boost_v2.py",
     "predictive_expert_agent.py",
     "joint_set_v2_signal_oos_guard.py",
+    "joint_set_v2_signal_oos.py",
+    "joint_set_v2_model.py",
+    "loto7_v4_runner.py",
     "loto7_evolving_agent.py",
 )
 
@@ -203,8 +206,12 @@ def append_event(events: list[dict], content: dict) -> dict:
 
 
 def assert_ledger(ledger: dict, root: Path, x: np.ndarray, frame) -> tuple:
-    if ledger.get("version") != VERSION or ledger.get("registration") != manifest(root):
+    if (ledger.get("version") != VERSION
+            or ledger.get("registration") != manifest(root)):
         raise ValueError("registered online learner algorithm changed")
+    if (ledger.get("role") != "research_only_not_production"
+            or ledger.get("start_target_round") != START_TARGET):
+        raise ValueError("online learner registration or research-only role changed")
     events = ledger.get("events")
     if not isinstance(events, list) or len(events) % 2 != 1:
         raise ValueError("online learner must hold exactly one ungraded freeze")
@@ -309,6 +316,8 @@ def freeze(events: list[dict], x: np.ndarray,
 def run(root: Path, output: Path, source_report: Path,
         *, now: datetime | None = None) -> dict:
     root, output = root.resolve(), output.resolve()
+    if now is not None and (now.tzinfo is None or now.utcoffset() is None):
+        raise ValueError("online learner requires timezone-aware timestamps")
     now = (now or datetime.now(JST)).astimezone(JST)
     x, frame = make_history(read_csv_flexible(root / "loto7.csv"))
     expert.assert_history(x, min_train=100)
