@@ -410,9 +410,10 @@ def validate_state(state: dict, registration: dict, root: Path,
             if (stamp.tzinfo is None or stamp.utcoffset() is None
                     or stamp.astimezone(JST).date() >= scheduled):
                 raise ValueError("prediction not frozen before official draw date")
-            if (i == 0 and
-                    datetime.fromisoformat(registration["registered_at_jst"]).date()
-                    >= scheduled):
+            registered = datetime.fromisoformat(registration["registered_at_jst"])
+            if (i == 0 and (
+                    registered.tzinfo is None or registered.utcoffset() is None
+                    or registered.astimezone(JST).date() >= scheduled)):
                 raise ValueError("independent protocol was registered too late")
             expected = model_forecast(x[:target - 1], es, ms, ts, edges)
             expected["e_process_values_before"] = list(wealth)
@@ -534,6 +535,8 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
             if not trusted:
                 return {"status": "awaiting_two_source_trusted_target",
                         "registered": True, "graded_draws": state["trusted_grades"]}
+            if now.date() < frame["抽せん日"].iloc[-1].date():
+                raise ValueError("verified target cannot be graded before draw date")
             next_schedule = checked_schedule(source, target + 1)
             if not next_schedule:
                 return {"status": "awaiting_verified_following_schedule",
