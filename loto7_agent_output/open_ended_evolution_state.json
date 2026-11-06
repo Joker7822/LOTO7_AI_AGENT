@@ -1,6 +1,6 @@
 {
   "version": "open-ended-evolution-v1",
-  "generations_total": 93629,
+  "generations_total": 96090,
   "evaluated_history_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637",
   "recorded_rounds": 701,
   "evaluation_rounds": 701,
@@ -8,10 +8,10 @@
   "last_unverified_row_excluded": false,
   "independent_source_verified": true,
   "research_champion": {
-    "generation": 88101,
+    "generation": 95523,
     "genome": {
       "op": "blend",
-      "alpha": 0.99,
+      "alpha": 0.96564,
       "left": {
         "op": "blend",
         "alpha": 0.964,
@@ -112,35 +112,172 @@
       },
       "right": {
         "op": "blend",
-        "alpha": 0.65148,
+        "alpha": 0.73698,
         "left": {
           "op": "power",
-          "exponent": 2.24223,
+          "exponent": 2.49376,
           "child": {
             "op": "gap",
-            "scale": 4.40205
+            "scale": 3.64712
           }
         },
         "right": {
-          "op": "uniform"
+          "op": "pair",
+          "window": 125,
+          "prior": 77.34379
         }
       }
     },
     "assessment": {
-      "mean_log_edge": 0.0005258279479364087,
-      "mean_top7_hits": 1.5208333333333333,
+      "mean_log_edge": 0.0005649733895133164,
+      "mean_top7_hits": 1.5833333333333333,
       "block_edges": [
-        -6.002433647612891e-05,
-        0.0015921777769800352,
-        4.5330403305319806e-05
+        -3.393275527731885e-05,
+        0.001743053826237831,
+        -1.4200902420562775e-05
       ],
-      "fitness": 0.0004125406114602187,
+      "fitness": 0.00044001324748500466,
       "historical_selection_only": true,
       "prospective_edge_confirmed": false
     },
     "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
   },
   "hall_of_fame": [
+    {
+      "generation": 95523,
+      "genome": {
+        "op": "blend",
+        "alpha": 0.96564,
+        "left": {
+          "op": "blend",
+          "alpha": 0.964,
+          "left": {
+            "op": "blend",
+            "alpha": 0.65489,
+            "left": {
+              "op": "blend",
+              "alpha": 0.19977,
+              "left": {
+                "op": "blend",
+                "alpha": 0.74645,
+                "left": {
+                  "op": "gap",
+                  "scale": 41.98272
+                },
+                "right": {
+                  "op": "power",
+                  "exponent": 2.16673,
+                  "child": {
+                    "op": "power",
+                    "exponent": 2.30693,
+                    "child": {
+                      "op": "decay",
+                      "half_life": 13.58362
+                    }
+                  }
+                }
+              },
+              "right": {
+                "op": "blend",
+                "alpha": 0.12536,
+                "left": {
+                  "op": "blend",
+                  "alpha": 0.24202,
+                  "left": {
+                    "op": "blend",
+                    "alpha": 0.86498,
+                    "left": {
+                      "op": "decay",
+                      "half_life": 122.33941
+                    },
+                    "right": {
+                      "op": "decay",
+                      "half_life": 101.4379
+                    }
+                  },
+                  "right": {
+                    "op": "blend",
+                    "alpha": 0.07882,
+                    "left": {
+                      "op": "uniform"
+                    },
+                    "right": {
+                      "op": "frequency",
+                      "window": 37,
+                      "prior": 25.85091
+                    }
+                  }
+                },
+                "right": {
+                  "op": "blend",
+                  "alpha": 0.66082,
+                  "left": {
+                    "op": "power",
+                    "exponent": 1.77195,
+                    "child": {
+                      "op": "uniform"
+                    }
+                  },
+                  "right": {
+                    "op": "blend",
+                    "alpha": 0.1953,
+                    "left": {
+                      "op": "pair",
+                      "window": 214,
+                      "prior": 194.89904
+                    },
+                    "right": {
+                      "op": "uniform"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "op": "uniform"
+            }
+          },
+          "right": {
+            "op": "power",
+            "exponent": 0.84155,
+            "child": {
+              "op": "gap",
+              "scale": 2.19099
+            }
+          }
+        },
+        "right": {
+          "op": "blend",
+          "alpha": 0.73698,
+          "left": {
+            "op": "power",
+            "exponent": 2.49376,
+            "child": {
+              "op": "gap",
+              "scale": 3.64712
+            }
+          },
+          "right": {
+            "op": "pair",
+            "window": 125,
+            "prior": 77.34379
+          }
+        }
+      },
+      "assessment": {
+        "mean_log_edge": 0.0005649733895133164,
+        "mean_top7_hits": 1.5833333333333333,
+        "block_edges": [
+          -3.393275527731885e-05,
+          0.001743053826237831,
+          -1.4200902420562775e-05
+        ],
+        "fitness": 0.00044001324748500466,
+        "historical_selection_only": true,
+        "prospective_edge_confirmed": false
+      },
+      "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
+    },
     {
       "generation": 88101,
       "genome": {
@@ -519,6 +656,128 @@
       "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
     },
     {
+      "generation": 93781,
+      "genome": {
+        "op": "blend",
+        "alpha": 0.99,
+        "left": {
+          "op": "blend",
+          "alpha": 0.964,
+          "left": {
+            "op": "blend",
+            "alpha": 0.65489,
+            "left": {
+              "op": "blend",
+              "alpha": 0.19977,
+              "left": {
+                "op": "blend",
+                "alpha": 0.74645,
+                "left": {
+                  "op": "gap",
+                  "scale": 41.98272
+                },
+                "right": {
+                  "op": "power",
+                  "exponent": 2.16673,
+                  "child": {
+                    "op": "power",
+                    "exponent": 2.30693,
+                    "child": {
+                      "op": "decay",
+                      "half_life": 13.58362
+                    }
+                  }
+                }
+              },
+              "right": {
+                "op": "blend",
+                "alpha": 0.12536,
+                "left": {
+                  "op": "blend",
+                  "alpha": 0.24202,
+                  "left": {
+                    "op": "blend",
+                    "alpha": 0.86498,
+                    "left": {
+                      "op": "decay",
+                      "half_life": 122.33941
+                    },
+                    "right": {
+                      "op": "decay",
+                      "half_life": 101.4379
+                    }
+                  },
+                  "right": {
+                    "op": "blend",
+                    "alpha": 0.07882,
+                    "left": {
+                      "op": "uniform"
+                    },
+                    "right": {
+                      "op": "frequency",
+                      "window": 37,
+                      "prior": 25.85091
+                    }
+                  }
+                },
+                "right": {
+                  "op": "blend",
+                  "alpha": 0.66082,
+                  "left": {
+                    "op": "power",
+                    "exponent": 1.77195,
+                    "child": {
+                      "op": "uniform"
+                    }
+                  },
+                  "right": {
+                    "op": "blend",
+                    "alpha": 0.1953,
+                    "left": {
+                      "op": "pair",
+                      "window": 214,
+                      "prior": 194.89904
+                    },
+                    "right": {
+                      "op": "uniform"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "op": "uniform"
+            }
+          },
+          "right": {
+            "op": "power",
+            "exponent": 0.84155,
+            "child": {
+              "op": "gap",
+              "scale": 2.19099
+            }
+          }
+        },
+        "right": {
+          "op": "gap",
+          "scale": 2.87713
+        }
+      },
+      "assessment": {
+        "mean_log_edge": 0.0005192965911671846,
+        "mean_top7_hits": 1.5208333333333333,
+        "block_edges": [
+          -7.017785534318304e-05,
+          0.0015845850222755455,
+          4.348260656919132e-05
+        ],
+        "fitness": 0.0004060915168833532,
+        "historical_selection_only": true,
+        "prospective_edge_confirmed": false
+      },
+      "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
+    },
+    {
       "generation": 90415,
       "genome": {
         "op": "blend",
@@ -635,6 +894,137 @@
           4.3932713268062884e-05
         ],
         "fitness": 0.00040488487634078184,
+        "historical_selection_only": true,
+        "prospective_edge_confirmed": false
+      },
+      "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
+    },
+    {
+      "generation": 94471,
+      "genome": {
+        "op": "blend",
+        "alpha": 0.99,
+        "left": {
+          "op": "blend",
+          "alpha": 0.964,
+          "left": {
+            "op": "blend",
+            "alpha": 0.65489,
+            "left": {
+              "op": "blend",
+              "alpha": 0.19977,
+              "left": {
+                "op": "blend",
+                "alpha": 0.74645,
+                "left": {
+                  "op": "gap",
+                  "scale": 41.98272
+                },
+                "right": {
+                  "op": "power",
+                  "exponent": 2.16673,
+                  "child": {
+                    "op": "power",
+                    "exponent": 2.30693,
+                    "child": {
+                      "op": "decay",
+                      "half_life": 13.58362
+                    }
+                  }
+                }
+              },
+              "right": {
+                "op": "blend",
+                "alpha": 0.12536,
+                "left": {
+                  "op": "blend",
+                  "alpha": 0.24202,
+                  "left": {
+                    "op": "blend",
+                    "alpha": 0.86498,
+                    "left": {
+                      "op": "decay",
+                      "half_life": 122.33941
+                    },
+                    "right": {
+                      "op": "decay",
+                      "half_life": 101.4379
+                    }
+                  },
+                  "right": {
+                    "op": "blend",
+                    "alpha": 0.07882,
+                    "left": {
+                      "op": "uniform"
+                    },
+                    "right": {
+                      "op": "frequency",
+                      "window": 37,
+                      "prior": 25.85091
+                    }
+                  }
+                },
+                "right": {
+                  "op": "blend",
+                  "alpha": 0.66082,
+                  "left": {
+                    "op": "power",
+                    "exponent": 1.77195,
+                    "child": {
+                      "op": "uniform"
+                    }
+                  },
+                  "right": {
+                    "op": "blend",
+                    "alpha": 0.1953,
+                    "left": {
+                      "op": "pair",
+                      "window": 214,
+                      "prior": 194.89904
+                    },
+                    "right": {
+                      "op": "uniform"
+                    }
+                  }
+                }
+              }
+            },
+            "right": {
+              "op": "uniform"
+            }
+          },
+          "right": {
+            "op": "power",
+            "exponent": 0.84155,
+            "child": {
+              "op": "gap",
+              "scale": 2.19099
+            }
+          }
+        },
+        "right": {
+          "op": "blend",
+          "alpha": 0.34866,
+          "left": {
+            "op": "pair",
+            "window": 44,
+            "prior": 272.29728
+          },
+          "right": {
+            "op": "gap",
+            "scale": 3.3013
+          }
+        }
+      },
+      "assessment": {
+        "mean_log_edge": 0.0005152646332942586,
+        "mean_top7_hits": 1.5208333333333333,
+        "block_edges": [
+          -6.922012997318092e-05,
+          0.0015663334682149313,
+          4.868056164102552e-05
+        ],
+        "fitness": 0.00040354840248533124,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
@@ -781,366 +1171,6 @@
         "prospective_edge_confirmed": false
       },
       "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
-    },
-    {
-      "generation": 61852,
-      "genome": {
-        "op": "blend",
-        "alpha": 0.964,
-        "left": {
-          "op": "blend",
-          "alpha": 0.65489,
-          "left": {
-            "op": "blend",
-            "alpha": 0.19977,
-            "left": {
-              "op": "blend",
-              "alpha": 0.74645,
-              "left": {
-                "op": "gap",
-                "scale": 41.98272
-              },
-              "right": {
-                "op": "power",
-                "exponent": 2.16673,
-                "child": {
-                  "op": "power",
-                  "exponent": 2.30693,
-                  "child": {
-                    "op": "decay",
-                    "half_life": 13.58362
-                  }
-                }
-              }
-            },
-            "right": {
-              "op": "blend",
-              "alpha": 0.12536,
-              "left": {
-                "op": "blend",
-                "alpha": 0.24202,
-                "left": {
-                  "op": "blend",
-                  "alpha": 0.86498,
-                  "left": {
-                    "op": "decay",
-                    "half_life": 122.33941
-                  },
-                  "right": {
-                    "op": "decay",
-                    "half_life": 101.4379
-                  }
-                },
-                "right": {
-                  "op": "blend",
-                  "alpha": 0.07882,
-                  "left": {
-                    "op": "uniform"
-                  },
-                  "right": {
-                    "op": "frequency",
-                    "window": 37,
-                    "prior": 25.85091
-                  }
-                }
-              },
-              "right": {
-                "op": "blend",
-                "alpha": 0.66082,
-                "left": {
-                  "op": "power",
-                  "exponent": 1.77195,
-                  "child": {
-                    "op": "uniform"
-                  }
-                },
-                "right": {
-                  "op": "blend",
-                  "alpha": 0.1953,
-                  "left": {
-                    "op": "pair",
-                    "window": 214,
-                    "prior": 194.89904
-                  },
-                  "right": {
-                    "op": "uniform"
-                  }
-                }
-              }
-            }
-          },
-          "right": {
-            "op": "uniform"
-          }
-        },
-        "right": {
-          "op": "power",
-          "exponent": 0.84155,
-          "child": {
-            "op": "gap",
-            "scale": 2.19099
-          }
-        }
-      },
-      "assessment": {
-        "mean_log_edge": 0.0005132229060345683,
-        "mean_top7_hits": 1.5625,
-        "block_edges": [
-          -6.680088850112705e-05,
-          0.0015522457230175274,
-          5.422388358730407e-05
-        ],
-        "fitness": 0.00040276897494631993,
-        "historical_selection_only": true,
-        "prospective_edge_confirmed": false
-      },
-      "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
-    },
-    {
-      "generation": 70785,
-      "genome": {
-        "op": "blend",
-        "alpha": 0.99,
-        "left": {
-          "op": "blend",
-          "alpha": 0.964,
-          "left": {
-            "op": "blend",
-            "alpha": 0.65489,
-            "left": {
-              "op": "blend",
-              "alpha": 0.19977,
-              "left": {
-                "op": "blend",
-                "alpha": 0.74645,
-                "left": {
-                  "op": "gap",
-                  "scale": 41.98272
-                },
-                "right": {
-                  "op": "power",
-                  "exponent": 2.16673,
-                  "child": {
-                    "op": "power",
-                    "exponent": 2.30693,
-                    "child": {
-                      "op": "decay",
-                      "half_life": 13.58362
-                    }
-                  }
-                }
-              },
-              "right": {
-                "op": "blend",
-                "alpha": 0.12536,
-                "left": {
-                  "op": "blend",
-                  "alpha": 0.24202,
-                  "left": {
-                    "op": "blend",
-                    "alpha": 0.86498,
-                    "left": {
-                      "op": "decay",
-                      "half_life": 122.33941
-                    },
-                    "right": {
-                      "op": "decay",
-                      "half_life": 101.4379
-                    }
-                  },
-                  "right": {
-                    "op": "blend",
-                    "alpha": 0.07882,
-                    "left": {
-                      "op": "uniform"
-                    },
-                    "right": {
-                      "op": "frequency",
-                      "window": 37,
-                      "prior": 25.85091
-                    }
-                  }
-                },
-                "right": {
-                  "op": "blend",
-                  "alpha": 0.66082,
-                  "left": {
-                    "op": "power",
-                    "exponent": 1.77195,
-                    "child": {
-                      "op": "uniform"
-                    }
-                  },
-                  "right": {
-                    "op": "blend",
-                    "alpha": 0.1953,
-                    "left": {
-                      "op": "pair",
-                      "window": 214,
-                      "prior": 194.89904
-                    },
-                    "right": {
-                      "op": "uniform"
-                    }
-                  }
-                }
-              }
-            },
-            "right": {
-              "op": "uniform"
-            }
-          },
-          "right": {
-            "op": "power",
-            "exponent": 0.84155,
-            "child": {
-              "op": "gap",
-              "scale": 2.19099
-            }
-          }
-        },
-        "right": {
-          "op": "uniform"
-        }
-      },
-      "assessment": {
-        "mean_log_edge": 0.0005121107615826104,
-        "mean_top7_hits": 1.5625,
-        "block_edges": [
-          -6.239994144348554e-05,
-          0.0015409725414593496,
-          5.775968473196731e-05
-        ],
-        "fitness": 0.0004027356954905844,
-        "historical_selection_only": true,
-        "prospective_edge_confirmed": false
-      },
-      "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
-    },
-    {
-      "generation": 73071,
-      "genome": {
-        "op": "blend",
-        "alpha": 0.99,
-        "left": {
-          "op": "blend",
-          "alpha": 0.964,
-          "left": {
-            "op": "blend",
-            "alpha": 0.65489,
-            "left": {
-              "op": "blend",
-              "alpha": 0.19977,
-              "left": {
-                "op": "blend",
-                "alpha": 0.74645,
-                "left": {
-                  "op": "gap",
-                  "scale": 41.98272
-                },
-                "right": {
-                  "op": "power",
-                  "exponent": 2.16673,
-                  "child": {
-                    "op": "power",
-                    "exponent": 2.30693,
-                    "child": {
-                      "op": "decay",
-                      "half_life": 13.58362
-                    }
-                  }
-                }
-              },
-              "right": {
-                "op": "blend",
-                "alpha": 0.12536,
-                "left": {
-                  "op": "blend",
-                  "alpha": 0.24202,
-                  "left": {
-                    "op": "blend",
-                    "alpha": 0.86498,
-                    "left": {
-                      "op": "decay",
-                      "half_life": 122.33941
-                    },
-                    "right": {
-                      "op": "decay",
-                      "half_life": 101.4379
-                    }
-                  },
-                  "right": {
-                    "op": "blend",
-                    "alpha": 0.07882,
-                    "left": {
-                      "op": "uniform"
-                    },
-                    "right": {
-                      "op": "frequency",
-                      "window": 37,
-                      "prior": 25.85091
-                    }
-                  }
-                },
-                "right": {
-                  "op": "blend",
-                  "alpha": 0.66082,
-                  "left": {
-                    "op": "power",
-                    "exponent": 1.77195,
-                    "child": {
-                      "op": "uniform"
-                    }
-                  },
-                  "right": {
-                    "op": "blend",
-                    "alpha": 0.1953,
-                    "left": {
-                      "op": "pair",
-                      "window": 214,
-                      "prior": 194.89904
-                    },
-                    "right": {
-                      "op": "uniform"
-                    }
-                  }
-                }
-              }
-            },
-            "right": {
-              "op": "uniform"
-            }
-          },
-          "right": {
-            "op": "power",
-            "exponent": 0.84155,
-            "child": {
-              "op": "gap",
-              "scale": 2.19099
-            }
-          }
-        },
-        "right": {
-          "op": "power",
-          "exponent": 1.72615,
-          "child": {
-            "op": "uniform"
-          }
-        }
-      },
-      "assessment": {
-        "mean_log_edge": 0.0005121107615826104,
-        "mean_top7_hits": 1.5625,
-        "block_edges": [
-          -6.239994144348554e-05,
-          0.0015409725414593496,
-          5.775968473196731e-05
-        ],
-        "fitness": 0.0004027356954905844,
-        "historical_selection_only": true,
-        "prospective_edge_confirmed": false
-      },
-      "research_data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637"
     }
   ],
   "execution_limits": {
@@ -1150,5 +1180,5 @@
   },
   "scope": "indefinite_historical_model_program_evolution_not_production",
   "claim": "Selection on reused historical data cannot establish predictive advantage.",
-  "last_record_sha256": "d8221bd9e2eebd68ee2603d9ed0f91dd6b138fbc3b788a4c5647f365c403d7ac"
+  "last_record_sha256": "ec2bfc726e82c214efdc30334536df6e6c84b7f5b87d0d4db3b310a605532298"
 }
