@@ -45,9 +45,15 @@ def test_real_registered_source_and_algorithm_lock():
     frozen_rounds = sorted(freezes)
     graded_rounds = sorted(grades)
     assert frozen_rounds == list(range(701, max(frozen_rounds) + 1))
-    assert all(round_ in freezes for round_ in graded_rounds)
-    assert all(round_ < max(frozen_rounds) for round_ in graded_rounds)
+    # A trusted draw can be graded even while the official *following*
+    # schedule is unavailable: no retrospective next forecast is permitted.
+    # The valid archive states are either all freezes graded, or exactly
+    # one additional future-only freeze waiting for its verified outcome.
     assert graded_rounds == list(range(701, 701 + len(graded_rounds)))
+    assert graded_rounds == frozen_rounds[:len(graded_rounds)]
+    assert len(frozen_rounds) - len(graded_rounds) in (0, 1)
+    if len(frozen_rounds) > len(graded_rounds):
+        assert frozen_rounds[-1] == oos.START + len(graded_rounds)
     assert oos.summary(REGISTRY, reg)["trusted_draws"] == len(graded_rounds)
     assert len({n for t in freezes[701]["candidate_tickets"] for n in t}) == 35
     assert len(set(tuple(x) for x in freezes[701]["random_reference_tickets"])) == 5
@@ -166,3 +172,85 @@ def test_no_existing_prod_paths_ever_modified(tmp_path, monkeypatch):
     assert not Path("loto7_agent_output").exists()
     assert not Path("STATUS.md").exists()
     assert not Path("loto7.csv").exists()
+
+
+def test_grading_is_legal_without_unsafe_next_freeze_and_can_resume(tmp_path, monkeypatch):
+    # Reconstruct the *real, separately registered* 701/702 pre-outcome
+    # freezes and the 701 grade in an isolated, disposable archive.
+    # No recorded draw or canonical evidence is edited.
+    root = tmp_path / "missing_official_schedule"
+    root.mkdir()
+    for name in ("registration.json", "freeze_0701.json",
+                 "grade_0701.json", "freeze_0702.json"):
+        shutil.copy2(REGISTRY / name, root / name)
+    reg = oos.load(root / "registration.json")
+    existing_freezes, existing_grades = oos.archive_guard(root, reg)
+    assert sorted(existing_freezes) == [701, 702]
+    assert sorted(existing_grades) == [701]
+
+    actual_702 = [1, 5, 11, 14, 16, 30, 36]
+    verified_data_sha = "c" * 64
+    missing_schedule = {"sources": {"official_schedule": {
+        "status": "not_parseable",
+    }}}
+    source_path = root / "synthetic_source.json"
+    source_path.write_text(json.dumps(missing_schedule), encoding="utf-8")
+    monkeypatch.setattr(oos, "verified_latest", lambda *args: (
+        702, actual_702, verified_data_sha, missing_schedule
+    ))
+    status = oos.advance(root, reg, Path("unused"), source_path, now=now())
+    assert status["status"] == "trusted_graded"
+    assert status["target"] == 702
+    assert status["next_freeze_status"] == "awaiting_verified_official_next_schedule"
+    assert not oos.freeze_path(root, 703).exists()
+
+    freezes, grades = oos.archive_guard(root, reg)
+    assert sorted(freezes) == sorted(grades) == [701, 702]
+    assert grades[702]["freeze_sha256"] == oos.digest(freezes[702])
+    assert grades[702]["actual_main_numbers"] == actual_702
+
+    # A repeated verified result must not append or overwrite the grade,
+    # even while the following schedule remains unavailable.
+    grade_bytes = oos.grade_path(root, 702).read_bytes()
+    repeat = oos.advance(root, reg, Path("unused"), source_path, now=now())
+    assert repeat["status"] == "awaiting_official_schedule"
+    assert oos.grade_path(root, 702).read_bytes() == grade_bytes
+
+    # Once an independently published schedule is available, ONLY the
+    # next not-yet-observed round can be frozen (without rewriting grade 702).
+    good_schedule = future_source(703, "2026-11-13")
+    monkeypatch.setattr(oos, "verified_latest", lambda *args: (
+        702, actual_702, verified_data_sha, good_schedule
+    ))
+    status = oos.advance(
+        root, reg, Path("unused"), source_path,
+        now=datetime(2026, 11, 7, 8, 0, tzinfo=ZoneInfo("Asia/Tokyo"))
+    )
+    assert status["status"] == "new_future_target_prefrozen"
+    assert status["target"] == 703
+    assert oos.grade_path(root, 702).read_bytes() == grade_bytes
+    freezes, grades = oos.archive_guard(root, reg)
+    assert sorted(freezes) == [701, 702, 703]
+    assert sorted(grades) == [701, 702]
+    assert freezes[703]["parent_draw_csv_sha256"] == verified_data_sha
+
+
+def test_missing_prefreeze_still_refuses_retrospective_grade(tmp_path, monkeypatch):
+    # Not permitting a next forecast does NOT authorize scoring an unseen
+    # result when the preceding prediction was never frozen.
+    root = tmp_path / "unfrozen_702"
+    root.mkdir()
+    for name in ("registration.json", "freeze_0701.json", "grade_0701.json"):
+        shutil.copy2(REGISTRY / name, root / name)
+    reg = oos.load(root / "registration.json")
+    missing_schedule = {"sources": {"official_schedule": {
+        "status": "not_parseable",
+    }}}
+    source_path = root / "synthetic_source.json"
+    source_path.write_text(json.dumps(missing_schedule), encoding="utf-8")
+    monkeypatch.setattr(oos, "verified_latest", lambda *args: (
+        702, [1, 5, 11, 14, 16, 30, 36], "c" * 64, missing_schedule
+    ))
+    with pytest.raises(RuntimeError, match="not prefrozen"):
+        oos.advance(root, reg, Path("unused"), source_path, now=now())
+    assert not oos.grade_path(root, 702).exists()
