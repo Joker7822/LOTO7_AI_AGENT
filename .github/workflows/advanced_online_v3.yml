@@ -1,0 +1,107 @@
+name: Advanced Online v3 Exact-Set Prospective Research
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Independent daily check at 11:17 JST; before the Friday evening draw.
+    - cron: "17 2 * * *"
+  workflow_run:
+    workflows: ["LOTO7 Independent Result Corroboration"]
+    types: [completed]
+  pull_request:
+    paths:
+      - "advanced_online_v3.py"
+      - "tests/test_advanced_online_v3.py"
+      - "ADVANCED_ONLINE_V3.md"
+      - ".github/workflows/advanced_online_v3.yml"
+  push:
+    branches: [main]
+    paths:
+      - "advanced_online_v3.py"
+      - "tests/test_advanced_online_v3.py"
+      - "ADVANCED_ONLINE_V3.md"
+      - ".github/workflows/advanced_online_v3.yml"
+      - "loto7.csv"
+      - "loto7_agent_output/source_validation.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: advanced-online-v3-prospective-research
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install scientific dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Validate deterministic exact-set online learning and never mutate real evidence
+        run: |
+          python -m compileall -q advanced_online_v3.py tests/test_advanced_online_v3.py
+          python -m pytest -q tests/test_advanced_online_v3.py
+          git diff --exit-code -- loto7.csv loto7_agent_output/ research/
+
+  preregister-and-grade:
+    if: github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Register, prefreeze and verify only genuine future outcomes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python advanced_online_v3.py --repo-root .
+            git diff --exit-code -- loto7.csv STATUS.md loto7_agent_output/ \
+              continuous_learning_agent.py online_learning_boost_v2.py \
+              predictive_expert_agent.py weekly_production_prediction.py
+            for file in research/advanced_online_v3/registration.json \
+              research/advanced_online_v3/state.json; do
+              if [ -f "$file" ]; then
+                git add -- "$file"
+              fi
+            done
+            unexpected="$(git diff --cached --name-only | grep -Ev '^research/advanced_online_v3/(registration|state)[.]json$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Unauthorized advanced research mutation: $unexpected"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "No new prior-only v3 registration or evidence transition."
+              exit 0
+            fi
+            git commit -m "research: commit advanced online v3 preregistration or trusted new result"
+            if git push origin HEAD:main; then
+              exit 0
+            fi
+          done
+          echo "::error::Unable to publish exact-set prospective evidence"
+          exit 1
