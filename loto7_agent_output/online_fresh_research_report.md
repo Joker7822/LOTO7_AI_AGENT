@@ -1,18 +1,18 @@
 # Frequent independent online research — audit
 
-- UTC: 2026-11-06T06:59:13+00:00
-- Search topic: multiple comparisons backtest overfitting
+- UTC: 2026-11-06T16:00:12+00:00
+- Search topic: ensemble probabilistic forecast verification
 - Source catalog: 24 SHA-anchored works
-- Search results before dedup: 3
+- Search results before dedup: 5
 - New leads identified: 0
 - DOI detail checks this cycle: 3
 - API failures: 0
 
 ## Current research sidecar verification
 - conflict_do_not_use: 2
-- previously_verified_not_refreshed: 18
+- previously_verified_not_refreshed: 17
 - single_provider_only: 13
-- two_provider_bibliography_matched: 1
+- two_provider_bibliography_matched: 2
 
 ## Fixed, human-review-only applications
 - anytime_evidence: Check registered, prefrozen 26-draw evidence horizons
