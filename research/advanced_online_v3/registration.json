@@ -1,0 +1,89 @@
+{
+  "algorithm_manifest": {
+    "drift_anchor": 0.75,
+    "drift_window": 6,
+    "e_bets": [
+      0.025,
+      0.05,
+      0.1,
+      0.2
+    ],
+    "e_threshold": 40.0,
+    "expert_decay": 0.97,
+    "expert_names": [
+      "uniform",
+      "bayes_short40",
+      "bayes_long160",
+      "momentum_shrink",
+      "prior_frequency_pair",
+      "prior_decay_gap"
+    ],
+    "expert_prior": [
+      0.4,
+      0.1,
+      0.1,
+      0.1,
+      0.15,
+      0.15
+    ],
+    "file_sha256": {
+      "advanced_online_v3.py": "73cc5892144f0c8711a43ad70fdf8e29735638e37b8a3e0126384a5c25ae9bf0",
+      "joint_set_v2_model.py": "943eaaf06d99a664f1f667453f208fa73de6f4d4b47fcc4401deb37ad4716a95",
+      "joint_set_v2_signal_oos.py": "d1c02b567615abf7f6331854a14891f690d94eddaa4f92f91cc47a3eb691dee2",
+      "joint_set_v2_signal_oos_guard.py": "d03ef0caf8baa77c1127d99c0c2a3c1e6adfaf4840844ccb0a6de4cfcb857e2b",
+      "loto7_evolving_agent.py": "db2525299e9be45e679cec90f9b81a01b4404828cd771965431f9b5bfa2f395f",
+      "loto7_v4_runner.py": "ee4b2b88af6f51f2c47c58e0c958a1196f60dfb0d65e0012d52893ca2ca07166",
+      "predictive_expert_agent.py": "1e24ecee1033c9e0a65f4f3001888d6d3f28ae6fe9663afd8ce71f6220b49569",
+      "recursive_self_evolution_agent.py": "0c686e73296bfdd32bcc92a723a18caa4fd0b093c27d464c9ade3160f2b14431"
+    },
+    "formulas": [
+      "tanh(hot20 + 0.35 * pair)",
+      "tanh(decay + 0.35 * gap)"
+    ],
+    "learning_rates": [
+      2.0,
+      8.0,
+      20.0
+    ],
+    "manifest_sha256": "75c79233e9351f2a16d995523be3a9f06d72c57dcbb87187e1e6b462b3781e4f",
+    "meta_decay": 0.97,
+    "meta_prior": [
+      0.3333333333333333,
+      0.3333333333333333,
+      0.3333333333333333
+    ],
+    "meta_rate": 8.0,
+    "min_future_evaluations": 26,
+    "odds_bounds": [
+      0.25,
+      4.0
+    ],
+    "report_only_no_production_promotion": true,
+    "start_target_round": 703,
+    "subset_likelihood": "exact_elementary_symmetric_polynomial_v1",
+    "temp_decay": 0.97,
+    "temp_rate": 8.0,
+    "temperature_prior": [
+      0.3333333333333333,
+      0.3333333333333333,
+      0.3333333333333333
+    ],
+    "temperatures": [
+      0.7,
+      1.0,
+      1.25
+    ],
+    "uniform_anchor": 0.4,
+    "version": "advanced-online-v3-exact-set-eprocess-1",
+    "weight_floor": 0.1
+  },
+  "anytime_alpha": 0.025,
+  "first_target_round": 703,
+  "production_promotion_authorized": false,
+  "registered_at_jst": "2026-11-06T10:28:04+09:00",
+  "registered_history_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637",
+  "registered_latest_round": 701,
+  "registration_sha256": "cc2c1adb5787cf9963602af3d7fd6166db4a8b36b6ea9dad78acbc0a68d1b7e6",
+  "role": "independent_research_only",
+  "version": "advanced-online-v3-exact-set-eprocess-1"
+}
