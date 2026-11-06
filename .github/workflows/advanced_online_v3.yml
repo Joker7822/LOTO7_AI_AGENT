@@ -83,10 +83,12 @@ jobs:
             git diff --exit-code -- loto7.csv STATUS.md loto7_agent_output/ \
               continuous_learning_agent.py online_learning_boost_v2.py \
               predictive_expert_agent.py weekly_production_prediction.py
-            if [ -d research/advanced_online_v3 ]; then
-              git add -A -- research/advanced_online_v3/registration.json \
-                research/advanced_online_v3/state.json
-            fi
+            for file in research/advanced_online_v3/registration.json \
+              research/advanced_online_v3/state.json; do
+              if [ -f "$file" ]; then
+                git add -- "$file"
+              fi
+            done
             unexpected="$(git diff --cached --name-only | grep -Ev '^research/advanced_online_v3/(registration|state)[.]json$' || true)"
             if [ -n "$unexpected" ]; then
               echo "::error::Unauthorized advanced research mutation: $unexpected"
