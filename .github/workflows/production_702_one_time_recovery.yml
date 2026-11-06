@@ -1,0 +1,149 @@
+name: One-time Production 702 canonical recovery
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/production_702_one_time_recovery.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: loto7-production-publisher
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install current canonical Production dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Recover frozen target 702 from the newest main without a conflicting rebase
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd -- research/first_prize_oos
+
+            python - <<'PY'
+          from datetime import date, datetime
+          from zoneinfo import ZoneInfo
+          now = datetime.now(ZoneInfo("Asia/Tokyo"))
+          if now.date() != date(2026,11,6) or not (1300 <= now.hour*100 + now.minute < 1800):
+              raise SystemExit("Production 702 recovery outside the pre-draw Friday window")
+          print("One-time canonical Production 702 recovery:", now.isoformat())
+          PY
+
+            python fetch_validate.py \
+              --csv loto7.csv \
+              --report loto7_agent_output/source_validation.json \
+              --max-attempts 1 \
+              --interval-seconds 0 \
+              --months 3 \
+              --production-snapshot
+
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          from loto7_evolving_agent import fingerprint_file
+          r=json.loads(Path("loto7_agent_output/source_validation.json").read_text(encoding="utf-8"))
+          if r.get("status")!="ok" or r.get("verification")!="verified_two_result_sources":
+              raise SystemExit("Two-source result verification is mandatory")
+          latest=r.get("latest") or {}
+          if latest.get("round")!=701 or latest.get("date")!="2026-10-30":
+              raise SystemExit("Source prefix differs from target 702 / round 701")
+          if (r.get("verification_provenance") or {}).get("draw_csv_sha256")!=fingerprint_file(Path("loto7.csv")):
+              raise SystemExit("Trusted source does not attest the exact CSV bytes")
+          PY
+
+            python production_model_adoption_audit.py --output /tmp/production_702_adoption_audit.json
+            GITHUB_SHA="$(git rev-parse HEAD)" python weekly_production_prediction.py \
+              --csv loto7.csv \
+              --out-dir loto7_agent_output \
+              --champion-file loto7_agent_output/model_champion.json \
+              --research-state loto7_agent_output/v4_research_state.json \
+              --min-train 100
+
+            python audit_ledger.py \
+              --loto-csv loto7.csv \
+              --tickets-csv loto7_agent_output/candidate_tickets.csv \
+              --out-dir loto7_agent_output \
+              --status-md STATUS.md
+            python production_ticket_geometry35.py --verify-canonical --out-dir loto7_agent_output
+            python first_prize_research.py --mode freeze
+            python first_prize_research.py --mode verify
+
+            python - <<'PY'
+          import csv,json
+          from pathlib import Path
+          p=Path("loto7_agent_output")
+          state=json.loads((p/"weekly_production_prediction_state.json").read_text(encoding="utf-8"))
+          if state.get("target_round")!="第702回" or state.get("published") is not True:
+              raise SystemExit("Official target 702 not published by canonical pipeline")
+          with (p/"predictions.csv").open(encoding="utf-8-sig",newline="") as f:
+              rows=list(csv.DictReader(f))
+          rows=[r for r in rows if r.get("target_round")=="第702回"]
+          if len(rows)!=5 or [int(r["ticket"]) for r in rows]!=[1,2,3,4,5]:
+              raise SystemExit("Official Production requires exactly five canonical tickets")
+          print("Canonical 702 tickets verified:",[r["predicted_numbers"] for r in rows])
+          PY
+
+            git add -- loto7.csv STATUS.md loto7_agent_output/
+            if [ -f research/first_prize_oos/freeze_0702.json ]; then
+              git add -- research/first_prize_oos/freeze_0702.json
+            fi
+            unexpected="$(git diff --cached --name-only | grep -Ev '^(loto7.csv|STATUS.md|loto7_agent_output/.*|research/first_prize_oos/freeze_0702[.]json)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Unauthorized Production path: $unexpected"
+              exit 1
+            fi
+
+            if git diff --cached --quiet; then
+              echo "Canonical target 702 was already published."
+              exit 0
+            fi
+            git commit -m "chore: issue Production 第702回 after conflict-safe recomputation"
+            if git push origin HEAD:main; then
+              echo "Official five-ticket Production 702 issuance persisted to main."
+              exit 0
+            fi
+            echo "Concurrent main update; retrying from current trusted evidence."
+          done
+          echo "::error::Could not publish target 702 after five safe retries"
+          exit 1
+
+      - name: Validate and synchronize public prediction database where authorized
+        env:
+          SAKURA_PREDICTION_API_URL: ${{ secrets.SAKURA_PREDICTION_API_URL }}
+          SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python prediction_db_sync.py --dry-run --output /tmp/sakura_payload.json
+          if [ -z "$SAKURA_PREDICTION_API_URL" ] || [ -z "$SAKURA_PREDICTION_HMAC_SECRET" ]; then
+            echo "::warning::Canonical Production issued to GitHub, Sakura remote sync not verified (credentials absent)."
+            exit 0
+          fi
+          python prediction_db_sync.py
+      - name: Show immutable publication result
+        if: always()
+        run: |
+          cat loto7_agent_output/weekly_production_prediction_state.json
+          cat loto7_agent_output/latest_prediction.txt
