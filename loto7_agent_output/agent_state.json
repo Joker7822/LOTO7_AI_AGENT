@@ -1,118 +1,21 @@
 {
   "agent_version": "v4-oos-governance",
-  "model_version": "baseline-5fdb8dc2ad",
-  "model_config": {
-    "name": "baseline",
-    "eta": 3.0,
-    "decay": 0.995,
-    "expert_uniform_mix": 0.15,
-    "final_uniform_mix": 0.2,
-    "overlap_penalty": 0.65
-  },
-  "git_sha": "0421105a02e2c893d99e880313ea8ff4bcc2bcd0",
-  "data_sha256": "fa6ee78c6350e9b979597107a8650dae16399f91fba0d1c22149d4717e3116d6",
-  "rows": 700,
-  "latest_draw_date": "2026-10-23",
-  "latest_round": "第700回",
-  "target_round": "第701回",
-  "research_generation": 5489,
+  "model_version": "baseline-5fdb8dc2ad+production-disjoint35-layout-v1",
+  "signal_champion_version": "baseline-5fdb8dc2ad",
+  "production_ticket_policy_version": "production-disjoint35-layout-v1",
+  "production_ticket_policy_role": "ticket_geometry_only_not_signal_promotion",
+  "data_sha256": "e05bea1debf088a52daedfc9ecb488ca7db11e273ac16f348f3fda19ac626637",
+  "latest_round": "第701回",
+  "latest_draw_date": "2026-10-30",
+  "target_round": "第702回",
+  "seed": 10708318,
+  "git_sha": "4dcef8f6a1b344ed5c749cc8e7f15d0367d4d40d",
   "production_promotion_method": "future_oos_only",
   "promotion_this_run": null,
-  "walk_forward_draws": 600,
-  "mean_top7_hits": 1.3683333333333334,
-  "random_theoretical_mean_hits": 1.3243243243243243,
-  "z_vs_random": 1.1395959422376991,
-  "approx_two_sided_p": 0.25445467665613175,
-  "signal_claim": "not_confirmed",
-  "expert_weights": {
-    "hot_20": 0.1360727553621108,
-    "hot_50": 0.04859994193741576,
-    "hot_100": 0.015373838036666488,
-    "hot_200": 0.014103912217513406,
-    "ewma_10": 0.5429591438438091,
-    "ewma_30": 0.06314279836634097,
-    "ewma_60": 0.021353877625015293,
-    "overdue": 0.0300040181195061,
-    "recent_cold": 0.0143430647098975,
-    "momentum": 0.07319426098610664,
-    "pair_context": 0.040852388795617964
-  },
-  "top15": [
-    {
-      "number": 22,
-      "relative_score": 0.12549864964293844,
-      "score_index_vs_uniform": 4.643450036788722
-    },
-    {
-      "number": 24,
-      "relative_score": 0.0680838277701351,
-      "score_index_vs_uniform": 2.519101627494998
-    },
-    {
-      "number": 23,
-      "relative_score": 0.049004646108999676,
-      "score_index_vs_uniform": 1.8131719060329878
-    },
-    {
-      "number": 6,
-      "relative_score": 0.04007059085456256,
-      "score_index_vs_uniform": 1.4826118616188146
-    },
-    {
-      "number": 28,
-      "relative_score": 0.03724628528943993,
-      "score_index_vs_uniform": 1.3781125557092773
-    },
-    {
-      "number": 25,
-      "relative_score": 0.03709980536996873,
-      "score_index_vs_uniform": 1.3726927986888429
-    },
-    {
-      "number": 16,
-      "relative_score": 0.03485730865447477,
-      "score_index_vs_uniform": 1.2897204202155663
-    },
-    {
-      "number": 10,
-      "relative_score": 0.03225074911629708,
-      "score_index_vs_uniform": 1.1932777173029918
-    },
-    {
-      "number": 36,
-      "relative_score": 0.03158786938938449,
-      "score_index_vs_uniform": 1.168751167407226
-    },
-    {
-      "number": 8,
-      "relative_score": 0.03089678561160505,
-      "score_index_vs_uniform": 1.1431810676293868
-    },
-    {
-      "number": 12,
-      "relative_score": 0.028141852192222067,
-      "score_index_vs_uniform": 1.0412485311122164
-    },
-    {
-      "number": 15,
-      "relative_score": 0.027835287962113212,
-      "score_index_vs_uniform": 1.0299056545981888
-    },
-    {
-      "number": 21,
-      "relative_score": 0.02634160540267956,
-      "score_index_vs_uniform": 0.9746393998991437
-    },
-    {
-      "number": 34,
-      "relative_score": 0.02567574610292489,
-      "score_index_vs_uniform": 0.9500026058082209
-    },
-    {
-      "number": 35,
-      "relative_score": 0.024690778456591345,
-      "score_index_vs_uniform": 0.9135588028938797
-    }
-  ],
-  "seed": 701
+  "ticket_count": 5,
+  "covered_distinct_numbers": 35,
+  "ticket_layout_sha256": "0e089156aa56c2705b41f290eefcaa5b99884c9e2e158a3d03e830481a61f661",
+  "expert_weights": {},
+  "no_lottery_signal_skill_claim": true,
+  "first_prize_odds_unchanged": true
 }
