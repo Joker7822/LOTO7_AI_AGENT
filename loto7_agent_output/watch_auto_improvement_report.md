@@ -1,18 +1,18 @@
 # Autonomous WATCH improvement (research-only, auditable)
 
-- Time UTC: 2026-11-06T16:58:12+00:00
+- Time UTC: 2026-11-06T18:11:16+00:00
 - Result: **needs_existing_workflow_or_human_review**
-- Trusted source: True; round #701
+- Trusted source: True; round #702
 - Champion (unchanged): `baseline-5fdb8dc2ad`
-- Budget: WAIT_FOR_NEW_DATA / 800/800
+- Budget: SEARCH / 44/800
 
 ## PAIR_CONTEXT_INT8_OVERFLOW
 - Research action: **separately_versioned_research_candidate_validated**
 - Exact legacy int8 overflow: 27 cells
 - Corrected version: pair-context-wide-int-v2-research-only
 - Prior-only retrospective rounds: 120
-- Top7 hit change (descriptive): -0.033333
-- Marginal logscore change (descriptive): -0.05082780
+- Top7 hit change (descriptive): -0.041667
+- Marginal logscore change (descriptive): -0.05028705
 - Separate versioned candidate only; existing model NOT corrected in Production.
 
 ## NO_EARLY_PORTFOLIO_CLAIM
