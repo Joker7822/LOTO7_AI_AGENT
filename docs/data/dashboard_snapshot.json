@@ -1,7 +1,7 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-06T11:23:45+09:00",
-  "source_commit": "0778daa082be3b430ac28848a7debfc641f99b0b",
+  "generated_at_jst": "2026-11-06T15:01:02+09:00",
+  "source_commit": "ef8d605690bcc1f41d464a79d47027c73fb61885",
   "state_hashes_sha256": "cc984d0e9f114682cd7a71eea60baa780fff136f872d8297dd6ed27b57788147",
   "sources": {
     "source": {
@@ -248,13 +248,13 @@
     {
       "file": "weekly_production_publisher.yml",
       "label": "本番発行",
-      "health": "ok",
+      "health": "block",
       "status": "completed",
-      "conclusion": "success",
+      "conclusion": "failure",
       "run_id": 41990412099,
       "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41990412099",
-      "updated_at": "2026-11-05T07:54:48Z",
-      "recent_failure_count": 0
+      "updated_at": "2026-11-06T05:59:32Z",
+      "recent_failure_count": 1
     },
     {
       "file": "friday_result_check_watchdog.yml",
@@ -738,12 +738,12 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "0778daa082be3b430ac28848a7debfc641f99b0b",
-    "snapshot_generated_at_jst": "2026-11-06T11:23:45+09:00",
-    "computed_at_jst": "2026-11-06T02:23:45+00:00",
-    "overall": "watch",
+    "source_commit": "ef8d605690bcc1f41d464a79d47027c73fb61885",
+    "snapshot_generated_at_jst": "2026-11-06T15:01:02+09:00",
+    "computed_at_jst": "2026-11-06T06:01:02+00:00",
+    "overall": "block",
     "counts": {
-      "block": 0,
+      "block": 1,
       "watch": 2,
       "info": 1
     },
@@ -762,6 +762,19 @@
       }
     },
     "tasks": [
+      {
+        "id": "d2dcaac390b39cef",
+        "priority": "block",
+        "code": "WORKFLOW_FAILED:weekly_production_publisher.yml",
+        "owner": "本番運用エージェント",
+        "title": "本番発行：最新実行が失敗",
+        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
+        "evidence": "41990412099",
+        "recommended_action": "公開期限と既存のProduction運用手順を人が確認してください。事後発行は禁止です。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41990412099"
+      },
       {
         "id": "8b0cf60f233eb6e4",
         "priority": "watch",
