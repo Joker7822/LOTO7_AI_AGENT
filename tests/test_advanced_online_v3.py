@@ -227,3 +227,25 @@ def test_offline_math_has_no_external_inference_api(tmp_path):
     assert "api.openai.com" not in source
     assert "OPENAI_API_KEY" not in source
     assert "models.github.ai" not in source
+
+
+def test_claimed_outcome_cannot_be_graded_before_actual_draw_day(tmp_path):
+    root = make_fixture(tmp_path)
+    prepare_703(root)
+    append_round(root, 703, SCHEDULE_703)
+    before = (root / v3.STATE).read_bytes()
+    with pytest.raises(ValueError, match="before draw date"):
+        v3.run(root, now=datetime.fromisoformat(
+            "2026-11-12T17:00:00+09:00"))
+    assert (root / v3.STATE).read_bytes() == before
+
+
+def test_future_event_must_be_anchored_to_correct_registration(tmp_path):
+    root = make_fixture(tmp_path)
+    prepare_703(root)
+    state_path = root / v3.STATE
+    bad = json.loads(state_path.read_text())
+    bad["registration_sha256"] = "0" * 64
+    state_path.write_text(json.dumps(bad))
+    with pytest.raises(ValueError, match="invalid independent research ledger"):
+        v3.run(root, now=CLOCK)
