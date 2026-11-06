@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-06T06:59:14+09:00",
-  "source_commit": "bb9fbe5e9ab97d177a515a483c8d3b2b34eb5e3b",
-  "state_hashes_sha256": "672f6b729d66737ca6a79de18f3735314c6fa5ed85191d8e58a85aecb1734170",
+  "generated_at_jst": "2026-11-06T11:23:45+09:00",
+  "source_commit": "0778daa082be3b430ac28848a7debfc641f99b0b",
+  "state_hashes_sha256": "cc984d0e9f114682cd7a71eea60baa780fff136f872d8297dd6ed27b57788147",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-05T10:04:39+09:00",
+      "checked_at_jst": "2026-11-06T10:27:58+09:00",
       "latest": {
         "round": 701,
         "date": "2026-10-30",
@@ -27,14 +27,13 @@
       },
       "sources": {
         "official_schedule": {
-          "round": 702,
-          "date": "2026-11-06"
+          "status": "not_parseable"
         }
       }
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-05T17:31:27+09:00",
+      "checked_at_jst": "2026-11-06T10:29:04+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -92,12 +91,12 @@
           ]
         },
         "release_operations": {
-          "status": "ok",
+          "status": "watch",
           "findings": [
             {
-              "code": "RELEASE_SCHEDULE_GUARD",
-              "level": "ok",
-              "evidence": "next=702 on 2026-11-06; already_published=False"
+              "code": "DRAW_SCHEDULE_NOT_VERIFIED",
+              "level": "watch",
+              "evidence": "expected target=702"
             }
           ]
         }
@@ -114,6 +113,12 @@
           "priority": "watch",
           "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
           "evidence": "holdout=8/26"
+        },
+        {
+          "owner": "release_operations",
+          "priority": "watch",
+          "issue_code": "DRAW_SCHEDULE_NOT_VERIFIED",
+          "evidence": "expected target=702"
         }
       ],
       "latest_resolved_round": 701
@@ -202,9 +207,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 41945698709,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41945698709",
-      "updated_at": "2026-11-05T01:04:51Z",
+      "run_id": 42143866160,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42143866160",
+      "updated_at": "2026-11-06T01:28:07Z",
       "recent_failure_count": 0
     },
     {
@@ -224,9 +229,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 41994951577,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41994951577",
-      "updated_at": "2026-11-05T08:31:32Z",
+      "run_id": 42144037977,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42144037977",
+      "updated_at": "2026-11-06T01:29:09Z",
       "recent_failure_count": 0
     },
     {
@@ -733,13 +738,13 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "bb9fbe5e9ab97d177a515a483c8d3b2b34eb5e3b",
-    "snapshot_generated_at_jst": "2026-11-06T06:59:14+09:00",
-    "computed_at_jst": "2026-11-05T21:59:14+00:00",
+    "source_commit": "0778daa082be3b430ac28848a7debfc641f99b0b",
+    "snapshot_generated_at_jst": "2026-11-06T11:23:45+09:00",
+    "computed_at_jst": "2026-11-06T02:23:45+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
-      "watch": 1,
+      "watch": 2,
       "info": 1
     },
     "checkpoints": {
@@ -757,6 +762,19 @@
       }
     },
     "tasks": [
+      {
+        "id": "8b0cf60f233eb6e4",
+        "priority": "watch",
+        "code": "COUNCIL:DRAW_SCHEDULE_NOT_VERIFIED",
+        "owner": "本番運用エージェント",
+        "title": "監査で要確認事項を検出しました。",
+        "detail": "監査の判定と元の公表記録を照合してください。",
+        "evidence": "DRAW_SCHEDULE_NOT_VERIFIED",
+        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
+      },
       {
         "id": "bef623a2503719e7",
         "priority": "watch",
