@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-07T11:22:47+09:00",
-  "source_commit": "95b2d419eb639c5db076a3b118a517b6dc1d985d",
-  "state_hashes_sha256": "f3abf71cc3af7b661ac65e5b6af13943c5025df31bbcb5a33a5b34d202672b19",
+  "generated_at_jst": "2026-11-07T15:32:03+09:00",
+  "source_commit": "f9e504a2ca9f83a17b6213214566c2f25b43f9e8",
+  "state_hashes_sha256": "c99017cec1bb544ebd8922849eb3b6eb47c6727518e962f252e28f3a75a1058e",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-07T10:07:36+09:00",
+      "checked_at_jst": "2026-11-07T14:25:44+09:00",
       "latest": {
         "round": 702,
         "date": "2026-11-06",
@@ -33,7 +33,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-07T06:58:07+09:00",
+      "checked_at_jst": "2026-11-07T14:50:48+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -46,7 +46,7 @@
             {
               "code": "PAIR_CONTEXT_INT8_OVERFLOW",
               "level": "watch",
-              "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=702; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified"
+              "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=702; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified"
             }
           ]
         },
@@ -81,7 +81,7 @@
             {
               "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
               "level": "ok",
-              "evidence": "history reused; mode=SEARCH; trials=524/800"
+              "evidence": "history reused; mode=VALIDATION_ONLY; trials=602/800"
             }
           ]
         },
@@ -101,7 +101,7 @@
           "owner": "data_steward",
           "priority": "watch",
           "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=702; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified"
+          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=702; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified"
         },
         {
           "owner": "oos_risk_officer",
@@ -203,9 +203,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 42308493175,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42308493175",
-      "updated_at": "2026-11-06T22:57:30Z",
+      "run_id": 42332200799,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42332200799",
+      "updated_at": "2026-11-07T03:03:42Z",
       "recent_failure_count": 1
     },
     {
@@ -225,9 +225,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 42300773178,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42300773178",
-      "updated_at": "2026-11-06T21:58:13Z",
+      "run_id": 42344321905,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42344321905",
+      "updated_at": "2026-11-07T05:50:52Z",
       "recent_failure_count": 0
     },
     {
@@ -247,9 +247,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 42213302053,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42213302053",
-      "updated_at": "2026-11-06T11:52:41Z",
+      "run_id": 42347210773,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42347210773",
+      "updated_at": "2026-11-07T06:30:30Z",
       "recent_failure_count": 0
     },
     {
@@ -705,12 +705,12 @@
     },
     "calibration": {
       "status": "descriptive_only",
-      "trusted_draws": 9,
+      "trusted_draws": 10,
       "horizon_draws": 26,
-      "mean_log_improvement_vs_uniform": 0.003056401448568508,
-      "mean_brier_improvement_vs_uniform": 0.00017633740270782405,
-      "mean_log_improvement_vs_base": 0.14308171970046857,
-      "mean_brier_improvement_vs_base": 0.01717103681674132,
+      "mean_log_improvement_vs_uniform": 0.0012978052060004686,
+      "mean_brier_improvement_vs_uniform": 7.461190591820515e-05,
+      "mean_log_improvement_vs_base": 0.15367349752648557,
+      "mean_brier_improvement_vs_base": 0.01784893440566963,
       "ece": null,
       "reliability_binning": "not_available_from_aggregate_state",
       "skill_claim": false
@@ -744,7 +744,7 @@
       },
       "calibration": {
         "file": "champion_calibration_oos_state.json",
-        "sha256": "51d4b88457fc87a0a34db90159b1be1f3364687b5662c77db44bf8446d5b8b13"
+        "sha256": "90af240ff108d81cc884af05e11eb087c20d4e3e24e2286859a5c0e9131c12bc"
       },
       "future_oos": {
         "file": "future_holdout_evidence.json",
@@ -755,9 +755,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "95b2d419eb639c5db076a3b118a517b6dc1d985d",
-    "snapshot_generated_at_jst": "2026-11-07T11:22:47+09:00",
-    "computed_at_jst": "2026-11-07T02:22:47+00:00",
+    "source_commit": "f9e504a2ca9f83a17b6213214566c2f25b43f9e8",
+    "snapshot_generated_at_jst": "2026-11-07T15:32:03+09:00",
+    "computed_at_jst": "2026-11-07T06:32:03+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
