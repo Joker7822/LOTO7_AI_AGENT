@@ -2,7 +2,7 @@
 
 - Last recorded round: **702**
 - Independently verified source: **True**
-- Registered research mode: **VALIDATION_ONLY**
+- Registered research mode: **WAIT_FOR_NEW_DATA**
 - Action: **WAIT_FOR_NEW_DATA_OR_VALIDATION**
 - Bounded diagnostic mutations this history: **1/4**
 - Diagnostic leader (not Production): **67373f0ae84e54d99d84**
