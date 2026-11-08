@@ -1,9 +1,9 @@
 # Frequent independent online research — audit
 
-- UTC: 2026-11-08T01:30:21+00:00
-- Search topic: ensemble probabilistic forecast verification
+- UTC: 2026-11-08T09:09:26+00:00
+- Search topic: online probabilistic forecasting calibration
 - Source catalog: 24 SHA-anchored works
-- Search results before dedup: 5
+- Search results before dedup: 8
 - New leads identified: 0
 - DOI detail checks this cycle: 3
 - API failures: 0
