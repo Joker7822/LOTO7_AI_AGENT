@@ -1,7 +1,7 @@
 # Recursive self-evolution (research-only)
 
-- Total evolving program generations: **179172** (no global cap)
-- Last-run generations: **2513**
+- Total evolving program generations: **182434** (no global cap)
+- Last-run generations: **3262**
 - Mutation policy learned: **{'restart': 0.199, 'splice': 0.199, 'tune': 0.204, 'wrap': 0.199, 'crossover': 0.199}**
 - Historical selection fitness: **+0.00695246**
 - Independent draw-source verified: **True**
