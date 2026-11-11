@@ -138,14 +138,30 @@ def test_view_fails_closed_on_tampered_revision_or_after_draw(tmp_path, monkeypa
     state = fake_state()
     runtime.refresh_latest_view(tmp_path, state, now, None)
     archive = tmp_path / runtime.REVISIONS / "revision_000001.json"
-    data = json.loads(archive.read_text(encoding="utf-8"))
+    original_archive = archive.read_bytes()
+    data = json.loads(original_archive)
     data["identity"]["top7"][0] = 37
     archive.write_text(json.dumps(data), encoding="utf-8")
     with pytest.raises(ValueError, match="does not match archival revision"):
         runtime.refresh_latest_view(tmp_path, state, now, None)
-    # Even a request to display a changed prediction cannot update a past
-    # future-only research view on the scheduled draw date or afterwards.
+    archive.write_bytes(original_archive)
+
+    # The presentation view MUST expire on its scheduled draw date, but
+    # original SHA-locked predictions and historical revision 1 stay intact.
     after = runtime.refresh_latest_view(
         tmp_path, state, datetime(2026, 11, 13, 18, 0,
                                  tzinfo=timezone(timedelta(hours=9))), None)
-    assert after["preview_status"] == "draw_date_reached_no_retrospective_update"
+    assert after["preview_status"] == "overwritten"
+    assert after["view_status"] == "expired_on_or_after_draw_day"
+    assert after["revision"] == 2
+    new_view = json.loads((tmp_path / runtime.VIEW).read_text(encoding="utf-8"))
+    assert new_view["identity"]["view_status"] == "expired_on_or_after_draw_day"
+    assert new_view["identity"]["valid_before_jst_date"] == "2026-11-13"
+    assert new_view["identity"]["frozen_event_sha256"] == state["events"][0]["event_sha256"]
+    assert archive.read_bytes() == original_archive
+    assert (tmp_path / runtime.REVISIONS / "revision_000002.json").is_file()
+    repeat = runtime.refresh_latest_view(
+        tmp_path, state, datetime(2026, 11, 13, 20, 0,
+                                 tzinfo=timezone(timedelta(hours=9))), None)
+    assert repeat["preview_status"] == "unchanged_expired"
+    assert repeat["revision"] == 2
