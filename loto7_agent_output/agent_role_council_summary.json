@@ -1,9 +1,9 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-11-11T10:13:45+09:00",
+  "checked_at_jst": "2026-11-11T10:15:20+09:00",
   "latest_resolved_round": 702,
   "overall": "watch",
-  "input_snapshot_sha256": "dcf91805535da60db0fd51619c0c8bcb4cdbe8e4dee2947b9f756cdf9a72a6f2",
+  "input_snapshot_sha256": "678d20d474ed316ee2f90df320778bcecd35311903c1b0fc25627eb211660fac",
   "governance": {
     "authority": "read_only_advisory",
     "permissions": {
@@ -76,13 +76,13 @@
       ]
     },
     "release_operations": {
-      "status": "watch",
+      "status": "ok",
       "findings": [
         {
-          "level": "watch",
-          "code": "DRAW_SCHEDULE_NOT_VERIFIED",
-          "evidence": "expected target=703",
-          "next_action": "Verify the official next draw date; do not infer publishing deadlines."
+          "level": "ok",
+          "code": "RELEASE_SCHEDULE_GUARD",
+          "evidence": "next=703 on 2026-11-13; already_published=False",
+          "next_action": "Continue predeclared workflow."
         }
       ]
     }
@@ -103,15 +103,6 @@
       "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
       "evidence": "holdout=9/26",
       "next_action": "Keep all comparator evidence and wait until 26/26 for independent confirmation.",
-      "existing_workflow_or_human_required": true,
-      "autonomous_production_write_allowed": false
-    },
-    {
-      "priority": "watch",
-      "owner": "release_operations",
-      "issue_code": "DRAW_SCHEDULE_NOT_VERIFIED",
-      "evidence": "expected target=703",
-      "next_action": "Verify the official next draw date; do not infer publishing deadlines.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
     }
