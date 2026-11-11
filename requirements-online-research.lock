@@ -1,0 +1,12 @@
+# Online v2/v3 reproducibility lock for CPython 3.12.16, Linux x86_64.
+# Versions observed in the successful November 11, 2026 scientific workflow.
+# Distinct from broad requirements.txt used by Production and legacy models.
+# Numeric reproducibility also needs OPENBLAS_NUM_THREADS=1, OMP_NUM_THREADS=1
+# and MKL_NUM_THREADS=1 set before the Python interpreter starts.
+# This is version pinning, not a complete wheel-hash lock.
+numpy==2.5.4
+pandas==2.3.3
+python-dateutil==4.0.0
+pytz==2026.6
+tzdata==2026.6
+pytest==9.2.0
