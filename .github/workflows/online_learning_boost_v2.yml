@@ -16,6 +16,7 @@ on:
       - "online_v3_replay_runtime.py"
       - "tests/test_online_v2_replay_runtime.py"
       - "requirements-online-research.lock"
+      - "scripts/audit_online_replay_environment.py"
       - "ONLINE_LEARNING_V2.md"
       - ".github/workflows/online_learning_boost_v2.yml"
   push:
@@ -27,6 +28,7 @@ on:
       - "online_v3_replay_runtime.py"
       - "tests/test_online_v2_replay_runtime.py"
       - "requirements-online-research.lock"
+      - "scripts/audit_online_replay_environment.py"
       - "ONLINE_LEARNING_V2.md"
       - ".github/workflows/online_learning_boost_v2.yml"
       - "loto7.csv"
@@ -65,6 +67,7 @@ jobs:
         run: |
           python -m compileall -q online_learning_boost_v2.py online_v2_replay_runtime.py tests/test_online_learning_boost_v2.py tests/test_online_v2_replay_runtime.py
           python -m pytest -q tests/test_online_learning_boost_v2.py tests/test_online_v2_replay_runtime.py
+          python -m scripts.audit_online_replay_environment
           git diff --exit-code -- loto7.csv loto7_agent_output/ research/
 
   update-research-only:
