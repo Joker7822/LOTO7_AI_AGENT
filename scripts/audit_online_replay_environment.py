@@ -8,6 +8,7 @@ Throws on wrong hashes, source prefix, categorical changes or material drift.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import platform
 from pathlib import Path
@@ -34,6 +35,14 @@ def run(root: Path) -> dict:
             "OPENBLAS_NUM_THREADS": os.environ.get("OPENBLAS_NUM_THREADS"),
             "OMP_NUM_THREADS": os.environ.get("OMP_NUM_THREADS"),
             "MKL_NUM_THREADS": os.environ.get("MKL_NUM_THREADS"),
+            "operational_file_sha256": {
+                name: hashlib.sha256((root / name).read_bytes()).hexdigest()
+                for name in (
+                    "online_v2_replay_runtime.py",
+                    "online_v3_replay_runtime.py",
+                    "requirements-online-research.lock",
+                )
+            },
         },
     }
 
