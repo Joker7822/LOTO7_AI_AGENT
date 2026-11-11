@@ -126,3 +126,45 @@ temporary directory; they never insert invented draw outcomes into
 **Important:** the numerical rates, features, penalties, calibration
 temperatures and anchors are declared engineering hypotheses. Their values
 have not been justified by future draw outcomes.
+
+
+## 2026-11-11: cross-run numeric stability and a rewritable latest view
+
+A registered future forecast's SHA-256 chained original record under
+`research/advanced_online_v3/state.json` must **never** be edited. It is the
+scientific evidence showing what was actually frozen before that draw.
+
+However, **the latest displayed research prediction is mutable** when the
+currently valid research forecast changes. The operational wrapper
+`online_v3_replay_runtime.py` provides two narrowly scoped behaviors:
+
+- It runs the **unchanged, preregistered** `advanced_online_v3.py` model,
+  preserving all source-SHA, algorithm-manifest, draw-date, SHA-chain and
+  verified-result protections. It tolerates only cross-run binary64 numeric
+  variation with **absolute difference no greater than 5e-13** in floating
+  point fields, while requiring exact prior-history SHA, top-seven choices,
+  drift state, schema, and discrete fields. A larger prediction difference
+  fails closed rather than silently rewriting pre-outcome evidence.
+- It **overwrites** `research/advanced_online_v3/latest_research_prediction.json`
+  if the current display identity (target, frozen event SHA, top seven,
+  displayed 37 probabilities) changes before the draw. Every replacement is
+  recorded in a new **append-only**
+  `research/advanced_online_v3/preview_revisions/revision_XXXXXX.json`,
+  linked to its predecessor by SHA-256. Unchanged views are not rewritten.
+  Only display-level projections are mutable: earlier frozen vectors and
+  measured grades are untouched.
+
+The preview has role
+`mutable_research_preview_not_production_not_prospective_evidence`.
+It is **not** a ticket purchase, Production prediction, independently
+validated improvement, or an alternative registration. Any real alteration
+to the algorithm requires a separately preregistered next experiment.
+
+CI also runs the non-mutating original-703 diagnostic via
+`python -m scripts.diagnose_v3_frozen_replay` and fails on material replay
+drift. Current v3 operations use:
+
+    python -m online_v3_replay_runtime --repo-root .
+
+The original `advanced_online_v3.py` remains unmodified so the registered
+source-code fingerprints and historical evidence are preserved.
