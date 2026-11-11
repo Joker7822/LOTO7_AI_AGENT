@@ -12,6 +12,11 @@ on:
     paths:
       - "online_learning_boost_v2.py"
       - "tests/test_online_learning_boost_v2.py"
+      - "online_v2_replay_runtime.py"
+      - "online_v3_replay_runtime.py"
+      - "tests/test_online_v2_replay_runtime.py"
+      - "requirements-online-research.lock"
+      - "scripts/audit_online_replay_environment.py"
       - "ONLINE_LEARNING_V2.md"
       - ".github/workflows/online_learning_boost_v2.yml"
   push:
@@ -19,6 +24,11 @@ on:
     paths:
       - "online_learning_boost_v2.py"
       - "tests/test_online_learning_boost_v2.py"
+      - "online_v2_replay_runtime.py"
+      - "online_v3_replay_runtime.py"
+      - "tests/test_online_v2_replay_runtime.py"
+      - "requirements-online-research.lock"
+      - "scripts/audit_online_replay_environment.py"
       - "ONLINE_LEARNING_V2.md"
       - ".github/workflows/online_learning_boost_v2.yml"
       - "loto7.csv"
@@ -26,6 +36,13 @@ on:
 
 permissions:
   contents: read
+
+# Disable CPU-dependent reduction order before any NumPy import.
+env:
+  OPENBLAS_NUM_THREADS: "1"
+  OMP_NUM_THREADS: "1"
+  MKL_NUM_THREADS: "1"
+  NUMEXPR_NUM_THREADS: "1"
 
 concurrency:
   group: independent-prospective-online-learning-v2
@@ -42,14 +59,15 @@ jobs:
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.12.16"
           cache: pip
       - name: Install core research dependencies
-        run: python -m pip install -r requirements.txt pytest
+        run: python -m pip install -r requirements-online-research.lock
       - name: Test synthetic locked future-only online learning
         run: |
-          python -m compileall -q online_learning_boost_v2.py tests/test_online_learning_boost_v2.py
-          python -m pytest -q tests/test_online_learning_boost_v2.py
+          python -m compileall -q online_learning_boost_v2.py online_v2_replay_runtime.py tests/test_online_learning_boost_v2.py tests/test_online_v2_replay_runtime.py
+          python -m pytest -q tests/test_online_learning_boost_v2.py tests/test_online_v2_replay_runtime.py
+          python -m scripts.audit_online_replay_environment
           git diff --exit-code -- loto7.csv loto7_agent_output/ research/
 
   update-research-only:
@@ -67,8 +85,8 @@ jobs:
           persist-credentials: true
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-      - run: python -m pip install -r requirements.txt
+          python-version: "3.12.16"
+      - run: python -m pip install -r requirements-online-research.lock
       - name: Freeze and grade only independently verified future draws
         shell: bash
         run: |
@@ -78,7 +96,7 @@ jobs:
           for attempt in 1 2 3; do
             git fetch origin main
             git reset --hard origin/main
-            python online_learning_boost_v2.py --repo-root .
+            python -m online_v2_replay_runtime --repo-root .
             git diff --exit-code -- loto7.csv STATUS.md loto7_agent_output/ \
               continuous_learning_agent.py predictive_expert_agent.py \
               weekly_production_prediction.py

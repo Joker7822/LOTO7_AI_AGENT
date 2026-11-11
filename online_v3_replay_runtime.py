@@ -141,12 +141,14 @@ def refresh_latest_view(root: Path, state: dict, now: datetime,
         raise ValueError("v3 state must end with an immutable future freeze")
     target = final_event["target_round"]
     x, _ = make_history(read_csv_flexible(root / "loto7.csv"))
-    if len(x) + 1 != target:
-        # There is no new future-only preview after an ungraded outcome.
+    scheduled = datetime.fromisoformat(final_event["scheduled_draw_date"]).date()
+    expired = now.date() >= scheduled
+    if len(x) + 1 != target and not expired:
+        # An outcome was seen without an authorized next future freeze.
         return {"preview_status": "waiting_for_trusted_grade"}
-    if now.date() >= datetime.fromisoformat(
-            final_event["scheduled_draw_date"]).date():
-        return {"preview_status": "draw_date_reached_no_retrospective_update"}
+    # The view may be marked EXPIRED on/after the draw date, including if
+    # source verification or the following official schedule is still WAIT.
+    # Never generate a replacement prediction for this already-drawn target.
     # v3.run already authenticated and completely replay-validated every
     # previous grade. Here the preview is derived from the latest *sealed*
     # immutable forecast, not from any prospective target outcome.
@@ -160,6 +162,9 @@ def refresh_latest_view(root: Path, state: dict, now: datetime,
         "source_prior_sha256": pred["prefix_sha256"],
         "top7": pred["top7"],
         "probabilities_display": values,
+        "view_status": ("expired_on_or_after_draw_day" if expired
+                        else "active_prefrozen_future"),
+        "valid_before_jst_date": scheduled.isoformat(),
     }
     path = root / VIEW
     old = json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
@@ -174,8 +179,10 @@ def refresh_latest_view(root: Path, state: dict, now: datetime,
             raise ValueError("existing mutable research view does not match archival revision")
     old_identity = old.get("identity") if old else None
     if old_identity == identity:
-        return {"preview_status": "unchanged", "target_round": target,
-                "revision": old["revision"]}
+        return {"preview_status": "unchanged_expired" if expired else "unchanged",
+                "target_round": target,
+                "revision": old["revision"],
+                "view_status": identity["view_status"]}
     number = 1 if old is None else int(old["revision"]) + 1
     if number < 1 or number > 999999:
         raise ValueError("invalid research preview revision counter")
@@ -209,7 +216,8 @@ def refresh_latest_view(root: Path, state: dict, now: datetime,
         write_atomic(archive_path, revision)
     write_atomic(path, revision)
     return {"preview_status": "created" if number == 1 else "overwritten",
-            "target_round": target, "revision": number}
+            "target_round": target, "revision": number,
+            "view_status": identity["view_status"]}
 
 
 def run(root: Path, *, now: datetime | None = None) -> dict:
