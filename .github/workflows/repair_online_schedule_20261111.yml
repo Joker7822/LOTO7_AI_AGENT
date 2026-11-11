@@ -1,0 +1,164 @@
+name: Repair v2-v3 Next-Round Schedule Ingestion (One-Time 2026-11-11)
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/repair_online_schedule_20261111.yml"
+      - "fetch_validate.py"
+      - "tests/test_fetch_validate.py"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/repair_online_schedule_20261111.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: online-v2-v3-schedule-ingest-20261111
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned project dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Confirm sale-listing parser and locked online-learning tests
+        run: |
+          python -m compileall -q fetch_validate.py online_learning_boost_v2.py advanced_online_v3.py
+          bash scripts/ci_verify_frozen_regressions.sh tests/test_fetch_validate.py tests/test_online_learning_boost_v2.py tests/test_advanced_online_v3.py
+          git diff --exit-code -- loto7.csv STATUS.md loto7_agent_output research/
+
+  transition:
+    if: github.event_name == 'push'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install runtime dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Refresh externally published schedule and strictly prospective ledgers
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+
+            python fetch_validate.py \
+              --csv loto7.csv \
+              --report loto7_agent_output/source_validation.json \
+              --production-snapshot \
+              --max-attempts 1 \
+              --interval-seconds 0 \
+              --months 3
+
+            git diff --exit-code -- loto7.csv
+            python - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path
+          from loto7_evolving_agent import fingerprint_file
+          p=Path("loto7_agent_output/source_validation.json")
+          report=json.loads(p.read_text(encoding="utf-8"))
+          actual=report.get("latest") or {}
+          if (report.get("verification")!="verified_two_result_sources"
+                  or report.get("status")!="ok"
+                  or actual.get("round")!=702
+                  or actual.get("date")!="2026-11-06"
+                  or actual.get("main")!=[1,5,11,14,16,30,36]
+                  or actual.get("bonus")!=[10,28]):
+              raise SystemExit("No trusted exact historical draw 702; stop before learning")
+          if ((report.get("verification_provenance") or {}).get("draw_csv_sha256")
+                  != fingerprint_file(Path("loto7.csv"))):
+              raise SystemExit("Source receipt not bound to unchanged draw CSV")
+          schedule=(report.get("sources") or {}).get("official_schedule") or {}
+          if schedule.get("round")!=703 or schedule.get("date")!="2026-11-13":
+              raise SystemExit("No explicit published round 703 draw-date evidence")
+          if schedule.get("source_tier")=="authorized_retailer_sales_listing":
+              if (schedule.get("url")!="https://takarakuji.rakuten.co.jp/loto/"
+                      or len(schedule.get("html_text_sha256",""))!=64
+                      or not schedule.get("fetched_at_jst")
+                      or schedule.get("organizer_verified") is not False):
+                  raise SystemExit("Retailer date provenance incomplete")
+          elif schedule.get("source_tier") not in (None, "organizer_site"):
+              raise SystemExit("Unexpected next-round schedule provenance")
+          print("Trusted round 702 + explicitly listed round 703 schedule verified",
+                json.dumps(schedule, ensure_ascii=False, sort_keys=True))
+          PY
+
+            # Both registered algorithm manifests are immutable; this path
+            # only supplies the missing independently fetched schedule.
+            python online_learning_boost_v2.py --repo-root .
+            python advanced_online_v3.py --repo-root .
+
+            git diff --exit-code -- loto7.csv STATUS.md \
+              continuous_learning_agent.py online_learning_boost_v2.py advanced_online_v3.py \
+              weekly_production_prediction.py \
+              research/advanced_online_v3/registration.json \
+              loto7_agent_output/predictions.csv \
+              loto7_agent_output/weekly_production_prediction_state.json
+
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path("research/online_learning_v2/state.json").read_text(encoding="utf-8"))
+          b=json.loads(Path("research/advanced_online_v3/state.json").read_text(encoding="utf-8"))
+          if (a["trusted_grades"]!=1 or
+                  [(e["kind"],e["target_round"]) for e in a["events"]]!=[
+                      ("freeze",702),("grade",702),("freeze",703)]):
+              raise SystemExit("v2 did not grade 702 and prefreeze 703")
+          if (b["trusted_grades"]!=0 or
+                  [(e["kind"],e["target_round"]) for e in b["events"]]!=[
+                      ("freeze",703)]):
+              raise SystemExit("v3 first prospective target must be frozen 703 only")
+          if (a["events"][-1]["scheduled_draw_date"]!="2026-11-13"
+                  or b["events"][-1]["scheduled_draw_date"]!="2026-11-13"):
+              raise SystemExit("Research targets not predeclared for official next draw")
+          print("Research-only online v2/v3 target transitions validated")
+          PY
+
+            git add -- loto7_agent_output/source_validation.json \
+              research/online_learning_v2/state.json \
+              research/advanced_online_v3/state.json
+            changed="$(git diff --cached --name-only)"
+            unexpected="$(printf '%s\n' "$changed" | grep -Ev '^(loto7_agent_output/source_validation[.]json|research/online_learning_v2/state[.]json|research/advanced_online_v3/state[.]json)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Unauthorized file staged: $unexpected"
+              exit 1
+            fi
+            if git diff --cached --quiet; then
+              echo "Research v2/v3 and schedule already current."
+              exit 0
+            fi
+            git commit -m "research: grade prefrozen 702 and prefreeze 703 on published calendar"
+            if git push origin HEAD:main; then
+              echo "Verified online v2/v3 evidence persisted on main."
+              exit 0
+            fi
+            echo "Main advanced; rechecking live evidence and locked registrations."
+          done
+          echo "::error::Unable to publish schedule and research ledgers after 5 safe retries"
+          exit 1
