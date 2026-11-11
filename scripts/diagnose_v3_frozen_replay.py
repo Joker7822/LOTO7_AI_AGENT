@@ -29,7 +29,9 @@ def main():
     registration = json.loads((root / v3.REGISTRATION).read_text())
     state = json.loads((root / v3.STATE).read_text())
     x, frame = make_history(read_csv_flexible(root / "loto7.csv"))
-    last = state["events"][-1]
+    # Diagnose the original first freeze independently of later online
+    # grades; its prior scores were exactly zero by preregistration.
+    last = state["events"][0]
     target = last["target_round"]
     exact = last["prediction"]
     es, ms, ts, edges, wealth = v3.empty_scores()
