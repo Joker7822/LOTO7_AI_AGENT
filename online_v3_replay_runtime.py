@@ -163,6 +163,15 @@ def refresh_latest_view(root: Path, state: dict, now: datetime,
     }
     path = root / VIEW
     old = json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+    if old:
+        if (old.get("version") != VERSION or
+                old.get("role") != "mutable_research_preview_not_production_not_prospective_evidence" or
+                type(old.get("revision")) is not int or old["revision"] < 1):
+            raise ValueError("existing mutable research view format is not valid")
+        archived_old = root / REVISIONS / f"revision_{old['revision']:06d}.json"
+        if (not archived_old.is_file() or
+                json.loads(archived_old.read_text(encoding="utf-8")) != old):
+            raise ValueError("existing mutable research view does not match archival revision")
     old_identity = old.get("identity") if old else None
     if old_identity == identity:
         return {"preview_status": "unchanged", "target_round": target,
@@ -184,8 +193,16 @@ def refresh_latest_view(root: Path, state: dict, now: datetime,
     }
     archive_path = root / REVISIONS / f"revision_{number:06d}.json"
     if archive_path.exists():
-        if json.loads(archive_path.read_text(encoding="utf-8")) != revision:
+        stored = json.loads(archive_path.read_text(encoding="utf-8"))
+        if (stored.get("identity") != identity or
+                stored.get("previous_revision_sha256") != revision["previous_revision_sha256"] or
+                stored.get("role") != revision["role"] or
+                stored.get("version") != VERSION or
+                stored.get("revision") != number):
             raise ValueError("immutable research-preview revision already exists")
+        # Resume an interrupted atomic current-view replacement; do not
+        # rewrite the preexisting historical revision timestamp.
+        revision = stored
     else:
         # Do not publish a new current view until its archival predecessor is
         # write-once persisted locally, so every revision remains traceable.
