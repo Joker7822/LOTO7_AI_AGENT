@@ -125,13 +125,31 @@ def test_sha_chain_tampering_remains_fatal(recorded_research):
         compat.run(root, now=today())
 
 
+def test_existing_prefreeze_can_safely_resume_702_grade(recorded_research):
+    root = recorded_research
+    file = root / v2.DESTINATION
+    d = json.loads(file.read_text(encoding="utf-8"))
+    original_sha = d["events"][0]["event_sha256"]
+    d["events"] = d["events"][:1]  # valid authentic pre-draw 702 freeze
+    d["trusted_grades"] = 0
+    file.write_text(json.dumps(d), encoding="utf-8")
+    result = compat.run(root, now=today())
+    saved = json.loads(file.read_text(encoding="utf-8"))
+    assert result["target_round"] == 703
+    assert [(e["kind"], e["target_round"]) for e in saved["events"]] == [
+        ("freeze", 702), ("grade", 702), ("freeze", 703)]
+    assert saved["events"][0]["event_sha256"] == original_sha
+
+
 def test_missing_prior_freeze_does_not_enable_retrospective_grading(
         recorded_research):
     root = recorded_research
     file = root / v2.DESTINATION
     d = json.loads(file.read_text(encoding="utf-8"))
-    d["events"] = d["events"][:1]
+    d["events"] = [d["events"][1]]  # orphan grade with no preceding freeze
     d["trusted_grades"] = 0
-    file.write_text(json.dumps(d), encoding="utf-8")
-    with pytest.raises(ValueError, match="missing previous freeze"):
+    before = json.dumps(d)
+    file.write_text(before, encoding="utf-8")
+    with pytest.raises(ValueError, match="hash invalid|not frozen|future target|missing"):
         compat.run(root, now=today())
+    assert file.read_text(encoding="utf-8") == before
