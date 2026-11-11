@@ -23,6 +23,7 @@ MIZUHO_URL = "https://www.mizuhobank.co.jp/takarakuji/check/loto/loto7/index.htm
 RAKUTEN_BANK_URL = "https://www.rakuten-bank.co.jp/takarakuji/backnumber/"
 RAKUTEN_BANK_RESULT_URL = "https://sfes.rakuten-bank.co.jp/MS/main/fis?PageID=WinNumberLoto7PresentationLogicBean"
 OFFICIAL_URL = "https://www.takarakuji-official.jp/ec/loto7/?knyschm=0&kujiprdShbt=61"
+RAKUTEN_LOTO_SALES_URL = "https://takarakuji.rakuten.co.jp/loto/"
 JST = dt.timezone(dt.timedelta(hours=9))
 
 
@@ -244,6 +245,44 @@ def parse_official_schedule(html: str) -> Optional[Dict[str, object]]:
     }
 
 
+def parse_retailer_next_schedule(html: str, next_round: int) -> Optional[Dict[str, object]]:
+    """Parse *explicitly published* LOTO7 round/date from Rakuten's sales page.
+
+    Never compute a future draw from the weekday. Reject other lottery
+    products, a mismatched round, malformed dates, and conflicting notices.
+    This is an authorized retailer's public listing, NOT a bank/organizer
+    schedule; keep that provenance visible to downstream research.
+    """
+    text = strip_html(html)
+    # An exact LOTO7-specific Friday heading is required near the listing:
+    # Rakuten also sells LOTO6 and Mini LOTO on this same page.
+    dates = set()
+    pattern = re.compile(
+        r"第\s*0*(\d{1,6})\s*回\s*"
+        r"(20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日"
+        r"\s*[（(]\s*金\s*[）)]"
+    )
+    for match in pattern.finditer(text):
+        if int(match.group(1)) != next_round:
+            continue
+        context = text[max(0, match.start() - 90):match.start()]
+        if not re.search(r"毎週\s*金曜日\s*が\s*抽せん日", context):
+            continue
+        try:
+            date = dt.date(int(match.group(2)), int(match.group(3)),
+                           int(match.group(4)))
+        except ValueError:
+            continue
+        if date.weekday() != 4:
+            continue
+        dates.add(date.isoformat())
+    if len(dates) != 1:
+        return None
+    return {"round": next_round, "date": dates.pop(),
+            "source_tier": "authorized_retailer_sales_listing",
+            "publisher": "Rakuten x Takarakuji (sales portal, not organizer)"}
+
+
 def source_snapshot(target_round: int) -> Dict[str, object]:
     out: Dict[str, object] = {}
     try:
@@ -268,6 +307,33 @@ def source_snapshot(target_round: int) -> Dict[str, object]:
         out["official_schedule"] = parse_official_schedule(http_get(OFFICIAL_URL)) or {"status": "not_parseable"}
     except Exception as exc:
         out["official_schedule"] = {"status": "unavailable", "error": str(exc)[:300]}
+    candidate = out["official_schedule"]
+    # The original organizer site sometimes returns HTTP 403 or an SPA shell
+    # with no parseable calendar. Preserve the high-priority official listing
+    # when it explicitly names the next draw; otherwise check a published
+    # *retailer* listing. Missing or conflicting evidence remains a WAIT.
+    valid_official = False
+    if isinstance(candidate, dict) and candidate.get("round") == target_round + 1:
+        try:
+            official_date = dt.date.fromisoformat(candidate["date"])
+            valid_official = official_date.weekday() == 4
+        except (KeyError, TypeError, ValueError):
+            pass
+    if not valid_official:
+        try:
+            page = http_get(RAKUTEN_LOTO_SALES_URL)
+            observed = parse_retailer_next_schedule(page, target_round + 1)
+            if observed is not None:
+                out["official_schedule"] = {
+                    **observed,
+                    "url": RAKUTEN_LOTO_SALES_URL,
+                    "fetched_at_jst": now_jst().isoformat(timespec="seconds"),
+                    "html_text_sha256": hashlib.sha256(page.encode("utf-8")).hexdigest(),
+                    "organizer_verified": False,
+                }
+        except Exception as exc:
+            out["retailer_schedule_fetch"] = {
+                "status": "unavailable", "error": str(exc)[:300]}
     return out
 
 
@@ -318,7 +384,12 @@ def compare_sources(primary: Dict[str, object], sources: Dict[str, object]) -> T
 
     official = sources.get("official_schedule", {})
     if isinstance(official, dict) and "round" in official:
-        notes.append(f"official schedule visible: round={official.get('round')} date={official.get('date','')}")
+        tier = official.get("source_tier", "organizer_site")
+        notes.append(
+            f"next schedule listing tier={tier}: round={official.get('round')} "
+            f"date={official.get('date','')}; this does not independently "
+            "corroborate the draw result"
+        )
 
     if verified:
         notes.append("result verification succeeded using at least two published result endpoints")
