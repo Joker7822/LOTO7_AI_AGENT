@@ -234,3 +234,109 @@ def test_wait_cache_requires_exact_existing_report_numbers(cached_wait, monkeypa
     monkeypatch.setattr(validation.scrapingloto7, "update_loto7_csv", fail_http(503))
     assert validation.main() == 1
     assert json.loads(report.read_text())["status"] == "failed"
+
+
+# Next-round schedule recovery uses *only observed published date+round*.
+# Synthetic HTML is intentionally isolated from real future evidence.
+def test_parse_explicit_rakuten_loto7_703_sales_listing():
+    html = """<html><body>ロト(LOTO)購入
+      毎週金曜日が抽せん日
+      第0703回 2026年11月13日(金) 18:20締切
+      ロト7 最高12億円のチャンス
+      毎週月・木曜日が抽せん日
+      第2154回 2026年11月12日(木) 18:20締切
+      毎週火曜日が抽せん日
+      第1413回 2026年11月17日(火) 18:20締切</body></html>"""
+    result = validation.parse_retailer_next_schedule(html, 703)
+    assert result["round"] == 703
+    assert result["date"] == "2026-11-13"
+    assert result["source_tier"] == "authorized_retailer_sales_listing"
+    assert validation.parse_retailer_next_schedule(html, 704) is None
+
+
+@pytest.mark.parametrize("html", [
+    "毎週金曜日が抽せん日 第0702回 2026年11月6日(金)",  # stale round
+    "毎週金曜日が抽せん日 第0703回 2026年11月12日(木)",  # not Friday
+    "毎週金曜日が抽せん日 第0703回 2026年11月31日(金)",  # nonexistent
+    "毎週月・木曜日が抽せん日 第0703回 2026年11月13日(金)",  # wrong lottery
+    "毎週金曜日が抽せん日 第0703回 2026年11月13日(金) "
+    "毎週金曜日が抽せん日 第0703回 2026年11月20日(金)",  # conflict
+    "ロト7の抽せんは毎週金曜日です",  # never compute a date
+])
+def test_sales_schedule_fail_closed_on_untrusted_or_ambiguous_content(html):
+    assert validation.parse_retailer_next_schedule(html, 703) is None
+
+
+def test_schedule_fallback_retains_explicit_retailer_provenance(monkeypatch):
+    called = []
+    expected_result = {
+        "round": 702, "date": "2026-11-06",
+        "main": [1, 5, 11, 14, 16, 30, 36],
+        "bonus": [10, 28],
+    }
+    monkeypatch.setattr(validation, "fetch_rakuten_bank_result",
+                        lambda round_number: dict(expected_result))
+    def fetch(url):
+        called.append(url)
+        if url == validation.MIZUHO_URL:
+            raise urllib.error.HTTPError(url, 403, "blocked", {}, None)
+        if url == validation.OFFICIAL_URL:
+            return "<div>javascript-only official calendar</div>"
+        if url == validation.RAKUTEN_LOTO_SALES_URL:
+            return ("毎週金曜日が抽せん日 "
+                    "第0703回 2026年11月13日(金) 18:20締切")
+        raise AssertionError("Unexpected schedule or result endpoint: " + url)
+    monkeypatch.setattr(validation, "http_get", fetch)
+    snapshot = validation.source_snapshot(702)
+    assert snapshot["official_schedule"]["round"] == 703
+    assert snapshot["official_schedule"]["date"] == "2026-11-13"
+    assert snapshot["official_schedule"]["organizer_verified"] is False
+    assert snapshot["official_schedule"]["url"] == validation.RAKUTEN_LOTO_SALES_URL
+    assert len(snapshot["official_schedule"]["html_text_sha256"]) == 64
+    assert snapshot["official_schedule"]["fetched_at_jst"]
+    assert validation.OFFICIAL_URL in called
+    assert validation.RAKUTEN_LOTO_SALES_URL in called
+    verification, notes = validation.compare_sources(expected_result, snapshot)
+    assert verification == "verified_two_result_sources"
+    assert any("authorized_retailer_sales_listing" in n for n in notes)
+    assert not any("official schedule visible" in n for n in notes)
+
+
+def test_schedule_fallback_never_forges_calendar_from_weekday(monkeypatch):
+    expected_result = {"round": 702, "date": "2026-11-06",
+                       "main": [1, 5, 11, 14, 16, 30, 36],
+                       "bonus": [10, 28]}
+    monkeypatch.setattr(validation, "fetch_rakuten_bank_result",
+                        lambda _: dict(expected_result))
+    def fetch(url):
+        if url == validation.MIZUHO_URL:
+            raise OSError("bank temporarily unavailable")
+        if url == validation.OFFICIAL_URL:
+            raise OSError("organizer temporarily unavailable")
+        if url == validation.RAKUTEN_LOTO_SALES_URL:
+            return "<html>毎週金曜日に抽せんします</html>"
+        raise AssertionError(url)
+    monkeypatch.setattr(validation, "http_get", fetch)
+    snapshot = validation.source_snapshot(702)
+    assert snapshot["official_schedule"]["status"] == "unavailable"
+    assert "round" not in snapshot["official_schedule"]
+
+
+def test_authoritative_official_schedule_skips_retailer_fallback(monkeypatch):
+    result = {"round": 702, "date": "2026-11-06",
+              "main": [1, 5, 11, 14, 16, 30, 36],
+              "bonus": [10, 28]}
+    monkeypatch.setattr(validation, "fetch_rakuten_bank_result", lambda _: result)
+    called = []
+    def fetch(url):
+        called.append(url)
+        if url == validation.MIZUHO_URL:
+            raise OSError("bank blocked")
+        if url == validation.OFFICIAL_URL:
+            return "<div>ロト7（第703回） 抽せん日 2026年11月13日</div>"
+        raise AssertionError("Seller must not override valid organizer schedule")
+    monkeypatch.setattr(validation, "http_get", fetch)
+    snapshot = validation.source_snapshot(702)
+    assert snapshot["official_schedule"] == {
+        "round": 703, "date": "2026-11-13"}
+    assert validation.RAKUTEN_LOTO_SALES_URL not in called
