@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-11T10:13:17+09:00",
-  "source_commit": "611b3f81a01aad7cda20fc3073b18cad0e1e659a",
-  "state_hashes_sha256": "51bc58370c8b2501aeb4d7df23d12b9641056c684862df438447870a7666b26b",
+  "generated_at_jst": "2026-11-11T10:16:25+09:00",
+  "source_commit": "4333c2f1578f80ba9b662deb11e1359f54038425",
+  "state_hashes_sha256": "68d50a2eb16367e3a8fb040ad77b068edcb22ca300302634e0df4c0a95a2290f",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-11T07:08:27+09:00",
+      "checked_at_jst": "2026-11-11T10:15:09+09:00",
       "latest": {
         "round": 702,
         "date": "2026-11-06",
@@ -27,13 +27,20 @@
       },
       "sources": {
         "official_schedule": {
-          "status": "not_parseable"
+          "round": 703,
+          "date": "2026-11-13",
+          "source_tier": "authorized_retailer_sales_listing",
+          "publisher": "Rakuten x Takarakuji (sales portal, not organizer)",
+          "url": "https://takarakuji.rakuten.co.jp/loto/",
+          "fetched_at_jst": "2026-11-11T10:15:01+09:00",
+          "html_text_sha256": "505ce5b6233915ab85c2cead4e67d048b56cd3c5a92ffb8ca774a606828ad6c1",
+          "organizer_verified": false
         }
       }
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-11T10:12:01+09:00",
+      "checked_at_jst": "2026-11-11T10:16:17+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -86,12 +93,12 @@
           ]
         },
         "release_operations": {
-          "status": "watch",
+          "status": "ok",
           "findings": [
             {
-              "code": "DRAW_SCHEDULE_NOT_VERIFIED",
-              "level": "watch",
-              "evidence": "expected target=703"
+              "code": "RELEASE_SCHEDULE_GUARD",
+              "level": "ok",
+              "evidence": "next=703 on 2026-11-13; already_published=False"
             }
           ]
         }
@@ -108,12 +115,6 @@
           "priority": "watch",
           "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
           "evidence": "holdout=9/26"
-        },
-        {
-          "owner": "release_operations",
-          "priority": "watch",
-          "issue_code": "DRAW_SCHEDULE_NOT_VERIFIED",
-          "evidence": "expected target=703"
         }
       ],
       "latest_resolved_round": 702
@@ -203,9 +204,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 42911337865,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42911337865",
-      "updated_at": "2026-11-10T22:08:39Z",
+      "run_id": 42937363020,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42937363020",
+      "updated_at": "2026-11-11T01:15:10Z",
       "recent_failure_count": 0
     },
     {
@@ -214,9 +215,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 42937043272,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42937043272",
-      "updated_at": "2026-11-11T01:12:43Z",
+      "run_id": 42937581961,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42937581961",
+      "updated_at": "2026-11-11T01:16:15Z",
       "recent_failure_count": 0
     },
     {
@@ -225,20 +226,20 @@
       "health": "running",
       "status": "pending",
       "conclusion": null,
-      "run_id": 42937264928,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42937264928",
-      "updated_at": "2026-11-11T01:12:47Z",
+      "run_id": 42937717410,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42937717410",
+      "updated_at": "2026-11-11T01:16:18Z",
       "recent_failure_count": 0
     },
     {
       "file": "joint_set_v2_signal_oos.yml",
       "label": "v2将来検証",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 42937043443,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42937043443",
-      "updated_at": "2026-11-11T01:12:30Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 42937581879,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42937581879",
+      "updated_at": "2026-11-11T01:15:18Z",
       "recent_failure_count": 0
     },
     {
@@ -755,13 +756,13 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "611b3f81a01aad7cda20fc3073b18cad0e1e659a",
-    "snapshot_generated_at_jst": "2026-11-11T10:13:17+09:00",
-    "computed_at_jst": "2026-11-11T01:13:17+00:00",
+    "source_commit": "4333c2f1578f80ba9b662deb11e1359f54038425",
+    "snapshot_generated_at_jst": "2026-11-11T10:16:25+09:00",
+    "computed_at_jst": "2026-11-11T01:16:25+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
-      "watch": 2,
+      "watch": 1,
       "info": 1
     },
     "checkpoints": {
@@ -779,19 +780,6 @@
       }
     },
     "tasks": [
-      {
-        "id": "8b0cf60f233eb6e4",
-        "priority": "watch",
-        "code": "COUNCIL:DRAW_SCHEDULE_NOT_VERIFIED",
-        "owner": "本番運用エージェント",
-        "title": "監査で要確認事項を検出しました。",
-        "detail": "監査の判定と元の公表記録を照合してください。",
-        "evidence": "DRAW_SCHEDULE_NOT_VERIFIED",
-        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
-      },
       {
         "id": "bef623a2503719e7",
         "priority": "watch",
