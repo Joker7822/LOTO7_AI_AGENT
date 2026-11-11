@@ -1,10 +1,10 @@
 {
-  "checked_at_jst": "2026-11-11T10:15:09+09:00",
+  "checked_at_jst": "2026-11-11T10:16:39+09:00",
   "attempt": 1,
   "status": "ok",
   "verification": "verified_two_result_sources",
   "primary_source": "Rakuten backnumber via scrapingloto7.py",
-  "secondary_policy": "Mizuho or Rakuten Bank preferred; when bank pages are blocked, an explicitly identified independently operated non-official publisher may corroborate a previously recorded Rakuten primary, if exact round/date/main/bonus and live response provenance all match.",
+  "secondary_policy": "Mizuho preferred; Rakuten Bank direct result, or an explicitly non-official, independently operated LOTO7通信 result page with live fetched response SHA as fallback",
   "latest": {
     "round": 702,
     "date": "2026-11-06",
@@ -23,7 +23,7 @@
     ]
   },
   "freshness_expected": null,
-  "freshness_policy": "require_current_draw_after_friday_20_jst",
+  "freshness_policy": "production_snapshot_latest_completed_draw",
   "sources": {
     "mizuho": {
       "status": "unavailable",
@@ -52,8 +52,8 @@
       "url": "https://loto7.money-plan.net/round/702/",
       "transport": "direct_independent_publisher_page",
       "publisher": "LOTO7通信 (non-official, independent web publisher)",
-      "fetched_at_jst": "2026-11-11T10:15:09+09:00",
-      "response_sha256": "51af09e3031a8de29965a52564584cd9a11c6751a42179e2eb5296c2b5143150",
+      "fetched_at_jst": "2026-11-11T10:16:38+09:00",
+      "response_sha256": "eb92e3ab90f0c05cf2dbc0d84663fd459367c476683c9c64cd550b78211a6f43",
       "source_tier": "independent_non_official"
     },
     "official_schedule": {
@@ -62,8 +62,8 @@
       "source_tier": "authorized_retailer_sales_listing",
       "publisher": "Rakuten x Takarakuji (sales portal, not organizer)",
       "url": "https://takarakuji.rakuten.co.jp/loto/",
-      "fetched_at_jst": "2026-11-11T10:15:01+09:00",
-      "html_text_sha256": "505ce5b6233915ab85c2cead4e67d048b56cd3c5a92ffb8ca774a606828ad6c1",
+      "fetched_at_jst": "2026-11-11T10:16:39+09:00",
+      "html_text_sha256": "e0b6f294a03c9c1a1e73f2dc3c71657bc0d439cbb9a48a91545563eec6392dff",
       "organizer_verified": false
     }
   },
@@ -71,17 +71,13 @@
     "primary_domain": "takarakuji.rakuten.co.jp",
     "primary_method": "recorded_published_csv_result",
     "secondary_domain": "loto7.money-plan.net",
-    "secondary_fetch": "live_https_response",
     "secondary_official": false,
-    "independent_domains": true,
+    "source_tier": "independent_non_official",
     "draw_csv_sha256": "ca6c245500134f8d843d0604cf5fe777d8a7c3338fdf287bc71c415beece2960"
   },
   "notes": [
     "LOTO7通信 independent non-official result matches Rakuten primary round/date/main/bonus",
     "next schedule listing tier=authorized_retailer_sales_listing: round=703 date=2026-11-13; this does not independently corroborate the draw result",
-    "result verification succeeded using at least two published result endpoints",
-    "LOTO7通信 independently published result confirms the stored Rakuten primary.",
-    "Secondary is non-official; Mizuho and Rakuten Bank result pages may remain unavailable.",
-    "No retrospective future prediction freeze, score or model is amended."
+    "result verification succeeded using at least two published result endpoints"
   ]
 }
