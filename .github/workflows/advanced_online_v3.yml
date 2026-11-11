@@ -22,6 +22,9 @@ on:
     paths:
       - "advanced_online_v3.py"
       - "tests/test_advanced_online_v3.py"
+      - "scripts/diagnose_v3_frozen_replay.py"
+      - "online_v3_replay_runtime.py"
+      - "tests/test_online_v3_replay_runtime.py"
       - "ADVANCED_ONLINE_V3.md"
       - ".github/workflows/advanced_online_v3.yml"
       - "loto7.csv"
@@ -97,23 +100,7 @@ jobs:
             if [ -d research/advanced_online_v3/preview_revisions ]; then
               git add -A -- research/advanced_online_v3/preview_revisions/
             fi
-            unexpected="$(git diff --cached --name-only | grep -Ev '^research/advanced_online_v3/(registration[.]json|state[.]json|latest_research_prediction[.]json|preview_revisions/revision_[0-9]{6}[.]json)
-            if [ -n "$unexpected" ]; then
-              echo "::error::Unauthorized advanced research mutation: $unexpected"
-              exit 1
-            fi
-            if git diff --cached --quiet; then
-              echo "No new prior-only v3 registration or evidence transition."
-              exit 0
-            fi
-            git commit -m "research: commit advanced online v3 preregistration or trusted new result"
-            if git push origin HEAD:main; then
-              exit 0
-            fi
-          done
-          echo "::error::Unable to publish exact-set prospective evidence"
-          exit 1
- || true)"
+            unexpected="$(git diff --cached --name-only | grep -Ev '^research/advanced_online_v3/(registration[.]json|state[.]json|latest_research_prediction[.]json|preview_revisions/revision_[0-9]{6}[.]json)$' || true)"
             if [ -n "$unexpected" ]; then
               echo "::error::Unauthorized advanced research mutation: $unexpected"
               exit 1
