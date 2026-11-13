@@ -1,14 +1,15 @@
 # Autonomous research data-quality audit
 
-- Checked: 2026-11-13T10:28:21+09:00
+- Checked: 2026-11-13T21:35:29+09:00
 - Draw history: 1..702; rows=702
 - Two independent published sources matched: True
 - Next official result deadline: 2026-11-13T20:30:00+09:00
-- Awaiting scheduled draw without error: True
+- Awaiting scheduled draw without error: False
 - Status: attention
-- Allowed existing recovery workflow: advanced_validation_lab.yml
+- Allowed existing recovery workflow: friday_result_check_watchdog.yml
 
 ## Current issues
+- OFFICIAL_RESULT_PAST_DUE
 - REGISTERED_SCIENCE_OUTDATED
 - REGENERATE_PRIORITY_QUEUE_AFTER_SOURCE_UPDATE
 
