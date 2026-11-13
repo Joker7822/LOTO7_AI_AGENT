@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-13T16:11:12+09:00",
-  "source_commit": "10c5a0d8d7489df570430269236e1dc85a09c4ec",
-  "state_hashes_sha256": "8bad881359b109ff35ff47f9a13e1ad56d3241b8cb2c28017df3607918b3d6e6",
+  "generated_at_jst": "2026-11-13T16:17:25+09:00",
+  "source_commit": "b0701c602e81a831abd9df675105c682c11e464b",
+  "state_hashes_sha256": "dfc8f7f515c36268caf8ee32745d1b028f0824c4281532054495315d335fd333",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-13T16:09:35+09:00",
+      "checked_at_jst": "2026-11-13T16:17:13+09:00",
       "latest": {
         "round": 702,
         "date": "2026-11-06",
@@ -32,8 +32,8 @@
           "source_tier": "authorized_retailer_sales_listing",
           "publisher": "Rakuten x Takarakuji (sales portal, not organizer)",
           "url": "https://takarakuji.rakuten.co.jp/loto/",
-          "fetched_at_jst": "2026-11-13T16:09:35+09:00",
-          "html_text_sha256": "8d2163b1637ecc2d429e716d613e26bf24638a4ca2fc2f6f78a7c59caf13e685",
+          "fetched_at_jst": "2026-11-13T16:17:13+09:00",
+          "html_text_sha256": "6fca0662f3348974bee6716cd57e076088f5a2baf3131a6c76373dccd92b1bf6",
           "organizer_verified": false
         }
       }
@@ -201,12 +201,12 @@
     {
       "file": "continuous_loto7_v4.yml",
       "label": "継続研究",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 43320491366,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43320491366",
-      "updated_at": "2026-11-12T22:32:29Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 43384354695,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43384354695",
+      "updated_at": "2026-11-13T07:14:52Z",
       "recent_failure_count": 0
     },
     {
@@ -245,12 +245,12 @@
     {
       "file": "weekly_production_publisher.yml",
       "label": "本番発行",
-      "health": "block",
+      "health": "ok",
       "status": "completed",
-      "conclusion": "failure",
-      "run_id": 43383515117,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43383515117",
-      "updated_at": "2026-11-13T07:09:41Z",
+      "conclusion": "success",
+      "run_id": 43384354580,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43384354580",
+      "updated_at": "2026-11-13T07:16:03Z",
       "recent_failure_count": 1
     },
     {
@@ -708,12 +708,12 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "10c5a0d8d7489df570430269236e1dc85a09c4ec",
-    "snapshot_generated_at_jst": "2026-11-13T16:11:12+09:00",
-    "computed_at_jst": "2026-11-13T07:11:12+00:00",
-    "overall": "block",
+    "source_commit": "b0701c602e81a831abd9df675105c682c11e464b",
+    "snapshot_generated_at_jst": "2026-11-13T16:17:25+09:00",
+    "computed_at_jst": "2026-11-13T07:17:25+00:00",
+    "overall": "watch",
     "counts": {
-      "block": 1,
+      "block": 0,
       "watch": 1,
       "info": 1
     },
@@ -732,19 +732,6 @@
       }
     },
     "tasks": [
-      {
-        "id": "ca6aa65ea4eb03d0",
-        "priority": "block",
-        "code": "WORKFLOW_FAILED:weekly_production_publisher.yml",
-        "owner": "本番運用エージェント",
-        "title": "本番発行：最新実行が失敗",
-        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
-        "evidence": "43383515117",
-        "recommended_action": "公開期限と既存のProduction運用手順を人が確認してください。事後発行は禁止です。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43383515117"
-      },
       {
         "id": "bef623a2503719e7",
         "priority": "watch",
