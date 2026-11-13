@@ -3,25 +3,25 @@
 - status: **active_target_prefrozen_waiting_result**
 - protocol start target: **701**
 - deliberately excluded target: **700**
-- trusted progress: **2 / 26**
-- current prefrozen target: **703**
+- trusted progress: **3 / 26**
+- current prefrozen target: **704**
 - primary endpoint: **fixed_horizon_mean_bernoulli_log_edge_vs_uniform**
 - Production promotion eligible: **NO**
 - interim tuning allowed: **NO**
 
 ## Interim descriptive signal metrics
-- mean Top7 hits: **1.0**
-- mean actual inclusion probability: **0.18875474568927914**
-- mean Bernoulli log edge vs uniform: **-0.00055685775950301**
-- mean Bernoulli Brier edge vs uniform: **-0.00017029423405161281**
+- mean Top7 hits: **0.6666666666666666**
+- mean actual inclusion probability: **0.18832636945812428**
+- mean Bernoulli log edge vs uniform: **-0.0010836676080379821**
+- mean Bernoulli Brier edge vs uniform: **-0.00033212567558450295**
 
 ## Current freeze
-- target: **703**
-- selected config: **joint-v2-fast-regime-31b993dfe7**
-- Top7: **[24, 23, 22, 16, 25, 28, 18]**
+- target: **704**
+- selected config: **joint-v2-slow-regime-27463bd0dd**
+- Top7: **[24, 23, 25, 21, 3, 35, 10]**
 - gate: **0.05**
-- inclusion vector SHA256: `75a9b50f65de3d4251d7472f07e19718030c6656bed1f86794cd39730d7b51d1`
-- frozen at JST: **2026-11-07T04:43:26+09:00**
+- inclusion vector SHA256: `8ed9ef15a8866c1429670f6746905d026822731f30347ff887016a0e9dab0311`
+- frozen at JST: **2026-11-14T05:02:43+09:00**
 
 ## Fixed-horizon inference
 - unavailable until **26/26 trusted future draws** are complete
