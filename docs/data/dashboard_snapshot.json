@@ -1,39 +1,39 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-13T19:52:55+09:00",
-  "source_commit": "19992b52f14484e0e8391cf2e6e6d4dd7472665b",
-  "state_hashes_sha256": "281459eefa19ccd27313c4dbe4d4159576fe4f523c0e3567fb7b2c147ec5e5e6",
+  "generated_at_jst": "2026-11-14T03:30:55+09:00",
+  "source_commit": "4ee0d87c8daacad35a9d50a223d399aff2593fb0",
+  "state_hashes_sha256": "58001d6551704b6095646224e61d4b04c7f55247aebb0a884c185be39b3b1046",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-13T16:17:13+09:00",
+      "checked_at_jst": "2026-11-14T03:08:43+09:00",
       "latest": {
-        "round": 702,
-        "date": "2026-11-06",
+        "round": 703,
+        "date": "2026-11-13",
         "main": [
-          1,
-          5,
+          7,
+          9,
           11,
-          14,
-          16,
-          30,
-          36
+          15,
+          26,
+          31,
+          34
         ],
         "bonus": [
-          10,
-          28
+          27,
+          30
         ]
       },
       "sources": {
         "official_schedule": {
-          "round": 703,
-          "date": "2026-11-13",
+          "round": 704,
+          "date": "2026-11-20",
           "source_tier": "authorized_retailer_sales_listing",
           "publisher": "Rakuten x Takarakuji (sales portal, not organizer)",
           "url": "https://takarakuji.rakuten.co.jp/loto/",
-          "fetched_at_jst": "2026-11-13T16:17:13+09:00",
-          "html_text_sha256": "6fca0662f3348974bee6716cd57e076088f5a2baf3131a6c76373dccd92b1bf6",
+          "fetched_at_jst": "2026-11-14T03:08:43+09:00",
+          "html_text_sha256": "c0a5c8e9fd4c3850300a0e5feb91d5ffbb832d28a197f9027530240a28637b38",
           "organizer_verified": false
         }
       }
@@ -120,14 +120,14 @@
       "latest_resolved_round": 702
     },
     "research": {
-      "generation": 6190,
-      "total_research_evaluations": 43329,
+      "generation": 6429,
+      "total_research_evaluations": 45002,
       "champion_version": "baseline-5fdb8dc2ad",
-      "last_run_jst": "2026-11-07T08:50:13+09:00"
+      "last_run_jst": "2026-11-14T03:19:17+09:00"
     },
     "holdout": {
       "status": "active",
-      "trusted_draws": 9,
+      "trusted_draws": 10,
       "horizon_trusted_draws": 26,
       "graded_rounds": [
         693,
@@ -139,7 +139,8 @@
         699,
         700,
         701,
-        702
+        702,
+        703
       ],
       "start_target_round": 693
     },
@@ -192,8 +193,8 @@
       "synthetic_null_p_log_edge": 0.676923076923077
     },
     "budget": {
-      "mode": "WAIT_FOR_NEW_DATA",
-      "signal_trials_this_data": 602,
+      "mode": "SEARCH",
+      "signal_trials_this_data": 476,
       "max_signal_trials_per_data": 800
     }
   },
@@ -201,12 +202,12 @@
     {
       "file": "continuous_loto7_v4.yml",
       "label": "継続研究",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 43384354695,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43384354695",
-      "updated_at": "2026-11-13T07:17:26Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 43469230711,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43469230711",
+      "updated_at": "2026-11-13T17:05:37Z",
       "recent_failure_count": 0
     },
     {
@@ -259,9 +260,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 42267861192,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/42267861192",
-      "updated_at": "2026-11-06T18:07:52Z",
+      "run_id": 43469738455,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43469738455",
+      "updated_at": "2026-11-13T17:08:17Z",
       "recent_failure_count": 0
     },
     {
@@ -339,6 +340,13 @@
         "date": "2026-11-06",
         "mean_delta_vs_random": -0.3722222222,
         "mean_delta_vs_champion": -0.2422222222,
+        "holdout_max_hits": 2
+      },
+      {
+        "round": 703,
+        "date": "2026-11-13",
+        "mean_delta_vs_random": -0.347,
+        "mean_delta_vs_champion": -0.114,
         "holdout_max_hits": 2
       }
     ],
@@ -452,40 +460,88 @@
         ]
       }
     ],
-    "result_status": "awaiting_independently_verified_draw",
-    "current_result": null,
-    "latest_verified": {
-      "round": 702,
-      "date": "2026-11-06",
+    "result_status": "independently_verified",
+    "current_result": {
+      "round": 703,
+      "date": "2026-11-13",
       "main": [
-        1,
-        5,
+        7,
+        9,
         11,
-        14,
-        16,
-        30,
-        36
+        15,
+        26,
+        31,
+        34
       ],
       "bonus": [
-        10,
-        28
+        27,
+        30
       ],
-      "source_verification": "verified_two_result_sources",
-      "issued_at_jst": "2026-11-06T15:05:28+09:00",
       "tickets": [
         {
           "ticket": 1,
+          "main_hits": 3,
+          "bonus_hits": 0,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 2,
           "main_hits": 1,
+          "bonus_hits": 1,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 3,
+          "main_hits": 1,
+          "bonus_hits": 0,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 4,
+          "main_hits": 1,
+          "bonus_hits": 0,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 5,
+          "main_hits": 0,
+          "bonus_hits": 1,
+          "grade": "はずれ"
+        }
+      ]
+    },
+    "latest_verified": {
+      "round": 703,
+      "date": "2026-11-13",
+      "main": [
+        7,
+        9,
+        11,
+        15,
+        26,
+        31,
+        34
+      ],
+      "bonus": [
+        27,
+        30
+      ],
+      "source_verification": "verified_two_result_sources",
+      "issued_at_jst": "2026-11-13T16:09:35+09:00",
+      "tickets": [
+        {
+          "ticket": 1,
+          "main_hits": 3,
           "bonus_hits": 0,
           "grade": "はずれ",
           "numbers": [
-            4,
+            5,
+            7,
+            11,
             14,
-            18,
-            24,
-            25,
-            34,
-            37
+            16,
+            22,
+            26
           ]
         },
         {
@@ -494,58 +550,58 @@
           "bonus_hits": 1,
           "grade": "はずれ",
           "numbers": [
-            7,
-            11,
-            12,
-            17,
-            21,
-            28,
-            29
-          ]
-        },
-        {
-          "ticket": 3,
-          "main_hits": 3,
-          "bonus_hits": 1,
-          "grade": "6等",
-          "numbers": [
-            5,
-            6,
-            10,
-            13,
-            30,
-            31,
-            36
-          ]
-        },
-        {
-          "ticket": 4,
-          "main_hits": 0,
-          "bonus_hits": 0,
-          "grade": "はずれ",
-          "numbers": [
-            3,
+            8,
             9,
+            18,
             20,
-            23,
-            32,
-            33,
+            27,
+            28,
             35
           ]
         },
         {
-          "ticket": 5,
+          "ticket": 3,
           "main_hits": 1,
           "bonus_hits": 0,
           "grade": "はずれ",
           "numbers": [
             1,
+            10,
+            12,
+            13,
+            19,
+            33,
+            34
+          ]
+        },
+        {
+          "ticket": 4,
+          "main_hits": 1,
+          "bonus_hits": 0,
+          "grade": "はずれ",
+          "numbers": [
+            4,
+            17,
+            24,
+            25,
+            29,
+            31,
+            37
+          ]
+        },
+        {
+          "ticket": 5,
+          "main_hits": 0,
+          "bonus_hits": 1,
+          "grade": "はずれ",
+          "numbers": [
             2,
-            8,
-            15,
-            22,
-            26,
-            27
+            6,
+            21,
+            23,
+            30,
+            32,
+            36
           ]
         }
       ]
@@ -558,7 +614,7 @@
     "status": "stale_historical_activity",
     "activity_stale_vs_verified_round": true,
     "activity_latest_round": 700,
-    "verified_latest_round": 702,
+    "verified_latest_round": 703,
     "sequence": 41,
     "last_activity_jst": "2026-10-30T23:14:24+09:00",
     "current_phase": "calibration",
@@ -637,23 +693,23 @@
     "prediction_skill_confirmed": false,
     "historical": {
       "status": "historical_only",
-      "rounds": 602,
+      "rounds": 603,
       "start_round": 101,
-      "end_round": 702,
-      "top7_mean_hits": 1.367109634551495,
+      "end_round": 703,
+      "top7_mean_hits": 1.364842454394693,
       "uniform_expected_hits": 1.3243243243243243,
-      "top7_delta_vs_uniform": 0.04278531022717069,
-      "p_value_exploratory": 0.26710516578295374
+      "top7_delta_vs_uniform": 0.04051813007036875,
+      "p_value_exploratory": 0.29288180167959743
     },
     "random_baseline": {
       "status": "historical_only",
-      "rounds": 602,
-      "portfolio_mean_max_hits": 2.2475083056478407,
-      "random_mean_max_hits": 2.424885797342193,
-      "mean_max_hits_delta": -0.17737749169435224,
-      "portfolio_mean_score": 2.5651162790697675,
-      "random_mean_score": 2.7585217009966776,
-      "mean_score_delta": -0.19340542192691013,
+      "rounds": 603,
+      "portfolio_mean_max_hits": 2.2454394693200666,
+      "random_mean_max_hits": 2.4244921227197347,
+      "mean_max_hits_delta": -0.17905265339966814,
+      "portfolio_mean_score": 2.562553897180763,
+      "random_mean_score": 2.757942167495854,
+      "mean_score_delta": -0.1953882703150911,
       "random_portfolios_per_round": 32
     },
     "calibration": {
@@ -670,17 +726,17 @@
     },
     "reference_payout": {
       "status": "historical_hypothetical_only",
-      "tickets": 3010,
+      "tickets": 3015,
       "winning_tickets": 127,
-      "reference_cost_yen": 903000,
+      "reference_cost_yen": 904500,
       "reference_payout_yen": 175900,
-      "reference_net_yen": -727100,
-      "reference_roi": 0.1947951273532669,
+      "reference_net_yen": -728600,
+      "reference_roi": 0.19447208402432284,
       "actual_profit": null
     },
     "future_oos": {
       "status": "diagnostic_only",
-      "trusted_draws": 9,
+      "trusted_draws": 10,
       "horizon_draws": 26,
       "policy_registered_before_first_outcome": false,
       "claim_status": "not_confirmed_holdout_incomplete",
@@ -689,11 +745,11 @@
     "provenance": {
       "historical": {
         "file": "historical_replay_summary.json",
-        "sha256": "54e0150b3c6826942574d09829638b7e5b1b39da61b975ae00f36d3ccf0fc58b"
+        "sha256": "21eec5a1d4bb741986f02af6aa53e5e7a4f576a21a011870bb0ceba10795a426"
       },
       "reconciliation": {
         "file": "historical_reconciliation_summary.json",
-        "sha256": "ee3b43e1c50101e4ab18136b3ee5b30d682a48980f4b36adc55f39513cdf1b12"
+        "sha256": "c1530c0964e01d9fc9e10fd43009deda7790b390b29fb5203ee1d5daab509571"
       },
       "calibration": {
         "file": "champion_calibration_oos_state.json",
@@ -701,25 +757,25 @@
       },
       "future_oos": {
         "file": "future_holdout_evidence.json",
-        "sha256": "9d4eefd4dfce51ca08ddcc8e0cd2a3e92a5442fcc02bdf0515145e1124abd06c"
+        "sha256": "726b611bf3a7ebd744e8aa1421cd5356c68c38e59b9923dcaf9a2f4ae1f8837c"
       }
     }
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "19992b52f14484e0e8391cf2e6e6d4dd7472665b",
-    "snapshot_generated_at_jst": "2026-11-13T19:52:55+09:00",
-    "computed_at_jst": "2026-11-13T10:52:55+00:00",
+    "source_commit": "4ee0d87c8daacad35a9d50a223d399aff2593fb0",
+    "snapshot_generated_at_jst": "2026-11-14T03:30:55+09:00",
+    "computed_at_jst": "2026-11-13T18:30:55+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
-      "watch": 1,
-      "info": 1
+      "watch": 2,
+      "info": 0
     },
     "checkpoints": {
       "portfolio": {
-        "trusted_draws": 9,
+        "trusted_draws": 10,
         "fixed_horizon": 26
       },
       "v2_signal": {
@@ -733,6 +789,19 @@
     },
     "tasks": [
       {
+        "id": "615a36ffa6f66937",
+        "priority": "watch",
+        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
+        "owner": "統計・リスクエージェント",
+        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
+        "detail": "監査の判定と元の公表記録を照合してください。",
+        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
+        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
+      },
+      {
         "id": "bef623a2503719e7",
         "priority": "watch",
         "code": "COUNCIL:PAIR_CONTEXT_INT8_OVERFLOW",
@@ -740,19 +809,6 @@
         "title": "旧pair_context（int8）には共起回数のオーバーフローが残ります。別版int64は数値修正済みです。最新の検証記録と新規Future-OOSを確認するまでProductionには移行しません。",
         "detail": "監査の判定と元の公表記録を照合してください。",
         "evidence": "PAIR_CONTEXT_INT8_OVERFLOW",
-        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
-      },
-      {
-        "id": "615a36ffa6f66937",
-        "priority": "info",
-        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
-        "owner": "統計・リスクエージェント",
-        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
-        "detail": "監査の判定と元の公表記録を照合してください。",
-        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
         "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
