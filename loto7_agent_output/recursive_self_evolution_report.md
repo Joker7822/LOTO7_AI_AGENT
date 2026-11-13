@@ -1,10 +1,10 @@
 # Recursive self-evolution (research-only)
 
-- Total evolving program generations: **207027** (no global cap)
-- Last-run generations: **3755**
-- Mutation policy learned: **{'restart': 0.199, 'splice': 0.199, 'tune': 0.203, 'wrap': 0.199, 'crossover': 0.199}**
-- Historical selection fitness: **+0.00695731**
+- Total evolving program generations: **209497** (no global cap)
+- Last-run generations: **2470**
+- Mutation policy learned: **{'restart': 0.19, 'splice': 0.197, 'tune': 0.234, 'wrap': 0.189, 'crossover': 0.19}**
+- Historical selection fitness: **+0.00690430**
 - Independent draw-source verified: **True**
-- Draw history SHA256: ca6c245500134f8d843d0604cf5fe777d8a7c3338fdf287bc71c415beece2960
+- Draw history SHA256: dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c
 
 **Research only.** It mutates executable mathematical expressions and mutation choices, not its Production privileges or safety evidence. No future lottery prediction improvement is proven.
