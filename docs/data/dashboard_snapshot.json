@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-14T03:30:55+09:00",
-  "source_commit": "4ee0d87c8daacad35a9d50a223d399aff2593fb0",
-  "state_hashes_sha256": "58001d6551704b6095646224e61d4b04c7f55247aebb0a884c185be39b3b1046",
+  "generated_at_jst": "2026-11-14T05:02:49+09:00",
+  "source_commit": "1fcc06bc2462ccec14c46823e4505d3e8eb37126",
+  "state_hashes_sha256": "b9547dfde7f397d5d37f79476ed79a2434ff25c6b62eb5bd75177f0c9064d40a",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-14T03:08:43+09:00",
+      "checked_at_jst": "2026-11-14T05:00:26+09:00",
       "latest": {
         "round": 703,
         "date": "2026-11-13",
@@ -32,15 +32,15 @@
           "source_tier": "authorized_retailer_sales_listing",
           "publisher": "Rakuten x Takarakuji (sales portal, not organizer)",
           "url": "https://takarakuji.rakuten.co.jp/loto/",
-          "fetched_at_jst": "2026-11-14T03:08:43+09:00",
-          "html_text_sha256": "c0a5c8e9fd4c3850300a0e5feb91d5ffbb832d28a197f9027530240a28637b38",
+          "fetched_at_jst": "2026-11-14T04:41:12+09:00",
+          "html_text_sha256": "8dbfa7df71c8727459b9439d260218f534461332657cf1451ce2a1edec74428f",
           "organizer_verified": false
         }
       }
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-13T17:45:25+09:00",
+      "checked_at_jst": "2026-11-14T05:02:10+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -48,12 +48,12 @@
             {
               "code": "TRUSTED_RESULT_EXACT_MATCH",
               "level": "ok",
-              "evidence": "round=702; secondary=loto7_tsushin"
+              "evidence": "round=703; secondary=loto7_tsushin"
             },
             {
               "code": "PAIR_CONTEXT_INT8_OVERFLOW",
               "level": "watch",
-              "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=702; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified"
+              "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=703; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified"
             }
           ]
         },
@@ -73,12 +73,12 @@
             {
               "code": "OOS_REFERENCE_CONSISTENCY",
               "level": "ok",
-              "evidence": "champion=baseline-5fdb8dc2ad; frozen=703; trusted=9/26"
+              "evidence": "champion=baseline-5fdb8dc2ad; frozen=704; trusted=10/26"
             },
             {
               "code": "NO_EARLY_PORTFOLIO_CLAIM",
               "level": "watch",
-              "evidence": "holdout=9/26"
+              "evidence": "holdout=10/26"
             }
           ]
         },
@@ -88,7 +88,7 @@
             {
               "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
               "level": "ok",
-              "evidence": "history reused; mode=WAIT_FOR_NEW_DATA; trials=602/800"
+              "evidence": "history reused; mode=SEARCH; trials=556/800"
             }
           ]
         },
@@ -98,7 +98,7 @@
             {
               "code": "RELEASE_SCHEDULE_GUARD",
               "level": "ok",
-              "evidence": "next=703 on 2026-11-13; already_published=True"
+              "evidence": "next=704 on 2026-11-20; already_published=False"
             }
           ]
         }
@@ -108,22 +108,22 @@
           "owner": "data_steward",
           "priority": "watch",
           "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=702; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified"
+          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=703; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified"
         },
         {
           "owner": "oos_risk_officer",
           "priority": "watch",
           "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
-          "evidence": "holdout=9/26"
+          "evidence": "holdout=10/26"
         }
       ],
-      "latest_resolved_round": 702
+      "latest_resolved_round": 703
     },
     "research": {
-      "generation": 6429,
-      "total_research_evaluations": 45002,
+      "generation": 6469,
+      "total_research_evaluations": 45282,
       "champion_version": "baseline-5fdb8dc2ad",
-      "last_run_jst": "2026-11-14T03:19:17+09:00"
+      "last_run_jst": "2026-11-14T04:49:11+09:00"
     },
     "holdout": {
       "status": "active",
@@ -146,31 +146,31 @@
     },
     "signal": {
       "status": "active_target_prefrozen_waiting_result",
-      "trusted_draws": 2,
+      "trusted_draws": 3,
       "horizon_trusted_draws": 26,
-      "current_target_round": 703,
+      "current_target_round": 704,
       "start_target_round": 701,
       "interim_descriptive": {
-        "mean_top7_hits": 1.0,
-        "mean_actual_inclusion_probability": 0.18875474568927914,
-        "mean_bernoulli_log_edge_vs_uniform": -0.00055685775950301,
-        "mean_bernoulli_brier_edge_vs_uniform": -0.00017029423405161281
+        "mean_top7_hits": 0.6666666666666666,
+        "mean_actual_inclusion_probability": 0.18832636945812428,
+        "mean_bernoulli_log_edge_vs_uniform": -0.0010836676080379821,
+        "mean_bernoulli_brier_edge_vs_uniform": -0.00033212567558450295
       }
     },
     "learning": {
       "status": "active_prefrozen_waiting_result",
-      "trusted_draws": 2,
-      "current_prefrozen_target": 703,
-      "latest_seen_round": 702,
+      "trusted_draws": 3,
+      "current_prefrozen_target": 704,
+      "latest_seen_round": 703,
       "descriptive_future_only": {
-        "mean_log_edge_vs_uniform": -5.046160359789553e-05,
-        "mean_brier_edge_vs_uniform": -1.8870453175764967e-05,
-        "mean_top7_hits": 1.0,
+        "mean_log_edge_vs_uniform": -0.0006695526852836253,
+        "mean_brier_edge_vs_uniform": -0.00020896575199394474,
+        "mean_top7_hits": 0.6666666666666666,
         "uniform_expected_top7_hits": 1.3243243243243243
       },
       "drift_monitoring": {
-        "recent_observed_draws": 2,
-        "recent_mean_log_edge": -5.046160359789553e-05,
+        "recent_observed_draws": 3,
+        "recent_mean_log_edge": -0.0006695526852836253,
         "watch_no_claim_of_improvement": true
       }
     },
@@ -194,7 +194,7 @@
     },
     "budget": {
       "mode": "SEARCH",
-      "signal_trials_this_data": 476,
+      "signal_trials_this_data": 556,
       "max_signal_trials_per_data": 800
     }
   },
@@ -205,9 +205,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 43469230711,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43469230711",
-      "updated_at": "2026-11-13T17:05:37Z",
+      "run_id": 43484238043,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43484238043",
+      "updated_at": "2026-11-13T18:36:37Z",
       "recent_failure_count": 0
     },
     {
@@ -216,31 +216,31 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 43394167238,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43394167238",
-      "updated_at": "2026-11-13T08:35:29Z",
+      "run_id": 43497506885,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43497506885",
+      "updated_at": "2026-11-13T20:02:08Z",
       "recent_failure_count": 0
     },
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 43395581491,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43395581491",
-      "updated_at": "2026-11-13T08:45:30Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 43497769392,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43497769392",
+      "updated_at": "2026-11-13T20:02:17Z",
       "recent_failure_count": 0
     },
     {
       "file": "joint_set_v2_signal_oos.yml",
       "label": "v2将来検証",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 43388921486,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43388921486",
-      "updated_at": "2026-11-13T07:54:30Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 43497506967,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43497506967",
+      "updated_at": "2026-11-13T20:00:37Z",
       "recent_failure_count": 0
     },
     {
@@ -260,9 +260,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 43469738455,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43469738455",
-      "updated_at": "2026-11-13T17:08:17Z",
+      "run_id": 43484223062,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43484223062",
+      "updated_at": "2026-11-13T18:36:18Z",
       "recent_failure_count": 0
     },
     {
@@ -364,6 +364,13 @@
         "mean_log_edge": -0.0005568578,
         "mean_brier_edge": -0.0001702942,
         "mean_top7_hits": 1.0
+      },
+      {
+        "round": 703,
+        "date": "2026-11-13",
+        "mean_log_edge": -0.0010836676,
+        "mean_brier_edge": -0.0003321257,
+        "mean_top7_hits": 0.6666666667
       }
     ],
     "adaptive": [
@@ -380,6 +387,13 @@
         "mean_log_edge": -5.04616e-05,
         "mean_brier_edge": -1.88705e-05,
         "mean_top7_hits": 1.0
+      },
+      {
+        "round": 703,
+        "date": "2026-11-13",
+        "mean_log_edge": -0.0006695527,
+        "mean_brier_edge": -0.0002089658,
+        "mean_top7_hits": 0.6666666667
       }
     ],
     "scope": "genuinely_prospective_prefrozen_only_descriptive_no_automatic_promotion"
@@ -764,14 +778,14 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "4ee0d87c8daacad35a9d50a223d399aff2593fb0",
-    "snapshot_generated_at_jst": "2026-11-14T03:30:55+09:00",
-    "computed_at_jst": "2026-11-13T18:30:55+00:00",
+    "source_commit": "1fcc06bc2462ccec14c46823e4505d3e8eb37126",
+    "snapshot_generated_at_jst": "2026-11-14T05:02:49+09:00",
+    "computed_at_jst": "2026-11-13T20:02:49+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
-      "watch": 2,
-      "info": 0
+      "watch": 1,
+      "info": 1
     },
     "checkpoints": {
       "portfolio": {
@@ -779,28 +793,15 @@
         "fixed_horizon": 26
       },
       "v2_signal": {
-        "trusted_draws": 2,
+        "trusted_draws": 3,
         "fixed_horizon": 26
       },
       "adaptive": {
-        "trusted_draws": 2,
+        "trusted_draws": 3,
         "descriptive_open_ended": true
       }
     },
     "tasks": [
-      {
-        "id": "615a36ffa6f66937",
-        "priority": "watch",
-        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
-        "owner": "統計・リスクエージェント",
-        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
-        "detail": "監査の判定と元の公表記録を照合してください。",
-        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
-        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
-      },
       {
         "id": "bef623a2503719e7",
         "priority": "watch",
@@ -809,6 +810,19 @@
         "title": "旧pair_context（int8）には共起回数のオーバーフローが残ります。別版int64は数値修正済みです。最新の検証記録と新規Future-OOSを確認するまでProductionには移行しません。",
         "detail": "監査の判定と元の公表記録を照合してください。",
         "evidence": "PAIR_CONTEXT_INT8_OVERFLOW",
+        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
+      },
+      {
+        "id": "615a36ffa6f66937",
+        "priority": "info",
+        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
+        "owner": "統計・リスクエージェント",
+        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
+        "detail": "監査の判定と元の公表記録を照合してください。",
+        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
         "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
