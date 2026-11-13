@@ -1,6 +1,6 @@
 # Robust Signal Optimizer — Era Gated
 
-- generation: **6369**
+- generation: **6379**
 - incumbent: **signal-g05814-c01-a0b6c7d9c2**
 - selected: **signal-g05814-c01-a0b6c7d9c2**
 - accepted: **NO**
@@ -9,8 +9,8 @@
 - era gate: **4 eras / >=2 improve / no material era regression**
 - Production promotion evidence: **NO**
 
-- signal-g06369-c01-9122a80188: overall gain **-0.00749** / era improved **0/4** / accepted **NO**
-- signal-g06369-c02-fbe3590dee: overall gain **-0.00877** / era improved **0/4** / accepted **NO**
+- signal-g06379-c01-81959a04b1: overall gain **-0.00495** / era improved **0/4** / accepted **NO**
+- signal-g06379-c02-7a80d82ae3: overall gain **-0.20040** / era improved **0/4** / accepted **NO**
 
 > 全期間平均だけでなく複数時代で同方向に改善する候補だけをResearch Parentへ採用します。
 > overlap_penaltyはSignal採用後にだけ最適化し、Signal選択には使いません。
