@@ -2,9 +2,9 @@ name: Weekly Production Fallback
 
 on:
   schedule:
-    # Fallback inside the Friday 13:00-15:00 JST publication window.
-    # 05:00 UTC = 14:00 JST. The canonical publisher is idempotent by target round.
-    - cron: "0 5 * * 5"
+    # Offset from minute 00; existing Friday 13:00-19:59 JST gate is unchanged.
+    # 05:23 UTC = 14:23 JST. The canonical publisher is idempotent by target round.
+    - cron: "23 5 * * 5"
   workflow_dispatch:
 
 permissions:
