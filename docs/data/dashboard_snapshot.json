@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-13T11:54:24+09:00",
-  "source_commit": "b5b1fad1457c56ebde49a2ef4ca88208d8d8a91c",
-  "state_hashes_sha256": "a155216a9e09bb5c50eb0319add28eef220cd7ad05504346a26bba402ad21681",
+  "generated_at_jst": "2026-11-13T16:11:12+09:00",
+  "source_commit": "10c5a0d8d7489df570430269236e1dc85a09c4ec",
+  "state_hashes_sha256": "8bad881359b109ff35ff47f9a13e1ad56d3241b8cb2c28017df3607918b3d6e6",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-13T07:32:15+09:00",
+      "checked_at_jst": "2026-11-13T16:09:35+09:00",
       "latest": {
         "round": 702,
         "date": "2026-11-06",
@@ -32,15 +32,15 @@
           "source_tier": "authorized_retailer_sales_listing",
           "publisher": "Rakuten x Takarakuji (sales portal, not organizer)",
           "url": "https://takarakuji.rakuten.co.jp/loto/",
-          "fetched_at_jst": "2026-11-13T07:32:15+09:00",
-          "html_text_sha256": "9faaaea5421ab0e015d9ef2ccfbd14495848dae9b44f936dd392d444a57a0b6b",
+          "fetched_at_jst": "2026-11-13T16:09:35+09:00",
+          "html_text_sha256": "8d2163b1637ecc2d429e716d613e26bf24638a4ca2fc2f6f78a7c59caf13e685",
           "organizer_verified": false
         }
       }
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-13T07:33:29+09:00",
+      "checked_at_jst": "2026-11-13T15:29:16+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -178,8 +178,8 @@
     },
     "production": {
       "published": true,
-      "target_round": "第702回",
-      "published_at_jst": "2026-11-06T15:05:28+09:00"
+      "target_round": "第703回",
+      "published_at_jst": "2026-11-13T16:09:35+09:00"
     },
     "scout": {
       "evaluated_rounds": 60,
@@ -226,9 +226,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 43320852548,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43320852548",
-      "updated_at": "2026-11-12T22:33:35Z",
+      "run_id": 43378868051,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43378868051",
+      "updated_at": "2026-11-13T06:29:23Z",
       "recent_failure_count": 0
     },
     {
@@ -245,13 +245,13 @@
     {
       "file": "weekly_production_publisher.yml",
       "label": "本番発行",
-      "health": "ok",
+      "health": "block",
       "status": "completed",
-      "conclusion": "success",
-      "run_id": 43181284368,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43181284368",
-      "updated_at": "2026-11-12T08:15:17Z",
-      "recent_failure_count": 0
+      "conclusion": "failure",
+      "run_id": 43383515117,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43383515117",
+      "updated_at": "2026-11-13T07:09:41Z",
+      "recent_failure_count": 1
     },
     {
       "file": "friday_result_check_watchdog.yml",
@@ -385,123 +385,75 @@
   "latest_prediction": {
     "version": "issued-production-forecast-public-v1",
     "status": "published",
-    "target_round": 702,
-    "draw_date": "2026-11-06",
-    "published_at_jst": "2026-11-06T15:05:28+09:00",
+    "target_round": 703,
+    "draw_date": "2026-11-13",
+    "published_at_jst": "2026-11-13T16:09:35+09:00",
     "model": "baseline-5fdb8dc2ad+production-disjoint35-layout-v1",
-    "source_base_round": 701,
+    "source_base_round": 702,
     "tickets": [
       {
         "ticket": 1,
         "numbers": [
-          4,
+          5,
+          7,
+          11,
           14,
-          18,
-          24,
-          25,
-          34,
-          37
+          16,
+          22,
+          26
         ]
       },
       {
         "ticket": 2,
         "numbers": [
-          7,
-          11,
-          12,
-          17,
-          21,
+          8,
+          9,
+          18,
+          20,
+          27,
           28,
-          29
+          35
         ]
       },
       {
         "ticket": 3,
         "numbers": [
-          5,
-          6,
+          1,
           10,
+          12,
           13,
-          30,
-          31,
-          36
+          19,
+          33,
+          34
         ]
       },
       {
         "ticket": 4,
         "numbers": [
-          3,
-          9,
-          20,
-          23,
-          32,
-          33,
-          35
+          4,
+          17,
+          24,
+          25,
+          29,
+          31,
+          37
         ]
       },
       {
         "ticket": 5,
         "numbers": [
-          1,
           2,
-          8,
-          15,
-          22,
-          26,
-          27
+          6,
+          21,
+          23,
+          30,
+          32,
+          36
         ]
       }
     ],
-    "result_status": "independently_verified",
-    "current_result": {
-      "round": 702,
-      "date": "2026-11-06",
-      "main": [
-        1,
-        5,
-        11,
-        14,
-        16,
-        30,
-        36
-      ],
-      "bonus": [
-        10,
-        28
-      ],
-      "tickets": [
-        {
-          "ticket": 1,
-          "main_hits": 1,
-          "bonus_hits": 0,
-          "grade": "はずれ"
-        },
-        {
-          "ticket": 2,
-          "main_hits": 1,
-          "bonus_hits": 1,
-          "grade": "はずれ"
-        },
-        {
-          "ticket": 3,
-          "main_hits": 3,
-          "bonus_hits": 1,
-          "grade": "6等"
-        },
-        {
-          "ticket": 4,
-          "main_hits": 0,
-          "bonus_hits": 0,
-          "grade": "はずれ"
-        },
-        {
-          "ticket": 5,
-          "main_hits": 1,
-          "bonus_hits": 0,
-          "grade": "はずれ"
-        }
-      ]
-    },
+    "result_status": "awaiting_independently_verified_draw",
+    "current_result": null,
     "latest_verified": {
       "round": 702,
       "date": "2026-11-06",
@@ -745,7 +697,7 @@
       },
       "calibration": {
         "file": "champion_calibration_oos_state.json",
-        "sha256": "3ac925b9b7a633867d69248e10cb700ac24af59a7a69ab08e4937b4ef91a8be2"
+        "sha256": "21fb90464c69fbea6a966fc26e5e2dcebcec1012b3ba137454d0d7a93074defa"
       },
       "future_oos": {
         "file": "future_holdout_evidence.json",
@@ -756,12 +708,12 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "b5b1fad1457c56ebde49a2ef4ca88208d8d8a91c",
-    "snapshot_generated_at_jst": "2026-11-13T11:54:24+09:00",
-    "computed_at_jst": "2026-11-13T02:54:24+00:00",
-    "overall": "watch",
+    "source_commit": "10c5a0d8d7489df570430269236e1dc85a09c4ec",
+    "snapshot_generated_at_jst": "2026-11-13T16:11:12+09:00",
+    "computed_at_jst": "2026-11-13T07:11:12+00:00",
+    "overall": "block",
     "counts": {
-      "block": 0,
+      "block": 1,
       "watch": 1,
       "info": 1
     },
@@ -780,6 +732,19 @@
       }
     },
     "tasks": [
+      {
+        "id": "ca6aa65ea4eb03d0",
+        "priority": "block",
+        "code": "WORKFLOW_FAILED:weekly_production_publisher.yml",
+        "owner": "本番運用エージェント",
+        "title": "本番発行：最新実行が失敗",
+        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
+        "evidence": "43383515117",
+        "recommended_action": "公開期限と既存のProduction運用手順を人が確認してください。事後発行は禁止です。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/43383515117"
+      },
       {
         "id": "bef623a2503719e7",
         "priority": "watch",
