@@ -7,9 +7,9 @@ def test_weekly_prediction_cron_is_owned_by_dedicated_publisher():
     publisher = Path(".github/workflows/weekly_production_publisher.yml").read_text(encoding="utf-8")
     continuous = Path(".github/workflows/continuous_loto7_v4.yml").read_text(encoding="utf-8")
 
-    assert '- cron: "0 2 * * 5"' in publisher
-    assert '- cron: "0 3 * * 5"' in publisher
-    assert '- cron: "0 4 * * 5"' in publisher
+    assert '- cron: "7 2 * * 5"' in publisher
+    assert '- cron: "13 3 * * 5"' in publisher
+    assert '- cron: "17 4 * * 5"' in publisher
     assert "lead-time probe" in publisher
     assert "weekly_production_prediction.py" in publisher
     assert "--production-snapshot" in publisher
@@ -24,6 +24,8 @@ def test_event_driven_recovery_wakes_publisher_after_delayed_scheduler():
     assert "workflow_run:" in publisher
     assert '"Champion Calibration Future OOS"' in publisher
     assert '"Signal Expert Attribution Future OOS"' in publisher
+    assert '"Pair Context v2 Numeric Diagnostics"' in publisher
+    assert "    branches: [main]" in publisher
     assert "Gate Production publication window" in publisher
     assert 'TZ=Asia/Tokyo date +%u' in publisher
     assert '[ "${HM}" -lt 1300 ]' in publisher
@@ -52,7 +54,7 @@ def test_primary_and_fallback_share_production_concurrency_group():
 
     assert "group: loto7-production-publisher" in publisher
     assert "group: loto7-production-publisher" in fallback
-    assert '- cron: "0 5 * * 5"' in fallback
+    assert '- cron: "23 5 * * 5"' in fallback
     assert "--production-snapshot" in fallback
 
 

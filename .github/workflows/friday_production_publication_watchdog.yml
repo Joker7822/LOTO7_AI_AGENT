@@ -1,0 +1,87 @@
+name: Friday Production Publication Watchdog
+
+on:
+  schedule:
+    # Redundant checks at non-zero minutes (UTC -> JST +09:00).
+    - cron: "37 4 * * 5"   # Friday 13:37 JST
+    - cron: "41 5 * * 5"   # Friday 14:41 JST
+    - cron: "19 7 * * 5"   # Friday 16:19 JST
+    - cron: "11 9 * * 5"   # Friday 18:11 JST
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/friday_production_publication_watchdog.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: friday-production-publication-watchdog
+  cancel-in-progress: false
+
+jobs:
+  verify-and-recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout latest default branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          persist-credentials: false
+
+      - name: Check publication and dispatch canonical publisher when missing
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Never create a post-outcome forecast, even when push/dispatch is late.
+          DOW=$(TZ=Asia/Tokyo date +%u)
+          HM=$(TZ=Asia/Tokyo date +%H%M)
+          if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1300 ] || [ "${HM}" -ge 2000 ]; then
+            echo "[PRODUCTION-WATCHDOG] Outside Friday 13:00-19:59 JST; no dispatch"
+            exit 0
+          fi
+
+          # Refresh from main: the queued checkout SHA might precede a publication.
+          git fetch --no-tags --depth=1 origin main
+          git reset --hard FETCH_HEAD
+
+          ALREADY_PUBLISHED=$(python3 - <<'PY'
+          import json
+          from datetime import datetime, timedelta, timezone
+          from pathlib import Path
+
+          p = Path("loto7_agent_output/weekly_production_prediction_state.json")
+          try:
+              state = json.loads(p.read_text(encoding="utf-8"))
+          except (OSError, ValueError):
+              state = {}
+          today = datetime.now(timezone(timedelta(hours=9))).date().isoformat()
+          issued_today = state.get("published") is True and str(
+              state.get("published_at_jst", "")
+          ).startswith(today)
+          print("true" if issued_today else "false")
+          PY
+          )
+          if [ "${ALREADY_PUBLISHED}" = "true" ]; then
+            echo "[PRODUCTION-WATCHDOG] Today's canonical prediction is already issued"
+            exit 0
+          fi
+
+          # Avoid redundant dispatches while the publisher/fallback is active.
+          for WF in weekly_production_publisher.yml weekly_production_fallback.yml; do
+            ACTIVE=$(gh api "/repos/${GITHUB_REPOSITORY}/actions/workflows/${WF}/runs?per_page=100" \
+              --jq '[.workflow_runs[] | select(.head_branch == "main" and (.status == "queued" or .status == "in_progress" or .status == "waiting" or .status == "pending"))] | length')
+            if [ "${ACTIVE}" -gt 0 ]; then
+              echo "[PRODUCTION-WATCHDOG] ${WF} already active: ${ACTIVE}; no duplicate"
+              exit 0
+            fi
+          done
+
+          echo "[PRODUCTION-WATCHDOG] Missing canonical publication; dispatching guarded publisher"
+          gh workflow run weekly_production_publisher.yml --repo "${GITHUB_REPOSITORY}" --ref main
+          echo "Canonical Production publisher dispatched for pre-draw recovery." >> "${GITHUB_STEP_SUMMARY}"
