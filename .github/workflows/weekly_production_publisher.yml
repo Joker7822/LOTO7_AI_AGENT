@@ -2,19 +2,26 @@ name: Weekly Production Publisher
 
 on:
   schedule:
-    # Lead-time probes absorb GitHub schedule delay. If they run on time before 13:00 JST,
-    # the publication gate exits cleanly without publishing.
-    - cron: "0 2 * * 5"  # Friday 11:00 JST
-    - cron: "0 3 * * 5"  # Friday 12:00 JST
-    # Primary Production publisher: Friday 13:00 JST (04:00 UTC).
-    - cron: "0 4 * * 5"
+    # Offset from minute 00 to reduce GitHub scheduler congestion.
+    # Before 13:00 JST these probes exit cleanly without publishing.
+    - cron: "7 2 * * 5"    # Friday 11:07 JST
+    - cron: "13 3 * * 5"   # Friday 12:13 JST
+    - cron: "17 4 * * 5"   # Friday 13:17 JST, primary publication
+  # A workflow edit on main also wakes the same guarded publication path.
+  # On other weekdays and before 13:00 JST, push is a clean no-op.
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/weekly_production_publisher.yml"
   # Event-driven recovery path: normal publication is targeted for 13:00-15:00 JST,
   # but GitHub-delayed OOS completion may recover the publication until 19:59 JST.
   workflow_run:
     workflows:
       - "Champion Calibration Future OOS"
       - "Signal Expert Attribution Future OOS"
+      - "Pair Context v2 Numeric Diagnostics"
     types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -78,7 +85,7 @@ jobs:
           # Friday-only. Scheduled/workflow-run probes outside the publication day are benign.
           if [ "${DOW}" != "5" ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
-            if [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
+            if [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_run" ] || [ "${GITHUB_EVENT_NAME}" = "push" ]; then
               echo "[PRODUCTION] automatic wake-up ignored outside Friday"
               exit 0
             fi
@@ -90,7 +97,7 @@ jobs:
           # they are clean no-ops; if GitHub delays them into 13:00-19:59, they become recovery runs.
           if [ "${HM}" -lt 1300 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
-            if [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
+            if [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_run" ] || [ "${GITHUB_EVENT_NAME}" = "push" ]; then
               echo "[PRODUCTION] lead-time probe completed before 13:00 JST; clean no-op"
               exit 0
             fi
