@@ -1,17 +1,17 @@
 # Frequent independent online research — audit
 
-- UTC: 2026-11-12T18:25:33+00:00
-- Search topic: betting martingales e values sequential testing
+- UTC: 2026-11-13T01:12:56+00:00
+- Search topic: time series conformal prediction drift
 - Source catalog: 24 SHA-anchored works
-- Search results before dedup: 6
-- New leads identified: 0
+- Search results before dedup: 8
+- New leads identified: 1
 - DOI detail checks this cycle: 3
 - API failures: 0
 
 ## Current research sidecar verification
 - conflict_do_not_use: 3
 - previously_verified_not_refreshed: 18
-- single_provider_only: 15
+- single_provider_only: 16
 - two_provider_bibliography_matched: 2
 
 ## Fixed, human-review-only applications
