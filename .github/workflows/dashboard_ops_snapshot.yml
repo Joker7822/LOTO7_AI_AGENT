@@ -39,6 +39,8 @@ on:
       - "LOTO7 Independent Result Corroboration"
       - "Weekly Production Publisher"
     types: [completed]
+    # Never wake privileged dashboard publishing from a PR/fork branch.
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -51,6 +53,16 @@ concurrency:
 
 jobs:
   build-public-status:
+    # workflow_run completes even when the upstream job fails, and it can
+    # inherit a write token; require successful first-party main completion.
+    # Other triggers retain their existing behavior (PR dry run, cron, push).
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
