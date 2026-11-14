@@ -139,3 +139,71 @@ def test_missing_policy_registration_time_never_confirms(tmp_path: Path):
     assert report["confirmed"] is False
     assert report["confirmation_policy_timing"]["registration_recorded"] is False
     assert report["claim_status"] == "not_confirmed_policy_registration_not_pre_outcome"
+
+
+def _synthetic_full_horizon(tmp_path: Path):
+    """Only a synthetic test fixture; never a claim about real lottery skill."""
+    state = locked_state(tmp_path)
+    rounds = list(range(693, 719))
+    state.update({
+        "status": "complete",
+        "all_draws": 26,
+        "trusted_draws": 26,
+        "matched_ensemble_trusted_draws": 26,
+        "graded_rounds": rounds,
+        "matched_ensemble_graded_rounds": list(rounds),
+        "sum_delta_vs_random": 2.6,
+        "wins_vs_random": 16,
+        "random_e_value": 25.0,
+        "sum_delta_vs_matched_ensemble": 2.6,
+        "wins_vs_matched_ensemble": 16,
+        "matched_ensemble_e_value": 25.0,
+    })
+    return state
+
+
+def test_impossible_win_count_cannot_confirm(tmp_path: Path):
+    state = _synthetic_full_horizon(tmp_path)
+    state["wins_vs_random"] = 27  # Cannot win 27 times in 26 draws.
+    report, lock_ok = evidence.build_report(state)
+    assert lock_ok is True
+    assert report["confirmed"] is False
+    assert report["claim_status"] == "invalid_comparator_evidence"
+    assert report["comparators"]["uniform_random"]["evidence_valid"] is False
+    assert report["comparators"]["uniform_random"]["passes_all"] is False
+
+
+def test_nonfinite_evidence_cannot_confirm_or_emit_nan(tmp_path: Path):
+    import json
+
+    state = _synthetic_full_horizon(tmp_path)
+    state["matched_ensemble_e_value"] = float("nan")
+    report, lock_ok = evidence.build_report(state)
+    assert lock_ok is True
+    assert report["confirmed"] is False
+    assert report["claim_status"] == "invalid_comparator_evidence"
+    assert report["comparators"]["matched_ensemble32"]["evidence_valid"] is False
+    json.dumps(report, allow_nan=False)
+
+
+def test_duplicate_round_cannot_complete_holdout(tmp_path: Path):
+    state = _synthetic_full_horizon(tmp_path)
+    state["graded_rounds"][1] = 693  # Duplicate a draw, omit #694.
+    report, lock_ok = evidence.build_report(state)
+    assert lock_ok is True
+    assert report["progress"]["round_sequence_valid"] is False
+    assert report["progress"]["full_horizon_complete"] is False
+    assert report["confirmed"] is False
+
+
+def test_more_than_fixed_horizon_cannot_confirm(tmp_path: Path):
+    state = _synthetic_full_horizon(tmp_path)
+    state["all_draws"] = 27
+    state["trusted_draws"] = 27
+    state["graded_rounds"].append(719)
+    state["matched_ensemble_graded_rounds"].append(719)
+    report, lock_ok = evidence.build_report(state)
+    assert lock_ok is True
+    assert report["progress"]["round_sequence_valid"] is True
+    assert report["progress"]["full_horizon_complete"] is False
+    assert report["confirmed"] is False
