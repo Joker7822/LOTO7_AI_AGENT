@@ -27,13 +27,13 @@ def test_dashboard_dependencies_installed_on_every_event_before_execution():
 def test_privileged_workflow_run_requires_successful_first_party_main():
     text = WORKFLOW.read_text(encoding="utf-8")
     # Restrict the trigger itself, then fail closed again at the job boundary.
-    trigger = text.split("  workflow_run:\\n", 1)[1].split("  workflow_dispatch:", 1)[0]
+    trigger = text.split("  workflow_run:\n", 1)[1].split("  workflow_dispatch:", 1)[0]
     assert 'LOTO7 Independent Result Corroboration' in trigger
     assert 'Weekly Production Publisher' in trigger
     assert "types: [completed]" in trigger
     assert "branches: [main]" in trigger
 
-    job = text.split("  build-public-status:\\n", 1)[1].split("    runs-on:", 1)[0]
+    job = text.split("  build-public-status:\n", 1)[1].split("    runs-on:", 1)[0]
     assert "if: >-" in job
     assert "github.event_name != 'workflow_run' ||" in job
     assert "github.event.workflow_run.conclusion == 'success'" in job
@@ -55,7 +55,7 @@ def test_privileged_workflow_run_requires_successful_first_party_main():
 def test_workflow_run_trust_gate_cannot_be_accidentally_removed():
     # These checks deliberately enforce independent event provenance checks.
     text = WORKFLOW.read_text(encoding="utf-8")
-    gate = text.split("    if: >-\\n", 1)[1].split("    runs-on:", 1)[0]
+    gate = text.split("    if: >-\n", 1)[1].split("    runs-on:", 1)[0]
     checks = (
         "github.event.workflow_run.conclusion",
         "github.event.workflow_run.head_branch",
