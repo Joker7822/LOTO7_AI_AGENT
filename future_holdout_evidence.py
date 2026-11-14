@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from pathlib import Path
 from typing import Dict, Tuple
 
@@ -25,24 +26,54 @@ def comparator_summary(
     policy: Dict[str, object],
 ) -> Dict[str, object]:
     draws = int(draws)
-    mean_delta = float(sum_delta) / draws if draws else 0.0
-    win_rate = float(wins) / draws if draws else 0.0
+    wins = int(wins)
+    sum_delta = float(sum_delta)
+    e_value = float(e_value)
     min_delta = float(policy.get("minimum_mean_score_delta", 0.05))
     min_win = float(policy.get("minimum_win_rate", 0.55))
     min_e = float(policy.get("minimum_e_value", 20.0))
+
+    # Never turn corrupted telemetry (including NaN/Inf or more wins than
+    # draws) into an affirmative future-OOS claim. Keep the report JSON valid.
+    valid = (
+        draws >= 0
+        and 0 <= wins <= draws
+        and all(math.isfinite(value) for value in
+                (sum_delta, e_value, min_delta, min_win, min_e))
+        and e_value >= 0.0
+        and min_delta >= 0.0
+        and 0.0 <= min_win <= 1.0
+        and min_e >= 0.0
+    )
+    if not valid:
+        return {
+            "trusted_draws": draws,
+            "mean_score_delta": 0.0,
+            "win_rate": 0.0,
+            "e_value": 0.0,
+            "evidence_valid": False,
+            "passes_mean_delta": False,
+            "passes_win_rate": False,
+            "passes_e_value": False,
+            "passes_all": False,
+        }
+
+    mean_delta = sum_delta / draws if draws else 0.0
+    win_rate = wins / draws if draws else 0.0
     return {
         "trusted_draws": draws,
         "mean_score_delta": mean_delta,
         "win_rate": win_rate,
-        "e_value": float(e_value),
+        "e_value": e_value,
+        "evidence_valid": True,
         "passes_mean_delta": mean_delta >= min_delta,
         "passes_win_rate": win_rate >= min_win,
-        "passes_e_value": float(e_value) >= min_e,
+        "passes_e_value": e_value >= min_e,
         "passes_all": (
             draws > 0
             and mean_delta >= min_delta
             and win_rate >= min_win
-            and float(e_value) >= min_e
+            and e_value >= min_e
         ),
     }
 
@@ -77,18 +108,40 @@ def build_report(state: Dict[str, object]) -> Tuple[Dict[str, object], bool]:
     registration_known = type(registration_draws) is int and registration_draws >= 0
     registration_pre_outcome = registration_known and registration_draws == 0
 
+    all_draws = int(state.get("all_draws", -1))
+    start_round = state.get("start_target_round")
+
+    def rounds_are_contiguous(key: str) -> bool:
+        rounds = state.get(key)
+        return (
+            type(start_round) is int
+            and start_round > 0
+            and isinstance(rounds, list)
+            and len(rounds) == all_draws
+            and all(type(value) is int and value == start_round + i
+                    for i, value in enumerate(rounds))
+        )
+
+    round_sequence_valid = (
+        all_draws >= 0
+        and rounds_are_contiguous("graded_rounds")
+        and rounds_are_contiguous("matched_ensemble_graded_rounds")
+    )
     full_horizon = (
         horizon > 0
-        and trusted >= horizon
-        and matched_trusted >= horizon
-        and int(state.get("all_draws", -1)) == len(state.get("graded_rounds", []) or [])
-        and int(state.get("all_draws", -1)) == len(state.get("matched_ensemble_graded_rounds", []) or [])
-        and trusted <= int(state.get("all_draws", -1))
-        and matched_trusted <= int(state.get("all_draws", -1))
+        and trusted == horizon
+        and matched_trusted == horizon
+        and all_draws >= horizon
+        and round_sequence_valid
+        and trusted <= all_draws
+        and matched_trusted <= all_draws
     )
 
     if not lock_ok:
         claim_status = "invalid_protocol_lock"
+        confirmed = False
+    elif not random["evidence_valid"] or not matched["evidence_valid"]:
+        claim_status = "invalid_comparator_evidence"
         confirmed = False
     elif not full_horizon:
         claim_status = "not_confirmed_holdout_incomplete"
@@ -117,6 +170,7 @@ def build_report(state: Dict[str, object]) -> Tuple[Dict[str, object], bool]:
             "matched_ensemble_trusted_draws": matched_trusted,
             "horizon_trusted_draws": horizon,
             "full_horizon_complete": full_horizon,
+            "round_sequence_valid": round_sequence_valid,
             "graded_rounds": state.get("graded_rounds", []),
             "matched_ensemble_graded_rounds": state.get("matched_ensemble_graded_rounds", []),
         },
@@ -174,6 +228,7 @@ def render_markdown(report: Dict[str, object]) -> str:
             f"(Matched Ensemble {p['matched_ensemble_trusted_draws']}/{p['horizon_trusted_draws']})"
         ),
         f"- Protocol lock verified: **{report['protocol_lock']['verified']}**",
+        f"- Round sequence validated: **{p['round_sequence_valid']}**",
         (
             "- Confirmation policy registered before first trusted draw: "
             f"**{report['confirmation_policy_timing']['registered_before_first_trusted_draw']}** "
