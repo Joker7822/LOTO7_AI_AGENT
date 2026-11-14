@@ -72,13 +72,13 @@ jobs:
                               "loto7-env/workflow-risk-audit.json").read_text())
           summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
           with summary.open("a", encoding="utf-8") as out:
-              out.write("### GitHub Actions static risk audit (report-only)\\n\\n")
-              out.write(f"- Workflows scanned: {report['workflow_count']}\\n")
-              out.write(f"- Dependency errors: {report['error_count']}\\n")
-              out.write(f"- Risk warnings: {report['warning_count']}\\n")
-              out.write("- Findings are static review leads, not vulnerability proofs.\\n")
+              out.write("### GitHub Actions static risk audit (report-only)\n\n")
+              out.write(f"- Workflows scanned: {report['workflow_count']}\n")
+              out.write(f"- Dependency errors: {report['error_count']}\n")
+              out.write(f"- Risk warnings: {report['warning_count']}\n")
+              out.write("- Findings are static review leads, not vulnerability proofs.\n")
               for finding in report["findings"][:12]:
-                  out.write(f"- `{finding['code']}` in `{finding['file']}`\\n")
+                  out.write(f"- `{finding['code']}` in `{finding['file']}`\n")
           PY
       - name: Archive CI dependency provenance (even on test failure)
         if: always()
