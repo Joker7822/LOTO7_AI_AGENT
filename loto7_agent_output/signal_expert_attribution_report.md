@@ -3,30 +3,30 @@
 - protocol: **signal-expert-attribution-oos-v1**
 - role: **Research diagnostic only; no Production authority**
 - locked base: **baseline-5fdb8dc2ad**
-- fixed observation horizon: **10/26 trusted draws**
+- fixed observation horizon: **11/26 trusted draws**
 - status: **active**
-- current target: **round 703**
+- current target: **round 704**
 - pre-frozen: **YES**
 - interim model changes allowed: **false**
-- frozen at JST: **2026-11-07T16:02:56+09:00**
+- frozen at JST: **2026-11-14T16:33:57+09:00**
 - expert count: **11**
-- final q SHA-256: `d6cec228fb3573b62dde3112c985d8eb1b67583e0d2e3a773f1b0fafc58ba5d7`
+- final q SHA-256: `1f1f710e82bcab31985ab880689ea3b5c416d817dca3a064589d344b6f47fb3e`
 - decomposition max abs error: **1.388e-17**
 - calibration-shadow crosscheck: **matched**
 
 ## Current pre-frozen effective weights
 
-- ewma_10: **0.531259**
-- hot_20: **0.159475**
-- momentum: **0.086258**
-- ewma_30: **0.050592**
-- pair_context: **0.046917**
-- hot_50: **0.039041**
-- overdue: **0.024544**
-- ewma_60: **0.018678**
-- hot_100: **0.014859**
-- recent_cold: **0.014419**
-- hot_200: **0.013959**
+- ewma_10: **0.524578**
+- hot_20: **0.155461**
+- momentum: **0.083948**
+- pair_context: **0.055798**
+- ewma_30: **0.050712**
+- hot_50: **0.037785**
+- overdue: **0.028280**
+- ewma_60: **0.019389**
+- hot_100: **0.015210**
+- recent_cold: **0.014712**
+- hot_200: **0.014127**
 
 ## Interpretation boundary
 
