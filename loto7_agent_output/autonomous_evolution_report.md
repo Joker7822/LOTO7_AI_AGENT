@@ -2,8 +2,8 @@
 
 - Last recorded round: **703**
 - Independently verified source: **True**
-- Registered research mode: **SEARCH**
-- Action: **EVALUATE_SANDBOX_MUTATION**
+- Registered research mode: **VALIDATION_ONLY**
+- Action: **WAIT_FOR_NEW_DATA_OR_VALIDATION**
 - Bounded diagnostic mutations this history: **1/4**
 - Diagnostic leader (not Production): **4f41e60c3029bf52dd9f**
 
