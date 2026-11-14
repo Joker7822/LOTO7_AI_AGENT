@@ -57,6 +57,29 @@ jobs:
         run: python -m pytest -q tests/test_production_model_adoption_audit.py
       - name: Full historical regression suite on isolated pinned 699 evidence
         run: bash scripts/ci_verify_frozen_regressions.sh
+      - name: Audit GitHub Actions graph and risky triggers (report-only)
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "${RUNNER_TEMP}/loto7-env"
+          python workflow_risk_audit.py --format json --output "${RUNNER_TEMP}/loto7-env/workflow-risk-audit.json"
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          report = json.loads((Path(os.environ["RUNNER_TEMP"]) /
+                              "loto7-env/workflow-risk-audit.json").read_text())
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          with summary.open("a", encoding="utf-8") as out:
+              out.write("### GitHub Actions static risk audit (report-only)\\n\\n")
+              out.write(f"- Workflows scanned: {report['workflow_count']}\\n")
+              out.write(f"- Dependency errors: {report['error_count']}\\n")
+              out.write(f"- Risk warnings: {report['warning_count']}\\n")
+              out.write("- Findings are static review leads, not vulnerability proofs.\\n")
+              for finding in report["findings"][:12]:
+                  out.write(f"- `{finding['code']}` in `{finding['file']}`\\n")
+          PY
       - name: Archive CI dependency provenance (even on test failure)
         if: always()
         uses: actions/upload-artifact@v4
