@@ -1,10 +1,10 @@
 {
-  "checked_at_jst": "2026-11-14T19:22:47+09:00",
+  "checked_at_jst": "2026-11-14T19:57:37+09:00",
   "attempt": 1,
   "status": "ok",
   "verification": "verified_two_result_sources",
   "primary_source": "Rakuten backnumber via scrapingloto7.py",
-  "secondary_policy": "Mizuho preferred; Rakuten Bank direct result, or an explicitly non-official, independently operated LOTO7通信 result page with live fetched response SHA as fallback",
+  "secondary_policy": "Mizuho or Rakuten Bank preferred; when bank pages are blocked, an explicitly identified independently operated non-official publisher may corroborate a previously recorded Rakuten primary, if exact round/date/main/bonus and live response provenance all match.",
   "latest": {
     "round": 703,
     "date": "2026-11-13",
@@ -52,8 +52,8 @@
       "url": "https://loto7.money-plan.net/round/703/",
       "transport": "direct_independent_publisher_page",
       "publisher": "LOTO7通信 (non-official, independent web publisher)",
-      "fetched_at_jst": "2026-11-14T19:22:46+09:00",
-      "response_sha256": "35c377937da4e79dd48adc02a13d6bdfe1f65dd1bcffdbd17619155ca1575ad3",
+      "fetched_at_jst": "2026-11-14T19:57:37+09:00",
+      "response_sha256": "bd889e034356f6e7f71a0b9fedce0dd2f1c6d5f5c0130d5e7c2a53d011e78394",
       "source_tier": "independent_non_official"
     },
     "official_schedule": {
@@ -71,13 +71,17 @@
     "primary_domain": "takarakuji.rakuten.co.jp",
     "primary_method": "recorded_published_csv_result",
     "secondary_domain": "loto7.money-plan.net",
+    "secondary_fetch": "live_https_response",
     "secondary_official": false,
-    "source_tier": "independent_non_official",
+    "independent_domains": true,
     "draw_csv_sha256": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c"
   },
   "notes": [
     "LOTO7通信 independent non-official result matches Rakuten primary round/date/main/bonus",
     "next schedule listing tier=authorized_retailer_sales_listing: round=704 date=2026-11-20; this does not independently corroborate the draw result",
-    "result verification succeeded using at least two published result endpoints"
+    "result verification succeeded using at least two published result endpoints",
+    "LOTO7通信 independently published result confirms the stored Rakuten primary.",
+    "Secondary is non-official; Mizuho and Rakuten Bank result pages may remain unavailable.",
+    "No retrospective future prediction freeze, score or model is amended."
   ]
 }
