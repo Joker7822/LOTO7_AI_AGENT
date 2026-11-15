@@ -44,7 +44,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   actions: read
 
 concurrency:
@@ -52,10 +52,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-public-status:
-    # workflow_run completes even when the upstream job fails, and it can
-    # inherit a write token; require successful first-party main completion.
-    # Other triggers retain their existing behavior (PR dry run, cron, push).
+  validate-public-status:
+    # Block untrusted or failed upstream workflow_run completions.
     if: >-
       github.event_name != 'workflow_run' ||
       (
@@ -63,6 +61,9 @@ jobs:
         github.event.workflow_run.head_branch == 'main' &&
         github.event.workflow_run.head_repository.full_name == github.repository
       )
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -73,7 +74,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -121,6 +122,44 @@ jobs:
           assert all(t["autonomous_mutation_allowed"] is False for t in r["operations_plan"]["tasks"])
           print("Validated source commit "+r["source_commit"][:12])
           PY
+
+  build-public-status:
+    needs: validate-public-status
+    # Never grant a write token to PR validation, nor to a failed/foreign
+    # workflow_run. The read-only validation job must have succeeded.
+    if: >-
+      github.event_name != 'pull_request' &&
+      needs.validate-public-status.result == 'success' &&
+      (
+        github.event_name != 'workflow_run' ||
+        (
+          github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_branch == 'main' &&
+          github.event.workflow_run.head_repository.full_name == github.repository
+        )
+      )
+    permissions:
+      contents: write
+      actions: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TZ: Asia/Tokyo
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dashboard runtime dependencies for all triggers
+        run: |
+          python -m pip install -r requirements.txt
+          python -c "import numpy, pandas; print('Dashboard runtime imports OK')"
       - name: Update only public snapshot on main
         if: github.event_name != 'pull_request'
         shell: bash
@@ -155,3 +194,4 @@ jobs:
             echo "Only docs/data/dashboard_snapshot.json may be staged or committed."
             echo "All registered prospective, Champion, source and Production files remain unchanged."
           } >> "$GITHUB_STEP_SUMMARY"
+
