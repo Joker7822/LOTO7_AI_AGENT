@@ -129,6 +129,7 @@ jobs:
     # workflow_run. The read-only validation job must have succeeded.
     if: >-
       github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
       needs.validate-public-status.result == 'success' &&
       (
         github.event_name != 'workflow_run' ||
