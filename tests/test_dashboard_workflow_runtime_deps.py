@@ -79,6 +79,8 @@ def test_read_only_validation_isolated_from_write_enabled_publication():
     assert "      - name: Dry run (PR only)" in read
     assert "    needs: validate-public-status" in write
     assert "github.event_name != 'pull_request' &&" in write
+    # A manual dispatch can select another branch: never issue a write token there.
+    assert "github.ref == 'refs/heads/main'" in write
     assert "needs.validate-public-status.result == 'success'" in write
     assert "    permissions:\n      contents: write\n      actions: read" in write
     assert "persist-credentials: true" in write
