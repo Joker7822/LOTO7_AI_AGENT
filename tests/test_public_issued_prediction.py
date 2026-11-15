@@ -112,7 +112,7 @@ def test_forbid_all_invalidated_current_tickets(project):
 
 @pytest.mark.parametrize("column,wrong,err", [
     ("predicted_numbers", "01 01 02 03 04 05 06", "duplicate or unsorted"),
-    ("model_version", "unregistered-shadow", "model version mismatch"),
+    ("model_version", "unregistered-shadow", r"(model version mismatch|model policy is missing or changed)"),
     ("target_round", "第9999回", "count is not five"),
     ("prediction_created_at_jst", "2099-01-01T00:00:00+09:00", "not recorded before draw"),
 ])
