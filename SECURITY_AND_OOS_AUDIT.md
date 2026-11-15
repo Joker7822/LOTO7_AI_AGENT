@@ -26,6 +26,22 @@ Updated: 2026-10-31 JST. This is an operational audit and runbook, **not** evide
 
 If the external steps have not been executed, **do not mark the incident resolved**. This repository change alone cannot rotate credentials on Sakura.
 
+### 2026-11-15 JST: incident closure is intentionally manual
+
+The `Verify Sakura Credential Rotation` workflow does **not** close issue #45
+automatically. Its live signed request and empty database transaction establish
+that the **new** HMAC/generation/database route worked during that check, and
+its reported rotation dates are supplied by the operator. They do **not** prove
+that the leaked old DB/HMAC credentials were revoked, nor that the normal
+Production prediction payload was synchronized afterward.
+
+Before closing the incident, an authorized Sakura operator must check and
+record, outside this public repository, that both old credentials are disabled,
+and confirm the ordinary production sync succeeded. No secret values or
+redacted-secret fragments should be copied to the issue or GitHub Actions log.
+The workflow refuses a manually selected non-main Git ref for verification.
+
+
 ## Regression / safeguards
 
 ```bash
