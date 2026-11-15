@@ -64,3 +64,36 @@ def test_workflow_run_trust_gate_cannot_be_accidentally_removed():
     assert all(check in gate for check in checks)
     assert "github.event_name != 'workflow_run'" in gate
     assert "github.repository" in gate
+
+
+def test_read_only_validation_isolated_from_write_enabled_publication():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    top, jobs = text.split("\njobs:\n", 1)
+    assert "permissions:\n  contents: read\n  actions: read" in top
+    read, write = jobs.split("  build-public-status:\n", 1)
+    assert read.startswith("  validate-public-status:\n")
+    assert "    permissions:\n      contents: read\n      actions: read" in read
+    assert "persist-credentials: false" in read
+    assert "persist-credentials: true" not in read
+    assert "git push" not in read
+    assert "      - name: Dry run (PR only)" in read
+    assert "    needs: validate-public-status" in write
+    assert "github.event_name != 'pull_request' &&" in write
+    assert "needs.validate-public-status.result == 'success'" in write
+    assert "    permissions:\n      contents: write\n      actions: read" in write
+    assert "persist-credentials: true" in write
+    assert "      - name: Dry run (PR only)" not in write
+    assert "      - name: Update only public snapshot on main" in write
+    assert "git push origin HEAD:main" in write
+
+
+def test_no_untrusted_workflow_run_can_start_validation_or_publication():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    _, jobs = text.split("\njobs:\n", 1)
+    read, write = jobs.split("  build-public-status:\n", 1)
+    for section in (read, write):
+        gate = section.split("    if: >-\n", 1)[1].split("    permissions:", 1)[0]
+        assert "github.event_name != 'workflow_run' ||" in gate
+        assert "github.event.workflow_run.conclusion == 'success'" in gate
+        assert "github.event.workflow_run.head_branch == 'main'" in gate
+        assert "github.event.workflow_run.head_repository.full_name == github.repository" in gate
