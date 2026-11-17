@@ -4,6 +4,7 @@
 - Candidate: **global-g00001-c01-2ac3662ad1**
 - Holdout progress: **10/26 trusted** (Matched Ensemble 10/26)
 - Protocol lock verified: **True**
+- Round sequence validated: **True**
 - Confirmation policy registered before first trusted draw: **False** (at trusted draw count 4)
 
 ## Uniform Random
