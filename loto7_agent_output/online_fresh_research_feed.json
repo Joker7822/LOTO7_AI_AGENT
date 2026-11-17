@@ -1,43 +1,110 @@
 {
   "version": "frequent-verified-research-feed-v1",
-  "checked_at_utc": "2026-11-17T02:59:40+00:00",
+  "checked_at_utc": "2026-11-17T13:37:18+00:00",
   "discovery_state_sha256": "29c4d688e7ca47aee53bbf182f6a7f26abef4a3bd7d7d2ecc61e00a1b41d9115",
   "discovery_chain_tip": "7fb86a08242284d686d4c2e406d6e7c9aa52f3cd9ec8717e05fd5a5ed160efdd",
   "anchored_known_papers": 24,
-  "topic_searched": "multiple comparisons backtest overfitting",
-  "next_topic_index": 5,
-  "cycle_count": 59,
+  "topic_searched": "ensemble probabilistic forecast verification",
+  "next_topic_index": 0,
+  "cycle_count": 60,
   "window_days": 180,
   "max_independent_checks_per_cycle": 3,
   "search_providers": [
     "crossref",
     "openalex"
   ],
-  "provider_errors": [],
-  "search_hits_before_dedup": 4,
-  "new_unanchored_dois_seen": 0,
+  "provider_errors": [
+    {
+      "provider": "openalex",
+      "error": "search_unavailable_or_malformed"
+    }
+  ],
+  "search_hits_before_dedup": 3,
+  "new_unanchored_dois_seen": 1,
   "checked": [
     {
-      "doi": "10.14801/jkiit.2026.24.9.9",
+      "doi": "10.21203/rs.3.rs-11606790/v1",
+      "status": "single_provider_only"
+    },
+    {
+      "doi": "10.5194/egusphere-2026-2653",
       "status": "two_provider_bibliography_matched"
     },
     {
-      "doi": "10.31219/osf.io/wzqxg",
-      "status": "conflict_do_not_use"
-    },
-    {
-      "doi": "10.31219/osf.io/wzqxg_v3",
-      "status": "conflict_do_not_use"
+      "doi": "10.5194/egusphere-2026-4586",
+      "status": "two_provider_bibliography_matched"
     }
   ],
-  "candidate_count": 41,
+  "candidate_count": 42,
   "status_counts": {
     "conflict_do_not_use": 4,
-    "previously_verified_not_refreshed": 19,
-    "single_provider_only": 17,
-    "two_provider_bibliography_matched": 1
+    "previously_verified_not_refreshed": 18,
+    "single_provider_only": 18,
+    "two_provider_bibliography_matched": 2
   },
   "candidates": [
+    {
+      "doi": "10.5194/egusphere-2026-4586",
+      "title": "UPSurgeML (v1.0) – A Machine Learning Workflow for Probabilistic Ensemble Forecast of Tropical Cyclone Storm Surge",
+      "year": 2026,
+      "status": "two_provider_bibliography_matched",
+      "crossref_consistent": true,
+      "openalex_consistent": true,
+      "abstract_metadata_present": true,
+      "abstract_word_count_max": 174,
+      "source_errors": {},
+      "transient_retry_count": 0,
+      "full_text_reviewed": false,
+      "peer_review_confirmed": false,
+      "methods_reproduced_from_paper": false,
+      "lottery_prediction_improved": false,
+      "first_seen_utc": "2026-10-31T23:28:33+00:00",
+      "last_checked_utc": "2026-11-17T13:37:18+00:00",
+      "last_two_provider_verified_utc": "2026-11-17T13:37:18+00:00",
+      "found_in_anchored_intake": false
+    },
+    {
+      "doi": "10.5194/egusphere-2026-2653",
+      "title": "Estimating cross-correlation parameters between forecast and observation errors within the ensemble transform Kalman filter with cross correlation (ETKFCC)",
+      "year": 2026,
+      "status": "two_provider_bibliography_matched",
+      "crossref_consistent": true,
+      "openalex_consistent": true,
+      "abstract_metadata_present": true,
+      "abstract_word_count_max": 194,
+      "source_errors": {},
+      "transient_retry_count": 0,
+      "full_text_reviewed": false,
+      "peer_review_confirmed": false,
+      "methods_reproduced_from_paper": false,
+      "lottery_prediction_improved": false,
+      "first_seen_utc": "2026-10-31T23:28:33+00:00",
+      "last_checked_utc": "2026-11-17T13:37:18+00:00",
+      "last_two_provider_verified_utc": "2026-11-17T13:37:18+00:00",
+      "found_in_anchored_intake": false
+    },
+    {
+      "doi": "10.21203/rs.3.rs-11606790/v1",
+      "title": "Probabilistic forecasting of &amp;gt;10 MeV solar proton events from flare, CME and radio observations of solar cycles 23–25: physical predictors and verification of tree-ensemble classifiers",
+      "year": 2026,
+      "status": "single_provider_only",
+      "crossref_consistent": true,
+      "openalex_consistent": false,
+      "abstract_metadata_present": true,
+      "abstract_word_count_max": 227,
+      "source_errors": {
+        "openalex": "permanent_provider_failure"
+      },
+      "transient_retry_count": 0,
+      "full_text_reviewed": false,
+      "peer_review_confirmed": false,
+      "methods_reproduced_from_paper": false,
+      "lottery_prediction_improved": false,
+      "first_seen_utc": "2026-11-17T13:37:18+00:00",
+      "last_checked_utc": "2026-11-17T13:37:18+00:00",
+      "last_two_provider_verified_utc": null,
+      "found_in_anchored_intake": false
+    },
     {
       "doi": "10.31219/osf.io/wzqxg_v3",
       "title": "Bayesian estimation in multiple comparisons",
@@ -86,7 +153,7 @@
       "doi": "10.14801/jkiit.2026.24.9.9",
       "title": "Effects of Generative-Model-based Synthetic Time-Series Data Augmentation on Backtest Overfitting Evaluation",
       "year": 2026,
-      "status": "two_provider_bibliography_matched",
+      "status": "previously_verified_not_refreshed",
       "crossref_consistent": true,
       "openalex_consistent": true,
       "abstract_metadata_present": true,
@@ -348,26 +415,6 @@
       "first_seen_utc": "2026-11-04T23:46:47+00:00",
       "last_checked_utc": "2026-11-15T17:16:41+00:00",
       "last_two_provider_verified_utc": "2026-11-15T17:16:41+00:00",
-      "found_in_anchored_intake": false
-    },
-    {
-      "doi": "10.5194/egusphere-2026-2653",
-      "title": "Estimating cross-correlation parameters between forecast and observation errors within the ensemble transform Kalman filter with cross correlation (ETKFCC)",
-      "year": 2026,
-      "status": "previously_verified_not_refreshed",
-      "crossref_consistent": true,
-      "openalex_consistent": true,
-      "abstract_metadata_present": true,
-      "abstract_word_count_max": 194,
-      "source_errors": {},
-      "transient_retry_count": 0,
-      "full_text_reviewed": false,
-      "peer_review_confirmed": false,
-      "methods_reproduced_from_paper": false,
-      "lottery_prediction_improved": false,
-      "first_seen_utc": "2026-10-31T23:28:33+00:00",
-      "last_checked_utc": "2026-11-15T09:36:07+00:00",
-      "last_two_provider_verified_utc": "2026-11-15T09:36:07+00:00",
       "found_in_anchored_intake": false
     },
     {
@@ -879,30 +926,10 @@
       "last_checked_utc": "2026-11-01T06:22:35+00:00",
       "last_two_provider_verified_utc": "2026-11-01T06:22:35+00:00",
       "found_in_anchored_intake": false
-    },
-    {
-      "doi": "10.5194/egusphere-2026-4586",
-      "title": "UPSurgeML (v1.0) – A Machine Learning Workflow for Probabilistic Ensemble Forecast of Tropical Cyclone Storm Surge",
-      "year": 2026,
-      "status": "previously_verified_not_refreshed",
-      "crossref_consistent": true,
-      "openalex_consistent": true,
-      "abstract_metadata_present": true,
-      "abstract_word_count_max": 174,
-      "source_errors": {},
-      "transient_retry_count": 0,
-      "full_text_reviewed": false,
-      "peer_review_confirmed": false,
-      "methods_reproduced_from_paper": false,
-      "lottery_prediction_improved": false,
-      "first_seen_utc": "2026-10-31T23:28:33+00:00",
-      "last_checked_utc": "2026-10-31T23:28:33+00:00",
-      "last_two_provider_verified_utc": "2026-10-31T23:28:33+00:00",
-      "found_in_anchored_intake": false
     }
   ],
   "verified_topics_this_cycle": [
-    "selection_bias"
+    "ensemble"
   ],
   "review_topics_from_current_or_prior_corroboration": [
     "anytime_evidence",
