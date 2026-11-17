@@ -22,6 +22,7 @@ def test_primary_ci_action_versions_use_node24_runtimes():
     # Keep the original Python dependency cache and provenance artifact.
     assert "cache: pip" in text
     assert "retention-days: 30" in text
+    assert "permissions:\\n  contents: read" in text
 
 
 def test_dashboard_action_upgrade_preserves_separate_job_permissions():
