@@ -1,6 +1,6 @@
 {
   "version": "recursive-code-meta-evolution-v1",
-  "generations_total": 264200,
+  "generations_total": 266035,
   "evaluation_data_sha256": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c",
   "latest_verification": "verified_two_result_sources",
   "independent_source_verified": true,
@@ -56,6 +56,18 @@
       "research_data_sha256": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c"
     },
     {
+      "generation": 265620,
+      "expression": "sqrt(abs(0.97528 - sqrt(abs(decay - cold20) + 0.06639) * (cold20 + cold20)) + 0.01) + sqrt(abs(1.07431 - sqrt(abs(hot80 - cold20) + 0.02171) * (cold20 + cold20)) + 0.01)",
+      "assessment": {
+        "fitness": 0.006906301991471061,
+        "mean_log_edge_vs_uniform": 0.007931299121117582,
+        "mean_top7_hits": 1.8333333333333333,
+        "historical_selection_only": true,
+        "prospective_improvement_proven": false
+      },
+      "research_data_sha256": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c"
+    },
+    {
       "generation": 236910,
       "expression": "sqrt(abs(0.97528 - sqrt(abs(decay - cold20) + 0.0664) * (cold20 + cold20)) + 0.01) + sqrt(abs(1.07431 - sqrt(abs(hot80 - cold20) + 0.02172) * (cold20 + cold20)) + 0.01)",
       "assessment": {
@@ -104,11 +116,11 @@
       "research_data_sha256": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c"
     },
     {
-      "generation": 253773,
+      "generation": 264781,
       "expression": "sqrt(abs(0.97528 - sqrt(abs(decay - cold20) + 0.06632) * (cold20 + cold20)) + 0.01) + sqrt(abs(1.07431 - sqrt(abs(hot80 - cold20) + 0.02171) * (cold20 + cold20)) + 0.01)",
       "assessment": {
-        "fitness": 0.0069060713726121405,
-        "mean_log_edge_vs_uniform": 0.007930588536497992,
+        "fitness": 0.006906071372612142,
+        "mean_log_edge_vs_uniform": 0.007930588536497994,
         "mean_top7_hits": 1.8333333333333333,
         "historical_selection_only": true,
         "prospective_improvement_proven": false
@@ -126,48 +138,36 @@
         "prospective_improvement_proven": false
       },
       "research_data_sha256": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c"
-    },
-    {
-      "generation": 260651,
-      "expression": "sqrt(abs(0.97528 - sqrt(abs(decay - cold20) + 0.0665) * (cold20 + cold20)) + 0.01) + sqrt(abs(1.07431 - sqrt(abs(hot80 - cold20) + 0.02171) * (cold20 + cold20)) + 0.01002)",
-      "assessment": {
-        "fitness": 0.006906027377400586,
-        "mean_log_edge_vs_uniform": 0.007932011008294845,
-        "mean_top7_hits": 1.8333333333333333,
-        "historical_selection_only": true,
-        "prospective_improvement_proven": false
-      },
-      "research_data_sha256": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c"
     }
   ],
   "mutation_policy": {
     "restart": {
-      "trials": 11249,
+      "trials": 11614,
       "wins": 0
     },
     "splice": {
-      "trials": 11234,
+      "trials": 11564,
       "wins": 2
     },
     "tune": {
-      "trials": 12030,
+      "trials": 12390,
       "wins": 29
     },
     "wrap": {
-      "trials": 11300,
+      "trials": 11687,
       "wins": 0
     },
     "crossover": {
-      "trials": 11360,
+      "trials": 11753,
       "wins": 0
     }
   },
   "mutation_probabilities": {
-    "restart": 0.19905620714830694,
-    "splice": 0.1994033806557042,
-    "tune": 0.2034759062880778,
-    "wrap": 0.19904108308430282,
-    "crossover": 0.1990234228236083
+    "restart": 0.1990826201814753,
+    "splice": 0.19942999669639955,
+    "tune": 0.2033818149557685,
+    "wrap": 0.19906201475214352,
+    "crossover": 0.1990435534142131
   },
   "execution_limits": {
     "global_generations": null,
@@ -183,5 +183,5 @@
   },
   "scope": "autonomous_recursive_mathematical_program_and_meta_policy_evolution_research_only",
   "claim": "Repeated historical optimization cannot establish future lottery advantage.",
-  "last_record_sha256": "7d369bc9321baa74f4885671d95e333d6e64de0df54c71f035d7815d10b748f0"
+  "last_record_sha256": "088fc522ffec3e172454adb6f7f78d9139f3058be9e7076b1ff300d208ae49f8"
 }
