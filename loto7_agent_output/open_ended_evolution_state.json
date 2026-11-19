@@ -1,6 +1,6 @@
 {
   "version": "open-ended-evolution-v1",
-  "generations_total": 167330,
+  "generations_total": 169124,
   "evaluated_history_sha256": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c",
   "recorded_rounds": 703,
   "evaluation_rounds": 703,
@@ -1037,10 +1037,10 @@
       "research_data_sha256": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c"
     },
     {
-      "generation": 145335,
+      "generation": 168597,
       "genome": {
         "op": "blend",
-        "alpha": 0.66561,
+        "alpha": 0.65627,
         "left": {
           "op": "blend",
           "alpha": 0.71852,
@@ -1147,18 +1147,22 @@
           }
         },
         "right": {
-          "op": "uniform"
+          "op": "power",
+          "exponent": 0.73187,
+          "child": {
+            "op": "uniform"
+          }
         }
       },
       "assessment": {
-        "mean_log_edge": 0.00018283455076022008,
+        "mean_log_edge": 0.00018183092140490738,
         "mean_top7_hits": 1.4375,
         "block_edges": [
-          -0.00017704974473671485,
-          0.0008819205021726418,
-          -0.00015636710515526682
+          -0.00017313322122116626,
+          0.0008714279544658411,
+          -0.00015280196902995284
         ],
-        "fitness": 0.00010867447202930797,
+        "fitness": 0.00010867751502911915,
         "historical_selection_only": true,
         "prospective_edge_confirmed": false
       },
@@ -1172,5 +1176,5 @@
   },
   "scope": "indefinite_historical_model_program_evolution_not_production",
   "claim": "Selection on reused historical data cannot establish predictive advantage.",
-  "last_record_sha256": "73cc7dbb6a7b715e235b1bca3e55d7f3e818f7ac0f314fcd09f2c07f6bf7afba"
+  "last_record_sha256": "1ae648548cd35392decd382e0874881c1aeb1cc1b367bdd1dd36ef8284abe4a7"
 }
