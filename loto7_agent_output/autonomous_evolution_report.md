@@ -1,15 +1,15 @@
 # Autonomous Evolution — Research Sandbox
 
-- Last recorded round: **703**
+- Last recorded round: **704**
 - Independently verified source: **True**
-- Registered research mode: **WAIT_FOR_NEW_DATA**
-- Action: **WAIT_FOR_NEW_DATA_OR_VALIDATION**
+- Registered research mode: **SEARCH**
+- Action: **EVALUATE_SANDBOX_MUTATION**
 - Bounded diagnostic mutations this history: **1/4**
-- Diagnostic leader (not Production): **4f41e60c3029bf52dd9f**
+- Diagnostic leader (not Production): **817a89de13a12ffa46d2**
 
 | Trial | Prior window | Smoothing | Uniform blend | Historical log edge |
 |---:|---:|---:|---:|---:|
-| 1 | 30 | 100 | 0.25 | -0.0006470 |
+| 1 | 30 | 100 | 0.25 | -0.0008187 |
 
 **RESEARCH ONLY.** Same historical data were used for choosing the diagnostic leader.
 No independent prospective validation, no evidence of superior lottery odds,
