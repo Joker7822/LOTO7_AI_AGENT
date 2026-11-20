@@ -1,40 +1,40 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-21T02:17:00+09:00",
-  "source_commit": "8e3a140ca5bcd13e2a078d2576c49c47c412317f",
-  "state_hashes_sha256": "c1c824981f2598aef27d2e75c277754316b85fee3eb250bf3d58baad52612cd7",
+  "generated_at_jst": "2026-11-21T05:45:40+09:00",
+  "source_commit": "b5a1480a4c7978ad4c7f0b1a06c747417fc496dc",
+  "state_hashes_sha256": "6d84af0eed264c32f34b2b8cfb4168c8b0bcfcc321a6f78b900dbaa9350e2da8",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-20T16:02:29+09:00",
+      "checked_at_jst": "2026-11-21T05:42:50+09:00",
       "latest": {
-        "round": 703,
-        "date": "2026-11-13",
+        "round": 704,
+        "date": "2026-11-20",
         "main": [
-          7,
-          9,
-          11,
-          15,
-          26,
-          31,
-          34
+          3,
+          4,
+          14,
+          16,
+          28,
+          36,
+          37
         ],
         "bonus": [
-          27,
+          21,
           30
         ]
       },
       "sources": {
         "official_schedule": {
-          "round": 704,
-          "date": "2026-11-20"
+          "round": 705,
+          "date": "2026-11-27"
         }
       }
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-20T18:11:33+09:00",
+      "checked_at_jst": "2026-11-21T05:43:56+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -42,12 +42,12 @@
             {
               "code": "TRUSTED_RESULT_EXACT_MATCH",
               "level": "ok",
-              "evidence": "round=703; secondary=loto7_tsushin"
+              "evidence": "round=704; secondary=loto7_tsushin"
             },
             {
               "code": "PAIR_CONTEXT_INT8_OVERFLOW",
               "level": "watch",
-              "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=703; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified"
+              "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=704; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified"
             }
           ]
         },
@@ -67,12 +67,12 @@
             {
               "code": "OOS_REFERENCE_CONSISTENCY",
               "level": "ok",
-              "evidence": "champion=baseline-5fdb8dc2ad; frozen=704; trusted=10/26"
+              "evidence": "champion=baseline-5fdb8dc2ad; frozen=705; trusted=11/26"
             },
             {
               "code": "NO_EARLY_PORTFOLIO_CLAIM",
               "level": "watch",
-              "evidence": "holdout=10/26"
+              "evidence": "holdout=11/26"
             }
           ]
         },
@@ -82,7 +82,7 @@
             {
               "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
               "level": "ok",
-              "evidence": "history reused; mode=WAIT_FOR_NEW_DATA; trials=602/800"
+              "evidence": "history reused; mode=SEARCH; trials=260/800"
             }
           ]
         },
@@ -92,7 +92,7 @@
             {
               "code": "RELEASE_SCHEDULE_GUARD",
               "level": "ok",
-              "evidence": "next=704 on 2026-11-20; already_published=True"
+              "evidence": "next=705 on 2026-11-27; already_published=False"
             }
           ]
         }
@@ -102,26 +102,26 @@
           "owner": "data_steward",
           "priority": "watch",
           "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=703; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified"
+          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=704; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified"
         },
         {
           "owner": "oos_risk_officer",
           "priority": "watch",
           "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
-          "evidence": "holdout=10/26"
+          "evidence": "holdout=11/26"
         }
       ],
-      "latest_resolved_round": 703
+      "latest_resolved_round": 704
     },
     "research": {
-      "generation": 6491,
-      "total_research_evaluations": 45436,
+      "generation": 6622,
+      "total_research_evaluations": 46353,
       "champion_version": "baseline-5fdb8dc2ad",
-      "last_run_jst": "2026-11-14T05:38:38+09:00"
+      "last_run_jst": "2026-11-21T05:42:55+09:00"
     },
     "holdout": {
       "status": "active",
-      "trusted_draws": 10,
+      "trusted_draws": 11,
       "horizon_trusted_draws": 26,
       "graded_rounds": [
         693,
@@ -134,37 +134,38 @@
         700,
         701,
         702,
-        703
+        703,
+        704
       ],
       "start_target_round": 693
     },
     "signal": {
       "status": "active_target_prefrozen_waiting_result",
-      "trusted_draws": 3,
+      "trusted_draws": 4,
       "horizon_trusted_draws": 26,
-      "current_target_round": 704,
+      "current_target_round": 705,
       "start_target_round": 701,
       "interim_descriptive": {
-        "mean_top7_hits": 0.6666666666666666,
-        "mean_actual_inclusion_probability": 0.18832636945812428,
-        "mean_bernoulli_log_edge_vs_uniform": -0.0010836676080379821,
-        "mean_bernoulli_brier_edge_vs_uniform": -0.00033212567558450295
+        "mean_top7_hits": 0.75,
+        "mean_actual_inclusion_probability": 0.18867214791528794,
+        "mean_bernoulli_log_edge_vs_uniform": -0.0006556030672529717,
+        "mean_bernoulli_brier_edge_vs_uniform": -0.00020162978822131639
       }
     },
     "learning": {
       "status": "active_prefrozen_waiting_result",
-      "trusted_draws": 3,
-      "current_prefrozen_target": 704,
-      "latest_seen_round": 703,
+      "trusted_draws": 4,
+      "current_prefrozen_target": 705,
+      "latest_seen_round": 704,
       "descriptive_future_only": {
-        "mean_log_edge_vs_uniform": -0.0006695526852836253,
-        "mean_brier_edge_vs_uniform": -0.00020896575199394474,
-        "mean_top7_hits": 0.6666666666666666,
+        "mean_log_edge_vs_uniform": -0.0005213118962063418,
+        "mean_brier_edge_vs_uniform": -0.0001624070185105228,
+        "mean_top7_hits": 1.0,
         "uniform_expected_top7_hits": 1.3243243243243243
       },
       "drift_monitoring": {
-        "recent_observed_draws": 3,
-        "recent_mean_log_edge": -0.0006695526852836253,
+        "recent_observed_draws": 4,
+        "recent_mean_log_edge": -0.0005213118962063418,
         "watch_no_claim_of_improvement": true
       }
     },
@@ -187,8 +188,8 @@
       "synthetic_null_p_log_edge": 0.6923076923076923
     },
     "budget": {
-      "mode": "WAIT_FOR_NEW_DATA",
-      "signal_trials_this_data": 602,
+      "mode": "SEARCH",
+      "signal_trials_this_data": 260,
       "max_signal_trials_per_data": 800
     }
   },
@@ -199,9 +200,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 44781483664,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44781483664",
-      "updated_at": "2026-11-20T17:15:16Z",
+      "run_id": 44799564034,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44799564034",
+      "updated_at": "2026-11-20T19:10:14Z",
       "recent_failure_count": 0
     },
     {
@@ -210,20 +211,20 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 44706513786,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44706513786",
-      "updated_at": "2026-11-20T08:57:35Z",
+      "run_id": 44813848553,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44813848553",
+      "updated_at": "2026-11-20T20:44:16Z",
       "recent_failure_count": 0
     },
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 44708408924,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44708408924",
-      "updated_at": "2026-11-20T09:11:38Z",
+      "health": "running",
+      "status": "pending",
+      "conclusion": null,
+      "run_id": 44814110444,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44814110444",
+      "updated_at": "2026-11-20T20:44:45Z",
       "recent_failure_count": 0
     },
     {
@@ -232,9 +233,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 44703010615,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44703010615",
-      "updated_at": "2026-11-20T08:30:59Z",
+      "run_id": 44813848510,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44813848510",
+      "updated_at": "2026-11-20T20:44:40Z",
       "recent_failure_count": 0
     },
     {
@@ -254,9 +255,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 44781461386,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44781461386",
-      "updated_at": "2026-11-20T17:15:13Z",
+      "run_id": 44799549923,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44799549923",
+      "updated_at": "2026-11-20T19:09:57Z",
       "recent_failure_count": 0
     },
     {
@@ -342,6 +343,13 @@
         "mean_delta_vs_random": -0.347,
         "mean_delta_vs_champion": -0.114,
         "holdout_max_hits": 2
+      },
+      {
+        "round": 704,
+        "date": "2026-11-20",
+        "mean_delta_vs_random": -0.0963636364,
+        "mean_delta_vs_champion": 0.0154545455,
+        "holdout_max_hits": 3
       }
     ],
     "v2": [
@@ -365,6 +373,13 @@
         "mean_log_edge": -0.0010836676,
         "mean_brier_edge": -0.0003321257,
         "mean_top7_hits": 0.6666666667
+      },
+      {
+        "round": 704,
+        "date": "2026-11-20",
+        "mean_log_edge": -0.0006556031,
+        "mean_brier_edge": -0.0002016298,
+        "mean_top7_hits": 0.75
       }
     ],
     "adaptive": [
@@ -388,6 +403,13 @@
         "mean_log_edge": -0.0006695527,
         "mean_brier_edge": -0.0002089658,
         "mean_top7_hits": 0.6666666667
+      },
+      {
+        "round": 704,
+        "date": "2026-11-20",
+        "mean_log_edge": -0.0005213119,
+        "mean_brier_edge": -0.000162407,
+        "mean_top7_hits": 1.0
       }
     ],
     "scope": "genuinely_prospective_prefrozen_only_descriptive_no_automatic_promotion"
@@ -468,100 +490,148 @@
         ]
       }
     ],
-    "result_status": "awaiting_independently_verified_draw",
-    "current_result": null,
-    "latest_verified": {
-      "round": 703,
-      "date": "2026-11-13",
+    "result_status": "independently_verified",
+    "current_result": {
+      "round": 704,
+      "date": "2026-11-20",
       "main": [
-        7,
-        9,
-        11,
-        15,
-        26,
-        31,
-        34
+        3,
+        4,
+        14,
+        16,
+        28,
+        36,
+        37
       ],
       "bonus": [
-        27,
+        21,
         30
       ],
-      "source_verification": "verified_two_result_sources",
-      "issued_at_jst": "2026-11-13T16:09:35+09:00",
       "tickets": [
         {
           "ticket": 1,
+          "main_hits": 1,
+          "bonus_hits": 0,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 2,
+          "main_hits": 2,
+          "bonus_hits": 0,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 3,
           "main_hits": 3,
+          "bonus_hits": 1,
+          "grade": "6等"
+        },
+        {
+          "ticket": 4,
+          "main_hits": 0,
+          "bonus_hits": 0,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 5,
+          "main_hits": 1,
+          "bonus_hits": 0,
+          "grade": "はずれ"
+        }
+      ]
+    },
+    "latest_verified": {
+      "round": 704,
+      "date": "2026-11-20",
+      "main": [
+        3,
+        4,
+        14,
+        16,
+        28,
+        36,
+        37
+      ],
+      "bonus": [
+        21,
+        30
+      ],
+      "source_verification": "verified_two_result_sources",
+      "issued_at_jst": "2026-11-20T16:02:29+09:00",
+      "tickets": [
+        {
+          "ticket": 1,
+          "main_hits": 1,
           "bonus_hits": 0,
           "grade": "はずれ",
           "numbers": [
             5,
-            7,
-            11,
-            14,
-            16,
-            22,
-            26
+            13,
+            17,
+            18,
+            24,
+            26,
+            37
           ]
         },
         {
           "ticket": 2,
-          "main_hits": 1,
-          "bonus_hits": 1,
+          "main_hits": 2,
+          "bonus_hits": 0,
           "grade": "はずれ",
           "numbers": [
-            8,
-            9,
-            18,
+            12,
+            14,
+            15,
             20,
-            27,
-            28,
-            35
+            32,
+            33,
+            36
           ]
         },
         {
           "ticket": 3,
+          "main_hits": 3,
+          "bonus_hits": 1,
+          "grade": "6等",
+          "numbers": [
+            3,
+            8,
+            16,
+            21,
+            28,
+            34,
+            35
+          ]
+        },
+        {
+          "ticket": 4,
+          "main_hits": 0,
+          "bonus_hits": 0,
+          "grade": "はずれ",
+          "numbers": [
+            2,
+            7,
+            11,
+            22,
+            25,
+            27,
+            29
+          ]
+        },
+        {
+          "ticket": 5,
           "main_hits": 1,
           "bonus_hits": 0,
           "grade": "はずれ",
           "numbers": [
             1,
-            10,
-            12,
-            13,
-            19,
-            33,
-            34
-          ]
-        },
-        {
-          "ticket": 4,
-          "main_hits": 1,
-          "bonus_hits": 0,
-          "grade": "はずれ",
-          "numbers": [
             4,
-            17,
-            24,
-            25,
-            29,
-            31,
-            37
-          ]
-        },
-        {
-          "ticket": 5,
-          "main_hits": 0,
-          "bonus_hits": 1,
-          "grade": "はずれ",
-          "numbers": [
-            2,
-            6,
-            21,
+            9,
+            10,
+            19,
             23,
-            30,
-            32,
-            36
+            31
           ]
         }
       ]
@@ -574,7 +644,7 @@
     "status": "stale_historical_activity",
     "activity_stale_vs_verified_round": true,
     "activity_latest_round": 700,
-    "verified_latest_round": 703,
+    "verified_latest_round": 704,
     "sequence": 41,
     "last_activity_jst": "2026-10-30T23:14:24+09:00",
     "current_phase": "calibration",
@@ -653,23 +723,23 @@
     "prediction_skill_confirmed": false,
     "historical": {
       "status": "historical_only",
-      "rounds": 603,
+      "rounds": 604,
       "start_round": 101,
-      "end_round": 703,
-      "top7_mean_hits": 1.364842454394693,
+      "end_round": 704,
+      "top7_mean_hits": 1.3658940397350994,
       "uniform_expected_hits": 1.3243243243243243,
-      "top7_delta_vs_uniform": 0.04051813007036875,
-      "p_value_exploratory": 0.29288180167959743
+      "top7_delta_vs_uniform": 0.04156971541077503,
+      "p_value_exploratory": 0.28013615063866126
     },
     "random_baseline": {
       "status": "historical_only",
-      "rounds": 603,
-      "portfolio_mean_max_hits": 2.2454394693200666,
-      "random_mean_max_hits": 2.4244921227197347,
-      "mean_max_hits_delta": -0.17905265339966814,
-      "portfolio_mean_score": 2.562553897180763,
-      "random_mean_score": 2.757942167495854,
-      "mean_score_delta": -0.1953882703150911,
+      "rounds": 604,
+      "portfolio_mean_max_hits": 2.2450331125827816,
+      "random_mean_max_hits": 2.4245653973509933,
+      "mean_max_hits_delta": -0.1795322847682117,
+      "portfolio_mean_score": 2.561854304635762,
+      "random_mean_score": 2.7579760993377485,
+      "mean_score_delta": -0.19612179470198665,
       "random_portfolios_per_round": 32
     },
     "calibration": {
@@ -686,17 +756,17 @@
     },
     "reference_payout": {
       "status": "historical_hypothetical_only",
-      "tickets": 3015,
+      "tickets": 3020,
       "winning_tickets": 127,
-      "reference_cost_yen": 904500,
+      "reference_cost_yen": 906000,
       "reference_payout_yen": 175900,
-      "reference_net_yen": -728600,
-      "reference_roi": 0.19447208402432284,
+      "reference_net_yen": -730100,
+      "reference_roi": 0.19415011037527594,
       "actual_profit": null
     },
     "future_oos": {
       "status": "diagnostic_only",
-      "trusted_draws": 10,
+      "trusted_draws": 11,
       "horizon_draws": 26,
       "policy_registered_before_first_outcome": false,
       "claim_status": "not_confirmed_holdout_incomplete",
@@ -705,11 +775,11 @@
     "provenance": {
       "historical": {
         "file": "historical_replay_summary.json",
-        "sha256": "21eec5a1d4bb741986f02af6aa53e5e7a4f576a21a011870bb0ceba10795a426"
+        "sha256": "cc8de8dc67e1d646fea5cb5d0ba3f8649960270fcac7021e1be5b86743c3ef43"
       },
       "reconciliation": {
         "file": "historical_reconciliation_summary.json",
-        "sha256": "c1530c0964e01d9fc9e10fd43009deda7790b390b29fb5203ee1d5daab509571"
+        "sha256": "23662739e147c4f5d99d2cd8c2c0847f7c10324ffb3814dc676240fad06045dd"
       },
       "calibration": {
         "file": "champion_calibration_oos_state.json",
@@ -717,16 +787,16 @@
       },
       "future_oos": {
         "file": "future_holdout_evidence.json",
-        "sha256": "378c666e1fd2415bbc67b9561ea3f990664ec50c65ead7de13379064d4619836"
+        "sha256": "19472b7ede54eb50efb80851957e64255489890bfa0cf5fa05631ca52f4ea0b5"
       }
     }
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "8e3a140ca5bcd13e2a078d2576c49c47c412317f",
-    "snapshot_generated_at_jst": "2026-11-21T02:17:00+09:00",
-    "computed_at_jst": "2026-11-20T17:17:00+00:00",
+    "source_commit": "b5a1480a4c7978ad4c7f0b1a06c747417fc496dc",
+    "snapshot_generated_at_jst": "2026-11-21T05:45:40+09:00",
+    "computed_at_jst": "2026-11-20T20:45:40+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
@@ -735,15 +805,15 @@
     },
     "checkpoints": {
       "portfolio": {
-        "trusted_draws": 10,
+        "trusted_draws": 11,
         "fixed_horizon": 26
       },
       "v2_signal": {
-        "trusted_draws": 3,
+        "trusted_draws": 4,
         "fixed_horizon": 26
       },
       "adaptive": {
-        "trusted_draws": 3,
+        "trusted_draws": 4,
         "descriptive_open_ended": true
       }
     },
