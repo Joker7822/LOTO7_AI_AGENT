@@ -1,6 +1,6 @@
 {
   "version": "autonomous-data-quality-recovery-v1",
-  "checked_at_jst": "2026-11-20T16:43:04+09:00",
+  "checked_at_jst": "2026-11-21T02:14:59+09:00",
   "latest_verified_round": 703,
   "latest_history_round": 703,
   "historical_rows_checked": 703,
@@ -11,14 +11,15 @@
   "next_official_round": 704,
   "next_official_draw_date": "2026-11-20",
   "result_available_after_jst": "2026-11-20T20:30:00+09:00",
-  "before_next_draw_result_deadline": true,
+  "before_next_draw_result_deadline": false,
   "quality_issues": [
+    "OFFICIAL_RESULT_PAST_DUE",
     "REGISTERED_SCIENCE_OUTDATED",
     "REGENERATE_PRIORITY_QUEUE_AFTER_SOURCE_UPDATE"
   ],
   "research_queue_tasks": 13,
   "candidate_priority_queue_stale": true,
-  "requested_recovery_workflow": "advanced_validation_lab.yml",
+  "requested_recovery_workflow": "friday_result_check_watchdog.yml",
   "recovery_request_is_recommendation_until_actions_dispatches": true,
   "source_sha256": {
     "draw": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c",
@@ -26,7 +27,7 @@
     "guard": "25def0735f8a1358a507c324fe46355703bc34ef66ab66e010ed9a52826e8922",
     "science": "adf6b82497a599452e035ccdc8be626f883bb3b677da22e11acb72b28a4707ad",
     "queue": "5b298e1fe24bd36af8923bbd8f353749fe828e0bf950781fb5dea99d620252ad",
-    "bibliography": "c6c222789de265d1282e08116d79e00899b757dc892128cfe516206ddd6a46e7"
+    "bibliography": "ba84ca9cd7a0ac2e581558005607bb7cb7b1058ce57799ad33e5abf658d0ec40"
   },
   "research_mode": "WAIT_FOR_NEW_DATA",
   "same_data_trials_used": 602,
