@@ -2,21 +2,21 @@
 
 - Claim status: **not_confirmed_holdout_incomplete**
 - Candidate: **global-g00001-c01-2ac3662ad1**
-- Holdout progress: **10/26 trusted** (Matched Ensemble 10/26)
+- Holdout progress: **11/26 trusted** (Matched Ensemble 11/26)
 - Protocol lock verified: **True**
 - Round sequence validated: **True**
 - Confirmation policy registered before first trusted draw: **False** (at trusted draw count 4)
 
 ## Uniform Random
-- Mean score delta: **-0.347000**
-- Win rate: **40.00%**
-- e-value telemetry: **0.828478**
+- Mean score delta: **-0.096364**
+- Win rate: **45.45%**
+- e-value telemetry: **0.911799**
 - Passes all locked thresholds: **False**
 
 ## Matched Ensemble (32)
-- Mean score delta: **-0.213719**
-- Win rate: **30.00%**
-- e-value telemetry: **0.898880**
+- Mean score delta: **-0.137415**
+- Win rate: **36.36%**
+- e-value telemetry: **0.923322**
 - Passes all locked thresholds: **False**
 
 ## Claim rule
