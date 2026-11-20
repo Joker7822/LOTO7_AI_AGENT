@@ -247,14 +247,26 @@ def post_payload(
     except urllib.error.URLError as exc:
         raise RuntimeError(f"Sakura API connection failed: {exc.reason}") from exc
     obj = json.loads(raw)
-    if not isinstance(obj, dict) or not obj.get("ok"):
-        raise RuntimeError(f"Sakura API rejected payload: {raw[:500]}")
+    if not isinstance(obj, dict) or obj.get("ok") is not True:
+        raise RuntimeError("Sakura API did not return a strict success acknowledgement")
     if credential_generation:
-        remote_generation = str(obj.get("credential_generation", ""))
+        remote_generation = obj.get("credential_generation")
         if remote_generation != credential_generation:
+            raise RuntimeError("Sakura credential generation mismatch")
+
+    # The endpoint's JSON is an acknowledgement, not proof by itself that
+    # the data was persisted. Reject ambiguous or partial acknowledgements;
+    # the PHP endpoint returns these integer counts after its DB commit.
+    for key, submitted in (
+        ("predictions_upserted", payload.get("predictions")),
+        ("results_upserted", payload.get("results")),
+    ):
+        if not isinstance(submitted, list):
+            raise RuntimeError(f"Sakura request has invalid {key} payload")
+        actual = obj.get(key)
+        if type(actual) is not int or actual < 0 or actual != len(submitted):
             raise RuntimeError(
-                "Sakura credential generation mismatch: "
-                f"expected={credential_generation!r} got={remote_generation!r}"
+                f"Sakura API acknowledgement mismatch for {key}"
             )
     return obj
 

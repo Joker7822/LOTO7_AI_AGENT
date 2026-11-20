@@ -45,6 +45,11 @@ def verify_rotation(
         raise ValueError("db_rotated_at must be after the 2026-09-06 credential exposure")
     if hmac_at <= INCIDENT_AT:
         raise ValueError("hmac_rotated_at must be after the 2026-09-06 credential exposure")
+    now = dt.datetime.now(dt.timezone.utc)
+    if db_at > now:
+        raise ValueError("db_rotated_at cannot be in the future")
+    if hmac_at > now:
+        raise ValueError("hmac_rotated_at cannot be in the future")
 
     payload = {
         "schema_version": dbs.SCHEMA_VERSION,

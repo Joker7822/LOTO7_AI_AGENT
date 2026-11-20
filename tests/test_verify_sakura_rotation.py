@@ -53,3 +53,28 @@ def test_rotation_verification_records_no_secret_values(monkeypatch):
     assert status["live_verification"]["database_connection_and_transaction"] == "verified"
     assert status["limitations"]["secret_values_recorded"] is False
     assert "x" * 32 not in str(status)
+
+
+def test_future_db_or_hmac_rotation_date_fails_before_network(monkeypatch):
+    import pytest
+
+    def must_not_post(*args, **kwargs):
+        raise AssertionError("signed request must not start for future timestamps")
+
+    monkeypatch.setattr(verify.dbs, "post_payload", must_not_post)
+    for db_date, hmac_date in (
+        ("2099-01-01T00:00:00Z", "2026-09-07T00:00:00Z"),
+        ("2026-09-07T00:00:00Z", "2099-01-01T00:00:00Z"),
+    ):
+        with pytest.raises(ValueError, match="cannot be in the future"):
+            verify.verify_rotation(
+                "https://example.invalid/api", "x" * 32, "gen-2",
+                db_date, hmac_date,
+            )
+
+
+def test_rotation_timestamp_must_be_timezone_aware():
+    import pytest
+
+    with pytest.raises(ValueError, match="timezone"):
+        verify.parse_timestamp("2026-09-07T00:00:00", "db_rotated_at")

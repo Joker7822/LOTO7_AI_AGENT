@@ -115,7 +115,7 @@ def test_post_payload_checks_credential_generation(monkeypatch):
             return False
 
         def read(self):
-            return b'{"ok":true,"credential_generation":"gen-2"}'
+            return b'{"ok":true,"credential_generation":"gen-2","predictions_upserted":0,"results_upserted":0}'
 
     captured = {}
 
@@ -264,3 +264,65 @@ def test_network_sync_accepts_only_matching_verified_generation(tmp_path):
     status.write_text(json.dumps(proof), encoding="utf-8")
     with pytest.raises(RuntimeError, match="verified credential rotation"):
         dbs.require_verified_rotation("gen-rotated", status_path=status, generation_path=pin)
+
+
+@pytest.mark.parametrize("response", [
+    {"ok": "true", "credential_generation": "gen-v2", "predictions_upserted": 0, "results_upserted": 0},
+    {"ok": True, "credential_generation": "gen-v2"},
+    {"ok": True, "credential_generation": "gen-v2", "predictions_upserted": "0", "results_upserted": 0},
+    {"ok": True, "credential_generation": "gen-v2", "predictions_upserted": True, "results_upserted": 0},
+    {"ok": True, "credential_generation": "gen-v2", "predictions_upserted": -1, "results_upserted": 0},
+    {"ok": True, "credential_generation": "gen-v2", "predictions_upserted": 1, "results_upserted": 0},
+    {"ok": True, "credential_generation": "gen-v2", "predictions_upserted": 0, "results_upserted": 1},
+])
+def test_sakura_api_requires_strict_and_complete_acknowledgement(monkeypatch, response):
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return json.dumps(response).encode("utf-8")
+
+    monkeypatch.setattr(dbs.urllib.request, "urlopen",
+                        lambda request, timeout=30: FakeResponse())
+    with pytest.raises(RuntimeError, match="acknowledgement"):
+        dbs.post_payload(
+            "https://example.invalid/ingest",
+            "x" * 32,
+            {"schema_version": dbs.SCHEMA_VERSION, "predictions": [], "results": []},
+            credential_generation="gen-v2",
+        )
+
+
+def test_sakura_api_accepts_counts_matching_nonempty_payload(monkeypatch):
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self):
+            return json.dumps({
+                "ok": True,
+                "credential_generation": "gen-v2",
+                "predictions_upserted": 2,
+                "results_upserted": 1,
+            }).encode("utf-8")
+
+    monkeypatch.setattr(dbs.urllib.request, "urlopen",
+                        lambda request, timeout=30: FakeResponse())
+    payload = {
+        "schema_version": dbs.SCHEMA_VERSION,
+        "predictions": [{"prediction_id": "p1"}, {"prediction_id": "p2"}],
+        "results": [{"result_id": "r1"}],
+    }
+    outcome = dbs.post_payload(
+        "https://example.invalid/ingest", "x" * 32,
+        payload, credential_generation="gen-v2",
+    )
+    assert outcome["predictions_upserted"] == 2
+    assert outcome["results_upserted"] == 1
