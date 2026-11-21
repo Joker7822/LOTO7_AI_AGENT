@@ -21,69 +21,69 @@
   "online_decay": 0.995,
   "min_train": 100,
   "evaluated_rounds": 60,
-  "evaluated_round_start": 644,
-  "evaluated_round_end": 703,
-  "data_sha256": "dd26a11d78267c8d73925700ab88f6b246b22153f06ee12a064cf19695fdcc2c",
+  "evaluated_round_start": 645,
+  "evaluated_round_end": 704,
+  "data_sha256": "9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80",
   "scout": {
-    "mean_log_edge_vs_uniform": -6.77343224393991e-05,
-    "mean_brier_edge_vs_uniform": -1.9988375971635256e-05,
-    "mean_top7_hits": 1.3833333333333333,
+    "mean_log_edge_vs_uniform": -9.714767696727504e-05,
+    "mean_brier_edge_vs_uniform": -2.8973174242322616e-05,
+    "mean_top7_hits": 1.4,
     "mean_weights": {
-      "uniform": 0.5966899412058958,
-      "bayes_short40": 0.11917621828467069,
-      "bayes_long160": 0.06144125193863738,
-      "momentum_shrink": 0.22269258857079616
+      "uniform": 0.5974587933777935,
+      "bayes_short40": 0.11856070632056828,
+      "bayes_long160": 0.06124326598822868,
+      "momentum_shrink": 0.22273723431340967
     },
     "last_prior_only_weights": {
-      "uniform": 0.6001780929849123,
-      "bayes_short40": 0.10962910573698277,
-      "bayes_long160": 0.04881447162920574,
-      "momentum_shrink": 0.2413783296488991
+      "uniform": 0.6119654457265382,
+      "bayes_short40": 0.10499545485434927,
+      "bayes_long160": 0.05158799528440556,
+      "momentum_shrink": 0.23145110413470688
     },
     "rank_bucket_calibration": [
       {
         "rank_bucket": "1-7",
-        "realized_frequency": 0.1976190476190476,
-        "predicted_probability": 0.19395163666313775,
+        "realized_frequency": 0.2,
+        "predicted_probability": 0.1939415966749371,
         "observations": 420
       },
       {
         "rank_bucket": "8-14",
         "realized_frequency": 0.1761904761904762,
-        "predicted_probability": 0.19073205837795557,
+        "predicted_probability": 0.19070728194330225,
         "observations": 420
       },
       {
         "rank_bucket": "15-37",
-        "realized_frequency": 0.19057971014492753,
-        "predicted_probability": 0.18727017977010202,
+        "realized_frequency": 0.18985507246376812,
+        "predicted_probability": 0.18728077607270976,
         "observations": 1380
       }
     ],
     "log_edge_paired_bootstrap_95": {
-      "mean": -6.77343224393991e-05,
-      "low95": -0.0004322991344925915,
-      "high95": 0.0003125073446553908
+      "mean": -9.714767696727504e-05,
+      "low95": -0.0004627727629993619,
+      "high95": 0.00026383322813099504
     }
   },
   "v2_reference": {
     "available": true,
     "same_historical_rounds": true,
-    "mean_log_edge": -8.12953993586607e-05,
-    "mean_top7_hits": 1.5333333333333334,
-    "mean_brier_edge": -2.625691317193433e-05
+    "mean_log_edge": -8.578573262100024e-05,
+    "mean_top7_hits": 1.5,
+    "mean_brier_edge": -2.7702365593796722e-05
   },
   "full_budget_fair_draw_null": {
     "worlds": 64,
     "matching_algorithm_and_history_length": true,
-    "mean_log_edge": 2.1532807439834486e-05,
-    "log_edge_null_p95": 0.00022218459878695787,
-    "top7_null_mean": 1.33828125,
+    "mean_log_edge": 1.5964333015598307e-05,
+    "log_edge_null_p95": 0.00023675007188320388,
+    "top7_null_mean": 1.3351562499999998,
     "simulation_seed": 74190329,
     "synthetic_worlds_not_prospective_evidence": true
   },
-  "synthetic_null_p_log_edge": 0.6923076923076923,
-  "synthetic_null_p_top7": 0.4,
+  "synthetic_null_p_log_edge": 0.7692307692307693,
+  "synthetic_null_p_top7": 0.2923076923076923,
   "agent_roles": {
     "hypothesis_engineer": "Construct fixed uniform, shrinkage-frequency and momentum experts.",
     "online_calibration_specialist": "Update weights using strictly previous outcomes and proper log score.",
