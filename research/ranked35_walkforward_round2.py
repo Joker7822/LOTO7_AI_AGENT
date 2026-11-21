@@ -47,11 +47,11 @@ TICKET_FIELDS = (
     "round", "draw_date", "training_rows", "phase", "ticket",
     "ranking_positions", "predicted_numbers", "actual_main_numbers",
     "actual_bonus_numbers", "main_hits", "bonus_hits", "grade",
-    "public_prize_amount", "rank_sha256",
+    "public_prize_amount", "source_prefix_sha256", "rank_sha256",
 )
 ROUND_FIELDS = (
     "round", "draw_date", "training_rows", "phase", "rank_1_to_7",
-    "rank_1_to_35", "excluded_rank_36_37", "rank_sha256", "top7_hits",
+    "rank_1_to_35", "excluded_rank_36_37", "source_prefix_sha256", "rank_sha256", "top7_hits",
     "max_hits", "mean_ticket_hits", "ge3", "ge4", "portfolio_score",
     "matched_ensemble32_score", "score_delta_vs_matched32",
     "winning_tickets", "public_payout_yen", "public_payout_complete",
@@ -148,8 +148,6 @@ def _phase_summary(round_rows: list[dict[str, object]], exact: dict[str, float])
     top_hits = [float(row["top7_hits"]) for row in round_rows]
     matches = [float(row["matched_ensemble32_score"]) for row in round_rows]
     deltas = [a-b for a,b in zip(scores, matches)]
-    grades = Counter(str(row["grade"]) for row in [] )  # Grade counts are in ticket CSV.
-    _ = grades
     return {
         "round_count": len(round_rows),
         "ticket_count": len(round_rows)*5,
@@ -215,8 +213,8 @@ def _verify_parity(history: np.ndarray, config: v2.ModelConfig, snapshots: dict[
 def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         min_train: int = 100, matched_reps: int = 32,
         verify_parity: bool = True) -> dict[str, object]:
-    if min_train < 20:
-        raise ValueError("official Champion Hedge activation requires min_train >= 20")
+    if min_train != 100:
+        raise ValueError("this reproducible replay uses the approved Champion min_train=100 policy")
     if matched_reps < 1:
         raise ValueError("matched_reps must be positive")
     config = _read_champion(champion_file)
@@ -240,7 +238,17 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
     keys: list[str] | None = None
     logw: np.ndarray | None = None
     parity_snapshots: dict[int, np.ndarray] = {}
+    prefix_hash = hashlib.sha256()
     for t in range(1, len(history)):
+        # The prefix hash itself must not include future rows, either.
+        previous = clean.iloc[t - 1]
+        prior_date = previous["抽せん日"].date().isoformat()
+        prior_main = _numbers(np.flatnonzero(history[t - 1]) + 1)
+        prior_bonus = str(previous.get("ボーナス数字", ""))
+        prefix_hash.update(
+            f"{t}|{prior_date}|{prior_main}|{prior_bonus}\n".encode("utf-8")
+        )
+        source_prefix_sha = prefix_hash.hexdigest()
         target_round = t + 1
         if t < 20:
             phase = "uniform_cold_start"
@@ -262,7 +270,7 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
             raise AssertionError("ranked portfolio disjoint35 invariant failed")
         frozen_rank = ",".join(str(x) for x in ranking)
         rank_sha = hashlib.sha256(
-            f"{champion_version}|{data_sha}|{target_round}|{frozen_rank}".encode("utf-8")
+            f"{champion_version}|{source_prefix_sha}|{target_round}|{frozen_rank}".encode("utf-8")
         ).hexdigest()
         # Target drawn numbers must not be accessed until predictions are frozen.
         actual_main = tuple(int(n) for n in (np.flatnonzero(history[t]) + 1).tolist())
@@ -294,6 +302,7 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
                 "main_hits": main_hits, "bonus_hits": bonus_hits,
                 "grade": grade,
                 "public_prize_amount": f"{amount}円" if amount is not None else "確認できません",
+                "source_prefix_sha256": source_prefix_sha,
                 "rank_sha256": rank_sha,
             })
         round_rows.append({
@@ -302,6 +311,7 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
             "rank_1_to_7": _numbers(ranking[:7]),
             "rank_1_to_35": " ".join(f"{v:02d}" for v in ranking[:35]),
             "excluded_rank_36_37": " ".join(f"{v:02d}" for v in ranking[35:]),
+            "source_prefix_sha256": source_prefix_sha,
             "rank_sha256": rank_sha, "top7_hits": len(set(ranking[:7]) & actual_set),
             "max_hits": int(metrics["max_hits"]), "mean_ticket_hits": float(metrics["mean_hits"]),
             "ge3": int(metrics["ge3"]), "ge4": int(metrics["ge4"]),
