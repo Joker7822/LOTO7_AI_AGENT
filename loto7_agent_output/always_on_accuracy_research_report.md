@@ -1,8 +1,8 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-11-21T20:08:54+09:00**
-- Completed audit cycles: **45**
-- This cycle: **future_protocol** / 科学的事前凍結欠損のため監査のみ：事前凍結と真正将来採点の連続性を監査
+- Last executed: **2026-11-21T20:43:02+09:00**
+- Completed audit cycles: **46**
+- This cycle: **generalization** / 科学的事前凍結欠損のため監査のみ：過去モデル比較・多重比較を点検
 - Network discovery: **not_scheduled**
 - Trusted draw latest: **704**, two-source: **True**
 - Registered science: **BLOCKED_MISSING_PREFROZEN_701**
@@ -14,7 +14,7 @@
 - 第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。
 - 探索予算ガードがVALIDATION_ONLY。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 26回固定holdout 11/26、新規v2 4回
+- 過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
 - [Cross-Version Defect Prediction: Does Excessive Train-Test Similarity Affect the Reliability of Evaluation?](https://doi.org/10.5220/0013481700003928) (2025) — UNREVIEWED
