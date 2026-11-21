@@ -133,10 +133,7 @@ def publish(
             "schedule_policy": "Friday 13:00-15:00 JST",
             "production_promotion_method": "future_oos_only",
             "ticket_policy": (
-                geometry35.RANKED_VERSION
-                if str(frozen[0].get("model_version", "")).endswith(
-                    "+" + geometry35.RANKED_VERSION
-                ) else geometry35.VERSION
+                geometry35.issued_policy(frozen, target_round)
                 if target_round >= geometry35.MIN_TARGET_ROUND
                 else "champion_original"
             ),
