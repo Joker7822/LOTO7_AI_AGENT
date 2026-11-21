@@ -173,7 +173,7 @@ def test_weekly_existing_frozen_target_returns_before_new_geometry(tmp_path, mon
     # A successful first issuance under an injected prefreeze is not
     # required for this logic: _frozen_target_rows controls the early exit.
     monkeypatch.setattr(weekly, "_frozen_target_rows", lambda *_: [
-        {"ticket": str(i), "model_version": "original"}
+        {"ticket": str(i), "model_version": "baseline+" + geometry.VERSION}
         for i in range(1, 6)
     ])
     monkeypatch.setattr(ledger, "append_prediction_invalidations",
