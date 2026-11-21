@@ -1,17 +1,17 @@
 {
   "version": "always-on-accuracy-research-v1",
-  "sequence": 42,
-  "last_record_sha256": "84535d4ac158758b531c9f0a3741a11eee72d3e89f50aa5045df0690565b7de1",
-  "last_activity_jst": "2026-11-21T09:58:19+09:00",
-  "current_phase": "budget_and_plan",
-  "current_activity": "科学的事前凍結欠損のため監査のみ：試行予算を守り次の検証を計画",
+  "sequence": 43,
+  "last_record_sha256": "936f857233f1b0af4586827bfa10a789c7bf0764d5029848fb913acbc70a73ea",
+  "last_activity_jst": "2026-11-21T11:20:46+09:00",
+  "current_phase": "literature_search",
+  "current_activity": "科学的事前凍結欠損のため監査のみ：インターネットから最新の研究論文を検索",
   "status": "registered_science_blocked_observational_audit",
   "observation_only": true,
   "registered_science_status": "BLOCKED_MISSING_PREFROZEN_701",
-  "research_mode": "SEARCH",
+  "research_mode": "VALIDATION_ONLY",
   "latest_resolved_round": 704,
   "two_source_verified": true,
-  "same_data_trials": 600,
+  "same_data_trials": 602,
   "max_same_data_trials": 800,
   "future_verified_counts": {
     "holdout": 11,
@@ -19,8 +19,29 @@
     "adaptive": 4,
     "fifth_expert": 0
   },
-  "online_search_status": "not_scheduled",
+  "online_search_status": "searched",
   "papers": [
+    {
+      "doi": "10.5220/0013481700003928",
+      "title": "Cross-Version Defect Prediction: Does Excessive Train-Test Similarity Affect the Reliability of Evaluation?",
+      "year": 2025,
+      "url": "https://doi.org/10.5220/0013481700003928",
+      "review_status": "unreviewed"
+    },
+    {
+      "doi": "10.1016/j.ijar.2024.109213",
+      "title": "Imprecision in martingale- and test-theoretic prequential randomness",
+      "year": 2024,
+      "url": "https://doi.org/10.1016/j.ijar.2024.109213",
+      "review_status": "unreviewed"
+    },
+    {
+      "doi": "10.1115/jrc2024-124114",
+      "title": "Locomotive Crash Energy Management Train-To-Train Impact Test Results",
+      "year": 2024,
+      "url": "https://doi.org/10.1115/jrc2024-124114",
+      "review_status": "unreviewed"
+    },
     {
       "doi": "10.1201/9781003203971-10",
       "title": "Probabilistic Forecast Verification",
@@ -190,11 +211,13 @@
       "review_status": "unreviewed"
     }
   ],
-  "new_papers_count": 0,
+  "new_papers_count": 3,
   "review_notes": [
     "第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。",
+    "探索予算ガードがVALIDATION_ONLY。既存データの無制限再探索は禁止。",
     "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-    "同一履歴の新規試行予算 600/800"
+    "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
+    "オンライン検索: searched / 新規候補 3件"
   ],
   "promotion_authorized": false,
   "read_only_scientific_activity": true
