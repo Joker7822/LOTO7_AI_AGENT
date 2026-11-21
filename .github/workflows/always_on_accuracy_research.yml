@@ -149,7 +149,14 @@ jobs:
           # budget, rewriting an experiment, or grading unverified results.
           # Only the registered advanced lab may refresh its own summary.
       - name: Commit only research-owned generated artifacts
-        if: github.event_name != 'pull_request' && steps.science_provenance.outputs.ready == 'true'
+        # A missing original #701 freeze blocks registered future inference,
+        # not independent source auditing / bibliographic review.
+        # Never grant this publishing step to an untrusted PR or non-main ref.
+        if: >-
+          github.event_name != 'pull_request' &&
+          github.ref == 'refs/heads/main' &&
+          (steps.science_provenance.outputs.ready == 'true' ||
+           steps.science_provenance.outputs.status == 'BLOCKED_MISSING_PREFROZEN_701')
         shell: bash
         run: |
           set -euo pipefail
@@ -158,16 +165,29 @@ jobs:
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
-            python always_on_accuracy_agent.py --repo-root .
-            python research_literature_pipeline.py --repo-root .
-            python research_evidence_resilience.py --repo-root .
-            python research_application_gate.py --repo-root .
-            python research_data_quality.py --repo-root .
-            python research_autonomy_orchestrator.py --repo-root .
+            # The preflight may change while waiting for another writer.
+            # Recheck against the exact checkout being evaluated.
+            current_status="$(python -c 'from pathlib import Path; from research_cycle_provenance_recovery import check; print(check(Path("."))["status"])')"
+            if [ "$current_status" = "BLOCKED_MISSING_PREFROZEN_701" ]; then
+              python always_on_accuracy_agent.py --repo-root . --observation-only
+              echo "Original #701 freeze remains blocked; observational audit only."
+            elif [ "$current_status" = "READY_FOR_BOUNDED_RESEARCH" ]; then
+              python always_on_accuracy_agent.py --repo-root .
+              python research_literature_pipeline.py --repo-root .
+              python research_evidence_resilience.py --repo-root .
+              python research_application_gate.py --repo-root .
+              python research_data_quality.py --repo-root .
+              python research_autonomy_orchestrator.py --repo-root .
+            else
+              echo "::warning::Research audit not authorized by current evidence: $current_status"
+              exit 0
+            fi
             git add -- \
               loto7_agent_output/always_on_accuracy_research_journal.jsonl \
               loto7_agent_output/always_on_accuracy_research_state.json \
-              loto7_agent_output/always_on_accuracy_research_report.md \
+              loto7_agent_output/always_on_accuracy_research_report.md
+            if [ "$current_status" = "READY_FOR_BOUNDED_RESEARCH" ]; then
+              git add -- \
               loto7_agent_output/research_literature_reviews.json \
               loto7_agent_output/research_experiment_proposals.json \
               loto7_agent_output/research_literature_review_report.md \
@@ -181,6 +201,7 @@ jobs:
               loto7_agent_output/research_autonomy_priority_report.md \
               loto7_agent_output/research_data_quality.json \
                loto7_agent_output/research_data_quality_report.md
+            fi
             unexpected="$(git diff --cached --name-only | grep -Ev '^loto7_agent_output/(always_on_accuracy_research_(journal.jsonl|state.json|report.md)|research_literature_reviews.json|research_experiment_proposals.json|research_literature_review_report.md|research_verified_publications.json|research_method_sandbox.json|research_self_repair_report.json|research_verified_method_report.md|research_application_readiness.json|research_application_readiness_report.md|research_autonomy_priority_queue.json|research_autonomy_priority_report.md|research_data_quality.json|research_data_quality_report.md)$' || true)"
             if [ -n "$unexpected" ]; then
               echo "::error::Unsafe staged paths: $unexpected"
@@ -190,7 +211,11 @@ jobs:
               echo "No changed research artifacts."
               exit 0
             fi
-            git commit -m "chore: audit scholarly evidence and bounded research recovery"
+            if [ "$current_status" = "BLOCKED_MISSING_PREFROZEN_701" ]; then
+              git commit -m "research: append observation-only audit without future inference"
+            else
+              git commit -m "chore: audit scholarly evidence and bounded research recovery"
+            fi
             if git push origin HEAD:main; then
               echo "Research-only evidence published."
               exit 0
