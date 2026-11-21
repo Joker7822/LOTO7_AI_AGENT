@@ -18,6 +18,9 @@ LEVEL = {"block": 0, "watch": 1, "info": 2}
 WORKFLOW_PLAYBOOKS = {
     "continuous_loto7_v4.yml": ("研究復旧エージェント", "研究CIの直近ログを確認し、修正後の実行を別途検証してください。"),
     "continuous_learning_agent.yml": ("継続学習エージェント", "継続学習の事前凍結・採点状態を照合してください。"),
+    "always_on_accuracy_research.yml": ("自律研究監査エージェント", "事前凍結の欠損を後付け修復せず、研究活動台帳と科学レポートの前提を照合してください。"),
+    "open_ended_evolution.yml": ("自律モデル進化エージェント", "GitHub Actions実行と研究世代数の増加を別々に確認してください。"),
+    "recursive_self_evolution.yml": ("再帰的研究進化エージェント", "GitHub Actions実行と改ざん検出付き研究台帳を照合してください。"),
     "agent_role_council.yml": ("監査エージェント", "監査結果と入力データの整合性を確認してください。"),
     "joint_set_v2_signal_oos.yml": ("将来検証エージェント", "SHA固定されたv2台帳を確認し、未凍結予測の事後復元は行わないでください。"),
     "weekly_production_publisher.yml": ("本番運用エージェント", "公開期限と既存のProduction運用手順を人が確認してください。事後発行は禁止です。"),
@@ -123,9 +126,15 @@ def build_plan(snapshot: Mapping[str, Any], now: datetime | None = None) -> dict
                 filename, link,
             ))
         elif health == "warning":
+            # The always-on research job may succeed but intentionally skip
+            # publishing when its immutable scientific prerequisites are stale.
+            stale_ledger = filename == "always_on_accuracy_research.yml"
             tasks.append(_item(
                 "watch", f"WORKFLOW_WARNING:{filename}", owner,
-                f"{label}：スキップ・キャンセルなどを確認", "最新の実行が正常終了として記録されていません。",
+                f"{label}：" + ("研究台帳の更新を確認できません" if stale_ledger
+                             else "スキップ・キャンセルなどを確認"),
+                ("Actionsの成功は研究台帳の更新を証明しません。"
+                 if stale_ledger else "最新の実行が正常終了として記録されていません。"),
                 playbook, str(w.get("run_id") or ""), link,
             ))
 

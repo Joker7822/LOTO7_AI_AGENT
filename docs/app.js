@@ -392,7 +392,8 @@ function renderAlwaysOn(ops){
     container.append(node("p","muted","監査活動の記録がまだないか、安全な表示を確認できません。"));
     return;
   }
-  set("always-on-health",a.stale?"更新遅延":a.observationOnly?"情報監査のみ・登録済み検証停止":a.status==="online_unavailable"?"接続要確認":"記録更新中");
+  const prefrozenBlock = a.stale && ops.scientificValidation?.blocker === "missing_original_prefrozen_701";
+  set("always-on-health",prefrozenBlock?"第701回事前凍結欠損・研究監査保留":a.stale?"更新遅延":a.observationOnly?"情報監査のみ・登録済み検証停止":a.status==="online_unavailable"?"接続要確認":"記録更新中");
   set("always-on-count",String(a.sequence)+" 回");
   set("always-on-time",asJst(a.lastActivity));
   set("always-on-activity",a.activity);
