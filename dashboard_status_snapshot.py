@@ -42,6 +42,9 @@ SOURCE_FILES = {
 WORKFLOWS = {
     "continuous_loto7_v4.yml": "継続研究",
     "continuous_learning_agent.yml": "継続学習",
+    "always_on_accuracy_research.yml": "自律研究監査",
+    "open_ended_evolution.yml": "自律モデル進化",
+    "recursive_self_evolution.yml": "再帰的研究進化",
     "agent_role_council.yml": "役割監査",
     "joint_set_v2_signal_oos.yml": "v2将来検証",
     "weekly_production_publisher.yml": "本番発行",
@@ -591,6 +594,16 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
     filenames = [x.get("file") for x in workflows]
     if filenames != list(WORKFLOWS):
         raise error("workflow order/identity mismatch")
+    # A successful Actions job does not prove its guarded research ledger
+    # advanced. Preserve the actual GitHub conclusion while showing warning.
+    workflow_rows = [dict(item) for item in workflows]
+    for item in workflow_rows:
+        if (item["file"] == "always_on_accuracy_research.yml"
+                and item.get("health") == "ok"
+                and always_on.get("status") in (
+                    "stale_historical_activity", "not_yet_started", "invalid_or_unsafe"
+                )):
+            item["health"] = "warning"
     moment = (now or datetime.now(JST)).astimezone(JST)
     snapshot = {
         "version": VERSION,
@@ -598,7 +611,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         "source_commit": ref or subprocess.check_output(
             ["git", "-C", str(root), "rev-parse", "HEAD"], text=True).strip(),
         "state_hashes_sha256": hashlib.sha256(json.dumps(sha, sort_keys=True).encode()).hexdigest(),
-        "sources": sources, "workflows": workflows, "series": series,
+        "sources": sources, "workflows": workflow_rows, "series": series,
         "scientific_validation": scientific,
         "latest_prediction": latest_prediction,
         "always_on_accuracy": always_on,
