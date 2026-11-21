@@ -386,7 +386,8 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         "approved_champion_101_plus": [r for r in round_rows if r["phase"] == "approved_champion_online"],
     }
     summaries = {key: _phase_summary(rows, exact) for key, rows in groups.items()}
-    grades = Counter(str(r["grade"]) for r in ticket_rows)
+    grades = Counter(str(r["grade"]) for r in ticket_rows if r["arm"] == "combination")
+    baseline_grades = Counter(str(r["grade"]) for r in ticket_rows if r["arm"] == "rank_order")
     summary: dict[str, Any] = {
         "report_version": VERSION,
         "evaluation_type": "research_only_retrospective_strict_prefix_walk_forward_not_future_oos",
@@ -401,16 +402,28 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         "phases": PHASE_LABELS,
         "results": summaries,
         "prize_grade_counts_all": dict(sorted(grades.items())),
+        "rank_order_grade_counts_all": dict(sorted(baseline_grades.items())),
+        "evaluated_combination_tickets": len(round_rows)*5,
+        "evaluated_baseline_tickets": len(round_rows)*5,
+        "total_ticket_rows": len(ticket_rows),
+        "combination_agent_version": "production-ai-ranked35-pairwise-combination-v1",
+        "combination_agent_config": asdict(AgentConfig()),
+        "pairwise_training_available_from_round": 101,
+        "cold_start_fallback_rounds": 99,
+        "next_target_retrained_preview": { },
         "champion_parity_verified": verify_parity,
         "champion_parity_target_rounds": sorted(t+1 for t in parity_snapshots) if verify_parity else [],
         "observed_outcomes_used_only_after_each_prediction": True,
         "research_only": True,
         "issued_predictions_changed": False,
+        "promotion_authorized_by_replay": False,
         "champion_changed": False,
         "future_oos_evidence_changed": False,
         "limitations": [
             "Round 2-20 has no AI scores; rank ties are broken by ascending label.",
             "Round 21-100 uses untrained experts and cannot be counted as trained Champion skill.",
+            "Combination AI is not trainable until 100 prior draws, so rounds 2-100 use unchanged rank-order layout.",
+            "Same exact 35-number set used in both replay arms; the learned agent only reassigns 7-number blocks.",
             "Champion hyperparameters were approved after much of this sample: model choice can be retrospective.",
             "Approximate p-values are exploratory fair-draw null tests, not preregistered future OOS proof.",
             "The model's 35-number geometry changes lower-tier coverage, not the 1st prize odds.",
@@ -432,19 +445,20 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
             f"| {name} | {result['round_count']} | "
             f"{t['mean']:.4f} | {t['approx_two_sided_p']:.5f} | "
             f"{result['average_max_hits']:.4f} | "
-            f"{score['mean']:.4f} | {score['delta']:+.4f} | "
+            f"{score['mean']:.4f} | {result['combination_minus_rank_order_score']:+.4f} | "
             f"{score['approx_two_sided_p']:.5f} | "
             f"{result['ge3_rate']*100:.2f}% | "
             f"{result['mean_delta_vs_matched_ensemble32']:+.4f} |"
         )
-    cols = "| Sample | Draws | Top7 hits | Top7 p | Max hits | Score | Score delta vs exact | Score p | GE3 | Delta vs matched32 |"
+    cols = "| Sample | Draws | Top7 hits | Top7 p | Max hits | Combo score | Δ combo vs rank-order | Score p vs fair | GE3 | Δ vs matched32 |"
     md = [
-        "# AI-ranked disjoint 35: retrospective replay from round 2",
+        "# Production-ranked35 pairwise combination AI: retrospective replay from round 2",
         "",
         f"- Draws: **#2–#{len(history)}**; historical source SHA-256: `{data_sha}`",
         f"- Champion: **`{champion_version}`** (fixed configuration)",
         "- Actual draw for each round is consulted only AFTER the ranked ticket combinations are frozen in memory.",
-        "- Five mutually disjoint 7-number tickets: ranks 1-7, 8-14, 15-21, 22-28, 29-35.",
+        "- Five pairwise-disjoint 7-number tickets, preserving the same Champion top35; trained pairwise rearrangement from round 101 onward.",
+        "- Round 2-100: fallback to rank-order arrangement, explicitly NOT trained combination AI.",
         "- Ranks 36-37 are excluded. This is a research replay, not replacement of frozen original Production predictions.",
         "- Exact matched null: analytical 5-disjoint-7 with 2 excluded, not five independent random tickets.",
         "- Additionally compare with 32 seeded geometry-matched random portfolios per target.",
@@ -455,8 +469,12 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         "",
         f"- Exact fair-draw score null mean: **{exact['score_mean']:.6f}**, SD: **{math.sqrt(exact['score_variance']):.6f}**",
         f"- Exact fair-draw 3+ ticket event: **{exact['ge3_probability']*100:.3f}%**",
-        f"- All prize grades: **{json.dumps(summary['prize_grade_counts_all'], ensure_ascii=False)}**",
-        f"- Payout completeness (all rounds): **{summaries['all_rounds_2_plus']['public_prize_amount_known_all_rounds']}**",
+        f"- Combination prize grades: **{json.dumps(summary['prize_grade_counts_all'], ensure_ascii=False)}**",
+        f"- Rank-order prize grades: **{json.dumps(summary['rank_order_grade_counts_all'], ensure_ascii=False)}**",
+        f"- Combination payout / assumed cost: **{summaries['all_rounds_2_plus']['public_payout_sum_yen_when_known']} / {summaries['all_rounds_2_plus']['reference_purchase_cost_yen']} JPY**",
+        f"- Rank-order payout: **{summaries['all_rounds_2_plus']['baseline_payout_yen']} JPY**",
+        f"- Trained combination #101+ score difference vs rank-order: **{summaries['approved_champion_101_plus']['combination_minus_rank_order_score']:+.6f}**",
+        f"- Payout completeness (both arms): **{summaries['all_rounds_2_plus']['public_prize_amount_known_all_rounds'] and summaries['all_rounds_2_plus']['baseline_payout_complete']}**",
         "- Initial rounds #2-20 are uniform; #21-100 are untrained startup. Do not count as verified trained-AI skill.",
         "- Reporting dates refer to historical draw dates. The replay was implemented in November 2026.",
         "",
@@ -469,15 +487,16 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         "results": summaries,
         "grades": dict(grades),
         "parity_target_rounds": summary["champion_parity_target_rounds"],
+        "baseline_grades": dict(baseline_grades),
     }, ensure_ascii=False, sort_keys=True))
     return summary
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Replay ranked disjoint35 from LOTO7 round 2 (research only)")
+    ap = argparse.ArgumentParser(description="Replay trained production combination AI from LOTO7 round 2 (research only)")
     ap.add_argument("--csv", type=Path, default=Path("loto7.csv"))
     ap.add_argument("--champion", type=Path, default=Path("loto7_agent_output/model_champion.json"))
-    ap.add_argument("--out-dir", type=Path, default=Path("research/ai_ranked_disjoint35_replay"))
+    ap.add_argument("--out-dir", type=Path, default=Path("research/production_combination_round2_replay"))
     ap.add_argument("--min-train", type=int, default=100)
     ap.add_argument("--matched-reps", type=int, default=32)
     ap.add_argument("--skip-parity", action="store_true")
