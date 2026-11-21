@@ -37,6 +37,7 @@ from loto7_evolving_agent import (
 )
 from production_ticket_geometry35 import ranked_portfolio_from_scores
 from combination_agent35_core import AgentConfig, candidate_from_history
+from roi_first_governance import evaluate_roi_first, roi_markdown
 
 VERSION = "production-combination-agent-historical-round2-v1"
 PHASE_LABELS = {
@@ -407,6 +408,8 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         "approved_champion_101_plus": [r for r in round_rows if r["phase"] == "approved_champion_online"],
     }
     summaries = {key: _phase_summary(rows, exact) for key, rows in groups.items()}
+    # Cash ROI is the primary decision metric; hit-score is only diagnostic.
+    roi_report = evaluate_roi_first(round_rows)
     grades = Counter(str(r["grade"]) for r in ticket_rows if r["arm"] == "combination")
     baseline_grades = Counter(str(r["grade"]) for r in ticket_rows if r["arm"] == "rank_order")
     summary: dict[str, Any] = {
@@ -420,6 +423,7 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         "source_rows": len(history),
         "matched_null_members_per_round": matched_reps,
         "exact_fair_draw_null": exact,
+        "roi_priority": roi_report,
         "phases": PHASE_LABELS,
         "results": summaries,
         "prize_grade_counts_all": dict(sorted(grades.items())),
@@ -453,6 +457,13 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         ],
     }
     out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "ROI_REPORT.md").write_text(
+        roi_markdown(roi_report), encoding="utf-8"
+    )
+    (out_dir / "roi_priority_summary.json").write_text(
+        json.dumps(roi_report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8"
+    )
     _write_csv(out_dir / "rounds_2_to_latest.csv", round_rows, ROUND_FIELDS)
     _write_csv(out_dir / "tickets_2_to_latest.csv", ticket_rows, TICKET_FIELDS)
     (out_dir / "summary.json").write_text(
@@ -474,6 +485,9 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         )
     cols = "| Sample | Draws | Top7 hits | Top7 p | Max hits | Combo score | Δ combo vs rank-order | Score p vs fair | GE3 | Δ vs matched32 |"
     md = [
+        roi_markdown(roi_report),
+        "---",
+        "",
         "# Production-ranked35 pairwise combination AI: retrospective replay from round 2",
         "",
         f"- Draws: **#2–#{len(history)}**; historical source SHA-256: `{data_sha}`",
@@ -505,6 +519,9 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
     print("[RANKED35-REPLAY] " + json.dumps({
         "report_version": VERSION,
         "csv_sha": data_sha,
+        "roi_decision": roi_report["cashflow_adoption_checks"],
+        "roi_101_plus": roi_report["periods"]["trained_101_plus"],
+        "roi_recent60": roi_report["periods"]["recent_60"],
         "last_round": len(history),
         "results": summaries,
         "grades": dict(grades),
