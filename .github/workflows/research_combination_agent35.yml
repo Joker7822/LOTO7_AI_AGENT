@@ -1,0 +1,89 @@
+name: Research Ranked35 Combination Agent Replay
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "research/combination_agent35.py"
+      - "tests/test_combination_agent35.py"
+      - ".github/workflows/research_combination_agent35.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: research-ranked35-combination-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  research-only-combination-agent:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout without Production push credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install reproducible project dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Unit tests and strict nonanticipation checks
+        run: |
+          python -m compileall -q research/combination_agent35.py
+          python -m pytest -q tests/test_combination_agent35.py
+      - name: Historical AI combination retraining and paired replay
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python research/combination_agent35.py \
+            --csv loto7.csv \
+            --champion loto7_agent_output/model_champion.json \
+            --source-validation loto7_agent_output/source_validation.json \
+            --out-dir "${RUNNER_TEMP}/combination_agent35"
+      - name: Assert 5x7 invariants and read-only research publication
+        env:
+          OUTPUT_DIR: ${{ runner.temp }}/combination_agent35
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          import os
+          from pathlib import Path
+          out = Path(os.environ["OUTPUT_DIR"])
+          report = json.loads((out / "summary.json").read_text(encoding="utf-8"))
+          assert report["source_trust"] == "verified_two_result_sources"
+          assert report["evaluated_rounds"] == report["source_rounds"] - 100
+          assert report["periods"]["all_101_latest"]["issued_ticket_count_per_arm"] == 5*report["evaluated_rounds"]
+          assert report["production_ledger_modified"] is False
+          assert report["champion_modified"] is False
+          assert report["prospective_registry_modified"] is False
+          assert report["promotion_authorized"] is False
+          with (out / "paired_rounds_101_to_latest.csv").open(encoding="utf-8-sig") as stream:
+              rounds = list(csv.DictReader(stream))
+          assert len(rounds) == report["evaluated_rounds"]
+          for r in rounds:
+              left = [int(n) for ticket in r["baseline_tickets"].split("|") for n in ticket.split()]
+              right = [int(n) for ticket in r["agent_tickets"].split("|") for n in ticket.split()]
+              selected = [int(n) for n in r["rank_top35"].split()]
+              excluded = {int(n) for n in r["excluded_two"].split()}
+              assert len(left) == len(set(left)) == len(right) == len(set(right)) == 35
+              assert set(left) == set(right) == set(selected)
+              assert not set(right) & excluded
+              assert float(r["agent_objective_gain"]) >= -1e-8
+          print(f"VERIFIED {len(rounds)} paired historical draws and 2*5*len(rounds) tickets")
+          PY
+          cat "${OUTPUT_DIR}/REPORT.md" >> "${GITHUB_STEP_SUMMARY}"
+          cat "${OUTPUT_DIR}/REPORT.md"
+      - name: Archive paired ticket results and agent model diagnostics
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ranked35-combination-agent-backtest
+          path: ${{ runner.temp }}/combination_agent35
+          retention-days: 90
+          if-no-files-found: error
