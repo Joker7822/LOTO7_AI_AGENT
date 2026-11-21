@@ -1,9 +1,9 @@
 # LOTO7 AI Agent — Role Council
 
-- checked JST: **2026-11-22T08:14:43+09:00**
+- checked JST: **2026-11-22T08:30:35+09:00**
 - latest round: **704**
 - overall: **WATCH**
-- input snapshot SHA256: 43239921beb67f85d9ba51da79888f37e9cd2ac1a3abad5887d7b77daacd8fed
+- input snapshot SHA256: d1a52db5728faa7f4902dbd79f014cdb745b42f1b347f3ee6b41fed995f367f8
 - **Read-only advice; never promote, publish, freeze or backfill.**
 
 ## Role checks
