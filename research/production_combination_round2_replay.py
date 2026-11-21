@@ -225,7 +225,7 @@ def _verify_parity(history: np.ndarray, config: v2.ModelConfig, snapshots: dict[
 
 def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         min_train: int = 100, matched_reps: int = 32,
-        verify_parity: bool = True) -> dict[str, object]:
+        verify_parity: bool = True, source_report: Path | None = None) -> dict[str, object]:
     if min_train != 100:
         raise ValueError("this reproducible replay uses the approved Champion min_train=100 policy")
     if matched_reps < 1:
@@ -245,6 +245,10 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         raise RuntimeError("history must contain contiguous chronological rounds starting with 1")
 
     data_sha = fingerprint_file(csv_path)
+    if source_report is not None:
+        from research.combination_agent35 import _validate_source
+        latest_date = clean.iloc[-1]["抽せん日"].date().isoformat()
+        _validate_source(csv_path, source_report, len(history), latest_date)
     champion_version = config.version()
     round_rows: list[dict[str, object]] = []
     ticket_rows: list[dict[str, object]] = []
@@ -376,6 +380,23 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
             logw = v2._update_log_weights(history[:t], np.flatnonzero(history[t]),
                                           keys, logw, config)
 
+    if keys is None or logw is None:
+        raise AssertionError("no Champion online training occurred")
+    # Relearn through the latest completed draw for next, *unissued* forecast.
+    final_q = v2._score_distribution(history, keys, logw, config)
+    future_baseline, future_ranking = ranked_portfolio_from_scores(final_q)
+    future_combo, future_diag = candidate_from_history(
+        history, future_ranking, AgentConfig()
+    )
+    preview = {
+        "status": "research_unissued_not_prospective_freeze",
+        "target_round": len(history) + 1,
+        "top35_ranked_numbers": future_ranking[:35],
+        "excluded_numbers": future_ranking[35:],
+        "baseline_tickets": [list(ticket) for ticket in future_baseline],
+        "combination_tickets": [list(ticket) for ticket in future_combo],
+        "training_diagnostics": future_diag,
+    }
     if verify_parity:
         _verify_parity(history, config, parity_snapshots, min_train)
     exact = exact_disjoint_score_null()
@@ -410,7 +431,8 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         "combination_agent_config": asdict(AgentConfig()),
         "pairwise_training_available_from_round": 101,
         "cold_start_fallback_rounds": 99,
-        "next_target_retrained_preview": { },
+        "next_target_retrained_preview": preview,
+        "source_validation": "verified_two_result_sources" if source_report else "not_requested_in_local_test",
         "champion_parity_verified": verify_parity,
         "champion_parity_target_rounds": sorted(t+1 for t in parity_snapshots) if verify_parity else [],
         "observed_outcomes_used_only_after_each_prediction": True,
@@ -500,10 +522,11 @@ def main() -> int:
     ap.add_argument("--min-train", type=int, default=100)
     ap.add_argument("--matched-reps", type=int, default=32)
     ap.add_argument("--skip-parity", action="store_true")
+    ap.add_argument("--source-validation", type=Path, default=Path("loto7_agent_output/source_validation.json"))
     args = ap.parse_args()
     run(csv_path=args.csv, champion_file=args.champion, out_dir=args.out_dir,
         min_train=args.min_train, matched_reps=args.matched_reps,
-        verify_parity=not args.skip_parity)
+        verify_parity=not args.skip_parity, source_report=args.source_validation)
     return 0
 
 
