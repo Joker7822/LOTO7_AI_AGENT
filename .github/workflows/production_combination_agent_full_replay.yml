@@ -6,6 +6,10 @@ on:
     paths:
       - "combination_agent35_core.py"
       - "roi_first_governance.py"
+      - "roi_online_selector.py"
+      - "roi_operational_risk.py"
+      - "research/roi_issued_financial_audit.py"
+      - "tests/test_roi_end_to_end.py"
       - "tests/test_roi_first_governance.py"
       - "production_ticket_geometry35.py"
       - "production_disjoint35_policy.py"
@@ -50,13 +54,14 @@ jobs:
           PYTHONPATH: .
         run: |
           set -euo pipefail
-          python -m compileall -q roi_first_governance.py combination_agent35_core.py production_ticket_geometry35.py production_disjoint35_policy.py audit_ledger.py weekly_production_prediction.py research/production_combination_round2_replay.py
+          python -m compileall -q roi_first_governance.py roi_online_selector.py roi_operational_risk.py research/roi_issued_financial_audit.py combination_agent35_core.py production_ticket_geometry35.py production_disjoint35_policy.py audit_ledger.py weekly_production_prediction.py research/production_combination_round2_replay.py
           python -m pytest -q \
             tests/test_production_combination_agent35.py \
             tests/test_production_combination_round2_replay.py \
             tests/test_combination_agent35.py \
             tests/test_production_ai_ranked35.py \
-            tests/test_roi_first_governance.py
+            tests/test_roi_first_governance.py \
+            tests/test_roi_end_to_end.py
 
       - name: Retrain fixed Champion and pairwise combination AI through the verified last draw; replay round 2+
         env:
@@ -70,6 +75,14 @@ jobs:
             --out-dir "${RUNNER_TEMP}/production_combo_round2" \
             --min-train 100 \
             --matched-reps 32
+
+      - name: Audit actually issued Production predictions separately from hypothetical replay
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python research/roi_issued_financial_audit.py --out-dir loto7_agent_output --report-dir "${RUNNER_TEMP}/production_combo_round2/issued_production"
+          cat "${RUNNER_TEMP}/production_combo_round2/issued_production/issued_roi_audit.md" >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Independent coverage and 5x7 invariants audit for every round
         env:
@@ -111,6 +124,25 @@ jobs:
           assert independent_roi==roi
           assert roi["periods"]["all_2_plus"]["combo_payout_yen"] == sum(int(r["public_payout_yen"]) for r in rr)
           assert roi["periods"]["all_2_plus"]["baseline_payout_yen"] == sum(int(r["baseline_payout_yen"]) for r in rr)
+          shadow=json.loads((root/"roi_sequential_shadow.json").read_text(encoding="utf-8"))
+          risk=json.loads((root/"roi_budget_risk.json").read_text(encoding="utf-8"))
+          issued=json.loads((root/"issued_production/issued_roi_audit.json").read_text(encoding="utf-8"))
+          assert shadow["rounds"] == n-1
+          assert shadow["cost_yen_per_arm"] == 1500*(n-1)
+          assert len(shadow["policy_decisions"]) == n-1
+          assert all(row["choice"]=="incumbent" for row in shadow["policy_decisions"] if row["round"] < 153)
+          assert not shadow["buying_authorized"]
+          assert not shadow["production_tickets_modified"]
+          assert risk["historical_combination_total_payout_yen"] == roi["periods"]["all_2_plus"]["combo_payout_yen"]
+          assert risk["automated_purchase_enabled"] is False
+          assert risk["purchase_recommended"] is False
+          assert risk["expected_future_roi"] == "not_verified"
+          assert issued["scope"] == "frozen_issued_predictions_only_not_research_replay"
+          assert issued["actual_purchase_receipts_verified"] is False
+          assert issued["production_ledger_modified"] is False
+          assert (root/"ROI_SHADOW_REPORT.md").is_file()
+          assert (root/"ROI_RISK_REPORT.md").is_file()
+          assert json.loads((root/"summary.json").read_text(encoding="utf-8"))["roi_budget_risk"] == risk
           assert summary["next_target_retrained_preview"]["target_round"]==n+1
           for r in rr:
               rank=[int(v) for v in r["rank_1_to_35"].split()]
