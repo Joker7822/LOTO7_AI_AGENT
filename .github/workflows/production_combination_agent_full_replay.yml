@@ -1,0 +1,126 @@
+name: Production Combination AI Round2 Full Replay and Policy Safety
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "combination_agent35_core.py"
+      - "production_ticket_geometry35.py"
+      - "production_disjoint35_policy.py"
+      - "audit_ledger.py"
+      - "weekly_production_prediction.py"
+      - "research/combination_agent35.py"
+      - "research/production_combination_round2_replay.py"
+      - "tests/test_combination_agent35.py"
+      - "tests/test_production_combination_agent35.py"
+      - "tests/test_production_combination_round2_replay.py"
+      - "tests/test_production_ai_ranked35.py"
+      - ".github/workflows/production_combination_agent_full_replay.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-combination-ai-verify-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  full-retrain-backtest-and-freeze-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout without publish credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pinned project requirements and tests
+        run: python -m pip install -r requirements.txt pytest
+
+      - name: Run production freeze, integrity, and strict-prefix test suites
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m compileall -q combination_agent35_core.py production_ticket_geometry35.py production_disjoint35_policy.py audit_ledger.py weekly_production_prediction.py research/production_combination_round2_replay.py
+          python -m pytest -q \
+            tests/test_production_combination_agent35.py \
+            tests/test_production_combination_round2_replay.py \
+            tests/test_combination_agent35.py \
+            tests/test_production_ai_ranked35.py
+
+      - name: Retrain fixed Champion and pairwise combination AI through the verified last draw; replay round 2+
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python research/production_combination_round2_replay.py \
+            --csv loto7.csv \
+            --champion loto7_agent_output/model_champion.json \
+            --source-validation loto7_agent_output/source_validation.json \
+            --out-dir "${RUNNER_TEMP}/production_combo_round2" \
+            --min-train 100 \
+            --matched-reps 32
+
+      - name: Independent coverage and 5x7 invariants audit for every round
+        env:
+          REPORT_DIR: ${{ runner.temp }}/production_combo_round2
+        run: |
+          python - <<'PY'
+          import csv
+          import json
+          import os
+          from pathlib import Path
+          root=Path(os.environ["REPORT_DIR"])
+          summary=json.loads((root/"summary.json").read_text(encoding="utf-8"))
+          with (root/"rounds_2_to_latest.csv").open(encoding="utf-8-sig", newline="") as f:
+              rr=list(csv.DictReader(f))
+          with (root/"tickets_2_to_latest.csv").open(encoding="utf-8-sig", newline="") as f:
+              tt=list(csv.DictReader(f))
+          n=summary["source_rows"]
+          assert summary["source_validation"]=="verified_two_result_sources"
+          assert summary["target_round_first"]==2 and summary["target_round_last"]==n
+          assert len(rr)==n-1
+          assert len(tt)==10*(n-1)
+          assert summary["results"]["approved_champion_101_plus"]["round_count"]==n-100
+          assert summary["results"]["untrained_expert_21_100"]["round_count"]==80
+          assert summary["results"]["uniform_cold_start_2_20"]["round_count"]==19
+          assert summary["champion_parity_verified"]
+          assert not summary["issued_predictions_changed"]
+          assert not summary["future_oos_evidence_changed"]
+          assert not summary["promotion_authorized_by_replay"]
+          assert summary["next_target_retrained_preview"]["target_round"]==n+1
+          for r in rr:
+              rank=[int(v) for v in r["rank_1_to_35"].split()]
+              selected=set(rank)
+              assert len(rank)==len(selected)==35
+              for col in ("combo_tickets","baseline_tickets"):
+                  parts=[p.split() for p in r[col].split("|")]
+                  assert len(parts)==5 and all(len(p)==7 for p in parts)
+                  numbers=[int(v) for p in parts for v in p]
+                  assert len(numbers)==len(set(numbers))==35
+                  assert set(numbers)==selected
+              if int(r["round"])<=100:
+                  assert r["combo_tickets"]==r["baseline_tickets"]
+                  assert int(r["combo_swaps"])==0
+              else:
+                  assert r["combination_phase"]=="trained_pairwise_combination"
+          print(f"VERIFIED #2-#{n}, {n-1} rounds, {5*(n-1)} combination tickets, all 35-number sets identical")
+          PY
+          cat "${REPORT_DIR}/REPORT.md" >> "${GITHUB_STEP_SUMMARY}"
+          cat "${REPORT_DIR}/REPORT.md"
+
+      - name: Archive all per-round and per-ticket predictions, exact null and next-round research preview
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-combination-ai-round2-full-replay
+          path: ${{ runner.temp }}/production_combo_round2
+          retention-days: 90
+          if-no-files-found: error

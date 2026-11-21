@@ -56,7 +56,7 @@ def test_bad_scores_never_fallback_to_random(bad):
 def test_new_publication_policy_keeps_old_issued_versions_valid():
     assert policy.publication_policy_for_target(702) == policy.VERSION
     assert policy.publication_policy_for_target(704) == policy.VERSION
-    assert policy.publication_policy_for_target(705) == policy.RANKED_VERSION
+    assert policy.publication_policy_for_target(705) == policy.COMBINATION_VERSION
     with pytest.raises(ValueError):
         policy.publication_policy_for_target(701)
 
@@ -86,6 +86,7 @@ def prepared_ranked_output(tmp_path: Path, monkeypatch):
     out_dir = tmp_path / "out"
     cfg = v2.DEFAULT_CHAMPION
     monkeypatch.setattr(geometry, "production_window_guard", lambda *_: None)
+    monkeypatch.setattr(geometry, "publication_policy_for_target", lambda *_: policy.RANKED_VERSION)
     monkeypatch.setattr(geometry, "verify_source", lambda *_: {"trusted": True, "round": 704})
 
     invoked = []
@@ -208,6 +209,7 @@ def test_weekly_freeze_and_republish_use_ranked_champion_without_rewriting(tmp_p
     }), encoding="utf-8")
     monkeypatch.setattr(geometry, "verify_source", lambda *_: {"trusted": True, "round": 704})
     monkeypatch.setattr(geometry, "production_window_guard", lambda *_: None)
+    monkeypatch.setattr(geometry, "publication_policy_for_target", lambda *_: policy.RANKED_VERSION)
     monkeypatch.setattr(geometry, "walk_forward_evolve", lambda *a, **k: SimpleNamespace(
         keys=["x"], final_weights=np.array([1.0])
     ))

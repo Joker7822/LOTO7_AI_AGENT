@@ -236,7 +236,7 @@ def append_current_predictions(
         if (state.get("production_ticket_policy_version") != expected_policy
                 or not str(state.get("model_version", "")).endswith("+" + expected_policy)):
             raise RuntimeError("refusing Production freeze without disjoint35 policy (expected target-specific version)")
-        if expected_policy == geometry35.RANKED_VERSION:
+        if expected_policy in (geometry35.RANKED_VERSION, geometry35.COMBINATION_VERSION):
             ranked = state.get("production_rank_order")
             if (not isinstance(ranked, list)
                     or len(ranked) != 37 or
@@ -250,6 +250,46 @@ def append_current_predictions(
             expected_tickets = [
                 tuple(sorted(ranked[i:i + 7])) for i in range(0, 35, 7)
             ]
+            if expected_policy == geometry35.COMBINATION_VERSION:
+                from combination_agent35_core import AgentConfig, candidate_from_history
+                import numpy as np
+                # Recompute independently using only preceding canonical rows.
+                # Never trust a claimed optimizer output without replaying it.
+                config = AgentConfig()
+                if (state.get("production_combo_agent_version") != expected_policy
+                        or state.get("production_combo_config") != {
+                            "lookback": config.lookback,
+                            "half_life": config.half_life,
+                            "prior_equivalent_draws": config.prior_equivalent_draws,
+                            "max_swaps": config.max_swaps,
+                            "min_improvement": config.min_improvement,
+                        }
+                        or state.get("production_combo_training_rows") != base
+                        or state.get("production_combo_training_data_sha256") != current_data_sha):
+                    raise RuntimeError("refusing combination Production without exact frozen AI configuration")
+                ordered_rows = sorted(loto_rows, key=lambda r: rno(r.get("回別", "")) or -1)
+                if (len(ordered_rows) != base or
+                        [rno(r.get("回別", "")) for r in ordered_rows] != list(range(1, base + 1))):
+                    raise RuntimeError("refusing combination Production without complete preceding draw history")
+                history = np.zeros((base, 37), dtype=np.int8)
+                for hindex, raw_row in enumerate(ordered_rows):
+                    numbers = nums(raw_row.get("本数字", ""))
+                    if (len(numbers) != 7 or len(set(numbers)) != 7
+                            or any(not 1 <= n <= 37 for n in numbers)):
+                        raise RuntimeError("refusing combination Production with invalid prior draw")
+                    history[hindex, np.asarray(numbers, dtype=int) - 1] = 1
+                expected_tickets, combo_meta = candidate_from_history(history, ranked, config)
+                digest = geometry35.combination_layout_sha256(
+                    target_round=target, data_sha=current_data_sha,
+                    champion_version=str(state["production_rank_model_version"]),
+                    ranking=ranked, tickets=expected_tickets, config=config,
+                )
+                if (state.get("production_combo_layout_sha256") != digest
+                        or state.get("production_combo_swaps") != combo_meta["swap_count"]
+                        or not isinstance(state.get("production_combo_training_objective_gain"), (int, float))
+                        or abs(float(state["production_combo_training_objective_gain"])
+                               - combo_meta["training_objective_gain"]) > 1e-9):
+                    raise RuntimeError("refusing combination Production without authentic AI layout digest")
             actual_tickets = [tuple(nums(ticket["numbers"])) for ticket in tickets]
             if actual_tickets != expected_tickets:
                 raise RuntimeError("refusing ranked Production: tickets disagree with Champion ranking")
