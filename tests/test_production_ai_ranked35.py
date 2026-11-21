@@ -191,3 +191,76 @@ def test_weekly_ranked_requires_valid_champion_file(tmp_path):
         weekly.publish(csv_path=csv_path, out_dir=tmp_path / "out",
                        champion_file=tmp_path / "missing.json",
                        research_state=tmp_path / "missing2.json")
+
+
+def test_weekly_freeze_and_republish_use_ranked_champion_without_rewriting(tmp_path, monkeypatch):
+    csv_path = tmp_path / "loto7.csv"
+    with csv_path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(["回別", "抽せん日", "本数字"])
+        writer.writerow(["第704回", "2026-11-20", "01 02 03 04 05 06 07"])
+    out_dir = tmp_path / "out"
+    out_dir.mkdir()
+    cfg = v2.DEFAULT_CHAMPION
+    champion_file = tmp_path / "champion.json"
+    champion_file.write_text(json.dumps({
+        "model_version": cfg.version(), "config": asdict(cfg),
+    }), encoding="utf-8")
+    monkeypatch.setattr(geometry, "verify_source", lambda *_: {"trusted": True, "round": 704})
+    monkeypatch.setattr(geometry, "production_window_guard", lambda *_: None)
+    monkeypatch.setattr(geometry, "walk_forward_evolve", lambda *a, **k: SimpleNamespace(
+        keys=["x"], final_weights=np.array([1.0])
+    ))
+    monkeypatch.setattr(geometry, "final_score", lambda *a, **k: descending_score_ranking())
+
+    first = weekly.publish(csv_path=csv_path, out_dir=out_dir,
+                           champion_file=champion_file,
+                           research_state=tmp_path / "missing-research.json")
+    assert first["target_round"] == "第705回"
+    assert first["ticket_policy"] == policy.RANKED_VERSION
+    pred_path = out_dir / "predictions.csv"
+    frozen_bytes = pred_path.read_bytes()
+    assert len(ledger.read_csv(pred_path)) == 5
+    assert geometry.verify_canonical_publication(out_dir)["status"] == "disjoint35_pass"
+
+    # Publishing again must never re-run the ranking model for the same target.
+    monkeypatch.setattr(geometry, "prepare_new_production_outputs",
+                        lambda **kw: (_ for _ in ()).throw(AssertionError("recomputed frozen target")))
+    again = weekly.publish(csv_path=csv_path, out_dir=out_dir,
+                           champion_file=champion_file,
+                           research_state=tmp_path / "missing-research.json")
+    assert again["reason"] == "republished_frozen_ledger_prediction"
+    assert again["ticket_policy"] == policy.RANKED_VERSION
+    assert pred_path.read_bytes() == frozen_bytes
+
+
+def test_legacy_705_frozen_prediction_is_not_reissued(tmp_path, monkeypatch):
+    csv_path = tmp_path / "loto7.csv"
+    with csv_path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.writer(stream)
+        writer.writerow(["回別", "抽せん日", "本数字"])
+        writer.writerow(["第704回", "2026-11-20", "01 02 03 04 05 06 07"])
+    out = tmp_path / "out"
+    out.mkdir()
+    pred_path = out / "predictions.csv"
+    old_tickets = [
+        {
+            "prediction_id": f"old{i}", "ticket": str(i),
+            "model_version": "baseline+" + policy.VERSION,
+            "target_round": "第705回",
+            "predicted_numbers": " ".join(
+                f"{n:02d}" for n in range((i-1)*7+1, i*7+1)
+            ),
+        }
+        for i in range(1, 6)
+    ]
+    ledger.write_csv(pred_path, old_tickets, ledger.PRED_FIELDS)
+    before = pred_path.read_bytes()
+    monkeypatch.setattr(geometry, "prepare_new_production_outputs",
+                        lambda **kw: (_ for _ in ()).throw(AssertionError("legacy freeze modified")))
+    result = weekly.publish(csv_path=csv_path, out_dir=out,
+                            champion_file=tmp_path / "missing.json",
+                            research_state=tmp_path / "missing2.json")
+    assert result["reason"] == "republished_frozen_ledger_prediction"
+    assert result["ticket_policy"] == policy.VERSION
+    assert pred_path.read_bytes() == before
