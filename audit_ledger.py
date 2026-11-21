@@ -251,6 +251,15 @@ def append_current_predictions(
                 tuple(sorted(ranked[i:i + 7])) for i in range(0, 35, 7)
             ]
             if expected_policy == geometry35.COMBINATION_VERSION:
+                if (state.get("production_roi_primary_kpi") !=
+                        "public_historical_payout_yen_divided_by_1500_yen_per_round"
+                        or state.get("production_roi_prediction_skill_confirmed") is not False
+                        or state.get("production_expected_future_roi") is not None
+                        or state.get("production_purchase_automation") is not False
+                        or state.get("production_reference_cost_yen_for_five_tickets") != 1500
+                        or state.get("production_roi_governance") !=
+                        "prospective_oos_required_no_purchase_authorization"):
+                    raise RuntimeError("refusing combination Production without ROI financial governance")
                 from combination_agent35_core import AgentConfig, candidate_from_history
                 import numpy as np
                 # Recompute independently using only preceding canonical rows.
