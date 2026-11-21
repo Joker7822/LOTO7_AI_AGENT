@@ -38,6 +38,8 @@ from loto7_evolving_agent import (
 from production_ticket_geometry35 import ranked_portfolio_from_scores
 from combination_agent35_core import AgentConfig, candidate_from_history
 from roi_first_governance import evaluate_roi_first, roi_markdown
+from roi_online_selector import backtest_shadow, shadow_markdown
+from roi_operational_risk import evaluate_budget_risk, risk_markdown
 
 VERSION = "production-combination-agent-historical-round2-v1"
 PHASE_LABELS = {
@@ -410,6 +412,8 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
     summaries = {key: _phase_summary(rows, exact) for key, rows in groups.items()}
     # Cash ROI is the primary decision metric; hit-score is only diagnostic.
     roi_report = evaluate_roi_first(round_rows)
+    shadow_report = backtest_shadow(round_rows)
+    budget_report = evaluate_budget_risk(round_rows, roi_report, shadow_report)
     grades = Counter(str(r["grade"]) for r in ticket_rows if r["arm"] == "combination")
     baseline_grades = Counter(str(r["grade"]) for r in ticket_rows if r["arm"] == "rank_order")
     summary: dict[str, Any] = {
@@ -424,6 +428,8 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         "matched_null_members_per_round": matched_reps,
         "exact_fair_draw_null": exact,
         "roi_priority": roi_report,
+        "roi_sequential_shadow": {k: v for k, v in shadow_report.items() if k != "policy_decisions"},
+        "roi_budget_risk": budget_report,
         "phases": PHASE_LABELS,
         "results": summaries,
         "prize_grade_counts_all": dict(sorted(grades.items())),
@@ -457,6 +463,20 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         ],
     }
     out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "ROI_SHADOW_REPORT.md").write_text(
+        shadow_markdown(shadow_report), encoding="utf-8"
+    )
+    (out_dir / "ROI_RISK_REPORT.md").write_text(
+        risk_markdown(budget_report), encoding="utf-8"
+    )
+    (out_dir / "roi_sequential_shadow.json").write_text(
+        json.dumps(shadow_report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8"
+    )
+    (out_dir / "roi_budget_risk.json").write_text(
+        json.dumps(budget_report, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8"
+    )
     (out_dir / "ROI_REPORT.md").write_text(
         roi_markdown(roi_report), encoding="utf-8"
     )
@@ -486,6 +506,8 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
     cols = "| Sample | Draws | Top7 hits | Top7 p | Max hits | Combo score | Δ combo vs rank-order | Score p vs fair | GE3 | Δ vs matched32 |"
     md = [
         roi_markdown(roi_report),
+        shadow_markdown(shadow_report),
+        risk_markdown(budget_report),
         "---",
         "",
         "# Production-ranked35 pairwise combination AI: retrospective replay from round 2",
@@ -522,6 +544,8 @@ def run(*, csv_path: Path, champion_file: Path, out_dir: Path,
         "roi_decision": roi_report["cashflow_adoption_checks"],
         "roi_101_plus": roi_report["periods"]["trained_101_plus"],
         "roi_recent60": roi_report["periods"]["recent_60"],
+        "shadow_selected_roi": shadow_report["selected_roi"],
+        "cash_risk_net_yen": budget_report["historical_combination_net_yen"],
         "last_round": len(history),
         "results": summaries,
         "grades": dict(grades),
