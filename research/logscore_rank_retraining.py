@@ -223,11 +223,33 @@ def _validate_history(x: np.ndarray, clean) -> None:
         raise ValueError("history must start at round 1 and have no gaps")
 
 
-def run(*, csv_path: Path, champion_path: Path, out_dir: Path) -> dict[str, object]:
+def _validate_source_report(report_path: Path, sha: str, latest_round: int,
+                            latest_date: str) -> None:
+    """Fail closed if repo data is not the already verified historical snapshot."""
+    try:
+        report = json.loads(report_path.read_text(encoding="utf-8"))
+        provenance = report["verification_provenance"]
+        latest = report["latest"]
+        trusted = (report["status"] == "ok"
+                   and report["verification"] == "verified_two_result_sources"
+                   and int(latest["round"]) == latest_round
+                   and latest["date"] == latest_date
+                   and provenance["draw_csv_sha256"] == sha)
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError) as exc:
+        raise RuntimeError("verified LOTO7 source report unavailable") from exc
+    if not trusted:
+        raise RuntimeError("verified LOTO7 source report mismatches the replay CSV")
+
+
+def run(*, csv_path: Path, champion_path: Path, out_dir: Path,
+        source_report: Path | None = None) -> dict[str, object]:
     champ_cfg = _champion(champion_path)
     x, clean = make_history(read_csv_flexible(csv_path))
     _validate_history(x, clean)
     sha = fingerprint_file(csv_path)
+    if source_report is not None:
+        _validate_source_report(source_report, sha, len(x),
+                                clean.iloc[-1]["抽せん日"].date().isoformat())
     keys = list(expert_probabilities(x[:MIN_TRAIN]))
     champion_logw = np.zeros(len(keys), dtype=float)
     alt_logw = np.zeros(len(keys), dtype=float)
@@ -346,6 +368,10 @@ def run(*, csv_path: Path, champion_path: Path, out_dir: Path) -> dict[str, obje
         "target_round_last_evaluated": latest_round,
         "evaluated_rounds": len(rounds), "evaluated_tickets_per_model": len(rounds)*5,
         "data_sha256": sha, "champion_version": champ_cfg.version(),
+        "source_verification": (
+            "verified_two_result_sources_csv_sha_and_latest_round"
+            if source_report is not None else "not_requested_local_test"
+        ),
         "training": {
             "initial_train_draws": MIN_TRAIN,
             "training_through_round": latest_round,
@@ -451,8 +477,12 @@ def main() -> int:
     p.add_argument("--csv", type=Path, default=Path("loto7.csv"))
     p.add_argument("--champion", type=Path, default=Path("loto7_agent_output/model_champion.json"))
     p.add_argument("--out-dir", type=Path, default=Path("research/logscore_rank_retraining"))
+    p.add_argument("--source-validation", type=Path,
+                   default=Path("loto7_agent_output/source_validation.json"),
+                   help="Trusted two-source verification report for this exact CSV")
     a = p.parse_args()
-    run(csv_path=a.csv, champion_path=a.champion, out_dir=a.out_dir)
+    run(csv_path=a.csv, champion_path=a.champion, out_dir=a.out_dir,
+        source_report=a.source_validation)
     return 0
 
 
