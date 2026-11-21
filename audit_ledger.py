@@ -235,7 +235,7 @@ def append_current_predictions(
         expected_policy = geometry35.publication_policy_for_target(target)
         if (state.get("production_ticket_policy_version") != expected_policy
                 or not str(state.get("model_version", "")).endswith("+" + expected_policy)):
-            raise RuntimeError("refusing Production freeze without expected disjoint35 policy")
+            raise RuntimeError("refusing Production freeze without disjoint35 policy (expected target-specific version)")
         if expected_policy == geometry35.RANKED_VERSION:
             ranked = state.get("production_rank_order")
             if (not isinstance(ranked, list)
