@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """Production ticket-layout policy for new targets, separate from Champion.
 
-Legacy targets 702-704 use seeded uniform geometry. New unfrozen targets 705+
-use the strictly existing Production Champion to rank 37 numbers, choose the
-top 35 and group ranks 1-7, 8-14, ..., 29-35 into five disjoint tickets.
+Legacy targets 702-704 use seeded uniform geometry. Unfrozen 705+ targets
+use Champion-ranked top35 and an independently trained combination agent.
 This layout does not establish a predictive edge over a fair lottery.
 Pre-existing freezes and strict Future-OOS evidence are not modified.
 
@@ -16,14 +15,17 @@ import hashlib
 import io
 import json
 import math
+from dataclasses import asdict
 
 import numpy as np
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from balanced_uniform_portfolio import disjoint_portfolio, validate_portfolio
+from combination_agent35_core import AgentConfig, candidate_from_history
 from production_disjoint35_policy import (
-    VERSION, RANKED_VERSION, MIN_TARGET_ROUND, RANKED_MIN_TARGET_ROUND,
+    VERSION, RANKED_VERSION, COMBINATION_VERSION, MIN_TARGET_ROUND,
+    RANKED_MIN_TARGET_ROUND, COMBINATION_MIN_TARGET_ROUND,
     publication_policy_for_target, issued_policy, validate_issued_rows,
 )
 from loto7_evolving_agent import walk_forward_evolve, final_score
@@ -80,6 +82,19 @@ def ranked_portfolio_from_scores(scores: np.ndarray) -> tuple[list[tuple[int, ..
     return tickets, ranking
 
 
+def combination_layout_sha256(*, target_round: int, data_sha: str,
+                               champion_version: str, ranking: list[int],
+                               tickets: list[tuple[int, ...]], config: AgentConfig) -> str:
+    payload = {
+        "target_round": target_round, "data_sha256": data_sha,
+        "champion_version": champion_version, "policy": COMBINATION_VERSION,
+        "ranking": ranking, "tickets": [list(t) for t in tickets],
+        "config": asdict(config),
+    }
+    canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 def portfolio_for_target(target_round: int) -> list[tuple[int, ...]]:
     """Legacy seeded-uniform generator only; ranked Production uses another path."""
     if type(target_round) is not int or target_round < MIN_TARGET_ROUND:
@@ -128,7 +143,7 @@ def prepare_new_production_outputs(
     q: np.ndarray | None = None
     ranked_extras: dict[str, object] = {}
     expert_weights: dict[str, float] = {}
-    if policy == RANKED_VERSION:
+    if policy in (RANKED_VERSION, COMBINATION_VERSION):
         if (history is None or champion_config is None
                 or champion_config.version() != champion_version):
             raise RuntimeError("ranked Production requires the exact approved Champion and history")
@@ -140,6 +155,24 @@ def prepare_new_production_outputs(
         )
         q = final_score(history, bt, uniform_mix=champion_config.final_uniform_mix)
         tickets, ranking = ranked_portfolio_from_scores(q)
+        if policy == COMBINATION_VERSION:
+            if len(history) != latest_round or len(history) < 100:
+                raise RuntimeError("combination Production needs at least 100 contiguous prior draws")
+            config = AgentConfig()
+            tickets, combo_diag = candidate_from_history(history, ranking, config)
+            ranked_extras.update({
+                "production_combo_agent_version": COMBINATION_VERSION,
+                "production_combo_config": asdict(config),
+                "production_combo_training_rows": len(history),
+                "production_combo_training_data_sha256": data_sha,
+                "production_combo_swaps": combo_diag["swap_count"],
+                "production_combo_training_objective_gain": combo_diag["training_objective_gain"],
+                "production_combo_layout_sha256": combination_layout_sha256(
+                    target_round=target_round, data_sha=data_sha,
+                    champion_version=champion_version, ranking=ranking,
+                    tickets=tickets, config=config,
+                ),
+            })
         expert_weights = {
             key: float(bt.final_weights[i]) for i, key in enumerate(bt.keys)
         }
@@ -149,7 +182,7 @@ def prepare_new_production_outputs(
             "ranking": ranking,
             "scores_binary64": [format(float(score), ".17g") for score in q],
         }, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-        ranked_extras = {
+        ranked_extras.update({
             "production_ranking_method": "approved_champion_walk_forward_final_score_v1",
             "production_rank_order": ranking,
             "production_rank_top35": ranking[:35],
@@ -157,7 +190,7 @@ def prepare_new_production_outputs(
             "production_rank_sha256": hashlib.sha256(rank_payload.encode("utf-8")).hexdigest(),
             "production_rank_base_data_sha256": data_sha,
             "production_rank_model_version": champion_version,
-        }
+        })
     else:
         tickets = portfolio_for_target(target_round)
     text = render_ticket_csv(tickets)
@@ -169,6 +202,8 @@ def prepare_new_production_outputs(
         "signal_champion_version": champion_version,
         "production_ticket_policy_version": policy,
         "production_ticket_policy_role": (
+            "champion_ranked_top35_with_pairwise_combination_ai_no_skill_claim"
+            if policy == COMBINATION_VERSION else
             "champion_ai_ranked_top35_geometry_not_signal_promotion"
             if policy == RANKED_VERSION else "ticket_geometry_only_not_signal_promotion"
         ),
