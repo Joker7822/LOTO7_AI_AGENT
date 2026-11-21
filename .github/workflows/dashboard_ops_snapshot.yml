@@ -115,7 +115,7 @@ jobs:
           assert len(r["series"]["portfolio"])==r["sources"]["holdout"]["trusted_draws"]
           assert len(r["series"]["v2"])==r["sources"]["signal"]["trusted_draws"]
           assert len(r["series"]["adaptive"])==r["sources"]["learning"]["trusted_draws"]
-          assert len(r["workflows"])==7
+          assert len(r["workflows"])==10
           assert r["latest_prediction"]["status"] in ("published","not_published")
           if r["latest_prediction"]["status"]=="published":
             assert len(r["latest_prediction"]["tickets"])==5
