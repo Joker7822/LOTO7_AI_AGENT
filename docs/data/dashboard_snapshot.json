@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-21T08:22:07+09:00",
-  "source_commit": "034dae61a1b6e06ccdbecde12a44a4422b654dd3",
-  "state_hashes_sha256": "55c82134fdf82eb5b5ff6bf1acafa883a72a180bd14d9726cc738dc24b764c8c",
+  "generated_at_jst": "2026-11-21T09:59:53+09:00",
+  "source_commit": "5415642db8f1a5b38840584686d0df570dfea614",
+  "state_hashes_sha256": "9162d18957b317e9067926836e26f90862ae1b210c76a7c2f1592fd555ef7a86",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-21T07:56:07+09:00",
+      "checked_at_jst": "2026-11-21T08:57:40+09:00",
       "latest": {
         "round": 704,
         "date": "2026-11-20",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-21T05:47:23+09:00",
+      "checked_at_jst": "2026-11-21T09:58:47+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -82,7 +82,7 @@
             {
               "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
               "level": "ok",
-              "evidence": "history reused; mode=SEARCH; trials=260/800"
+              "evidence": "history reused; mode=SEARCH; trials=600/800"
             }
           ]
         },
@@ -114,10 +114,10 @@
       "latest_resolved_round": 704
     },
     "research": {
-      "generation": 6752,
-      "total_research_evaluations": 47263,
+      "generation": 6792,
+      "total_research_evaluations": 47543,
       "champion_version": "baseline-5fdb8dc2ad",
-      "last_run_jst": "2026-11-21T08:16:15+09:00"
+      "last_run_jst": "2026-11-21T09:41:26+09:00"
     },
     "holdout": {
       "status": "active",
@@ -189,7 +189,7 @@
     },
     "budget": {
       "mode": "SEARCH",
-      "signal_trials_this_data": 520,
+      "signal_trials_this_data": 600,
       "max_signal_trials_per_data": 800
     }
   },
@@ -200,9 +200,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 44832583546,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44832583546",
-      "updated_at": "2026-11-20T22:53:42Z",
+      "run_id": 44847123965,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44847123965",
+      "updated_at": "2026-11-21T00:57:09Z",
       "recent_failure_count": 0
     },
     {
@@ -219,12 +219,12 @@
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 44814110444,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44814110444",
-      "updated_at": "2026-11-20T20:47:29Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 44847375412,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44847375412",
+      "updated_at": "2026-11-21T00:59:26Z",
       "recent_failure_count": 0
     },
     {
@@ -266,9 +266,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 41364428529,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/41364428529",
-      "updated_at": "2026-11-01T23:55:26Z",
+      "run_id": 44847123849,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44847123849",
+      "updated_at": "2026-11-21T00:57:00Z",
       "recent_failure_count": 0
     }
   ],
@@ -641,16 +641,18 @@
     "accuracy_claim": false
   },
   "always_on_accuracy": {
-    "status": "stale_historical_activity",
-    "activity_stale_vs_verified_round": true,
-    "activity_latest_round": 700,
+    "status": "registered_science_blocked_observational_audit",
+    "observation_only": true,
+    "registered_science_status": "BLOCKED_MISSING_PREFROZEN_701",
+    "activity_stale_vs_verified_round": false,
+    "activity_latest_round": 704,
     "verified_latest_round": 704,
-    "sequence": 41,
-    "last_activity_jst": "2026-10-30T23:14:24+09:00",
-    "current_phase": "calibration",
-    "current_activity": "未来の校正と逐次e値を点検",
+    "sequence": 42,
+    "last_activity_jst": "2026-11-21T09:58:19+09:00",
+    "current_phase": "budget_and_plan",
+    "current_activity": "科学的事前凍結欠損のため監査のみ：試行予算を守り次の検証を計画",
     "online_search_status": "not_scheduled",
-    "research_mode": "WAIT_FOR_NEW_DATA",
+    "research_mode": "SEARCH",
     "two_source_verified": true,
     "new_papers_count": 0,
     "papers": [
@@ -705,9 +707,9 @@
     ],
     "promotion_authorized": false,
     "review_notes": [
-      "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
+      "第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "検証済み未来データに限るe値: 1"
+      "同一履歴の新規試行予算 600/800"
     ]
   },
   "research_application": {
@@ -794,9 +796,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "034dae61a1b6e06ccdbecde12a44a4422b654dd3",
-    "snapshot_generated_at_jst": "2026-11-21T08:22:07+09:00",
-    "computed_at_jst": "2026-11-20T23:22:07+00:00",
+    "source_commit": "5415642db8f1a5b38840584686d0df570dfea614",
+    "snapshot_generated_at_jst": "2026-11-21T09:59:53+09:00",
+    "computed_at_jst": "2026-11-21T00:59:53+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
