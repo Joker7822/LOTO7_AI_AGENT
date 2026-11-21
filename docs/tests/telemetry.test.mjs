@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {SNAPSHOT_VERSION, normalizeSnapshot, normalizePredictionMetrics, SERIES_TABS} from "../telemetry.mjs";
+import {SNAPSHOT_VERSION, normalizeSnapshot, normalizeAlwaysOnActivity, normalizePredictionMetrics, SERIES_TABS} from "../telemetry.mjs";
 
 const FIXED = new Date("2026-10-18T12:16:00Z");
 const snapshot = () => ({
@@ -150,4 +150,27 @@ test("prediction metrics remain segregated and can never claim realized payout",
   assert.throws(()=>normalizePredictionMetrics(bad),/参考収支/);
   const bad2=structuredClone(raw);bad2.prediction_skill_confirmed=true;
   assert.throws(()=>normalizePredictionMetrics(bad2),/権限/);
+});
+
+
+test("registered inference remains blocked while observation-only activities are shown",()=>{
+  const activity = {
+    status:"registered_science_blocked_observational_audit",
+    observation_only:true,
+    registered_science_status:"BLOCKED_MISSING_PREFROZEN_701",
+    sequence:42,promotion_authorized:false,
+    last_activity_jst:"2026-11-21T09:00:00+09:00",
+    papers:[],review_notes:["Original #701 freeze missing"]
+  };
+  const at = new Date("2026-11-21T00:15:00Z");
+  const ok=normalizeAlwaysOnActivity(activity,at);
+  assert.equal(ok.status,"registered_science_blocked_observational_audit");
+  assert.equal(ok.observationOnly,true);
+  assert.equal(ok.registeredScienceStatus,"BLOCKED_MISSING_PREFROZEN_701");
+  assert.equal(ok.stale,false);
+
+  const unsafe={...activity,registered_science_status:"READY_FOR_BOUNDED_RESEARCH"};
+  assert.equal(normalizeAlwaysOnActivity(unsafe,at).status,"invalid_or_unsafe");
+  const invented={...activity,observation_only:false};
+  assert.equal(normalizeAlwaysOnActivity(invented,at).status,"invalid_or_unsafe");
 });

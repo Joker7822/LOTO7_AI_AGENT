@@ -392,11 +392,11 @@ function renderAlwaysOn(ops){
     container.append(node("p","muted","監査活動の記録がまだないか、安全な表示を確認できません。"));
     return;
   }
-  set("always-on-health",a.stale?"更新遅延":a.status==="online_unavailable"?"接続要確認":"記録更新中");
+  set("always-on-health",a.stale?"更新遅延":a.observationOnly?"情報監査のみ・登録済み検証停止":a.status==="online_unavailable"?"接続要確認":"記録更新中");
   set("always-on-count",String(a.sequence)+" 回");
   set("always-on-time",asJst(a.lastActivity));
   set("always-on-activity",a.activity);
-  set("always-on-mode",a.researchMode==="SEARCH"?"探索許可":a.researchMode==="VALIDATION_ONLY"?"検証限定":"新データ待ち");
+  set("always-on-mode",a.observationOnly?"第701回事前凍結欠損・監査限定":a.researchMode==="SEARCH"?"探索許可":a.researchMode==="VALIDATION_ONLY"?"検証限定":"新データ待ち");
   const searchStatus = a.searchStatus.startsWith("unavailable:")?"通信失敗":a.searchStatus==="searched"?"文献検索済み":a.searchStatus==="no_relevant_metadata"?"関連論文なし":"次の巡回で検索";
   set("always-on-search",searchStatus);
   if (!a.papers.length){

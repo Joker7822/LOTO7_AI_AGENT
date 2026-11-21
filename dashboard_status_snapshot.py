@@ -404,12 +404,22 @@ def always_on_research_projection(out: Path, latest_verified_round: int | None =
             "title": str(paper.get("title", ""))[:200], "url": url[:240],
             "year": paper.get("year"), "review_status": "unreviewed"
         })
+    observation_only = raw.get("observation_only") is True
+    if observation_only and (
+        raw.get("registered_science_status") != "BLOCKED_MISSING_PREFROZEN_701"
+        or raw.get("status") != "registered_science_blocked_observational_audit"
+    ):
+        return {"status": "invalid_or_unsafe"}, checksum
     old_round = (
         latest_verified_round is not None
         and raw.get("latest_resolved_round") != latest_verified_round
     )
     return {
         "status": "stale_historical_activity" if old_round else raw.get("status"),
+        "observation_only": observation_only,
+        "registered_science_status": (
+            "BLOCKED_MISSING_PREFROZEN_701" if observation_only else None
+        ),
         "activity_stale_vs_verified_round": old_round,
         "activity_latest_round": raw.get("latest_resolved_round"),
         "verified_latest_round": latest_verified_round,

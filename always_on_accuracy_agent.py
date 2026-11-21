@@ -157,6 +157,64 @@ def inspect_evidence(root: Path) -> dict:
     }
 
 
+def inspect_blocked_observation(root: Path) -> dict:
+    """Permit only a bounded, source-verified observational audit.
+
+    This is NOT a fallback for registered future inference. The original
+    missing #701 pre-draw freeze remains an irrevocable blocker for that
+    protocol. No stale e-value, trial, or post-draw score is carried forward.
+    """
+    from research_cycle_provenance_recovery import check
+
+    preflight = check(root)
+    if (preflight["status"] != "BLOCKED_MISSING_PREFROZEN_701"
+            or preflight["source_trusted"] is not True
+            or preflight["new_optimizer_trials_authorized"] is not False):
+        raise ValueError("observational audit requires trusted source and blocked original 701 freeze")
+
+    out = root / "loto7_agent_output"
+    source = read_json(out / FILES["source"])
+    budget = read_json(out / FILES["budget"])
+    mode = budget.get("mode")
+    if mode not in ("SEARCH", "VALIDATION_ONLY", "WAIT_FOR_NEW_DATA"):
+        raise ValueError("unknown guarded research mode")
+    if (mode == "SEARCH") != (budget.get("search_enabled") is True):
+        raise ValueError("research mode and budget permission disagree")
+    used = valid_count(budget, "signal_trials_this_data")
+    limit = valid_count(budget, "max_signal_trials_per_data")
+    if limit <= 0 or used > limit:
+        raise ValueError("same-data research budget invalid or exceeded")
+    if (type(preflight["latest_resolved_round"]) is not int
+            or preflight["latest_resolved_round"] < 701
+            or source.get("latest", {}).get("round") != preflight["latest_resolved_round"]
+            or source.get("status") != "ok" or source.get("verification") != TRUST):
+        raise ValueError("observational audit requires current two-source verification")
+
+    # Existing registered evidence is not graded or reinterpreted. These
+    # counts are displayed only as descriptive metadata.
+    portfolio = read_json(out / FILES["portfolio"])
+    v2 = read_json(out / FILES["v2"])
+    adaptive = read_json(out / FILES["adaptive"])
+    candidate = read_json(out / FILES["candidate"])
+    return {
+        "draw_history_sha256": preflight["draw_csv_sha256"],
+        "latest_round": preflight["latest_resolved_round"],
+        "two_source_verified": True,
+        "source_verification": TRUST,
+        "research_mode": mode,
+        "search_enabled": budget["search_enabled"],
+        "same_data_trials": used,
+        "max_same_data_trials": limit,
+        "portfolio_future_draws": valid_count(portfolio, "trusted_draws"),
+        "v2_future_draws": valid_count(v2, "trusted_draws"),
+        "adaptive_future_draws": valid_count(adaptive, "trusted_draws"),
+        "candidate_future_draws": valid_count(candidate, "trusted_draws"),
+        "future_e_value": None,
+        "registered_science_status": preflight["status"],
+        "observation_only": True,
+    }
+
+
 def read_chain(path: Path) -> list[dict]:
     if not path.exists():
         return []
@@ -302,7 +360,10 @@ def next_focus(seq: int, info: dict, latest_papers: list[dict], discovery_status
     elif phase == "budget_and_plan":
         notes.append("同一履歴の新規試行予算 " + str(info["same_data_trials"]) + "/" + str(info["max_same_data_trials"]))
     elif phase == "calibration":
-        notes.append("検証済み未来データに限るe値: " + format(info["future_e_value"], ".6g"))
+        if info["future_e_value"] is None:
+            notes.append("第701回事前凍結欠損：登録済みe値は更新せず、情報監査のみ継続。")
+        else:
+            notes.append("検証済み未来データに限るe値: " + format(info["future_e_value"], ".6g"))
     elif phase == "source_audit":
         notes.append("最新信頼ステータス: " + info["source_verification"])
     elif phase == "future_protocol":
@@ -313,11 +374,12 @@ def next_focus(seq: int, info: dict, latest_papers: list[dict], discovery_status
 
 
 def run(root: Path, *, now: datetime | None = None,
-        fetcher: Callable[[str, str], list[dict]] = fetch_scholarly_metadata) -> dict:
+        fetcher: Callable[[str, str], list[dict]] = fetch_scholarly_metadata,
+        observation_only: bool = False) -> dict:
     root = root.resolve()
     out = root / "loto7_agent_output"
     now = (now or datetime.now(JST)).astimezone(JST)
-    info = inspect_evidence(root)
+    info = inspect_blocked_observation(root) if observation_only else inspect_evidence(root)
     chain = read_chain(out / LEDGER)
     state = read_json(out / STATE) if (out / STATE).exists() else {}
     if (bool(state) != bool(chain) or
@@ -352,6 +414,9 @@ def run(root: Path, *, now: datetime | None = None,
         except (urllib.error.URLError, TimeoutError, ValueError, OSError, KeyError) as exc:
             fetch_status = "unavailable:" + type(exc).__name__
     phase, task, notes = next_focus(sequence - 1, info, new_papers, fetch_status)
+    if observation_only:
+        notes.insert(0, "第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。")
+        task = "科学的事前凍結欠損のため監査のみ：" + task
     event = {
         "version": VERSION, "sequence": sequence,
         "at_jst": now.isoformat(timespec="seconds"),
@@ -363,6 +428,8 @@ def run(root: Path, *, now: datetime | None = None,
         "review_notes": notes, "read_only": True,
         "automatic_model_selection": False,
         "source_data_modified": False,
+        "observation_only": observation_only,
+        "registered_science_status": info.get("registered_science_status"),
         "previous_record_sha256": chain[-1]["record_sha256"] if chain else GENESIS,
     }
     event["record_sha256"] = sha256(canonical(event).encode())
@@ -375,7 +442,12 @@ def run(root: Path, *, now: datetime | None = None,
         "last_record_sha256": event["record_sha256"],
         "last_activity_jst": event["at_jst"],
         "current_phase": phase, "current_activity": task,
-        "status": "online_unavailable" if fetch_status.startswith("unavailable:") else "active_bounded_research",
+        "status": ("registered_science_blocked_observational_audit"
+                   if observation_only else
+                   "online_unavailable" if fetch_status.startswith("unavailable:")
+                   else "active_bounded_research"),
+        "observation_only": observation_only,
+        "registered_science_status": info.get("registered_science_status"),
         "research_mode": info["research_mode"],
         "latest_resolved_round": info["latest_round"],
         "two_source_verified": info["two_source_verified"],
@@ -399,6 +471,8 @@ def run(root: Path, *, now: datetime | None = None,
         f"- This cycle: **{phase}** / {task}",
         f"- Network discovery: **{fetch_status}**",
         f"- Trusted draw latest: **{info['latest_round']}**, two-source: **{info['two_source_verified']}**",
+        f"- Registered science: **{info.get('registered_science_status') or 'current_and_verifiable'}**",
+        f"- Observation only: **{observation_only}**; no future e-value calculation or model selection",
         f"- Research guard: **{info['research_mode']}**, same-data trials: **{info['same_data_trials']}/{info['max_same_data_trials']}**",
         f"- Future actuals: portfolio {info['portfolio_future_draws']}/26, v2 {info['v2_future_draws']}, fifth-expert {info['candidate_future_draws']}",
         "", "## Completed evidence review",
@@ -420,8 +494,10 @@ def run(root: Path, *, now: datetime | None = None,
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run one bounded autonomous scientific research cycle")
     parser.add_argument("--repo-root", type=Path, default=Path("."))
+    parser.add_argument("--observation-only", action="store_true",
+                        help="Append source-verified audit only while original 701 freeze is blocked")
     args = parser.parse_args()
-    result = run(args.repo_root)
+    result = run(args.repo_root, observation_only=args.observation_only)
     print(json.dumps({k: result[k] for k in ("sequence", "current_phase", "status", "online_search_status", "new_papers_count")}, ensure_ascii=False))
     return 0
 
