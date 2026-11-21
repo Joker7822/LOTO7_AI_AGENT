@@ -222,6 +222,12 @@ def prepare_new_production_outputs(
         **ranked_extras,
         "no_lottery_signal_skill_claim": True,
         "first_prize_odds_unchanged": True,
+        "production_roi_primary_kpi": "public_historical_payout_yen_divided_by_1500_yen_per_round",
+        "production_roi_prediction_skill_confirmed": False,
+        "production_expected_future_roi": None,
+        "production_purchase_automation": False,
+        "production_roi_governance": "prospective_oos_required_no_purchase_authorization",
+        "production_reference_cost_yen_for_five_tickets": 1500,
     }
     out_dir.mkdir(parents=True, exist_ok=True)
     # The generated candidate view is *not* the canonical frozen ledger.
