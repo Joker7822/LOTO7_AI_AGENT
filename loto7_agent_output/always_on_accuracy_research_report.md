@@ -1,17 +1,19 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-10-30T23:14:24+09:00**
-- Completed audit cycles: **41**
-- This cycle: **calibration** / 未来の校正と逐次e値を点検
+- Last executed: **2026-11-21T09:58:19+09:00**
+- Completed audit cycles: **42**
+- This cycle: **budget_and_plan** / 科学的事前凍結欠損のため監査のみ：試行予算を守り次の検証を計画
 - Network discovery: **not_scheduled**
-- Trusted draw latest: **700**, two-source: **True**
-- Research guard: **WAIT_FOR_NEW_DATA**, same-data trials: **800/800**
-- Future actuals: portfolio 7/26, v2 0, fifth-expert 0
+- Trusted draw latest: **704**, two-source: **True**
+- Registered science: **BLOCKED_MISSING_PREFROZEN_701**
+- Observation only: **True**; no future e-value calculation or model selection
+- Research guard: **SEARCH**, same-data trials: **600/800**
+- Future actuals: portfolio 11/26, v2 4, fifth-expert 0
 
 ## Completed evidence review
-- 探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。
+- 第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 検証済み未来データに限るe値: 1
+- 同一履歴の新規試行予算 600/800
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
 - [Probabilistic Forecast Verification](https://doi.org/10.1201/9781003203971-10) (2024) — UNREVIEWED
