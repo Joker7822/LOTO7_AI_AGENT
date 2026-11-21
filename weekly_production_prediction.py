@@ -132,8 +132,14 @@ def publish(
             "target_round": f"第{target_round}回",
             "schedule_policy": "Friday 13:00-15:00 JST",
             "production_promotion_method": "future_oos_only",
-            "ticket_policy": (geometry35.VERSION if target_round >= geometry35.MIN_TARGET_ROUND
-                              else "champion_original"),
+            "ticket_policy": (
+                geometry35.RANKED_VERSION
+                if str(frozen[0].get("model_version", "")).endswith(
+                    "+" + geometry35.RANKED_VERSION
+                ) else geometry35.VERSION
+                if target_round >= geometry35.MIN_TARGET_ROUND
+                else "champion_original"
+            ),
         }
         v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
         return result
@@ -157,10 +163,16 @@ def publish(
         v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
         return result
 
-    # User-authorized Production ticket-layout change. Frozen targets are
-    # handled above, so round 701 cannot be edited or silently reissued.
-    # The Champion's learned signal and Future-OOS registry remain separate.
+    # Frozen predictions are handled above; the new ranked layout starts
+    # only with unfrozen targets 705+. Research promotion gates are untouched.
     if target_round >= geometry35.MIN_TARGET_ROUND:
+        if target_round >= geometry35.RANKED_MIN_TARGET_ROUND:
+            # load_champion falls back silently on invalid/missing data.
+            # For ranked Production the approved model identity must be explicit.
+            raw_champion = v4.load_json(champion_file, {})
+            if (raw_champion.get("model_version") != champion.version()
+                    or v4.cfg_from_obj(raw_champion.get("config")) != champion):
+                raise RuntimeError("ranked Production requires a valid approved Champion file")
         state = geometry35.prepare_new_production_outputs(
             csv_path=csv_path,
             out_dir=out_dir,
@@ -171,6 +183,9 @@ def publish(
             latest_draw_date=clean["抽せん日"].iloc[-1].date().isoformat(),
             git_sha=os.environ.get("GITHUB_SHA", "local"),
             source_path=out_dir / "source_validation.json",
+            history=x,
+            champion_config=champion,
+            min_train=min_train,
         )
     else:
         reused_current_outputs = current_production_outputs_are_current(
@@ -246,8 +261,10 @@ def publish(
         "target_round": f"第{target_round}回",
         "schedule_policy": "Friday 13:00-15:00 JST",
         "production_promotion_method": "future_oos_only",
-        "ticket_policy": (geometry35.VERSION if target_round >= geometry35.MIN_TARGET_ROUND
-                          else "champion_original"),
+        "ticket_policy": (
+            str(state.get("production_ticket_policy_version"))
+            if target_round >= geometry35.MIN_TARGET_ROUND else "champion_original"
+        ),
     }
     v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
     return result

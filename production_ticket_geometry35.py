@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Production ticket-layout policy for *new* targets 702+, separate from Champion.
+"""Production ticket-layout policy for new targets, separate from Champion.
 
-A fair 7-of-37 draw has no learned predictable signal. This explicit user
-authorized change only replaces the five-ticket *geometry* at the canonical
-weekly publication boundary. The Champion, pre-existing freezes, and strict
-Future-OOS evidence are not modified or promoted.
+Legacy targets 702-704 use seeded uniform geometry. New unfrozen targets 705+
+use the strictly existing Production Champion to rank 37 numbers, choose the
+top 35 and group ranks 1-7, 8-14, ..., 29-35 into five disjoint tickets.
+This layout does not establish a predictive edge over a fair lottery.
+Pre-existing freezes and strict Future-OOS evidence are not modified.
 
 Never call from a research checkpoint or while drawing data is untrusted.
 """
@@ -14,13 +15,19 @@ import csv
 import hashlib
 import io
 import json
+import math
+
+import numpy as np
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 from balanced_uniform_portfolio import disjoint_portfolio, validate_portfolio
 from production_disjoint35_policy import (
-    VERSION, MIN_TARGET_ROUND, validate_issued_rows,
+    VERSION, RANKED_VERSION, MIN_TARGET_ROUND, RANKED_MIN_TARGET_ROUND,
+    publication_policy_for_target, issued_policy, validate_issued_rows,
 )
+from loto7_evolving_agent import walk_forward_evolve, final_score
+import loto7_v2_runner as v2
 from joint_set_v2_signal_oos_guard import validate_trusted_source
 import loto7_v4_runner as v4
 from loto7_evolving_agent import fingerprint_file
@@ -51,7 +58,30 @@ def verify_source(csv_path: Path, source_path: Path,
     return verified
 
 
+def ranked_portfolio_from_scores(scores: np.ndarray) -> tuple[list[tuple[int, ...]], list[int]]:
+    """Choose all but the bottom two Champion-ranked numbers; group ranks by sevens.
+
+    Equal scores are resolved by ascending numeric label. No random fallback.
+    """
+    try:
+        q = np.asarray(scores, dtype=float)
+    except (ValueError, TypeError, OverflowError) as exc:
+        raise ValueError("invalid Champion ranking scores") from exc
+    if (q.shape != (37,) or not bool(np.all(np.isfinite(q)))
+            or bool(np.any(q < 0)) or not math.isclose(float(q.sum()), 1.0,
+                                                       rel_tol=0.0, abs_tol=1e-8)):
+        raise ValueError("Champion ranking requires 37 finite normalized nonnegative scores")
+    ranking = sorted(range(1, 38), key=lambda number: (-float(q[number - 1]), number))
+    tickets = [
+        tuple(sorted(ranking[start:start + 7]))
+        for start in range(0, 35, 7)
+    ]
+    validate_portfolio(tickets)
+    return tickets, ranking
+
+
 def portfolio_for_target(target_round: int) -> list[tuple[int, ...]]:
+    """Legacy seeded-uniform generator only; ranked Production uses another path."""
     if type(target_round) is not int or target_round < MIN_TARGET_ROUND:
         raise ValueError("cannot change an existing/frozen target before round 702")
     tickets = disjoint_portfolio(SEED_BASE + target_round * SEED_MULTIPLIER)
@@ -75,6 +105,9 @@ def prepare_new_production_outputs(
     data_sha: str, latest_round: int, target_round: int,
     latest_draw_date: str, git_sha: str,
     source_path: Path, now: datetime | None = None,
+    history: np.ndarray | None = None,
+    champion_config: v2.ModelConfig | None = None,
+    min_train: int = 100,
 ) -> dict:
     """Prepare only the canonical publisher's NEW 702+ freeze.
 
@@ -90,28 +123,68 @@ def prepare_new_production_outputs(
         raise RuntimeError("Production source data hash mismatch")
     verify_source(csv_path, source_path, latest_round)
 
-    tickets = portfolio_for_target(target_round)
+    policy = publication_policy_for_target(target_round)
+    ranking: list[int] | None = None
+    q: np.ndarray | None = None
+    ranked_extras: dict[str, object] = {}
+    expert_weights: dict[str, float] = {}
+    if policy == RANKED_VERSION:
+        if (history is None or champion_config is None
+                or champion_config.version() != champion_version):
+            raise RuntimeError("ranked Production requires the exact approved Champion and history")
+        # Learn from draws through latest_round only; the target is unobserved.
+        bt = walk_forward_evolve(
+            history, min_train=min_train, eta=champion_config.eta,
+            decay=champion_config.decay,
+            expert_uniform_mix=champion_config.expert_uniform_mix,
+        )
+        q = final_score(history, bt, uniform_mix=champion_config.final_uniform_mix)
+        tickets, ranking = ranked_portfolio_from_scores(q)
+        expert_weights = {
+            key: float(bt.final_weights[i]) for i, key in enumerate(bt.keys)
+        }
+        rank_payload = json.dumps({
+            "data_sha256": data_sha,
+            "champion_version": champion_version,
+            "ranking": ranking,
+            "scores_binary64": [format(float(score), ".17g") for score in q],
+        }, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+        ranked_extras = {
+            "production_ranking_method": "approved_champion_walk_forward_final_score_v1",
+            "production_rank_order": ranking,
+            "production_rank_top35": ranking[:35],
+            "production_rank_excluded_numbers": ranking[35:],
+            "production_rank_sha256": hashlib.sha256(rank_payload.encode("utf-8")).hexdigest(),
+            "production_rank_base_data_sha256": data_sha,
+            "production_rank_model_version": champion_version,
+        }
+    else:
+        tickets = portfolio_for_target(target_round)
     text = render_ticket_csv(tickets)
     text_sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
-    model_version = f"{champion_version}+{VERSION}"
+    model_version = f"{champion_version}+{policy}"
     state = {
         "agent_version": v4.AGENT_VERSION,
         "model_version": model_version,
         "signal_champion_version": champion_version,
-        "production_ticket_policy_version": VERSION,
-        "production_ticket_policy_role": "ticket_geometry_only_not_signal_promotion",
+        "production_ticket_policy_version": policy,
+        "production_ticket_policy_role": (
+            "champion_ai_ranked_top35_geometry_not_signal_promotion"
+            if policy == RANKED_VERSION else "ticket_geometry_only_not_signal_promotion"
+        ),
         "data_sha256": data_sha,
         "latest_round": f"第{latest_round}回",
         "latest_draw_date": latest_draw_date,
         "target_round": f"第{target_round}回",
-        "seed": SEED_BASE + target_round * SEED_MULTIPLIER,
+        "seed": SEED_BASE + target_round * SEED_MULTIPLIER if policy == VERSION else None,
         "git_sha": git_sha,
         "production_promotion_method": "future_oos_only",
         "promotion_this_run": None,
         "ticket_count": 5,
         "covered_distinct_numbers": 35,
         "ticket_layout_sha256": text_sha,
-        "expert_weights": {},
+        "expert_weights": expert_weights,
+        **ranked_extras,
         "no_lottery_signal_skill_claim": True,
         "first_prize_odds_unchanged": True,
     }
@@ -119,6 +192,17 @@ def prepare_new_production_outputs(
     # The generated candidate view is *not* the canonical frozen ledger.
     # weekly_production_prediction.freeze writes that ledger only once.
     (out_dir / "candidate_tickets.csv").write_text(text, encoding="utf-8")
+    if ranking is not None and q is not None:
+        stream = io.StringIO(newline="")
+        writer = csv.writer(stream, lineterminator="\n")
+        writer.writerow(["rank", "number", "relative_score", "score_index_vs_uniform"])
+        for i, number in enumerate(ranking, 1):
+            score = float(q[number - 1])
+            writer.writerow([i, number, format(score, ".17g"),
+                             format(score * 37, ".17g")])
+        (out_dir / "prediction_ranking.csv").write_text(
+            "\ufeff" + stream.getvalue(), encoding="utf-8"
+        )
     v4.write_json(out_dir / "agent_state.json", state)
     return state
 
@@ -148,9 +232,10 @@ def verify_canonical_publication(out_dir: Path) -> dict:
     if len(active) != 5:
         raise ValueError("canonical Production must contain exactly five active tickets")
     if target >= MIN_TARGET_ROUND:
-        if state.get("ticket_policy") != VERSION:
-            raise ValueError("canonical Production is not marked disjoint35")
         validate_issued_rows(active, target)
+        frozen_policy = issued_policy(active, target)
+        if state.get("ticket_policy") != frozen_policy:
+            raise ValueError("canonical Production ticket policy does not match frozen ledger")
         if len({r.get("model_version") for r in active}) != 1:
             raise ValueError("mixed model policy in canonical Production")
         if active[0]["model_version"] != state.get("model_version"):

@@ -232,9 +232,27 @@ def append_current_predictions(
 
     tickets=_validated_ticket_rows(list(ticket_rows))
     if target >= geometry35.MIN_TARGET_ROUND:
-        if (state.get("production_ticket_policy_version") != geometry35.VERSION
-                or not str(state.get("model_version", "")).endswith("+" + geometry35.VERSION)):
-            raise RuntimeError("refusing Production freeze without disjoint35 policy")
+        expected_policy = geometry35.publication_policy_for_target(target)
+        if (state.get("production_ticket_policy_version") != expected_policy
+                or not str(state.get("model_version", "")).endswith("+" + expected_policy)):
+            raise RuntimeError("refusing Production freeze without disjoint35 policy (expected target-specific version)")
+        if expected_policy == geometry35.RANKED_VERSION:
+            ranked = state.get("production_rank_order")
+            if (not isinstance(ranked, list)
+                    or len(ranked) != 37 or
+                    any(type(n) is not int for n in ranked)
+                    or sorted(ranked) != list(range(1, 38))
+                    or state.get("production_rank_base_data_sha256") != current_data_sha
+                    or state.get("production_rank_model_version") != str(
+                        state.get("model_version", "")
+                    ).split("+", 1)[0]):
+                raise RuntimeError("refusing ranked Production without valid Champion ranking")
+            expected_tickets = [
+                tuple(sorted(ranked[i:i + 7])) for i in range(0, 35, 7)
+            ]
+            actual_tickets = [tuple(nums(ticket["numbers"])) for ticket in tickets]
+            if actual_tickets != expected_tickets:
+                raise RuntimeError("refusing ranked Production: tickets disagree with Champion ranking")
         # A forged candidate CSV or a second publisher must not bypass the
         # shared append-only ledger. Validate BEFORE any prediction is appended.
         from balanced_uniform_portfolio import validate_portfolio
