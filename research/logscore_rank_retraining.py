@@ -166,7 +166,15 @@ def _summary(rows: list[dict[str, object]], seed: int) -> dict[str, object]:
     score = [float(r["candidate_minus_champion_score"]) for r in rows]
     log = [float(r["candidate_minus_champion_log"]) for r in rows]
     hit = [float(r["candidate_minus_champion_top7"]) for r in rows]
+    uniform_log = -math.log(N_NUMBERS)
+    uniform_brier = (1.0 / PICKS) - (1.0 / N_NUMBERS)
+    candidate_log = float(np.mean([r["candidate_mean_log_actual"] for r in rows])) if rows else None
+    candidate_brier = float(np.mean([r["candidate_brier"] for r in rows])) if rows else None
     return {
+        "uniform_log": uniform_log,
+        "uniform_brier": uniform_brier,
+        "candidate_log_edge_vs_uniform": candidate_log - uniform_log if rows else None,
+        "candidate_brier_edge_vs_uniform": uniform_brier - candidate_brier if rows else None,
         "rounds": len(rows),
         "first_round": int(rows[0]["round"]) if rows else None,
         "last_round": int(rows[-1]["round"]) if rows else None,
@@ -326,6 +334,10 @@ def run(*, csv_path: Path, champion_path: Path, out_dir: Path) -> dict[str, obje
         ),
         "positive_full_portfolio_delta":
             bands["all_101_latest"]["portfolio_score_paired"]["mean_delta"] > 0,
+        "candidate_log_better_than_fair_uniform":
+            bands["all_101_latest"]["candidate_log_edge_vs_uniform"] > 0,
+        "candidate_brier_better_than_fair_uniform":
+            bands["all_101_latest"]["candidate_brier_edge_vs_uniform"] > 0,
     }
     report = {
         "version": VERSION,
@@ -413,6 +425,9 @@ def run(*, csv_path: Path, champion_path: Path, out_dir: Path) -> dict[str, obje
     md += [
         "",
         f"- Geometry-matched exact fair null composite score: {null['score']:.6f}",
+        f"- Fair uniform baseline mean log: {-math.log(N_NUMBERS):.6f}",
+        f"- Candidate log edge vs fair uniform: {bands['all_101_latest']['candidate_log_edge_vs_uniform']:+.6f}",
+        f"- Candidate Brier edge vs fair uniform: {bands['all_101_latest']['candidate_brier_edge_vs_uniform']:+.6f} (positive = improvement)",
         f"- All retrospective checks passed: **{all(checks.values())}**",
         f"- New research preview next round: **#{latest_round+1}**",
         f"- Candidate ranking: **{_fmt(candidate_rank)}**",
