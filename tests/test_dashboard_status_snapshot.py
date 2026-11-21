@@ -488,3 +488,73 @@ def test_observational_audit_projection_is_explicit_and_nonpromoting(tmp_path):
     behind, _ = d.always_on_research_projection(out, latest_verified_round=705)
     assert behind["status"] == "stale_historical_activity"
     assert behind["observation_only"] is True
+
+def test_autonomous_research_workflows_are_explicitly_monitored():
+    from agent_operations_planner import WORKFLOW_PLAYBOOKS
+
+    assert list(d.WORKFLOWS) == list(WORKFLOW_PLAYBOOKS)
+    assert len(d.WORKFLOWS) == 10
+    for filename in (
+        "always_on_accuracy_research.yml",
+        "open_ended_evolution.yml",
+        "recursive_self_evolution.yml",
+    ):
+        assert filename in d.WORKFLOWS
+        assert (Path(".github/workflows") / filename).is_file()
+
+
+def test_green_workflow_does_not_hide_stale_always_on_research(project):
+    out = project / "loto7_agent_output"
+    source = json.loads((out / "source_validation.json").read_text(encoding="utf-8"))
+    current_round = source["latest"]["round"]
+    state = {
+        "version": "always-on-accuracy-research-v1",
+        "read_only_scientific_activity": True,
+        "promotion_authorized": False,
+        "latest_resolved_round": current_round - 1,
+        "status": "active_bounded_research",
+        "sequence": 41,
+        "last_activity_jst": "2026-10-30T23:14:24+09:00",
+        "papers": [],
+        "review_notes": [],
+    }
+    (out / "always_on_accuracy_research_state.json").write_text(
+        json.dumps(state), encoding="utf-8"
+    )
+    raw_workflows = all_workflows()
+    before = json.dumps(raw_workflows, ensure_ascii=False, sort_keys=True)
+    snapshot = d.create_snapshot(project, raw_workflows, now=FIXED, ref="a" * 40)
+    research = {x["file"]: x for x in snapshot["workflows"]}
+    assert snapshot["always_on_accuracy"]["status"] == "stale_historical_activity"
+    assert research["always_on_accuracy_research.yml"]["status"] == "completed"
+    assert research["always_on_accuracy_research.yml"]["conclusion"] == "success"
+    assert research["always_on_accuracy_research.yml"]["health"] == "warning"
+    assert research["open_ended_evolution.yml"]["health"] == "ok"
+    assert research["recursive_self_evolution.yml"]["health"] == "ok"
+    assert any(
+        task["code"] == "WORKFLOW_WARNING:always_on_accuracy_research.yml"
+        for task in snapshot["operations_plan"]["tasks"]
+    )
+    assert json.dumps(raw_workflows, ensure_ascii=False, sort_keys=True) == before
+
+
+def test_current_always_on_activity_keeps_successful_run_health(project):
+    out = project / "loto7_agent_output"
+    source = json.loads((out / "source_validation.json").read_text(encoding="utf-8"))
+    state = {
+        "version": "always-on-accuracy-research-v1",
+        "read_only_scientific_activity": True,
+        "promotion_authorized": False,
+        "latest_resolved_round": source["latest"]["round"],
+        "status": "active_bounded_research",
+        "sequence": 42,
+        "last_activity_jst": "2026-11-20T16:00:00+09:00",
+        "papers": [],
+        "review_notes": [],
+    }
+    (out / "always_on_accuracy_research_state.json").write_text(
+        json.dumps(state), encoding="utf-8"
+    )
+    snapshot = d.create_snapshot(project, all_workflows(), now=FIXED, ref="a" * 40)
+    research = next(x for x in snapshot["workflows"] if x["file"] == "always_on_accuracy_research.yml")
+    assert research["health"] == "ok"
