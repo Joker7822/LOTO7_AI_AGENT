@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "combination_agent35_core.py"
+      - "roi_first_governance.py"
+      - "tests/test_roi_first_governance.py"
       - "production_ticket_geometry35.py"
       - "production_disjoint35_policy.py"
       - "audit_ledger.py"
@@ -48,12 +50,13 @@ jobs:
           PYTHONPATH: .
         run: |
           set -euo pipefail
-          python -m compileall -q combination_agent35_core.py production_ticket_geometry35.py production_disjoint35_policy.py audit_ledger.py weekly_production_prediction.py research/production_combination_round2_replay.py
+          python -m compileall -q roi_first_governance.py combination_agent35_core.py production_ticket_geometry35.py production_disjoint35_policy.py audit_ledger.py weekly_production_prediction.py research/production_combination_round2_replay.py
           python -m pytest -q \
             tests/test_production_combination_agent35.py \
             tests/test_production_combination_round2_replay.py \
             tests/test_combination_agent35.py \
-            tests/test_production_ai_ranked35.py
+            tests/test_production_ai_ranked35.py \
+            tests/test_roi_first_governance.py
 
       - name: Retrain fixed Champion and pairwise combination AI through the verified last draw; replay round 2+
         env:
@@ -95,6 +98,19 @@ jobs:
           assert not summary["issued_predictions_changed"]
           assert not summary["future_oos_evidence_changed"]
           assert not summary["promotion_authorized_by_replay"]
+          roi=summary["roi_priority"]
+          assert roi["primary_kpi"]=="public_historical_payout_yen_divided_by_1500_yen_per_round"
+          assert roi["authorizes_model_promotion"] is False
+          assert roi["periods"]["all_2_plus"]["valid"] is True
+          assert roi["periods"]["all_2_plus"]["draws"] == n-1
+          assert roi["periods"]["all_2_plus"]["ticket_count_per_arm"] == 5*(n-1)
+          assert roi["periods"]["trained_101_plus"]["draws"] == n-100
+          assert (root/"ROI_REPORT.md").is_file()
+          assert (root/"roi_priority_summary.json").is_file()
+          independent_roi=json.loads((root/"roi_priority_summary.json").read_text(encoding="utf-8"))
+          assert independent_roi==roi
+          assert roi["periods"]["all_2_plus"]["combo_payout_yen"] == sum(int(r["public_payout_yen"]) for r in rr)
+          assert roi["periods"]["all_2_plus"]["baseline_payout_yen"] == sum(int(r["baseline_payout_yen"]) for r in rr)
           assert summary["next_target_retrained_preview"]["target_round"]==n+1
           for r in rr:
               rank=[int(v) for v in r["rank_1_to_35"].split()]
