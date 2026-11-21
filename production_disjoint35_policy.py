@@ -30,7 +30,7 @@ def issued_policy(rows: Sequence[Mapping[str, object]], target_round: int) -> st
         raise ValueError("missing issued Production rows")
     models = {str(row.get("model_version", "")) for row in rows}
     if len(models) != 1:
-        raise ValueError("mixed Production model versions")
+        raise ValueError("mixed Production model versions violate disjoint35 policy")
     model = models.pop()
     if model.endswith("+" + VERSION):
         return VERSION
