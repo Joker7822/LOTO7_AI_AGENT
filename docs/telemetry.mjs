@@ -81,8 +81,13 @@ export function normalizeAlwaysOnActivity(value, now = new Date()) {
   if (!value || value.status === "not_yet_started") {
     return {status:"not_yet_started",papers:[],sequence:0};
   }
-  if (!["active_bounded_research","online_unavailable","stale_historical_activity"].includes(value.status) ||
+  if (!["active_bounded_research","online_unavailable","stale_historical_activity",
+         "registered_science_blocked_observational_audit"].includes(value.status) ||
       value.promotion_authorized !== false ||
+      (value.observation_only === true &&
+        value.registered_science_status !== "BLOCKED_MISSING_PREFROZEN_701") ||
+      (value.status === "registered_science_blocked_observational_audit" &&
+        value.observation_only !== true) ||
       !Number.isInteger(value.sequence) || value.sequence < 1 ||
       !Array.isArray(value.papers) || !Array.isArray(value.review_notes) ||
       typeof value.last_activity_jst !== "string") {
@@ -100,6 +105,8 @@ export function normalizeAlwaysOnActivity(value, now = new Date()) {
   }).filter(Boolean);
   return {
     status:value.status,
+    observationOnly:value.observation_only === true,
+    registeredScienceStatus:value.observation_only === true ? "BLOCKED_MISSING_PREFROZEN_701" : null,
     stale:ageHours>2.5 || ageHours < -1 || value.status==="stale_historical_activity",
     sequence:value.sequence,
     lastActivity:value.last_activity_jst,
