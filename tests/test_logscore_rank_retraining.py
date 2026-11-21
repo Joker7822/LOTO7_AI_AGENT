@@ -71,6 +71,15 @@ def test_strict_chronological_retraining_keeps_production_immutable(tmp_path):
     assert res["production_changed"] is False
     assert protected.read_bytes() == b"frozen production history\n"
     assert res["champion_version"] == v2.DEFAULT_CHAMPION.version()
+    assert res["source_verification"] == "not_requested_local_test"
+    assert "candidate_log_better_than_fair_uniform" in res["checks"]
+    assert "candidate_brier_better_than_fair_uniform" in res["checks"]
+    assert res["periods"]["all_101_latest"]["uniform_log"] == pytest.approx(
+        -np.log(37)
+    )
+    assert res["periods"]["all_101_latest"]["uniform_brier"] == pytest.approx(
+        1/7 - 1/37
+    )
     assert len(res["training"]["expert_weights"]) >= 10
     assert sum(res["training"]["expert_weights"].values()) == pytest.approx(1.0)
     with (out / "paired_rounds_101_to_latest.csv").open(encoding="utf-8-sig") as f:
@@ -132,3 +141,32 @@ def test_early_training_and_gapped_history_rejected(tmp_path):
     p.write_text("\n".join([lines[0], *lines[2:]]) + "\n", encoding="utf-8")
     with pytest.raises(ValueError, match="no gaps"):
         rank.run(csv_path=p, champion_path=champ, out_dir=tmp_path / "out")
+
+
+def test_only_verified_latest_source_history_can_be_used_for_production_reference(tmp_path):
+    csv_path = tmp_path / "history.csv"
+    champion = tmp_path / "champion.json"
+    sample_history(csv_path)
+    make_champion(champion)
+    from loto7_evolving_agent import fingerprint_file
+    verification = tmp_path / "source_validation.json"
+    good = {
+        "status": "ok",
+        "verification": "verified_two_result_sources",
+        "latest": {"round": 104, "date": "2015-03-27"},
+        "verification_provenance": {"draw_csv_sha256": fingerprint_file(csv_path)},
+    }
+    # Synthetic dates, not a live external verification: this tests the gate only.
+    from datetime import date, timedelta
+    good["latest"]["date"] = (date(2013,4,5)+timedelta(days=7*103)).isoformat()
+    verification.write_text(json.dumps(good), encoding="utf-8")
+    result = rank.run(csv_path=csv_path, champion_path=champion,
+                      out_dir=tmp_path / "result", source_report=verification)
+    assert result["source_verification"].startswith("verified_two_result_sources")
+
+    wrong = {**good, "verification_provenance": {"draw_csv_sha256": "tampered"}}
+    verification.write_text(json.dumps(wrong), encoding="utf-8")
+    with pytest.raises(RuntimeError, match="mismatches"):
+        rank.run(csv_path=csv_path, champion_path=champion,
+                 out_dir=tmp_path / "invalid", source_report=verification)
+    assert not (tmp_path / "invalid").exists()
