@@ -1,0 +1,78 @@
+name: Research Logscore Ranking Retraining
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "research/logscore_rank_retraining.py"
+      - "tests/test_logscore_rank_retraining.py"
+      - ".github/workflows/research_logscore_rank_retraining.yml"
+      - "production_disjoint35_policy.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: research-logscore-ranking-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ranking-retraining:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source without write credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Unit and strict-prefix isolation tests
+        run: |
+          python -m compileall -q research/logscore_rank_retraining.py
+          python -m pytest -q tests/test_logscore_rank_retraining.py
+      - name: Retrain AI ranking on verified historical draws
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python research/logscore_rank_retraining.py \
+            --csv loto7.csv \
+            --champion loto7_agent_output/model_champion.json \
+            --out-dir "${RUNNER_TEMP}/research_ranked_signal"
+      - name: Check training bounds, no promotion, and render comparative report
+        env:
+          REPORT_DIR: ${{ runner.temp }}/research_ranked_signal
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          p = Path(os.environ["REPORT_DIR"]) / "summary.json"
+          r = json.loads(p.read_text(encoding="utf-8"))
+          assert r["source_rounds"] > 100
+          assert r["evaluated_rounds"] == r["source_rounds"] - 100
+          assert r["evaluated_tickets_per_model"] == 5*(r["source_rounds"]-100)
+          assert r["rank_705_research_preview"]["target_round"] == r["source_rounds"] + 1
+          assert r["production_changed"] is False
+          assert r["model_automatically_adopted"] is False
+          assert r["prospective_candidate_registered"] is False
+          assert r["future_oos_evidence_changed"] is False
+          assert len(r["rank_705_research_preview"]["ranking_1_to_37"]) == 37
+          print("Research model retrained and verified; Production unchanged")
+          PY
+          cat "${REPORT_DIR}/REPORT.md" >> "${GITHUB_STEP_SUMMARY}"
+          cat "${REPORT_DIR}/REPORT.md"
+      - name: Archive full model, per-round paired backtest, and rank preview
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logscore-ranking-retraining-research
+          path: ${{ runner.temp }}/research_ranked_signal
+          retention-days: 90
+          if-no-files-found: error
