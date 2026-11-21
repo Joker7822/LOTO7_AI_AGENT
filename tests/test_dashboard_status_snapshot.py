@@ -452,3 +452,39 @@ def test_recent_production_result_is_visible_when_current_draw_is_verified(proje
     ]
     assert forecast["latest_verified"]["source_verification"] == d.TRUST
     assert forecast["accuracy_claim"] is False if "accuracy_claim" in forecast else True
+
+
+def test_observational_audit_projection_is_explicit_and_nonpromoting(tmp_path):
+    out = tmp_path / "loto7_agent_output"
+    out.mkdir()
+    state = {
+        "version": "always-on-accuracy-research-v1",
+        "status": "registered_science_blocked_observational_audit",
+        "observation_only": True,
+        "registered_science_status": "BLOCKED_MISSING_PREFROZEN_701",
+        "read_only_scientific_activity": True,
+        "promotion_authorized": False,
+        "latest_resolved_round": 704,
+        "sequence": 42,
+        "last_activity_jst": "2026-11-21T09:00:00+09:00",
+        "papers": [],
+        "review_notes": ["No post-draw registration"],
+    }
+    path = out / "always_on_accuracy_research_state.json"
+    path.write_text(json.dumps(state), encoding="utf-8")
+    info, digest = d.always_on_research_projection(out, latest_verified_round=704)
+    assert digest is not None
+    assert info["status"] == "registered_science_blocked_observational_audit"
+    assert info["observation_only"] is True
+    assert info["registered_science_status"] == "BLOCKED_MISSING_PREFROZEN_701"
+    assert info["promotion_authorized"] is False
+
+    forged = dict(state, registered_science_status="READY_FOR_BOUNDED_RESEARCH")
+    path.write_text(json.dumps(forged), encoding="utf-8")
+    invalid, _ = d.always_on_research_projection(out, latest_verified_round=704)
+    assert invalid["status"] == "invalid_or_unsafe"
+
+    path.write_text(json.dumps(state), encoding="utf-8")
+    behind, _ = d.always_on_research_projection(out, latest_verified_round=705)
+    assert behind["status"] == "stale_historical_activity"
+    assert behind["observation_only"] is True
