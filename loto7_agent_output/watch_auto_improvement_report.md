@@ -1,10 +1,10 @@
 # Autonomous WATCH improvement (research-only, auditable)
 
-- Time UTC: 2026-11-21T11:54:37+00:00
+- Time UTC: 2026-11-21T16:59:31+00:00
 - Result: **research_fix_checked_only_not_production_resolved**
 - Trusted source: True; round #704
 - Champion (unchanged): `baseline-5fdb8dc2ad`
-- Budget: VALIDATION_ONLY / 602/800
+- Budget: WAIT_FOR_NEW_DATA / 602/800
 
 ## PAIR_CONTEXT_INT8_OVERFLOW
 - Research action: **separately_versioned_research_candidate_validated**
