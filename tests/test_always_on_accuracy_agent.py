@@ -246,3 +246,142 @@ def test_impossible_search_mode_permission_pair_still_rejected(repo):
     path.write_text(json.dumps(guard), encoding="utf-8")
     with pytest.raises(ValueError, match="mode and budget permission disagree"):
         agent.inspect_evidence(repo)
+
+
+def test_blocked_original_freeze_allows_only_observational_audit(repo, monkeypatch):
+    """A missing historic freeze never becomes a newly inferred future result."""
+    import hashlib
+    import research_cycle_provenance_recovery as recovery
+
+    out = repo / "loto7_agent_output"
+    source = out / agent.FILES["source"]
+    source_data = json.loads(source.read_text(encoding="utf-8"))
+    source_data["latest"]["round"] = 704
+    source_data["status"] = "ok"
+    source_data["verification"] = agent.TRUST
+    source.write_text(json.dumps(source_data), encoding="utf-8")
+    digest = hashlib.sha256((repo / "loto7.csv").read_bytes()).hexdigest()
+    monkeypatch.setattr(recovery, "check", lambda root: {
+        "status": "BLOCKED_MISSING_PREFROZEN_701",
+        "latest_resolved_round": 704,
+        "source_trusted": True,
+        "draw_csv_sha256": digest,
+        "new_optimizer_trials_authorized": False,
+    })
+    original = {p.relative_to(repo): p.read_bytes()
+                for p in repo.rglob("*") if p.is_file()}
+    state = agent.run(repo, now=NOW, fetcher=lambda *_: [], observation_only=True)
+    assert state["sequence"] == 1
+    assert state["latest_resolved_round"] == 704
+    assert state["observation_only"] is True
+    assert state["status"] == "registered_science_blocked_observational_audit"
+    assert state["registered_science_status"] == "BLOCKED_MISSING_PREFROZEN_701"
+    assert state["promotion_authorized"] is False
+    assert state["new_papers_count"] == 0
+    assert "事前凍結欠損" in state["review_notes"][0]
+    assert "監査のみ" in state["current_activity"]
+    assert "未来" not in state["current_phase"]  # phase labels are categorical, not scores
+    records = agent.read_chain(out / agent.LEDGER)
+    assert len(records) == 1 and records[0]["observation_only"] is True
+    assert records[0]["registered_science_status"] == "BLOCKED_MISSING_PREFROZEN_701"
+    assert "current_e_value" not in records[0]
+    after = {p.relative_to(repo): p.read_bytes()
+             for p in repo.rglob("*") if p.is_file()}
+    assert set(after) - set(original) == {
+        Path("loto7_agent_output") / name
+        for name in (agent.LEDGER, agent.STATE, agent.REPORT)
+    }
+    assert all(after[k] == original[k] for k in original)
+    followup = agent.run(repo, now=NOW + timedelta(hours=1),
+                         fetcher=lambda *_: [], observation_only=True)
+    assert followup["sequence"] == 2
+    assert len(agent.read_chain(out / agent.LEDGER)) == 2
+    # The registered science cache must remain stale/untouched.
+    assert (out / agent.FILES["science"]).read_bytes() == original[
+        Path("loto7_agent_output") / agent.FILES["science"]
+    ]
+
+
+@pytest.mark.parametrize("status,source_trusted,model_trials_allowed", [
+    ("REFRESH_REGISTERED_SCIENCE", True, False),
+    ("READY_FOR_BOUNDED_RESEARCH", True, False),
+    ("BLOCKED_MISSING_PREFROZEN_701", False, False),
+    ("BLOCKED_MISSING_PREFROZEN_701", True, True),
+])
+def test_observation_rejects_nonblocked_or_unsafe_evidence(
+        repo, monkeypatch, status, source_trusted, model_trials_allowed):
+    import research_cycle_provenance_recovery as recovery
+    monkeypatch.setattr(recovery, "check", lambda root: {
+        "status": status, "latest_resolved_round": 704,
+        "source_trusted": source_trusted,
+        "draw_csv_sha256": "a" * 64,
+        "new_optimizer_trials_authorized": model_trials_allowed,
+    })
+    out = repo / "loto7_agent_output"
+    with pytest.raises(ValueError, match="observational audit requires"):
+        agent.run(repo, now=NOW, observation_only=True)
+    assert not (out / agent.LEDGER).exists()
+
+
+def test_observation_requires_post_701_trusted_round(repo, monkeypatch):
+    import research_cycle_provenance_recovery as recovery
+    monkeypatch.setattr(recovery, "check", lambda root: {
+        "status": "BLOCKED_MISSING_PREFROZEN_701",
+        "latest_resolved_round": 699,
+        "source_trusted": True,
+        "draw_csv_sha256": "a" * 64,
+        "new_optimizer_trials_authorized": False,
+    })
+    with pytest.raises(ValueError, match="current two-source"):
+        agent.run(repo, now=NOW, observation_only=True)
+
+
+def test_observation_workflow_rechecks_checkout_and_never_backfills():
+    workflow = Path(".github/workflows/always_on_accuracy_research.yml").read_text(encoding="utf-8")
+    assert "github.ref == 'refs/heads/main'" in workflow
+    assert "steps.science_provenance.outputs.status == 'BLOCKED_MISSING_PREFROZEN_701'" in workflow
+    assert "python research_cycle_provenance_recovery.py" in workflow
+    assert "current_status=" in workflow and "from research_cycle_provenance_recovery import check" in workflow
+    assert "python always_on_accuracy_agent.py --repo-root . --observation-only" in workflow
+    assert 'if [ "$current_status" = "BLOCKED_MISSING_PREFROZEN_701" ]; then' in workflow
+    assert "git add --" in workflow and "git push origin HEAD:main" in workflow
+    assert "accuracy_extension_agent_freezes.jsonl" not in workflow
+    assert "automatic_model_selection" not in workflow
+
+
+def test_actual_blocked_repository_can_audit_in_isolation_without_mutating_evidence(tmp_path):
+    """Integration smoke on current main; skip safely if main's blocker was resolved."""
+    import research_cycle_provenance_recovery as recovery
+
+    current = Path(__file__).resolve().parents[1]
+    preflight = recovery.check(current)
+    if preflight["status"] != "BLOCKED_MISSING_PREFROZEN_701":
+        pytest.skip("the original 701 freeze blocker is not present at this revision")
+
+    isolated = tmp_path / "isolated"
+    out = isolated / "loto7_agent_output"
+    out.mkdir(parents=True)
+    shutil.copyfile(current / "loto7.csv", isolated / "loto7.csv")
+    for filename in (*agent.FILES.values(),
+                     "accuracy_extension_agent_registration.json",
+                     "always_on_accuracy_research_state.json",
+                     "always_on_accuracy_research_journal.jsonl"):
+        src = current / "loto7_agent_output" / filename
+        if src.is_file():
+            shutil.copyfile(src, out / filename)
+    before = {
+        p.relative_to(isolated): p.read_bytes()
+        for p in isolated.rglob("*") if p.is_file()
+    }
+    state = agent.run(
+        isolated, now=datetime.now(timezone.utc), fetcher=lambda *_: [], observation_only=True
+    )
+    assert state["sequence"] >= 1
+    assert state["status"] == "registered_science_blocked_observational_audit"
+    assert state["latest_resolved_round"] == preflight["latest_resolved_round"]
+    assert state["promotion_authorized"] is False
+    assert state["registered_science_status"] == "BLOCKED_MISSING_PREFROZEN_701"
+    assert all((isolated / p).read_bytes() == b for p, b in before.items()
+               if p != Path("loto7_agent_output") / agent.STATE
+               and p != Path("loto7_agent_output") / agent.LEDGER)
+    assert not (out / "accuracy_extension_agent_freezes.jsonl").exists()
