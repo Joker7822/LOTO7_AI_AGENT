@@ -241,3 +241,82 @@ def test_frozen_proposal_cannot_claim_a_new_budget_on_same_source(monkeypatch):
     monkeypatch.setattr(intel, "read", same_data_guard)
     with pytest.raises(ValueError, match="same-data frozen permission"):
         intel.frozen_inputs(ROOT)
+
+
+def test_observation_only_snapshot_is_chronologically_anchored_not_falsely_current():
+    """Once the hourly journal advances, old verified DOI metadata remains historic."""
+    result = intel.run(ROOT)
+    rev = intel.read(ROOT / "loto7_agent_output/research_literature_reviews.json")
+    current = intel.read(ROOT / "loto7_agent_output/always_on_accuracy_research_state.json")
+    snap = result["research_snapshot"]
+    if current.get("observation_only") is True and (
+        rev.get("discovery_chain_tip") != current.get("last_record_sha256")
+    ):
+        assert snap["historical_snapshot_validated"] is True
+        assert snap["discovery_chain_tip"] == rev["discovery_chain_tip"]
+        assert snap["discovery_state_sha256"] == rev["discovery_state_sha256"]
+        assert snap["live_discovery_chain_tip"] == current["last_record_sha256"]
+        assert result["quality_checks"]["discovery_metadata_is_current"] is False
+        assert "research_metadata_anchored_to_prior_observational_snapshot" in result["blockers"]
+        assert result["research_snapshot"]["paper_count"] == rev["count"]
+    else:
+        assert snap["historical_snapshot_validated"] is False
+        assert result["quality_checks"]["discovery_metadata_is_current"] is True
+    assert not result["auto_promotion_authorized"]
+    assert not result["production_or_champion_changed"]
+
+
+def test_historical_snapshot_without_observation_only_permission_is_rejected(monkeypatch):
+    source = intel.read
+    def forged(path):
+        data = source(path)
+        if path.name == intel.discovery.STATE:
+            data = copy.deepcopy(data)
+            data["observation_only"] = False
+        return data
+    monkeypatch.setattr(intel, "read", forged)
+    rev = source(ROOT / "loto7_agent_output/research_literature_reviews.json")
+    state = source(ROOT / "loto7_agent_output/always_on_accuracy_research_state.json")
+    if rev["discovery_chain_tip"] != state["last_record_sha256"]:
+        with pytest.raises(ValueError, match="stale or altered"):
+            intel.run(ROOT)
+
+
+def test_forged_historical_discovery_catalog_is_rejected(monkeypatch):
+    source = intel.read
+    def forged(path):
+        data = source(path)
+        if path.name == intel.review.REVIEW_FILE:
+            data = copy.deepcopy(data)
+            data["reviews"][0]["title"] = "Tampered DOI metadata"
+        return data
+    monkeypatch.setattr(intel, "read", forged)
+    with pytest.raises(ValueError, match="historical DOI|triage|stale"):
+        intel.run(ROOT)
+
+
+def test_forged_historical_chain_tip_not_accepted(monkeypatch):
+    source = intel.read
+    def forged(path):
+        data = source(path)
+        if path.name == intel.review.REVIEW_FILE:
+            data = copy.deepcopy(data)
+            data["discovery_chain_tip"] = "0" * 64
+        return data
+    monkeypatch.setattr(intel, "read", forged)
+    with pytest.raises(ValueError, match="past SHA chain|stale"):
+        intel.run(ROOT)
+
+
+def test_observation_only_tail_cannot_authorize_external_methods(monkeypatch):
+    base = intel.discovery.read_chain
+    def changed(path):
+        history = copy.deepcopy(base(path))
+        history[-1]["automatic_model_selection"] = True
+        return history
+    monkeypatch.setattr(intel.discovery, "read_chain", changed)
+    data = intel.read(ROOT / "loto7_agent_output/always_on_accuracy_research_state.json")
+    rev = intel.read(ROOT / "loto7_agent_output/research_literature_reviews.json")
+    if data.get("observation_only") and data["last_record_sha256"] != rev["discovery_chain_tip"]:
+        with pytest.raises(ValueError, match="unsafe|stale"):
+            intel.run(ROOT)
