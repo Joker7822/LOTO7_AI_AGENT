@@ -56,7 +56,7 @@ def test_bad_scores_never_fallback_to_random(bad):
 def test_new_publication_policy_keeps_old_issued_versions_valid():
     assert policy.publication_policy_for_target(702) == policy.VERSION
     assert policy.publication_policy_for_target(704) == policy.VERSION
-    assert policy.publication_policy_for_target(705) == policy.COMBINATION_VERSION
+    assert policy.publication_policy_for_target(705) == policy.ROI_CASH_VERSION
     with pytest.raises(ValueError):
         policy.publication_policy_for_target(701)
 
