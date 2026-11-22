@@ -281,6 +281,9 @@ def run(
         "|---|---:|---:|---:|---:|---:|",
     ]
     for label,part in periods.items():
+        if not part["valid"]:
+            lines.append(f"| {label} | {part['rounds']} | 未評価 | 未評価 | 未評価 | 未評価 |")
+            continue
         lines.append(
             f"| {label} | {part['rounds']} | {part['candidate_roi']*100:.2f}% | "
             f"{part['production_roi']*100:.2f}% | {part['baseline_roi']*100:.2f}% | "
