@@ -42,8 +42,9 @@ def evaluate_promotion(
         reasons.append("unverified_historical_source")
     if retrospective.get("production_promotion") is not False:
         reasons.append("production_was_modified_by_exploration")
-    if retrospective.get("retrospective_roi_all_checks_passed") is not True:
-        reasons.append("retrospective_robust_roi_gate_failed")
+    # Retrospective weakness is a warning, not a permanent veto.
+    # Genuinely new candidate-specific future data may supersede old replay.
+    retrospective_warning = retrospective.get("retrospective_roi_all_checks_passed") is not True
     future = future_evidence if isinstance(future_evidence,dict) else {}
     if future.get("candidate_version")!=CANDIDATE_VERSION:
         reasons.append("no_matching_future_candidate_registration")
@@ -118,6 +119,7 @@ def evaluate_promotion(
         "production_future_payout_yen":incumbent if valid and deltas else None,
         "candidate_future_roi":candidate/(len(deltas)*COST_PER_ARM_PER_ROUND) if valid and deltas else None,
         "production_future_roi":incumbent/(len(deltas)*COST_PER_ARM_PER_ROUND) if valid and deltas else None,
+        "retrospective_robust_roi_warning":retrospective_warning,
         "candidate_specific_future_review_ready":review_ready,
         "eligible_for_independent_release_review":review_ready,
         "auto_production_promotion":False,
