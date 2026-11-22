@@ -86,12 +86,6 @@ def test_new_705_policy_is_v2_but_all_prior_frozen_policies_survive():
     assert policy.publication_policy_for_target(705)==policy.ROI_CASH_VERSION
     assert policy.ROI_CASH_MIN_TARGET_ROUND==705
     assert ALGORITHM_VERSION=="research-roi-cash-trained-ranked35-v2"
-    ticket_sets=[
-        {"ticket":i,"model_version":"baseline+"+version,
-         "predicted_numbers":" ".join(f"{n:02d}" for n in range(7*i-6,7*i+1))}
-        for i in range(1,6)
-        for version in []
-    ]
     for version in (policy.VERSION,policy.RANKED_VERSION,policy.COMBINATION_VERSION,policy.ROI_CASH_VERSION):
         rows=[{"ticket":i,"model_version":"baseline+"+version,
                 "predicted_numbers":" ".join(f"{n:02d}" for n in range(7*i-6,7*i+1))}
@@ -179,7 +173,8 @@ def test_v2_auditor_fails_before_freeze_on_forged_ticket_and_missing_draw(tmp_pa
         )
     with pytest.raises(RuntimeError,match="complete preceding draw history"):
         ledger.append_current_predictions(
-            ledger.read_csv(data)[:-1],rows,out/"predictions.csv",
+            [r for r in ledger.read_csv(data) if r["回別"]!="第100回"],
+            rows,out/"predictions.csv",
             state,current_data_sha=fingerprint_file(data)
         )
     assert not (out/"predictions.csv").exists()
