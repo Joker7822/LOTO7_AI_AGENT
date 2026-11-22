@@ -1,0 +1,122 @@
+name: Production ROI Cash v2 Adoption - Full Source Replay & Freeze Safety
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "production_roi_cash35_v2.py"
+      - "production_disjoint35_policy.py"
+      - "production_ticket_geometry35.py"
+      - "weekly_production_prediction.py"
+      - "audit_ledger.py"
+      - "research/roi_cash_agent_v2.py"
+      - "research/roi_cash_agent_v2_replay.py"
+      - "tests/test_production_roi_cash35_v2.py"
+      - "tests/test_production_combination_agent35.py"
+      - "tests/test_production_ai_ranked35.py"
+      - "ROI_CASH_V2_PRODUCTION_ADOPTION.md"
+      - ".github/workflows/production_roi_cash_v2_adoption.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-roi-cash-v2-safety-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate-operator-override-and-ranked35:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout without publication credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pinned dependencies
+        run: python -m pip install -r requirements.txt pytest
+      - name: Test frozen heritage, exact cashfit and publisher immutability
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m compileall -q             production_roi_cash35_v2.py production_disjoint35_policy.py             production_ticket_geometry35.py weekly_production_prediction.py             audit_ledger.py research/roi_cash_agent_v2.py
+          python -m pytest -q             tests/test_production_roi_cash35_v2.py             tests/test_production_combination_agent35.py             tests/test_production_ai_ranked35.py             tests/test_production_ticket_geometry35.py             tests/test_roi_cash_agent_v2.py             tests/test_roi_cash_v2_promotion_gate.py             tests/test_audit_ledger.py
+      - name: Relearn from earliest draw through all verified draws, triple-arm ROI replay
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python research/roi_cash_agent_v2_replay.py             --csv loto7.csv             --champion loto7_agent_output/model_champion.json             --source-validation loto7_agent_output/source_validation.json             --out-dir "${RUNNER_TEMP}/production_roi_cash_v2"             --matched-reps 32
+      - name: Independent full-source prepublication preview matches replay exactly
+        env:
+          PYTHONPATH: .
+          ROI_V2_REPORT_DIR: ${{ runner.temp }}/production_roi_cash_v2
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import csv,json,os,tempfile
+          from pathlib import Path
+          import numpy as np
+          from loto7_evolving_agent import fingerprint_file,make_history,read_csv_flexible
+          import loto7_v2_runner as v2
+          import production_ticket_geometry35 as geometry
+          import production_disjoint35_policy as policy
+          from production_roi_cash35_v2 import training_arrays_from_canonical_rows,SELECTION_AUTHORITY
+          root=Path(".")
+          historical=json.loads((Path(os.environ["ROI_V2_REPORT_DIR"])/"roi_cash_v2_summary.json").read_text())
+          hist,clean=make_history(read_csv_flexible(root/"loto7.csv"))
+          with (root/"loto7.csv").open(encoding="utf-8-sig",newline="") as stream:
+              canon=list(csv.DictReader(stream))
+          rechecked,bonus,prizes=training_arrays_from_canonical_rows(canon)
+          assert np.array_equal(hist,rechecked) and len(hist)==historical["last_round"]
+          assert historical["source_sha256"]==fingerprint_file(root/"loto7.csv")
+          assert historical["source_trust"]=="verified_two_result_sources"
+          assert historical["production_promotion"] is False
+          assert historical["future_prospective_oos_draws_for_this_candidate"]==0
+          assert historical["promotion_audit"]["auto_production_promotion"] is False
+          # Disable the FRIDAY clock restriction solely in this ephemeral
+          # read-only preview; no ledger freeze or purchase is attempted.
+          geometry.production_window_guard=lambda now:None
+          champion=v2.load_champion(root/"loto7_agent_output/model_champion.json")
+          with tempfile.TemporaryDirectory() as scratch:
+              state=geometry.prepare_new_production_outputs(
+                  csv_path=root/"loto7.csv",out_dir=Path(scratch),
+                  champion_version=champion.version(),
+                  data_sha=fingerprint_file(root/"loto7.csv"),
+                  latest_round=len(hist),target_round=len(hist)+1,
+                  latest_draw_date=clean["抽せん日"].iloc[-1].date().isoformat(),
+                  git_sha=os.environ.get("GITHUB_SHA","ci"),
+                  source_path=root/"loto7_agent_output/source_validation.json",
+                  history=hist,champion_config=champion,
+              )
+              with (Path(scratch)/"candidate_tickets.csv").open(encoding="utf-8-sig",newline="") as f:
+                  issued_preview=[[int(n) for n in row["numbers"].split()]
+                                  for row in csv.DictReader(f)]
+          candidate=historical["next_target_retrained_unissued_preview"]
+          assert state["production_ticket_policy_version"]==policy.ROI_CASH_VERSION
+          assert state["production_roi_cash_v2_selection_authority"]==SELECTION_AUTHORITY
+          assert state["production_roi_cash_v2_target_outcome_used"] is False
+          assert state["production_expected_future_roi"] is None
+          assert state["production_purchase_automation"] is False
+          assert state["production_promotion_method"]=="explicit_operator_policy_switch_without_proven_future_roi"
+          assert state["production_rank_top35"]==candidate["top35"]
+          assert issued_preview==candidate["candidate_tickets"]
+          assert len({v for ticket in issued_preview for v in ticket})==35
+          print("ROI-CASH-v2 source verified through draw",len(hist))
+          print("Production candidate matches research frozen next-target preview",len(hist)+1)
+          print("No new tickets issued; next scheduled Friday only")
+          PY
+          git diff --exit-code --             loto7.csv STATUS.md loto7_agent_output/             research/disjoint_future_oos/ weekly_production_prediction.py
+      - name: Archive reproducible strict-past research and model comparison
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: production-roi-cash-v2-full-replay-operator-override
+          path: ${{ runner.temp }}/production_roi_cash_v2/
+          retention-days: 90
+          if-no-files-found: error
