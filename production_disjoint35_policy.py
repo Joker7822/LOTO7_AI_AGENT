@@ -2,7 +2,8 @@
 """Dependency-free fail-closed validator for issued Production 702+ tickets.
 
 Legacy v1 is seeded uniform, prior ranked v1 is contiguous Champion ranks.
-New unfrozen targets 705+ use the separately trained combination AI agent.
+New unfrozen targets 705+ use the explicitly operator-selected payout ROI v2.
+Old combination AI remains valid ONLY for previously frozen legacy events.
 All older frozen versions remain valid in the append-only ledger:
 publication policy is stricter than the historical issued-row validator.
 """
@@ -13,16 +14,18 @@ from typing import Mapping, Sequence
 VERSION = "production-disjoint35-layout-v1"  # Immutable legacy policy (702+).
 RANKED_VERSION = "production-ai-ranked-disjoint35-layout-v1"
 COMBINATION_VERSION = "production-ai-ranked35-pairwise-combination-v1"
+ROI_CASH_VERSION = "production-ai-ranked35-roi-cash-v2"
 MIN_TARGET_ROUND = 702
 RANKED_MIN_TARGET_ROUND = 705
 COMBINATION_MIN_TARGET_ROUND = 705
+ROI_CASH_MIN_TARGET_ROUND = 705
 
 
 def publication_policy_for_target(target_round: int) -> str:
     """New issuances only; never infer a frozen target's policy from its round."""
     if type(target_round) is not int or target_round < MIN_TARGET_ROUND:
         raise ValueError("disjoint35 publisher requires target 702+")
-    return COMBINATION_VERSION if target_round >= COMBINATION_MIN_TARGET_ROUND else VERSION
+    return ROI_CASH_VERSION if target_round >= ROI_CASH_MIN_TARGET_ROUND else VERSION
 
 
 def issued_policy(rows: Sequence[Mapping[str, object]], target_round: int) -> str:
@@ -41,6 +44,8 @@ def issued_policy(rows: Sequence[Mapping[str, object]], target_round: int) -> st
         return RANKED_VERSION
     if model.endswith("+" + COMBINATION_VERSION) and target_round >= COMBINATION_MIN_TARGET_ROUND:
         return COMBINATION_VERSION
+    if model.endswith("+" + ROI_CASH_VERSION) and target_round >= ROI_CASH_MIN_TARGET_ROUND:
+        return ROI_CASH_VERSION
     raise ValueError("unknown or ineligible disjoint35 Production policy")
 
 
