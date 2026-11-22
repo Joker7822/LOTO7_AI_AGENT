@@ -44,10 +44,14 @@ def test_no_future_data_is_never_evidence_even_with_large_historical_roi():
     assert result["auto_production_promotion"] is False
 
 
-def test_outlier_driven_history_blocks_even_good_future():
-    result=evaluate_promotion(retro(robust=False),future())
-    assert "retrospective_robust_roi_gate_failed" in result["reasons"]
-    assert result["eligible_for_independent_release_review"] is False
+def test_historical_outlier_warning_can_be_overridden_only_by_verified_future():
+    historical=evaluate_promotion(retro(robust=False))
+    assert historical["retrospective_robust_roi_warning"] is True
+    assert historical["eligible_for_independent_release_review"] is False
+    independently_verified=evaluate_promotion(retro(robust=False),future())
+    assert independently_verified["retrospective_robust_roi_warning"] is True
+    assert independently_verified["eligible_for_independent_release_review"] is True
+    assert independently_verified["auto_production_promotion"] is False
 
 
 def test_future_roi_improvement_can_make_human_review_ready_only_after_valid_lock():
