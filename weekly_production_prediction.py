@@ -131,7 +131,12 @@ def publish(
             "model_version": frozen[0].get("model_version", ""),
             "target_round": f"第{target_round}回",
             "schedule_policy": "Friday 13:00-15:00 JST",
-            "production_promotion_method": "future_oos_only",
+            "production_promotion_method": (
+                "explicit_operator_policy_switch_without_proven_future_roi"
+                if frozen[0].get("model_version", "").endswith(
+                    "+" + geometry35.ROI_CASH_VERSION
+                ) else "future_oos_only"
+            ),
             "ticket_policy": (
                 geometry35.issued_policy(frozen, target_round)
                 if target_round >= geometry35.MIN_TARGET_ROUND
@@ -257,7 +262,9 @@ def publish(
         "model_version": frozen[0].get("model_version", champion.version()),
         "target_round": f"第{target_round}回",
         "schedule_policy": "Friday 13:00-15:00 JST",
-        "production_promotion_method": "future_oos_only",
+        "production_promotion_method": state.get(
+            "production_promotion_method", "future_oos_only"
+        ),
         "ticket_policy": (
             str(state.get("production_ticket_policy_version"))
             if target_round >= geometry35.MIN_TARGET_ROUND else "champion_original"
