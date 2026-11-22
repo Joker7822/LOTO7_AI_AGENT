@@ -85,6 +85,13 @@ def candidate_from_canonical_rows(
 ) -> tuple[list[tuple[int,...]],dict]:
     """Fit using source rows known before the next target; fail closed."""
     main,bonus,payouts=training_arrays_from_canonical_rows(rows)
+    # No historical row may be presented as prize-trained if all routine
+    # lower-tier public payouts (grades 6,5,4) are unavailable. "No first
+    # prize winner" legitimately has an unknown first prize amount, but a
+    # completely blank payout table is not a usable training source.
+    recent=payouts[-config.lookback:]
+    if np.any(np.all(recent[:,1:4]<0,axis=1)):
+        raise ValueError("missing necessary public payout: draw lacks independently published ordinary prizes")
     tickets,diag=candidate_from_cash_history(main,bonus,payouts,ranking,config)
     if diag["stop_reason"]=="missing_historical_public_payout":
         raise ValueError("missing necessary public payout in ROI v2 history")
