@@ -56,22 +56,96 @@ def read(path: Path) -> dict:
     return gate.load(path)
 
 
+def _chain_anchored_frozen_papers(
+    state: dict, chain: list[dict], reviewed: dict,
+    current_papers: list[dict], state_sha: str,
+) -> tuple[list[dict], bool]:
+    """Recover *historical* verified metadata only during observation-only drift.
+
+    The live scientific state may advance its SHA-chained journal while an
+    original pre-draw freeze is missing. That hourly observation must not
+    destroy the previously checked bibliography, and must not make the older
+    bibliography look current either. Validate the entire current chain first;
+    then reconstruct the exact earlier DOI/title/year catalog from its prefix.
+    Never silently accept altered, missing, or newly forged bibliographic data.
+    """
+    latest_tip = chain[-1]["record_sha256"]
+    frozen_tip = reviewed.get("discovery_chain_tip")
+    frozen_state_sha = reviewed.get("discovery_state_sha256")
+    if frozen_tip == latest_tip and frozen_state_sha == state_sha:
+        return current_papers, False
+    if (state.get("observation_only") is not True
+            or state.get("registered_science_status") != "BLOCKED_MISSING_PREFROZEN_701"
+            or not isinstance(frozen_state_sha, str)
+            or len(frozen_state_sha) != 64
+            or any(ch not in "0123456789abcdef" for ch in frozen_state_sha)
+            or not isinstance(frozen_tip, str)):
+        raise ValueError("online reviewed metadata is stale or altered against SHA chain")
+    matches = [i for i, event in enumerate(chain)
+               if event["record_sha256"] == frozen_tip]
+    if len(matches) != 1 or matches[0] >= len(chain) - 1:
+        raise ValueError("online reviewed metadata is not anchored to a past SHA chain")
+    i = matches[0]
+    anchor_event = chain[i]
+    if (anchor_event.get("evidence_sha256") != reviewed.get("draw_history_sha256")
+            or anchor_event.get("research_mode") != reviewed.get("research_mode")
+            or any(event.get("read_only") is not True
+                   or event.get("source_data_modified") is not False
+                   or event.get("automatic_model_selection") is not False
+                   for event in chain[i + 1:])):
+        raise ValueError("unsafe or inconsistent observation-only journal tail")
+    origins = {}
+    for event in chain[:i+1]:
+        for record in event.get("new_papers", []):
+            if not isinstance(record, dict):
+                raise ValueError("invalid original research paper record")
+            doi = record.get("doi")
+            origins[doi] = (record.get("title"), record.get("year"))
+    original_reviews = reviewed.get("reviews")
+    if (not isinstance(original_reviews, list)
+            or len(original_reviews) != len(origins)
+            or len(original_reviews) > MAX_PAPERS):
+        raise ValueError("historical discovery paper count mismatches original journal")
+    by_doi = {paper["doi"]: paper for paper in current_papers}
+    if len(by_doi) != len(current_papers):
+        raise ValueError("duplicate paper in current journal")
+    historic = []
+    seen = set()
+    for record in original_reviews:
+        doi = record.get("doi") if isinstance(record, dict) else None
+        if (not isinstance(doi, str) or doi in seen or doi not in origins
+                or doi not in by_doi
+                or (record.get("title"), record.get("year")) != origins[doi]
+                or by_doi[doi]["title"] != origins[doi][0]
+                or by_doi[doi]["year"] != origins[doi][1]):
+            raise ValueError("historical DOI/title/year differs from authentic SHA journal")
+        seen.add(doi)
+        historic.append(by_doi[doi])
+    if seen != set(origins):
+        raise ValueError("missing historically collected papers")
+    return historic, True
+
+
 def frozen_inputs(root: Path) -> tuple[list[dict], dict, dict, dict, dict, dict, dict]:
     out = root / "loto7_agent_output"
     state_path = out / discovery.STATE
     state = read(state_path)
     chain = discovery.read_chain(out / discovery.LEDGER)
-    papers = review.checked_papers(state, chain)
-    if len(papers) > MAX_PAPERS:
+    current_papers = review.checked_papers(state, chain)
+    if len(current_papers) > MAX_PAPERS:
         raise ValueError("online candidate budget exceeded")
     reviewed = read(out / review.REVIEW_FILE)
+    live_state_sha = sha(state_path.read_bytes())
+    papers, historical_snapshot = _chain_anchored_frozen_papers(
+        state, chain, reviewed, current_papers, live_state_sha
+    )
     plans = read(out / review.DESIGN_FILE)
     verified = read(out / verification.EVIDENCE)
     readiness = read(out / gate.STATUS_FILE)
     guard = read(out / discovery.FILES["budget"])
     operations.validate_no_unapproved_execution(readiness, plans, verified)
-    state_hash = sha(state_path.read_bytes())
-    tip = chain[-1]["record_sha256"]
+    state_hash = reviewed.get("discovery_state_sha256") if historical_snapshot else live_state_sha
+    tip = reviewed.get("discovery_chain_tip") if historical_snapshot else chain[-1]["record_sha256"]
     expected_reviews = sorted(
         [review.review(p) for p in papers],
         key=lambda p: (-p["triage_score_not_accuracy"], p["doi"]),
@@ -258,6 +332,14 @@ def run(root: Path) -> dict:
     source = current_source(root)
     matrix, actions = topic_analytics(papers, reviews, statuses, plans, readiness)
     research_sha = plans["draw_history_sha256"]
+    live_state_sha = sha((root / "loto7_agent_output" / discovery.STATE).read_bytes())
+    live_chain_tip = discovery.read_chain(
+        root / "loto7_agent_output" / discovery.LEDGER
+    )[-1]["record_sha256"]
+    observation_snapshot_stale = (
+        reviews["discovery_state_sha256"] != live_state_sha
+        or reviews["discovery_chain_tip"] != live_chain_tip
+    )
     stale = (source["sha256"] != research_sha
              or source["round"] != plans["last_resolved_round"])
     if (guard.get("mode") != "WAIT_FOR_NEW_DATA"
@@ -283,6 +365,8 @@ def run(root: Path) -> dict:
         "audit_chain_verified": True,
         "metadata_lineage_verified": True,
         "bibliography_statuses_reconciled": True,
+        "discovery_metadata_is_current": not observation_snapshot_stale,
+        "observation_only_historical_snapshot_validated": observation_snapshot_stale,
         "current_draw_verified": source["independent_two_source_verified"],
         "literature_synced_to_current_draw": not stale,
         "research_guard_matches_current_draw": guard.get("data_sha256") == source["sha256"],
@@ -294,6 +378,8 @@ def run(root: Path) -> dict:
         blockers.append("latest_draw_requires_independent_source_corroboration")
     if stale:
         blockers.append("online_literature_analysis_uses_older_draw_snapshot")
+    if observation_snapshot_stale:
+        blockers.append("research_metadata_anchored_to_prior_observational_snapshot")
     if not checks["research_guard_matches_current_draw"]:
         blockers.append("research_budget_snapshot_stale")
     if any(t["pending_or_conflicting"] for t in matrix):
@@ -306,10 +392,11 @@ def run(root: Path) -> dict:
         "research_snapshot": {
             "last_resolved_round": plans["last_resolved_round"],
             "draw_sha256": research_sha,
-            "discovery_state_sha256": sha(
-                (root / "loto7_agent_output" / discovery.STATE).read_bytes()
-            ),
+            "discovery_state_sha256": reviews["discovery_state_sha256"],
             "discovery_chain_tip": reviews["discovery_chain_tip"],
+            "live_discovery_state_sha256": live_state_sha,
+            "live_discovery_chain_tip": live_chain_tip,
+            "historical_snapshot_validated": observation_snapshot_stale,
             "paper_count": len(papers), "topic_count": len(review.TOPICS),
             "proposal_count": plans["count"],
             "search_query_bias": "small_curated_keyword_queries_not_systematic_review",

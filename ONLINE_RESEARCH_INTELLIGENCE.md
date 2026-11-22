@@ -85,3 +85,28 @@ python online_research_intelligence.py --repo-root .
    すべての将来OOS台帳は変更しません。
 5. 合成・理論の検算や書誌情報だけでは、的中率の改善・回収率改善・
    抽せん数字の予測能力は証明できません。
+
+
+## 2026-11-22: observation-only の監査チェーン更新と古い DOI スナップショット
+
+登録済み Future-OOS の事前凍結資料が不足している間、`always_on_accuracy_agent.py` は
+**監査専用（observation-only）**として履歴を進めます。その結果、`always_on_accuracy_research_state.json`
+と監査ジャーナルの先端SHAが更新されても、研究論文レビュー・実験草案・DOI照合・人手審査ゲートが
+古い実行時点に固定されたままになることがあります。
+
+オンライン研究集計は、最新の完全な監査チェーンを検証したうえで、古い DOI スナップショットの
+先端SHAが真正な過去のイベントにあること、古い24件（件数は可変）の DOI/標題/発行年が
+その時点までの監査履歴にすべて存在すること、後続の監査記録が read-only・ソース非改変・自動採用なし
+であること、派生レビュー・設計・公表DOI検証・人手ゲートが同じ古いSHAに整合することを要求します。
+いずれかが不一致なら、**実行を拒否**します。最新観測だけを理由に監査を停止させるのではなく、
+歴史的に監査済みの古いデータとして扱います。
+
+- `research_snapshot.discovery_state_sha256` は**実際にレビューされた古い状態のSHA**を表示し、
+  `live_discovery_state_sha256` は現在の観測専用SHAとして別表示します。
+- `quality_checks.discovery_metadata_is_current=false` と
+  `research_metadata_anchored_to_prior_observational_snapshot` により鮮度の不足を必ず明示します。
+- 追加の新しい DOI は古いレビューへ紛れ込ませません。研究の妥当性・予測性能の向上を主張しません。
+- 新しい探索予算・自動実験・モデル採用・本番予測・登録済み未来OOS変更は許可しません。
+- `online_research_intelligence.py` および `research_intelligence_core.py` はレポートを
+  **read-only** で生成し、保護対象を変更しません。
+
