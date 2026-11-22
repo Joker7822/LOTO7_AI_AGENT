@@ -1,0 +1,122 @@
+name: ROI Cash-Trained Candidate v2 - Full Replay & Promotion Gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "research/roi_cash_agent_v2.py"
+      - "research/roi_cash_v2_promotion_gate.py"
+      - "tests/test_roi_cash_v2_promotion_gate.py"
+      - "research/roi_cash_agent_v2_replay.py"
+      - "tests/test_roi_cash_agent_v2.py"
+      - ".github/workflows/research_roi_cash_v2.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  full-history-roi-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project and tests
+        run: python -m pip install -r requirements.txt pytest
+      - name: Check independent model safety, cold-start and future-draw isolation
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m compileall -q research/roi_cash_agent_v2.py research/roi_cash_agent_v2_replay.py research/roi_cash_v2_promotion_gate.py
+          python -m pytest -q tests/test_roi_cash_agent_v2.py tests/test_roi_cash_v2_promotion_gate.py tests/test_roi_first_governance.py
+
+      - name: Relearn through every strictly preceding draw and grade all three arms
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python research/roi_cash_agent_v2_replay.py \
+            --csv loto7.csv \
+            --champion loto7_agent_output/model_champion.json \
+            --source-validation loto7_agent_output/source_validation.json \
+            --out-dir "${RUNNER_TEMP}/cash_roi_v2" \
+            --matched-reps 32
+
+      - name: Independent audit of all 703 rounds 15 tickets per draw and Promotion logic
+        env:
+          OUT_DIR: ${{ runner.temp }}/cash_roi_v2
+        run: |
+          python - <<'PY'
+          import csv,json,os
+          from pathlib import Path
+          d=Path(os.environ["OUT_DIR"])
+          obj=json.loads((d/"roi_cash_v2_summary.json").read_text())
+          with (d/"cash_v2_three_arm_rounds_2_to_latest.csv").open(encoding="utf-8-sig") as f:
+              rounds=list(csv.DictReader(f))
+          with (d/"cash_v2_three_arm_tickets_2_to_latest.csv").open(encoding="utf-8-sig") as f:
+              tickets=list(csv.DictReader(f))
+          n=obj["last_round"]
+          assert obj["first_round"]==2 and n>=104
+          assert obj["source_trust"]=="verified_two_result_sources"
+          assert len(rounds)==n-1 and len(tickets)==15*(n-1)
+          assert obj["three_arm_ticket_rows"]==len(tickets)
+          assert obj["future_prospective_oos_draws_for_this_candidate"]==0
+          assert obj["future_roi_promotion_gate_met"] is False
+          assert obj["production_promotion"] is False
+          assert obj["promotion_audit"]["auto_production_promotion"] is False
+          assert obj["promotion_audit"]["eligible_for_independent_release_review"] is False
+          assert "incomplete_candidate_specific_26_round_future_oos" in obj["promotion_audit"]["reasons"]
+          assert obj["production_ledger_modified"] is False
+          assert obj["champion_modified"] is False
+          assert obj["future_oos_modified"] is False
+          assert obj["next_target_retrained_unissued_preview"]["target_round"]==n+1
+          for row in rounds:
+              rank=set(map(int,row["rank_top35"].split()))
+              assert len(rank)==35
+              assert int(row["training_rows"]) == int(row["round"])-1
+              for key in ("candidate_tickets","current_production_tickets","baseline_tickets"):
+                  blocks=[v.split() for v in row[key].split("|")]
+                  numbers=[int(n) for block in blocks for n in block]
+                  assert len(blocks)==5 and all(len(block)==7 for block in blocks)
+                  assert len(numbers)==len(set(numbers))==35
+                  assert set(numbers)==rank
+              if int(row["round"])<=100:
+                  assert row["candidate_tickets"]==row["baseline_tickets"]
+                  assert int(row["candidate_swaps"])==0
+          for name,arm in (
+              ("candidate_payout_yen","cash_v2"),
+              ("current_production_payout_yen","production_v1"),
+              ("baseline_payout_yen","rank_order")
+          ):
+              by_round={}
+              for row in tickets:
+                  if row["arm"]!=arm:continue
+                  assert row["public_payout_yen"]!="unknown"
+                  r=int(row["round"])
+                  by_round[r]=by_round.get(r,0)+int(row["public_payout_yen"])
+              assert all(int(r[name])==by_round[int(r["round"])] for r in rounds)
+          print(f"RESEARCH VERIFIED from #2 through #{n}; {len(rounds)} draws, {len(tickets)} tickets")
+          for key,period in obj["periods"].items():
+              print(key,"new cash ROI:",period.get("candidate_roi"),
+                    "approved Production ROI:",period.get("production_roi"),
+                    "delta yen:",period.get("candidate_minus_production_yen"))
+          print("Production promotion:",obj["production_promotion"],
+                "future candidate-specific OOS:",obj["future_prospective_oos_draws_for_this_candidate"])
+          PY
+          cat "${OUT_DIR}/CASH_V2_REPORT.md" >> "${GITHUB_STEP_SUMMARY}"
+          cat "${OUT_DIR}/CASH_V2_REPORT.md"
+
+      - name: Save all per-round public payout comparisons
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: cash-trained-roi-v2-triple-arm-round2-replay
+          path: ${{ runner.temp }}/cash_roi_v2/
+          retention-days: 90
+          if-no-files-found: error

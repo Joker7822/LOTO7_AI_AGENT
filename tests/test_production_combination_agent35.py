@@ -48,6 +48,7 @@ def _prepared(tmp_path, monkeypatch):
     x = synthetic_loto7(data)
     out = tmp_path / "output"
     cfg = v2.DEFAULT_CHAMPION
+    monkeypatch.setattr(geometry, "publication_policy_for_target", lambda *_: policy.COMBINATION_VERSION)
     monkeypatch.setattr(geometry, "verify_source", lambda *a: {"trusted":True,"round":704})
     monkeypatch.setattr(geometry, "production_window_guard", lambda *a: None)
     monkeypatch.setattr(geometry, "walk_forward_evolve", lambda *a, **kw:
@@ -66,7 +67,7 @@ def _prepared(tmp_path, monkeypatch):
 def test_policy_migrates_new_issuances_without_invalidating_old_frozen_rows():
     assert policy.publication_policy_for_target(702) == policy.VERSION
     assert policy.publication_policy_for_target(704) == policy.VERSION
-    assert policy.publication_policy_for_target(705) == policy.COMBINATION_VERSION
+    assert policy.publication_policy_for_target(705) == policy.ROI_CASH_VERSION
     old = [
         {"ticket":i,"model_version":"baseline+"+policy.RANKED_VERSION,
          "predicted_numbers":" ".join(f"{n:02d}" for n in range((i-1)*7+1,i*7+1))}
@@ -78,6 +79,9 @@ def test_policy_migrates_new_issuances_without_invalidating_old_frozen_rows():
                for row in old]
     policy.validate_issued_rows(current,705)
     assert policy.issued_policy(current,705) == policy.COMBINATION_VERSION
+    next_policy = [{**row,"model_version":"baseline+"+policy.ROI_CASH_VERSION} for row in old]
+    policy.validate_issued_rows(next_policy,705)
+    assert policy.issued_policy(next_policy,705) == policy.ROI_CASH_VERSION
     with pytest.raises(ValueError, match="ineligible"):
         policy.validate_issued_rows(current,704)
 
@@ -186,6 +190,7 @@ def test_weekly_can_publish_new_combo_and_republish_unchanged(tmp_path,monkeypat
     champ=tmp_path/"champion.json"
     champ.write_text(json.dumps({"model_version":cfg.version(),
                                   "config":asdict(cfg)}),encoding="utf-8")
+    monkeypatch.setattr(geometry,"publication_policy_for_target",lambda *_:policy.COMBINATION_VERSION)
     monkeypatch.setattr(geometry,"verify_source",lambda *a:{"trusted":True,"round":704})
     monkeypatch.setattr(geometry,"production_window_guard",lambda *a:None)
     monkeypatch.setattr(geometry,"walk_forward_evolve",lambda *a,**kw:

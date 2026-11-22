@@ -236,7 +236,7 @@ def append_current_predictions(
         if (state.get("production_ticket_policy_version") != expected_policy
                 or not str(state.get("model_version", "")).endswith("+" + expected_policy)):
             raise RuntimeError("refusing Production freeze without disjoint35 policy (expected target-specific version)")
-        if expected_policy in (geometry35.RANKED_VERSION, geometry35.COMBINATION_VERSION):
+        if expected_policy in (geometry35.RANKED_VERSION, geometry35.COMBINATION_VERSION, geometry35.ROI_CASH_VERSION):
             ranked = state.get("production_rank_order")
             if (not isinstance(ranked, list)
                     or len(ranked) != 37 or
@@ -299,6 +299,60 @@ def append_current_predictions(
                         or abs(float(state["production_combo_training_objective_gain"])
                                - combo_meta["training_objective_gain"]) > 1e-9):
                     raise RuntimeError("refusing combination Production without authentic AI layout digest")
+            if expected_policy == geometry35.ROI_CASH_VERSION:
+                # Operator-directed policy switch is NOT future OOS validation.
+                # Relearn deterministically from the source rows available before
+                # this target, not from a modifiable candidate ticket file.
+                from dataclasses import asdict
+                from production_roi_cash35_v2 import (
+                    ALGORITHM_VERSION, SELECTION_AUTHORITY, CashAgentConfig,
+                    candidate_from_canonical_rows, layout_sha256,
+                )
+                import math
+                cfg = CashAgentConfig()
+                gain = state.get("production_roi_cash_v2_training_cash_objective_gain_yen_per_draw")
+                if (
+                    state.get("production_roi_cash_v2_algorithm_version") != ALGORITHM_VERSION
+                    or state.get("production_roi_cash_v2_config") != asdict(cfg)
+                    or state.get("production_roi_cash_v2_training_rows") != base
+                    or state.get("production_roi_cash_v2_training_data_sha256") != current_data_sha
+                    or state.get("production_roi_cash_v2_selection_authority") != SELECTION_AUTHORITY
+                    or state.get("production_roi_cash_v2_target_outcome_used") is not False
+                    or state.get("production_promotion_method") !=
+                       "explicit_operator_policy_switch_without_proven_future_roi"
+                    or state.get("production_roi_prediction_skill_confirmed") is not False
+                    or state.get("production_expected_future_roi") is not None
+                    or state.get("production_purchase_automation") is not False
+                    or state.get("production_roi_governance") !=
+                       "prospective_oos_required_no_purchase_authorization"
+                    or state.get("production_reference_cost_yen_for_five_tickets") != 1500
+                    or type(state.get("production_roi_cash_v2_swaps")) is not int
+                    or not isinstance(gain, (float, int))
+                    or isinstance(gain, bool)
+                    or not math.isfinite(gain)
+                ):
+                    raise RuntimeError("refusing ROI-cash v2 Production without exact operator authority and safe provenance")
+                ordered_rows = sorted(loto_rows, key=lambda r:rno(r.get("回別","")) or -1)
+                if (len(ordered_rows) != base
+                        or [rno(r.get("回別","")) for r in ordered_rows] != list(range(1,base+1))):
+                    raise RuntimeError("refusing ROI-cash v2 Production without complete preceding draw history")
+                try:
+                    expected_tickets, roi_meta = candidate_from_canonical_rows(
+                        ordered_rows, ranked, cfg
+                    )
+                except (ValueError, TypeError, AssertionError) as exc:
+                    raise RuntimeError("refusing ROI-cash v2 Production without verified prize history") from exc
+                expected_digest = layout_sha256(
+                    target_round=target, data_sha=current_data_sha,
+                    champion_version=str(state["production_rank_model_version"]),
+                    ranking=ranked, tickets=expected_tickets, config=cfg
+                )
+                if (
+                    state.get("production_roi_cash_v2_layout_sha256") != expected_digest
+                    or state.get("production_roi_cash_v2_swaps") != roi_meta["swaps"]
+                    or abs(float(gain)-roi_meta["training_cash_objective_gain_yen_per_draw"]) > 1e-9
+                ):
+                    raise RuntimeError("refusing ROI-cash v2 Production without exact cash-trained model output")
             actual_tickets = [tuple(nums(ticket["numbers"])) for ticket in tickets]
             if actual_tickets != expected_tickets:
                 raise RuntimeError("refusing ranked Production: tickets disagree with Champion ranking")

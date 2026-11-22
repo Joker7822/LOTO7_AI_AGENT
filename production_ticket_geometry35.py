@@ -2,7 +2,7 @@
 """Production ticket-layout policy for new targets, separate from Champion.
 
 Legacy targets 702-704 use seeded uniform geometry. Unfrozen 705+ targets
-use Champion-ranked top35 and an independently trained combination agent.
+use Champion-ranked top35 and the operator-selected ROI-cash v2 model.
 This layout does not establish a predictive edge over a fair lottery.
 Pre-existing freezes and strict Future-OOS evidence are not modified.
 
@@ -24,8 +24,8 @@ from pathlib import Path
 from balanced_uniform_portfolio import disjoint_portfolio, validate_portfolio
 from combination_agent35_core import AgentConfig, candidate_from_history
 from production_disjoint35_policy import (
-    VERSION, RANKED_VERSION, COMBINATION_VERSION, MIN_TARGET_ROUND,
-    RANKED_MIN_TARGET_ROUND, COMBINATION_MIN_TARGET_ROUND,
+    VERSION, RANKED_VERSION, COMBINATION_VERSION, ROI_CASH_VERSION, MIN_TARGET_ROUND,
+    RANKED_MIN_TARGET_ROUND, COMBINATION_MIN_TARGET_ROUND, ROI_CASH_MIN_TARGET_ROUND,
     publication_policy_for_target, issued_policy, validate_issued_rows,
 )
 from loto7_evolving_agent import walk_forward_evolve, final_score
@@ -143,7 +143,7 @@ def prepare_new_production_outputs(
     q: np.ndarray | None = None
     ranked_extras: dict[str, object] = {}
     expert_weights: dict[str, float] = {}
-    if policy in (RANKED_VERSION, COMBINATION_VERSION):
+    if policy in (RANKED_VERSION, COMBINATION_VERSION, ROI_CASH_VERSION):
         if (history is None or champion_config is None
                 or champion_config.version() != champion_version):
             raise RuntimeError("ranked Production requires the exact approved Champion and history")
@@ -172,6 +172,39 @@ def prepare_new_production_outputs(
                     champion_version=champion_version, ranking=ranking,
                     tickets=tickets, config=config,
                 ),
+            })
+        if policy == ROI_CASH_VERSION:
+            from production_roi_cash35_v2 import (
+                ALGORITHM_VERSION, SELECTION_AUTHORITY, CashAgentConfig,
+                candidate_from_canonical_rows, layout_sha256,
+                training_arrays_from_canonical_rows,
+            )
+            with csv_path.open(encoding="utf-8-sig", newline="") as stream:
+                canonical_rows = list(csv.DictReader(stream))
+            canonical_main, _, _ = training_arrays_from_canonical_rows(canonical_rows)
+            if (len(history) != latest_round
+                    or canonical_main.shape != history.shape
+                    or not np.array_equal(canonical_main, history)):
+                raise RuntimeError("ROI v2 source history and approved Champion history differ")
+            roi_cfg = CashAgentConfig()
+            tickets, roi_diag = candidate_from_canonical_rows(
+                canonical_rows, ranking, roi_cfg
+            )
+            ranked_extras.update({
+                "production_roi_cash_v2_algorithm_version": ALGORITHM_VERSION,
+                "production_roi_cash_v2_config": asdict(roi_cfg),
+                "production_roi_cash_v2_training_rows": len(history),
+                "production_roi_cash_v2_training_data_sha256": data_sha,
+                "production_roi_cash_v2_swaps": roi_diag["swaps"],
+                "production_roi_cash_v2_training_cash_objective_gain_yen_per_draw":
+                    roi_diag["training_cash_objective_gain_yen_per_draw"],
+                "production_roi_cash_v2_layout_sha256": layout_sha256(
+                    target_round=target_round, data_sha=data_sha,
+                    champion_version=champion_version, ranking=ranking,
+                    tickets=tickets, config=roi_cfg,
+                ),
+                "production_roi_cash_v2_selection_authority": SELECTION_AUTHORITY,
+                "production_roi_cash_v2_target_outcome_used": False,
             })
         expert_weights = {
             key: float(bt.final_weights[i]) for i, key in enumerate(bt.keys)
@@ -202,6 +235,8 @@ def prepare_new_production_outputs(
         "signal_champion_version": champion_version,
         "production_ticket_policy_version": policy,
         "production_ticket_policy_role": (
+            "champion_ranked_top35_with_roi_cash_v2_operator_override_no_skill_claim"
+            if policy == ROI_CASH_VERSION else
             "champion_ranked_top35_with_pairwise_combination_ai_no_skill_claim"
             if policy == COMBINATION_VERSION else
             "champion_ai_ranked_top35_geometry_not_signal_promotion"
@@ -213,7 +248,10 @@ def prepare_new_production_outputs(
         "target_round": f"第{target_round}回",
         "seed": SEED_BASE + target_round * SEED_MULTIPLIER if policy == VERSION else None,
         "git_sha": git_sha,
-        "production_promotion_method": "future_oos_only",
+        "production_promotion_method": (
+            "explicit_operator_policy_switch_without_proven_future_roi"
+            if policy == ROI_CASH_VERSION else "future_oos_only"
+        ),
         "promotion_this_run": None,
         "ticket_count": 5,
         "covered_distinct_numbers": 35,
