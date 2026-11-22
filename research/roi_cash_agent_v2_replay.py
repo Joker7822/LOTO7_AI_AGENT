@@ -23,6 +23,7 @@ from research.production_combination_round2_replay import (
     run as run_incumbent, _prize_payout, _numbers, _write_csv
 )
 from research.roi_cash_agent_v2 import CashAgentConfig, VERSION as CANDIDATE_VERSION, candidate_from_cash_history
+from research.roi_cash_v2_promotion_gate import evaluate_promotion
 from production_disjoint35_policy import COMBINATION_VERSION
 from roi_first_governance import ROUND_COST_YEN, paired_signflip_yen
 
@@ -261,6 +262,11 @@ def run(
             "Promotion requires candidate-specific locked future predictions, verified result source, same-cost positive ROI and independent review.",
         ],
     }
+    # Candidate-specific *future* cashflow evidence is empty in historical replay.
+    # Even a retrospective cash windfall cannot authorize a Production switch.
+    report["promotion_audit"]=evaluate_promotion(report)
+    if report["promotion_audit"]["eligible_for_independent_release_review"]:
+        raise AssertionError("historical replay unexpectedly authorized promotion")
     out_dir.mkdir(parents=True,exist_ok=True)
     _write_csv(out_dir/"cash_v2_three_arm_rounds_2_to_latest.csv",output,ROUND_FIELDS)
     _write_csv(out_dir/"cash_v2_three_arm_tickets_2_to_latest.csv",tickets,TICKET_FIELDS)
