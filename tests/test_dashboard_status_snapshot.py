@@ -74,6 +74,16 @@ def test_real_portfolio_oos_is_exactly_prefrozen_and_no_fabricated_future_signal
     assert trusted_rounds == sorted(set(trusted_rounds))
     assert rows[-1]["mean_delta_vs_random"] < 0  # currently not a validated edge
     assert snapshot["series"]["scope"].startswith("genuinely_prospective")
+    roi=snapshot["roi_cash_v2"]
+    assert roi["policy"]=="production-ai-ranked35-roi-cash-v2"
+    assert roi["reference"]["first_round"]==2
+    assert roi["reference"]["last_round"]==704
+    assert roi["reference"]["roi_v2_payout_yen"]==922400
+    assert roi["reference"]["roi_v2_net_yen"]==-132100
+    assert roi["actual_purchase_receipts_verified"] is False
+    assert roi["actual_personal_roi"] is None
+    assert roi["future_cash_roi_improvement_confirmed"] is False
+    assert roi["automatic_purchase_authorized"] is False
 
 
 def test_only_minimal_public_state_no_tickets_or_private_sources(project):
@@ -82,7 +92,10 @@ def test_only_minimal_public_state_no_tickets_or_private_sources(project):
     assert "predicted_numbers" not in json.dumps(sources)
     assert "api_key" not in json.dumps(sources)
     assert "db_password" not in json.dumps(sources)
-    assert set(sources["production"]) == {"published", "target_round", "published_at_jst"}
+    assert {"published", "target_round", "published_at_jst"} <= set(sources["production"])
+    assert set(sources["production"]) <= {"published", "target_round", "published_at_jst", "ticket_policy", "model_version"}
+    # Old pinned #699 publication does not yet contain the later
+    # independently recorded ticket-policy field: do not fabricate it.
     assert "mizuho" not in sources["source"]["sources"]
     assert "main" in sources["source"]["latest"]  # actual winning numbers are public
 

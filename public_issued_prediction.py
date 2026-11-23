@@ -155,9 +155,14 @@ def preview(root: Path, source: dict, published: dict) -> tuple[dict, dict[str, 
     active = [r for r in read_csv(out / "predictions.csv")
               if r.get("prediction_id") not in invalidated]
     tickets = forecast_group(active, target, required=True)
-    if (target >= geometry35.MIN_TARGET_ROUND
-            and published.get("ticket_policy") != geometry35.VERSION):
-        raise ValueError("published disjoint35 Production state has wrong ticket policy")
+    if target >= geometry35.MIN_TARGET_ROUND:
+        # The publication state must match the policy actually frozen into
+        # these five immutable rows, NOT the current issuance policy. This
+        # keeps legacy #702-704 and pre-existing ranked/pairwise #705+ valid,
+        # while permitting newly selected ROI-cash v2 issues.
+        frozen_policy = geometry35.issued_policy(tickets, target)
+        if published.get("ticket_policy") != frozen_policy:
+            raise ValueError("published disjoint35 Production state has wrong ticket policy")
     if any(r["model_version"] != published.get("model_version") for r in tickets):
         raise ValueError("model version mismatch in issued prediction ledger")
     if len({r["prediction_created_at_jst"] for r in tickets}) != 1:

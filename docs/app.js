@@ -1,7 +1,7 @@
-import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261102-verified-history-freshest";
+import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261123-roi-cash-v2-observability";
 import {
   LEVEL_LABELS, buildView, percent, displayMetric
-} from "./model.mjs?v=20261102-verified-history-freshest";
+} from "./model.mjs?v=20261123-roi-cash-v2-observability";
 
 const REFRESH_MS = 120_000;
 let busy = false;
@@ -123,6 +123,67 @@ function renderResearch(v) {
   const modes = {SEARCH:"探索中", VALIDATION_ONLY:"検証限定", WAIT_FOR_NEW_DATA:"新データ待ち"};
   set("research-mode", modes[v.researchMode] || v.researchMode);
   set("research-null", v.scoutP == null ? "未確定" : "p = " + displayMetric(v.scoutP, 4));
+}
+function renderRoiCashV2(ops) {
+  const roi=ops.roiCashV2;
+  const state=el("roi-v2-state");
+  const barV2=el("roi-bar-v2");
+  const barV1=el("roi-bar-v1");
+  if(!roi || roi.status==="unavailable"){
+    if(state){state.className="roi-state unknown";state.textContent="資料未取得";}
+    for(const id of [
+      "roi-v2-model","roi-v2-target","roi-last-issued","roi-cost-draw",
+      "roi-v2-amount","roi-v2-payout","roi-v1-amount","roi-v1-payout",
+      "roi-v2-net","roi-v2-spend","roi-reference-period",
+      "roi-bar-v2-label","roi-bar-v1-label"
+    ])set(id,"確認できません");
+    set("roi-future-skill","未確認");
+    set("roi-v2-risk","参照可能な監査済みROIデータがありません。過去の数値を推測しません。");
+    set("roi-real-cash","実際の購入・払戻：検証できません");
+    if(barV2)barV2.style.width="0%";
+    if(barV1)barV1.style.width="0%";
+    return;
+  }
+  const money=x=>x==null?"未確認":Number(x).toLocaleString("ja-JP")+"円";
+  const roiPercent=x=>(x*100).toFixed(2)+"%";
+  const status={
+    roi_v2_published:"v2で発行済み",
+    selected_not_yet_issued:"v2採用・発行待ち",
+    source_unverified:"結果の照合待ち",
+    outside_current_policy:"対象外"
+  };
+  if(state){
+    state.className="roi-state"+(roi.status==="roi_v2_published"?"":roi.status==="selected_not_yet_issued"?" waiting":" unknown");
+    state.textContent=status[roi.status]||"確認中";
+  }
+  set("roi-v2-model",roi.policy+" ／ 順位Champion "+roi.champion);
+  set("roi-v2-target","第"+roi.targetRound+"回");
+  const old=roi.latestIssuedPolicy;
+  set("roi-last-issued",old?
+    (roi.latestIssuedV2?"v2":"旧方式の凍結分")+"（"+old.replace("production-","")+"）":
+    "発行履歴なし");
+  set("roi-cost-draw",money(roi.costPerDraw)+" / 5口");
+  set("roi-future-skill","未確認");
+  set("roi-v2-amount",roiPercent(roi.v2Roi));
+  set("roi-v1-amount",roiPercent(roi.previousRoi));
+  set("roi-v2-payout",money(roi.v2Payout)+" / 支出 "+money(roi.historicalCost));
+  set("roi-v1-payout",money(roi.previousPayout)+" / 同じ支出 "+money(roi.historicalCost));
+  set("roi-v2-net",(roi.v2Net<0?"−":"+")+money(Math.abs(roi.v2Net)));
+  set("roi-v2-spend","仮想 "+formatInt(roi.rounds)+"回・合計 "+money(roi.historicalCost)+" の結果");
+  set("roi-reference-period",
+    "第2〜"+roi.referenceRound+"回（"+roi.referenceDate+"時点、"+roi.rounds+"回）"+
+    (roi.referenceCurrent?"／ 現在の検証済み結果まで":"／ 最新の結果を含まない固定比較"));
+  set("roi-bar-v2-label",roiPercent(roi.v2Roi));
+  set("roi-bar-v1-label",roiPercent(roi.previousRoi));
+  if(barV2)barV2.style.width=(Math.min(100,Math.max(0,roi.v2Roi*100)))+"%";
+  if(barV1)barV1.style.width=(Math.min(100,Math.max(0,roi.previousRoi*100)))+"%";
+  set("roi-v2-risk",
+    "重要：過去のv2払戻には第118回の高額当せん "+money(roi.singleWin)+
+    " が1口含まれます。これを差し引く感度分析では参考回収率は "+
+    roiPercent(roi.withoutSingleWinRoi)+
+    "となり、従来v1の"+roiPercent(roi.previousRoi)+
+    "を下回ります。これは過去の仮想収支であり、将来の収益性や予測力の証明ではありません。");
+  set("roi-real-cash","実際の購入・払戻：領収書未確認、本人の損益・回収率は算出不可");
 }
 function renderIssuedPredictions(ops){
   const prediction=ops.issuedPrediction;
@@ -524,7 +585,7 @@ export async function refresh(){
       " ／ 公開データ作成: "+asJst(ops.generatedAt)+
       " ／ 取得先: "+(loaded.source.includes("raw.githubusercontent.com")?"GitHub Raw":"GitHub Pages")+
       (ops.outdated?" ／ 更新遅延あり":""));
-    renderProgress(view);renderResearch(view);renderOperations(view);renderIssuedPredictions(ops);
+    renderProgress(view);renderResearch(view);renderOperations(view);renderRoiCashV2(ops);renderIssuedPredictions(ops);
     renderWorkflowStatus(ops);renderPredictionMetrics(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderResearchApplication(ops);renderResearchPriorities(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
     set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
     document.title=(view.state==="ok"?"● ":view.state==="watch"?"◐ ":"！ ")+"LOTO7 AI AGENT | 現在の状態";
@@ -533,6 +594,7 @@ export async function refresh(){
     const light=el("overall-light");if(light)light.className="status-light unknown";
     set("snapshot-freshness","未取得・通信状況を確認してください");
     const list=clear("alert-list");list.append(node("p","error-line",String(e.message||"監視情報の取得失敗")));
+    renderRoiCashV2({roiCashV2:{status:"unavailable"}});
     set("issued-status","検証データ未取得");
     clear("issued-ticket-grid")?.append(node("p","error-line","公開予測の整合性を確認できないため番号を表示しません。"));
     clear("issued-previous-results")?.append(node("p","muted","照合済み結果を取得できません。"));

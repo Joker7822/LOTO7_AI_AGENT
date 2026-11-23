@@ -8,8 +8,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://raw.githubusercontent.com; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>LOTO7 AI AGENT | LIVE DASHBOARD</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20261102-verified-history-freshest">
-  <script type="module" src="app.js?v=20261102-verified-history-freshest"></script>
+  <link rel="stylesheet" href="style.css?v=20261123-roi-cash-v2-observability">
+  <script type="module" src="app.js?v=20261123-roi-cash-v2-observability"></script>
 </head>
 <body>
   <a class="skip" href="#main">本文に移動</a>
@@ -63,6 +63,51 @@
           <div class="draw-panel-title"><span class="square-dot"></span><div><b>最新の照合済み本数字</b><small id="draw-description">直近の公表結果</small></div></div>
           <div class="draw-numbers"><div id="main-balls" class="ball-row"><span class="empty-ball">確認中...</span></div><div class="bonus-wrap"><small>BONUS</small><div id="bonus-balls" class="ball-row bonus-row"></div></div></div>
         </div>
+      </section>
+
+      <section class="section roi-section" id="roi-v2" aria-labelledby="roi-heading">
+        <div class="section-heading">
+          <div><span class="section-index">PRODUCTION / CASH ROI</span><h2 id="roi-heading">採用モデルv2と回収率</h2></div>
+          <p>本番発行の状態・過去の参考払戻・将来の証拠を分けて表示</p>
+        </div>
+        <article class="roi-lead panel">
+          <div class="roi-lead-top">
+            <div><span class="roi-eyebrow">OPERATOR-SELECTED MODEL</span><h3>ROI Cash <span>v2</span></h3>
+              <p id="roi-v2-model">本番ポリシーを照合中…</p></div>
+            <span id="roi-v2-state" class="roi-state">確認中</span>
+          </div>
+          <div class="roi-head-facts">
+            <div><small>次の新規発行対象</small><strong id="roi-v2-target">—</strong></div>
+            <div><small>直近の発行済み配置</small><strong id="roi-last-issued">—</strong></div>
+            <div><small>1回あたり参考購入額</small><strong id="roi-cost-draw">—</strong></div>
+            <div><small>将来ROIの優位性</small><strong id="roi-future-skill">未確認</strong></div>
+          </div>
+        </article>
+        <div class="roi-grid" aria-label="過去の仮想収支比較">
+          <article class="roi-metric panel"><span class="roi-metric-label">新モデルv2・過去の参考回収率</span>
+            <strong class="roi-metric-number" id="roi-v2-amount">—</strong><span id="roi-v2-payout" class="roi-metric-meta">払戻の集計待ち</span></article>
+          <article class="roi-metric panel"><span class="roi-metric-label">従来v1・同条件の参考回収率</span>
+            <strong class="roi-metric-number" id="roi-v1-amount">—</strong><span id="roi-v1-payout" class="roi-metric-meta">払戻の集計待ち</span></article>
+          <article class="roi-metric panel"><span class="roi-metric-label">v2・過去の仮想損益</span>
+            <strong class="roi-metric-number roi-negative" id="roi-v2-net">—</strong><span id="roi-v2-spend" class="roi-metric-meta">購入額の集計待ち</span></article>
+        </div>
+        <article class="panel roi-evidence-panel">
+          <div class="roi-evidence-head"><div><h3>同額・同じ35数字での過去比較</h3>
+            <p id="roi-reference-period">検証対象を照合中</p></div><span class="label-outline">過去の仮想購入</span></div>
+          <div class="roi-bar-group">
+            <div class="roi-bar-row"><span>ROI Cash v2</span><div class="roi-track"><span class="roi-fill new" id="roi-bar-v2"></span></div><strong id="roi-bar-v2-label">—</strong></div>
+            <div class="roi-bar-row"><span>従来v1</span><div class="roi-track"><span class="roi-fill old" id="roi-bar-v1"></span></div><strong id="roi-bar-v1-label">—</strong></div>
+          </div>
+          <p class="roi-warning" id="roi-v2-risk">高額当せん依存の検証結果を読み込み中です。</p>
+          <div class="roi-safety-notes">
+            <span id="roi-real-cash">実際の購入実績：未確認</span>
+            <span>過去の良い結果は、将来の払戻を保証しません。</span>
+          </div>
+          <div class="roi-evidence-links">
+            <a href="https://github.com/Joker7822/LOTO7_AI_AGENT/pull/161" target="_blank" rel="noopener noreferrer">本番採用PR・変更履歴 ↗</a>
+            <a href="https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44990515557" target="_blank" rel="noopener noreferrer">全703回の再検証 ↗</a>
+          </div>
+        </article>
       </section>
 
       <section class="section" id="issued-predictions" aria-labelledby="issued-predictions-title">

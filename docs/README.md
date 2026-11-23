@@ -6,7 +6,9 @@ A responsive, read-only Japanese dashboard showing the latest public research an
 
 **Intended official URL:** https://joker7822.github.io/LOTO7_AI_AGENT/
 
-At implementation time, GitHub repository metadata reported **has_pages: false**, so this address is not guaranteed to work until the repository owner performs the one-time setup:
+As of **2026-11-23**, the repository reports GitHub Pages enabled (`has_pages: true`) and Pages deployment workflows have succeeded. The URL above is the dashboard entry point. If the site is unavailable, check the live [GitHub Actions](https://github.com/Joker7822/LOTO7_AI_AGENT/actions) and repository Pages settings.
+
+For new repositories without Pages enabled, the manual setup remains:
 
 1. Open https://github.com/Joker7822/LOTO7_AI_AGENT/settings/pages
 2. Under **Build and deployment**, select **Deploy from a branch**.
@@ -94,3 +96,37 @@ The e-value starts at 1 with **zero new actual future draws**, stays empty until
 - **ご注意:** GitHub Pagesは公開サイトのため、5口の予測番号は第三者にも閲覧可能です。購入を推奨するものではなく、当せんを保証しません。
 
 テスト：`python -m pytest -q tests/test_public_issued_prediction.py tests/test_dashboard_status_snapshot.py`、`node --test docs/tests/issued-prediction.test.mjs`。
+
+
+## 2026-11-23: ROI-cash v2 Production dashboard
+
+The dashboard now includes a prominent **ROI Cash v2** panel immediately after the
+latest result. It distinguishes:
+
+- **Operator-adopted policy for NEW, unissued targets #705+** (as of 2026-11-22),
+  separately from the actual version already frozen in the canonical prediction
+  ledger. Historical #702-704 tickets stay legacy and are never relabeled.
+- A fixed audited historical exploratory backtest for draws **#2–704**
+  (draw through **2026-11-20**): 703 hypothetical five-ticket rounds, cost
+  **1,054,500 JPY per arm**, ROI-cash v2 hypothetical payouts **922,400 JPY**
+  (87.47%), former pairwise-v1 **228,600 JPY** (21.68%). Candidate-v2 cash
+  net **−132,100 JPY**.
+- The **705,400 JPY** single third-prize win at #118 and a sensitivity result
+  of 217,000 JPY payouts (20.58% of the unchanged reference cost) without
+  that single win. The historical comparison is conspicuously flagged
+  stale whenever a newer lottery draw is verified; never imply future improvement.
+- **No verified personal purchase receipts / real personal ROI**, no proven
+  candidate-specific future payout edge, and no automatic ticket purchases.
+- Read-only links to the [Production adoption PR](https://github.com/Joker7822/LOTO7_AI_AGENT/pull/161)
+  and [full v2 replay CI](https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44990515557).
+
+The atomic snapshot is built from the current source/Champion, immutable
+previously issued tickets and `dashboard_roi_cash_v2.py`'s SHA-pinned historic
+evidence; the browser rejects mismatched model policies, implausible cash
+accounting, forged audit links, and claims of verified future ROI or purchases.
+
+Future v2 issued five-ticket groups are accepted only with the exact matching
+frozen policy, checked again in Python. The front end recognizes legacy,
+Champion-ranked, pairwise-v1 and ROI-cash-v2 policy suffixes for #705+; for
+#702–704 only the original v1 geometry is eligible. No unissued research
+preview or registered sealed future-OOS ticket is exposed.
