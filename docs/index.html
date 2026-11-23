@@ -8,8 +8,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://raw.githubusercontent.com; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>LOTO7 AI AGENT | LIVE DASHBOARD</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20261123-roi-cash-v2-observability">
-  <script type="module" src="app.js?v=20261123-roi-cash-v2-observability"></script>
+  <link rel="stylesheet" href="style.css?v=20261123-simplified-view">
+  <script type="module" src="app.js?v=20261123-simplified-view"></script>
 </head>
 <body>
   <a class="skip" href="#main">本文に移動</a>
@@ -22,24 +22,33 @@
         <span><strong>LOTO7 <em>AI AGENT</em></strong><small>INTELLIGENCE CONSOLE</small></span>
       </a>
       <div class="header-actions">
-        <span class="live-indicator"><span class="pulse-dot" aria-hidden="true"></span> GITHUB PUBLIC SNAPSHOT</span>
+        <span class="live-indicator"><span class="pulse-dot" aria-hidden="true"></span> 公開データを確認中</span>
         <button type="button" id="refresh" class="refresh-button" aria-label="最新データを読み込み直す">
           <span aria-hidden="true">↻</span> <span id="refresh-label">更新</span>
         </button>
       </div>
     </header>
 
+    <nav class="quick-nav" aria-label="主な情報へ移動">
+      <a href="#overview">抽せん結果</a>
+      <a href="#roi-v2">AIモデル・回収率</a>
+      <a href="#issued-predictions">予測5口</a>
+      <a href="#validation">将来の検証</a>
+      <a href="#operations">運用状況</a>
+      <a href="#research-details" data-expand-research>研究の詳細</a>
+    </nav>
+
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <div class="eyebrow"><span class="eyebrow-line"></span> SYSTEM OVERVIEW <span class="eyebrow-count">/ 01</span></div>
-          <h1 id="hero-title">AIエージェントの<br><span class="gradient-text">現在地を、ひと目で。</span></h1>
-          <p class="hero-sub">抽せん結果の確認から学習・将来検証・本番運用まで。<br class="desktop-break">リアルな状態を、この1ページに集約。</p>
+          <div class="eyebrow"><span class="eyebrow-line"></span> LOTO7 · 安全な公開データ</div>
+          <h1 id="hero-title">ロト7の今を、<br><span class="gradient-text">ひと目でわかりやすく。</span></h1>
+          <p class="hero-sub">次回の抽せん、公開済みの予測5口、AIモデルと回収率。<br class="desktop-break">確認できた情報だけを、わかりやすく表示します。</p>
           <div class="hero-status">
             <span id="overall-light" class="status-light unknown" aria-hidden="true"></span>
-            <div><span class="tiny-label">SYSTEM STATUS</span><strong id="overall-status" aria-live="polite">読み込み中...</strong></div>
+            <div><span class="tiny-label">現在の監視状況</span><strong id="overall-status" aria-live="polite">読み込み中...</strong></div>
             <span class="hero-divider" aria-hidden="true"></span>
-            <div><span class="tiny-label">LAST SOURCE CHECK</span><strong id="checked-at">—</strong></div>
+            <div><span class="tiny-label">抽せん結果の確認日時</span><strong id="checked-at">—</strong></div>
           </div>
         </div>
         <div class="hero-orb" aria-hidden="true"><div class="orb-ring r1"></div><div class="orb-ring r2"></div><div class="orb-center"><span>AI</span><b>07</b></div><span class="orb-node n1"></span><span class="orb-node n2"></span><span class="orb-node n3"></span></div>
@@ -47,16 +56,16 @@
 
       <div class="snapshot-bar">
         <span class="snapshot-icon" aria-hidden="true">↗</span>
-        <span><b>GitHubの公開状態ファイルから自動取得</b><small id="fetched-at">読み込み待機中</small></span>
-        <span class="snapshot-auto">120秒ごとに自動更新</span>
+        <span><b>データの更新時刻</b><small id="fetched-at">読み込み待機中</small></span>
+        <span class="snapshot-auto">表示中は約2分ごとに確認</span>
       </div>
 
       <section class="section" id="overview" aria-labelledby="section-overview">
-        <div class="section-heading"><div><span class="section-index">01 / OVERVIEW</span><h2 id="section-overview">いまの状況</h2></div><p>まず確認する4つの指標</p></div>
+        <div class="section-heading"><div><span class="section-index">01 / 概要</span><h2 id="section-overview">まず、これだけ確認</h2></div><p>抽せん・次回予定・予測・照合状況</p></div>
         <div class="metric-grid">
           <article class="metric-card"><span class="metric-top"><span class="metric-icon blue">◈</span> 最新の確認済み抽せん</span><div class="metric-value" id="latest-round">—</div><div class="metric-footer" id="latest-date">確認中</div></article>
           <article class="metric-card"><span class="metric-top"><span class="metric-icon mint">✓</span> データの信頼性</span><div class="metric-value compact" id="trust-status">—</div><div class="metric-footer" id="trust-note">2つの公表元で照合</div></article>
-          <article class="metric-card"><span class="metric-top"><span class="metric-icon violet">◉</span> 最新の研究世代</span><div class="metric-value" id="generation">—</div><div class="metric-footer" id="evaluations">研究実績を読み込み中</div></article>
+          <article class="metric-card"><span class="metric-top"><span class="metric-icon violet">◉</span> 公開済みの予測</span><div class="metric-value compact" id="quick-prediction-state">確認中</div><div class="metric-footer" id="quick-prediction-note">発行記録を確認中</div></article>
           <article class="metric-card"><span class="metric-top"><span class="metric-icon amber">↗</span> 次回の抽せん</span><div class="metric-value" id="next-round">—</div><div class="metric-footer" id="next-date">公式日程を読み込み中</div></article>
         </div>
         <div class="draw-panel">
@@ -67,12 +76,12 @@
 
       <section class="section roi-section" id="roi-v2" aria-labelledby="roi-heading">
         <div class="section-heading">
-          <div><span class="section-index">PRODUCTION / CASH ROI</span><h2 id="roi-heading">採用モデルv2と回収率</h2></div>
-          <p>本番発行の状態・過去の参考払戻・将来の証拠を分けて表示</p>
+          <div><span class="section-index">02 / AIモデルとお金</span><h2 id="roi-heading">使っているAIと回収率</h2></div>
+          <p>採用状況と過去の参考成績を分けて確認</p>
         </div>
         <article class="roi-lead panel">
           <div class="roi-lead-top">
-            <div><span class="roi-eyebrow">OPERATOR-SELECTED MODEL</span><h3>ROI Cash <span>v2</span></h3>
+            <div><span class="roi-eyebrow">新規予測に採用するAI</span><h3>回収率重視AI <span>v2</span></h3>
               <p id="roi-v2-model">本番ポリシーを照合中…</p></div>
             <span id="roi-v2-state" class="roi-state">確認中</span>
           </div>
@@ -84,14 +93,15 @@
           </div>
         </article>
         <div class="roi-grid" aria-label="過去の仮想収支比較">
-          <article class="roi-metric panel"><span class="roi-metric-label">新モデルv2・過去の参考回収率</span>
+          <article class="roi-metric panel"><span class="roi-metric-label">新モデルv2 · 過去の仮想回収率</span>
             <strong class="roi-metric-number" id="roi-v2-amount">—</strong><span id="roi-v2-payout" class="roi-metric-meta">払戻の集計待ち</span></article>
-          <article class="roi-metric panel"><span class="roi-metric-label">従来v1・同条件の参考回収率</span>
+          <article class="roi-metric panel"><span class="roi-metric-label">旧モデルv1 · 過去の仮想回収率</span>
             <strong class="roi-metric-number" id="roi-v1-amount">—</strong><span id="roi-v1-payout" class="roi-metric-meta">払戻の集計待ち</span></article>
-          <article class="roi-metric panel"><span class="roi-metric-label">v2・過去の仮想損益</span>
+          <article class="roi-metric panel"><span class="roi-metric-label">新モデルv2 · 仮想損益</span>
             <strong class="roi-metric-number roi-negative" id="roi-v2-net">—</strong><span id="roi-v2-spend" class="roi-metric-meta">購入額の集計待ち</span></article>
         </div>
         <article class="panel roi-evidence-panel">
+          <p class="roi-definition"><strong>回収率とは？</strong> 払戻金 ÷ 購入費用 × 100。100%未満は購入費用を回収できていません。ここは実際の購入記録ではなく、過去データを使った仮想検証です。</p>
           <div class="roi-evidence-head"><div><h3>同額・同じ35数字での過去比較</h3>
             <p id="roi-reference-period">検証対象を照合中</p></div><span class="label-outline">過去の仮想購入</span></div>
           <div class="roi-bar-group">
@@ -112,8 +122,8 @@
 
       <section class="section" id="issued-predictions" aria-labelledby="issued-predictions-title">
         <div class="section-heading">
-          <div><span class="section-index">LATEST / ISSUED FORECASTS</span><h2 id="issued-predictions-title">最新のAI予測番号と照合結果</h2></div>
-          <p>発行済みProductionの5口だけを表示</p>
+          <div><span class="section-index">03 / 発行済み予測</span><h2 id="issued-predictions-title">最新の予測5口</h2></div>
+          <p>実際に発行した番号のみ表示。研究中の番号は非公開</p>
         </div>
         <article class="panel published-prediction-panel">
           <div class="panel-heading">
@@ -137,16 +147,23 @@
       </section>
 
       <section class="section" id="validation" aria-labelledby="section-validation">
-        <div class="section-heading"><div><span class="section-index">02 / REAL-WORLD EVIDENCE</span><h2 id="section-validation">将来の検証状況</h2></div><p>過去の研究とは別に、未知だった結果で評価</p></div>
+        <div class="section-heading"><div><span class="section-index">04 / これからの実績</span><h2 id="section-validation">未来の予測は当たっている？</h2></div><p>事前に予測を固定し、その後の抽せん結果で検証</p></div>
         <div id="progress-grid" class="progress-grid" aria-live="polite"></div>
         <p class="explain"><span aria-hidden="true">ⓘ</span> 26回の節目は結果を表示するための目安です。継続学習は26回後も続きます。数字が増えただけで精度向上が証明されたことにはなりません。</p>
       </section>
 
       <section class="section" id="prospective-trend" aria-labelledby="prospective-trend-title">
-        <div class="section-heading"><div><span class="section-index">03 / TRUE FUTURE PERFORMANCE</span><h2 id="prospective-trend-title">未来の予測精度の推移</h2></div><p>事前凍結した実測結果のみで累積平均を描画</p></div>
+        <div class="section-heading"><div><span class="section-index">05 / 実績の推移</span><h2 id="prospective-trend-title">将来予測の成績グラフ</h2></div><p>抽せん前に確定していた予測だけを集計</p></div>
         <div id="prospective-trends" class="prospective-grid" aria-live="polite"></div>
         <p class="explain">点線は比較基準（score差・log/Brier差は0、Top7は理論平均1.324個）です。まだ結果がない検証は空欄のまま表示します。途中経過は精度改善の証明ではありません。</p>
       </section>
+
+      <details class="research-details" id="research-details">
+        <summary class="research-details-summary">
+          <span><small>もっと詳しく知りたい方へ</small><strong>AIの研究・統計検証の詳細を見る</strong>
+            <em>自律研究、論文、統計モデル、詳しい評価指標</em></span>
+          <span class="research-details-toggle" aria-hidden="true">開く ＋</span>
+        </summary>
 
       <section class="section" id="always-on-accuracy" aria-labelledby="always-on-title">
         <div class="section-heading">
@@ -288,8 +305,10 @@
         <p class="science-note">26回固定の将来検証：<strong id="metric-future-evidence">未確認</strong>。上記4種類のスコアを合算して予測能力を宣言しません。</p>
       </section>
 
+      </details>
+
       <section class="section" id="operations" aria-labelledby="section-operations">
-        <div class="section-heading"><div><span class="section-index">04 / GOVERNANCE</span><h2 id="section-operations">役割ごとの稼働状態</h2></div><p>5つの監査役が独立して確認</p></div>
+        <div class="section-heading"><div><span class="section-index">06 / 運用・安全</span><h2 id="section-operations">システムは正常に動いている？</h2></div><p>エラー・安全性・Actionsの状態を確認</p></div>
         <div id="role-grid" class="role-grid"></div>
         <section class="panel command-center" aria-labelledby="command-center-title">
           <div class="panel-heading">
@@ -308,7 +327,7 @@
         </section>
         <div class="operations-grid">
           <article class="panel operational-panel">
-            <div class="panel-heading"><h3>Production（本番運用）</h3><span class="label-outline">READ-ONLY</span></div>
+            <div class="panel-heading"><h3>Production（本番運用）</h3><span class="label-outline">確認専用</span></div>
             <div class="fact-row"><span>採用中のChampion</span><b id="champion-name" class="break-anywhere">—</b></div>
             <div class="fact-row"><span>最後に公開した対象回</span><b id="production-round">—</b></div>
             <div class="fact-row"><span>公開日時</span><b id="production-time">—</b></div>
@@ -324,7 +343,7 @@
 
       <section class="disclaimer">
         <div class="disclaimer-icon" aria-hidden="true">!</div>
-        <div><b>このダッシュボードは状態の「可視化」専用です。</b><p>Productionで発行済みの予測番号のみを公開し、未発行予測・研究用予測・パスワードは表示しません。過去研究の良好な数値や継続学習の進行は、将来の的中率・当せんを保証するものではありません。将来検証が未完了なら、精度向上は未確認として扱います。</p></div>
+        <div><b>この画面は確認専用です。</b><p>Productionで発行済みの予測番号のみを公開し、未発行予測・研究用予測・パスワードは表示しません。過去研究の良好な数値や継続学習の進行は、将来の的中率・当せんを保証するものではありません。将来検証が未完了なら、精度向上は未確認として扱います。</p></div>
       </section>
     </main>
 
