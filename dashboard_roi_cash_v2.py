@@ -63,7 +63,7 @@ def project_roi_cash_v2(root: Path, sources: dict, latest_prediction: dict) -> d
     )
     # An earlier frozen, still-published target can legitimately use the old
     # assignment. It is not a failed v2 deployment and must never be relabeled.
-    if issued_v2:
+    if issued_v2 and issued_target == next_target:
         issuance_status = "roi_v2_published"
     elif selected and verified:
         issuance_status = "selected_not_yet_issued"
