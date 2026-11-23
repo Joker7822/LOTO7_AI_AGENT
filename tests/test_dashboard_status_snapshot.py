@@ -92,7 +92,10 @@ def test_only_minimal_public_state_no_tickets_or_private_sources(project):
     assert "predicted_numbers" not in json.dumps(sources)
     assert "api_key" not in json.dumps(sources)
     assert "db_password" not in json.dumps(sources)
-    assert set(sources["production"]) == {"published", "target_round", "published_at_jst", "ticket_policy", "model_version"}
+    assert {"published", "target_round", "published_at_jst"} <= set(sources["production"])
+    assert set(sources["production"]) <= {"published", "target_round", "published_at_jst", "ticket_policy", "model_version"}
+    # Old pinned #699 publication does not yet contain the later
+    # independently recorded ticket-policy field: do not fabricate it.
     assert "mizuho" not in sources["source"]["sources"]
     assert "main" in sources["source"]["latest"]  # actual winning numbers are public
 
