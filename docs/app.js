@@ -1,7 +1,7 @@
-import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261123-roi-cash-v2-observability";
+import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261123-simplified-view";
 import {
   LEVEL_LABELS, buildView, percent, displayMetric
-} from "./model.mjs?v=20261123-roi-cash-v2-observability";
+} from "./model.mjs?v=20261123-simplified-view";
 
 const REFRESH_MS = 120_000;
 let busy = false;
