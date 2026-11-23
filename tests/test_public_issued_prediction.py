@@ -246,3 +246,60 @@ def test_previously_issued_history_rejects_backdated_tickets(project):
     overwrite_csv(path, make_late)
     with pytest.raises(ValueError, match="not recorded before draw"):
         preview(project, src, pub)
+
+
+
+def test_issued_v2_705_is_public_and_wrong_policy_is_blocked(project):
+    """Dashboard reads ACTUALLY frozen v2 only; research previews stay hidden."""
+    from loto7_evolving_agent import fingerprint_file
+    from production_disjoint35_policy import ROI_CASH_VERSION
+    source, published = evidence(project)
+    if source.get("latest", {}).get("round", 0) < 704:
+        pytest.skip("pinned historical fixture predates future v2 public issuance")
+    out = project / "loto7_agent_output"
+    path = out / "predictions.csv"
+    with path.open(encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+        fieldnames = list(reader.fieldnames)
+        existing = list(reader)
+    # Add a valid synthetic, newly issued five-ticket group. No draw result
+    # for #705 exists and nothing is written to the real Production ledger.
+    model = "baseline-5fdb8dc2ad+" + ROI_CASH_VERSION
+    at = "2026-11-27T13:15:00+09:00"
+    new = []
+    for i in range(1, 6):
+        t = {key: "" for key in fieldnames}
+        t.update({
+            "prediction_id": f"v2-safe-test-{i}",
+            "prediction_created_at_jst":at,
+            "base_round":"第704回",
+            "base_draw_date":"2026-11-20",
+            "target_round":"第705回",
+            "target_draw_date_estimate":"2026-11-27",
+            "ticket":str(i),
+            "predicted_numbers":" ".join(f"{n:02d}" for n in range((i-1)*7+1,i*7+1)),
+            "model_version":model,
+            "data_sha256":fingerprint_file(project / "loto7.csv"),
+        })
+        new.append(t)
+    with path.open("w",encoding="utf-8",newline="") as f:
+        writer=csv.DictWriter(f,fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(existing+new)
+    published.update({
+        "published":True,"target_round":"第705回",
+        "published_at_jst":"2026-11-27T13:25:00+09:00",
+        "ticket_policy":ROI_CASH_VERSION,
+        "model_version":model,
+        "data_sha256":fingerprint_file(project / "loto7.csv"),
+    })
+    view,_ = preview(project,source,published)
+    assert view["target_round"]==705
+    assert view["model"]==model
+    assert len(view["tickets"])==5
+    assert view["current_result"] is None
+    assert view["result_status"]=="awaiting_independently_verified_draw"
+    assert all(len(t["numbers"])==7 for t in view["tickets"])
+    published["ticket_policy"]="production-disjoint35-layout-v1"
+    with pytest.raises(ValueError, match="wrong ticket policy"):
+        preview(project,source,published)
