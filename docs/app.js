@@ -64,6 +64,20 @@ function renderOverview(v) {
   balls("main-balls", v.latestMain, "main");
   balls("bonus-balls", v.latestBonus, "bonus");
 }
+function renderQuickPrediction(ops) {
+  const issued=ops.issuedPrediction;
+  const roi=ops.roiCashV2;
+  if (issued.status!=="published") {
+    set("quick-prediction-state","未発行");
+    set("quick-prediction-note","予測が正式発行されるとここに表示します");
+    return;
+  }
+  set("quick-prediction-state","第"+issued.targetRound+"回");
+  const model=roi?.latestIssuedV2?"新モデルv2":"従来の配置方式";
+  const waiting=roi && roi.targetRound!==issued.targetRound ?
+    " ／ 次回は発行待ち":"";
+  set("quick-prediction-note","5口・"+model+"で発行済み"+waiting);
+}
 function renderProgress(v) {
   const grid = clear("progress-grid");
   if (!grid) return;
@@ -156,11 +170,11 @@ function renderRoiCashV2(ops) {
     state.className="roi-state"+(roi.status==="roi_v2_published"?"":roi.status==="selected_not_yet_issued"?" waiting":" unknown");
     state.textContent=status[roi.status]||"確認中";
   }
-  set("roi-v2-model",roi.policy+" ／ 順位Champion "+roi.champion);
+  set("roi-v2-model","次回以降の未発行予測に採用 ／ 35数字を5口に配置");
   set("roi-v2-target","第"+roi.targetRound+"回");
   const old=roi.latestIssuedPolicy;
   set("roi-last-issued",old?
-    (roi.latestIssuedV2?"v2":"旧方式の凍結分")+"（"+old.replace("production-","")+"）":
+    (roi.latestIssuedV2?"v2":"旧モデル")+"で発行（第"+roi.latestIssuedTargetRound+"回）":
     "発行履歴なし");
   set("roi-cost-draw",money(roi.costPerDraw)+" / 5口");
   set("roi-future-skill","未確認");
@@ -585,6 +599,7 @@ export async function refresh(){
       " ／ 公開データ作成: "+asJst(ops.generatedAt)+
       " ／ 取得先: "+(loaded.source.includes("raw.githubusercontent.com")?"GitHub Raw":"GitHub Pages")+
       (ops.outdated?" ／ 更新遅延あり":""));
+    renderQuickPrediction(ops);
     renderProgress(view);renderResearch(view);renderOperations(view);renderRoiCashV2(ops);renderIssuedPredictions(ops);
     renderWorkflowStatus(ops);renderPredictionMetrics(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderResearchApplication(ops);renderResearchPriorities(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
     set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
@@ -595,6 +610,8 @@ export async function refresh(){
     set("snapshot-freshness","未取得・通信状況を確認してください");
     const list=clear("alert-list");list.append(node("p","error-line",String(e.message||"監視情報の取得失敗")));
     renderRoiCashV2({roiCashV2:{status:"unavailable"}});
+    set("quick-prediction-state","未取得");
+    set("quick-prediction-note","公開予測を検証できません");
     set("issued-status","検証データ未取得");
     clear("issued-ticket-grid")?.append(node("p","error-line","公開予測の整合性を確認できないため番号を表示しません。"));
     clear("issued-previous-results")?.append(node("p","muted","照合済み結果を取得できません。"));
@@ -602,6 +619,18 @@ export async function refresh(){
     set("command-center-overall","司令塔の判定を取得できません");
     const grid=clear("command-center-grid");grid.append(node("p","error-line","安全な判断のため状態の再取得が必要です。"));
   }finally{busy=false;if(button)button.disabled=false;set("refresh-label","更新");}
+}
+for(const link of document.querySelectorAll("[data-expand-research]")){
+  link.addEventListener("click",()=>{
+    const details=el("research-details");
+    if(details)details.open=true;
+  });
+}
+if(location.hash==="#research-details" || location.hash.startsWith("#always-on-accuracy") ||
+   location.hash.startsWith("#research-application") || location.hash.startsWith("#advanced-validation") ||
+   location.hash==="#research" || location.hash==="#prediction-metrics"){
+  const details=el("research-details");
+  if(details)details.open=true;
 }
 el("refresh")?.addEventListener("click",refresh);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh();});
