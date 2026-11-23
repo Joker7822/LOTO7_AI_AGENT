@@ -285,7 +285,7 @@ export function normalizeRoiCashV2(value, latestRound, issued) {
        (!validInt(value.latest_issued_target_round) ||
         value.latest_issued_target_round>latestRound+1)) ||
       (value.latest_issued_v2 && value.latest_issued_policy!==value.policy) ||
-      (value.issuance_status==="roi_v2_published")!==value.latest_issued_v2 ||
+      (value.issuance_status==="roi_v2_published")!==(value.latest_issued_v2 && value.latest_issued_target_round===value.next_target_round) ||
       (issued.status==="published" &&
        (issued.targetRound!==value.latest_issued_target_round ||
         issued.model.split("+").at(-1)!==value.latest_issued_policy))) {
