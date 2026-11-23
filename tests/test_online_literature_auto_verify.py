@@ -62,6 +62,28 @@ def persist(repo, report):
         json.dumps(report, ensure_ascii=False, indent=2) + "\n")
 
 
+def current_sha_anchored_evidence(repo):
+    """Seed a *fresh* trusted-fixture report for tests of prior-record guards.
+
+    The checked-in research-verification JSON can be a genuine earlier SHA
+    snapshot: hourly research discovery continues advancing independently.
+    Production intentionally disregards such old verification metadata. Tests
+    that try to mutate a prior record must first create a complete, authentic
+    report anchored to the CURRENT discovery SHA/tip so the validation branch
+    is actually exercised.
+    """
+    first = agent.build(repo, fetch=provider_fetch(repo), now=NOW)
+    persist(repo, first)
+    out = repo / "loto7_agent_output"
+    state = out / discovery.STATE
+    chain = discovery.read_chain(out / discovery.LEDGER)
+    evidence = json.loads((out / paper_guard.EVIDENCE).read_text())
+    assert evidence["discovery_state_sha256"] == agent.digest(state)
+    assert evidence["discovery_tip_sha256"] == chain[-1]["record_sha256"]
+    assert len(evidence["verifications"]) == len(papers_at(repo))
+    return evidence
+
+
 def test_actual_repository_records_are_bounded_and_provenanced():
     report = agent.build(ROOT, fetch=provider_fetch(ROOT), now=NOW)
     assert report["version"] == paper_guard.VERSION
@@ -149,6 +171,7 @@ def test_sha_chain_tampering_rejected_and_no_source_writes(repo):
 
 
 def test_unreviewed_paper_claim_approval_refused(repo):
+    current_sha_anchored_evidence(repo)
     path = repo / "loto7_agent_output" / paper_guard.EVIDENCE
     prev = json.loads(path.read_text())
     prev["verifications"][0]["peer_review_confirmed"] = True
@@ -158,6 +181,7 @@ def test_unreviewed_paper_claim_approval_refused(repo):
 
 
 def test_bad_previous_verified_status_does_not_bypass_two_source(repo):
+    current_sha_anchored_evidence(repo)
     path = repo / "loto7_agent_output" / paper_guard.EVIDENCE
     prev = json.loads(path.read_text())
     prev["verifications"][0]["status"] = "two_provider_bibliography_matched"
@@ -168,6 +192,7 @@ def test_bad_previous_verified_status_does_not_bypass_two_source(repo):
 
 
 def test_rotation_cursor_bad_input_rejected(repo):
+    current_sha_anchored_evidence(repo)
     path = repo / "loto7_agent_output" / paper_guard.EVIDENCE
     prev = json.loads(path.read_text())
     prev["rotation_next_index"] = 40_000
@@ -237,11 +262,18 @@ def test_existing_hourly_verifier_preserves_dedicated_rotation_cursor(repo, monk
 
 def test_priority_queue_checks_conflict_before_rotation_without_starving_others(repo):
     out = repo / "loto7_agent_output"
+    current_sha_anchored_evidence(repo)
     path = out / paper_guard.EVIDENCE
     pub = json.loads(path.read_text(encoding="utf-8"))
     assert len(pub["verifications"]) >= 5
     pub["verifications"][0]["status"] = "conflict_do_not_use"
+    pub["verifications"][0]["openalex_consistent"] = False
+    pub["verifications"][0]["source_errors"] = {
+        "openalex": "bibliographic_identity_conflict"
+    }
     pub["verifications"][1]["status"] = "not_yet_checked"
+    pub["verifications"][1]["crossref_consistent"] = False
+    pub["verifications"][1]["openalex_consistent"] = False
     # A live bibliography may have already advanced its priority cursor.
     # This test asserts the FIRST priority cycle, so make that synthetic
     # starting position explicit rather than depending on checked-in state.
