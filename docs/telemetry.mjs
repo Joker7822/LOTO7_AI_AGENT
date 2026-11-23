@@ -140,9 +140,17 @@ export function normalizeIssuedPrediction(value) {
   }
   // From draw 702, the Production model version contains a separate
   // geometry policy suffix. Refuse incorrect labels or overlapping tickets.
-  if (value.target_round>=702 &&
-      !/^[A-Za-z0-9._-]{1,100}\+production-disjoint35-layout-v1$/.test(value.model)) {
-    throw new Error("第702回以降のProduction配置方式が不正です");
+  if (value.target_round>=702) {
+    const suffix=value.model.split("+").at(-1);
+    const legacy="production-disjoint35-layout-v1";
+    const allowed=value.target_round>=705
+      ? [legacy,"production-ai-ranked-disjoint35-layout-v1",
+         "production-ai-ranked35-pairwise-combination-v1",
+         "production-ai-ranked35-roi-cash-v2"]
+      : [legacy];
+    if (!value.model.includes("+") || !allowed.includes(suffix)) {
+      throw new Error("第702回以降のProduction配置方式が不正です");
+    }
   }
   const tickets=value.tickets.map((t,i)=>{
     if(t.ticket!==i+1 || !validNumbers(t.numbers,7)){
@@ -224,6 +232,91 @@ export function normalizeIssuedPrediction(value) {
     status:"published",targetRound:value.target_round,drawDate:value.draw_date,
     publishedAt:value.published_at_jst,model:value.model,
     tickets,resultStatus:value.result_status,currentResult,lastVerified,
+  };
+}
+
+export function normalizeRoiCashV2(value, latestRound, issued) {
+  if (value==null) return {status:"unavailable",reference:null};
+  const validInt=x=>Number.isSafeInteger(x)&&x>=0;
+  const ref=value.reference;
+  if (value.version!=="dashboard-roi-cash-v2-v1" ||
+      value.policy!=="production-ai-ranked35-roi-cash-v2" ||
+      value.adoption!=="explicit_operator_instruction_not_statistical_promotion" ||
+      value.new_issuance_from_round!==705 ||
+      !validInt(latestRound) || value.next_target_round!==latestRound+1 ||
+      typeof value.champion!=="string" || !/^baseline-[0-9a-f]{10}$/.test(value.champion) ||
+      typeof value.operator_selected!=="boolean" ||
+      typeof value.source_verified!=="boolean" ||
+      value.automatic_purchase_authorized!==false ||
+      value.actual_purchase_receipts_verified!==false ||
+      value.actual_purchase_cost_yen!==null ||
+      value.actual_personal_roi!==null ||
+      value.future_cash_roi_improvement_confirmed!==false ||
+      value.candidate_specific_verified_future_roi!==null ||
+      value.approved_future_roi_promotion_gate_passed!==false ||
+      !["roi_v2_published","selected_not_yet_issued","source_unverified","outside_current_policy"].includes(value.issuance_status) ||
+      (value.operator_selected && value.issuance_status==="outside_current_policy") ||
+      typeof value.latest_issued_v2!=="boolean" ||
+      !/^https:\/\/github\.com\/Joker7822\/LOTO7_AI_AGENT\/pull\/161$/.test(value.adoption_pr_url||"") ||
+      !ref || ref.scope!=="exploratory_walk_forward_hypothetical_purchases" ||
+      ref.first_round!==2 || ref.last_round!==704 ||
+      ref.last_draw_date!=="2026-11-20" ||
+      ref.draw_count!==703 || ref.last_round-ref.first_round+1!==ref.draw_count ||
+      !/^[0-9a-f]{64}$/.test(ref.public_data_sha256||"") ||
+      typeof ref.same_dataset_as_latest!=="boolean" ||
+      ref.ticket_count_per_draw!==5 || ref.ticket_cost_yen!==300 ||
+      ref.total_cost_yen_per_arm!==ref.draw_count*ref.ticket_count_per_draw*ref.ticket_cost_yen ||
+      !validInt(ref.roi_v2_payout_yen) || !validInt(ref.previous_v1_payout_yen) ||
+      !validInt(ref.rank_order_payout_yen) || !validInt(ref.largest_single_win_yen) ||
+      ref.largest_single_win_round!==118 ||
+      ref.roi_v2_net_yen!==ref.roi_v2_payout_yen-ref.total_cost_yen_per_arm ||
+      ref.roi_v2_without_largest_single_win_yen!==ref.roi_v2_payout_yen-ref.largest_single_win_yen ||
+      ref.roi_v2_without_largest_single_win_yen<0 ||
+      (ref.same_dataset_as_latest && latestRound!==ref.last_round) ||
+      !/^https:\/\/github\.com\/Joker7822\/LOTO7_AI_AGENT\/actions\/runs\/\d+$/.test(ref.audit_url||"")) {
+    throw new Error("ROI v2の本番状態・参考払戻・根拠を検証できません");
+  }
+  const validModel = v=>v===null || [
+    "production-disjoint35-layout-v1","production-ai-ranked-disjoint35-layout-v1",
+    "production-ai-ranked35-pairwise-combination-v1","production-ai-ranked35-roi-cash-v2"
+  ].includes(v);
+  if (!validModel(value.latest_issued_policy) ||
+      (value.latest_issued_target_round!==null &&
+       (!validInt(value.latest_issued_target_round) ||
+        value.latest_issued_target_round>latestRound+1)) ||
+      (value.latest_issued_v2 && value.latest_issued_policy!==value.policy) ||
+      (value.issuance_status==="roi_v2_published")!==value.latest_issued_v2 ||
+      (issued.status==="published" &&
+       (issued.targetRound!==value.latest_issued_target_round ||
+        issued.model.split("+").at(-1)!==value.latest_issued_policy))) {
+    throw new Error("ROI v2と発行済み台帳のモデル識別子が一致しません");
+  }
+  return {
+    status:value.issuance_status,
+    policy:value.policy,
+    champion:value.champion,
+    targetRound:value.next_target_round,
+    latestIssuedPolicy:value.latest_issued_policy,
+    latestIssuedV2:value.latest_issued_v2,
+    currentSourceVerified:value.source_verified,
+    referenceCurrent:ref.same_dataset_as_latest,
+    referenceRound:ref.last_round,
+    referenceDate:ref.last_draw_date,
+    rounds:ref.draw_count,
+    costPerDraw:ref.ticket_count_per_draw*ref.ticket_cost_yen,
+    historicalCost:ref.total_cost_yen_per_arm,
+    v2Payout:ref.roi_v2_payout_yen,
+    previousPayout:ref.previous_v1_payout_yen,
+    baselinePayout:ref.rank_order_payout_yen,
+    v2Roi:ref.roi_v2_payout_yen/ref.total_cost_yen_per_arm,
+    previousRoi:ref.previous_v1_payout_yen/ref.total_cost_yen_per_arm,
+    v2Net:ref.roi_v2_net_yen,
+    singleWin:ref.largest_single_win_yen,
+    withoutSingleWinRoi:ref.roi_v2_without_largest_single_win_yen/ref.total_cost_yen_per_arm,
+    auditUrl:ref.audit_url,
+    adoptionUrl:value.adoption_pr_url,
+    futureRoiVerified:false,
+    personalPurchaseVerified:false,
   };
 }
 
@@ -451,6 +544,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     throw new Error("AI司令塔の優先順位と件数が一致しません");
   }
   const issuedPrediction = normalizeIssuedPrediction(snapshot.latest_prediction);
+  const roiCashV2 = normalizeRoiCashV2(snapshot.roi_cash_v2, snapshot.sources.source?.latest?.round, issuedPrediction);
   const scientificValidation = normalizeScientificValidation(snapshot.scientific_validation);
   const alwaysOnActivity = normalizeAlwaysOnActivity(snapshot.always_on_accuracy, now);
   const researchApplication = normalizeResearchApplication(snapshot.research_application);
@@ -486,6 +580,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     ageMinutes, outdated, workflows, series, alerts,
     sources: snapshot.sources,
     issuedPrediction,
+    roiCashV2,
     scientificValidation,
     alwaysOnActivity,
     researchApplication,
