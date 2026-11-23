@@ -70,6 +70,12 @@ def test_new_issued_v2_is_labelled_only_if_ledger_actually_issued_it(tmp_path):
     assert old["issuance_status"]=="selected_not_yet_issued"
     assert old["latest_issued_v2"] is False
     assert old["latest_issued_policy"]=="production-ai-ranked35-pairwise-combination-v1"
+    # A #705 v2 issue remains a legitimate historical frozen row after draw
+    # #705, but it does NOT imply #706 has already been published.
+    next_round=project_roi_cash_v2(root,sources(705),issued(ROI_CASH_VERSION,705))
+    assert next_round["latest_issued_v2"] is True
+    assert next_round["next_target_round"]==706
+    assert next_round["issuance_status"]=="selected_not_yet_issued"
 
 
 def test_modified_or_new_lottery_data_flags_reference_as_older_not_live(tmp_path):
