@@ -78,6 +78,22 @@ test("valid frozen v2 #705 is displayable without relabeling legacy issue",()=>{
   assert.throws(()=>normalizeRoiCashV2(record,704,old),/台帳のモデル識別子/);
 });
 
+test("last v2 issue #705 must not masquerade as already published #706",()=>{
+  const issuedOld=normalizeIssuedPrediction(published(V2,705));
+  const record=cash();
+  record.latest_issued_policy=V2;
+  record.latest_issued_target_round=705;
+  record.latest_issued_v2=true;
+  record.issuance_status="selected_not_yet_issued";
+  record.next_target_round=706;
+  record.reference.same_dataset_as_latest=false;
+  const view=normalizeRoiCashV2(record,705,issuedOld);
+  assert.equal(view.status,"selected_not_yet_issued");
+  assert.equal(view.latestIssuedV2,true);
+  record.issuance_status="roi_v2_published";
+  assert.throws(()=>normalizeRoiCashV2(record,705,issuedOld),/台帳のモデル識別子/);
+});
+
 test("an old v1/pairwise or ranked frozen #705 remains a valid issued forecast",()=>{
   const policies=[
     LEGACY,"production-ai-ranked-disjoint35-layout-v1",
