@@ -1,25 +1,25 @@
 # Online literature automatic verification
 
-- Research source draw (NOT current lottery result): #700
-- DOI candidates: 24
+- Research source draw (NOT current lottery result): #704
+- DOI candidates: 27
 - Attempted this cycle: 3 / 3 max
-- Next rotation index: 20
-- Source SHA256: `29c4d688e7ca47aee53bbf182f6a7f26abef4a3bd7d7d2ecc61e00a1b41d9115`
-- SHA chain tip: `7fb86a08242284d686d4c2e406d6e7c9aa52f3cd9ec8717e05fd5a5ed160efdd`
-- Run (UTC): 2026-11-20T21:02:13+00:00
+- Next rotation index: 3
+- Source SHA256: `c7eb7f7993c87a0cf012f54e8269bd0ed9cdb5a1419fb002a3c80968f276245a`
+- SHA chain tip: `a5815e4e6fba625cc35a7854d58bc5fc533238d1c8f6d95f2c06b345bab2f137`
+- Run (UTC): 2026-11-23T21:57:02+00:00
 
 ## Bibliographic status
-- conflict_do_not_use: 7
-- not_yet_checked: 0
-- previously_verified_not_refreshed: 15
-- single_provider_only: 1
-- two_provider_bibliography_matched: 1
+- conflict_do_not_use: 0
+- not_yet_checked: 24
+- previously_verified_not_refreshed: 0
+- single_provider_only: 0
+- two_provider_bibliography_matched: 3
 - unavailable: 0
 
 ## DOI records checked this cycle
-- `10.2139/ssrn.7273201`: **two_provider_bibliography_matched**
-- `10.5281/zenodo.21508920`: **conflict_do_not_use**
-- `10.71781/36115`: **single_provider_only**
+- `10.5220/0013481700003928`: **two_provider_bibliography_matched**
+- `10.1016/j.ijar.2024.109213`: **two_provider_bibliography_matched**
+- `10.1115/jrc2024-124114`: **two_provider_bibliography_matched**
 
 **Independent Crossref/OpenAlex matching checks DOI, title and year,
 not peer-review status, full-text accuracy, reproducibility or real
