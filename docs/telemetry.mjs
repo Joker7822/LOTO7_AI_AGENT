@@ -296,6 +296,7 @@ export function normalizeRoiCashV2(value, latestRound, issued) {
     policy:value.policy,
     champion:value.champion,
     targetRound:value.next_target_round,
+    latestIssuedTargetRound:value.latest_issued_target_round,
     latestIssuedPolicy:value.latest_issued_policy,
     latestIssuedV2:value.latest_issued_v2,
     currentSourceVerified:value.source_verified,
