@@ -132,3 +132,47 @@
 .research-queue-item p{font-size:11px;line-height:1.75;margin:10px 0;color:var(--sub)}
 .research-queue-next{border-top:1px solid var(--line);padding-top:10px;color:var(--text);font-size:11px;line-height:1.75}
 @media(max-width:780px){.research-queue-list{grid-template-columns:1fr}}
+
+
+/* ROI-cash v2 financial governance: historical simulations, not purchases */
+.roi-section{scroll-margin-top:24px}
+.roi-lead{position:relative;overflow:hidden;border:1px solid rgba(94,232,212,.25);background:linear-gradient(110deg,rgba(16,50,67,.93),rgba(26,30,63,.93))}
+.roi-lead:before{content:"";position:absolute;right:-85px;top:-145px;width:360px;height:360px;background:radial-gradient(circle,rgba(92,231,219,.13),transparent 69%);pointer-events:none}
+.roi-lead-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;position:relative}
+.roi-eyebrow{font-size:10px;letter-spacing:.14em;color:var(--cyan);font-weight:800}
+.roi-lead-top h3{font-size:clamp(23px,4vw,34px);letter-spacing:-.04em;line-height:1.2;margin:8px 0}
+.roi-lead-top h3 span{color:var(--cyan)}
+.roi-lead-top p{font-size:12px;color:var(--sub);overflow-wrap:anywhere}
+.roi-state{padding:7px 11px;border-radius:999px;border:1px solid rgba(109,228,177,.5);background:rgba(31,91,73,.37);color:var(--good);font-weight:800;font-size:11px;white-space:nowrap}
+.roi-state.waiting{color:var(--amber);border-color:rgba(245,196,124,.4);background:rgba(119,89,52,.2)}
+.roi-state.unknown{color:var(--sub);border-color:var(--line2);background:rgba(70,79,96,.2)}
+.roi-head-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:20px;position:relative}
+.roi-head-facts>div{padding:11px 14px;border:1px solid rgba(141,210,223,.14);border-radius:12px;background:rgba(1,16,30,.26);min-width:0}
+.roi-head-facts small{display:block;color:var(--sub);font-size:10px;margin-bottom:5px}
+.roi-head-facts strong{font-size:13px;line-height:1.55;overflow-wrap:anywhere}
+.roi-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:13px 0}
+.roi-metric{min-width:0;display:flex;flex-direction:column;gap:6px}
+.roi-metric-label{font-size:11px;color:var(--sub);font-weight:700}
+.roi-metric-number{font-size:clamp(27px,3.7vw,38px);font-weight:850;letter-spacing:-.05em;line-height:1.3;color:var(--cyan);font-variant-numeric:tabular-nums}
+.roi-metric:nth-child(2) .roi-metric-number{color:var(--blue)}
+.roi-metric .roi-negative{color:var(--red)}
+.roi-metric-meta{color:var(--sub);font-size:11px;line-height:1.6}
+.roi-evidence-panel{margin-top:13px}
+.roi-evidence-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}
+.roi-evidence-head h3{font-size:15px;margin:0 0 5px}
+.roi-evidence-head p{font-size:11px;color:var(--sub);margin:0}
+.roi-bar-group{display:grid;gap:12px;margin:20px 0}
+.roi-bar-row{display:grid;grid-template-columns:112px minmax(0,1fr) 76px;align-items:center;gap:12px;font-size:12px;color:var(--sub)}
+.roi-bar-row strong{text-align:right;font-size:12px;color:var(--text);font-variant-numeric:tabular-nums}
+.roi-track{height:12px;border-radius:999px;background:rgba(174,195,225,.12);overflow:hidden}
+.roi-fill{display:block;height:100%;width:0;max-width:100%;border-radius:inherit;transition:width .35s ease}
+.roi-fill.new{background:linear-gradient(90deg,#2aa6bb,#67e4bd)}
+.roi-fill.old{background:linear-gradient(90deg,#4569ab,#8fb2f5)}
+.roi-warning{border-left:3px solid var(--amber);padding:12px 14px;background:rgba(136,98,52,.13);border-radius:0 8px 8px 0;color:var(--text);font-size:12px;line-height:1.85}
+.roi-safety-notes{display:flex;gap:8px 20px;flex-wrap:wrap;color:var(--muted);font-size:11px;line-height:1.7}
+.roi-evidence-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:14px}
+.roi-evidence-links a{font-size:11px;color:var(--cyan);text-decoration:none;border-bottom:1px solid rgba(92,231,219,.25)}
+.roi-evidence-links a:hover{border-bottom-color:currentColor}
+@media(max-width:860px){.roi-head-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:680px){.roi-grid{grid-template-columns:1fr}.roi-lead-top{flex-wrap:wrap}.roi-bar-row{grid-template-columns:80px minmax(0,1fr) 66px;gap:7px;font-size:11px}.roi-evidence-head{flex-wrap:wrap}.roi-head-facts{gap:8px}}
+@media(prefers-reduced-motion:reduce){.roi-fill{transition:none}}
