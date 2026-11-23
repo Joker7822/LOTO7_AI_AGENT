@@ -52,7 +52,7 @@ def test_both_roi_arms_reproduce_fixed_audited_cashflow(tmp_path):
     assert ref["largest_single_win_yen"]==705400
     assert ref["roi_v2_without_largest_single_win_yen"]==217000
     assert ref["public_data_sha256"]==AUDITED_SOURCE_SHA256
-    assert ref["same_dataset_as_latest"] is True
+    assert ref["same_dataset_as_latest"] is (hashlib.sha256((root/"loto7.csv").read_bytes()).hexdigest()==AUDITED_SOURCE_SHA256)
     assert view["actual_personal_roi"] is None
     assert view["actual_purchase_receipts_verified"] is False
     assert view["future_cash_roi_improvement_confirmed"] is False
