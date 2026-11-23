@@ -262,12 +262,12 @@ export function normalizeRoiCashV2(value, latestRound, issued) {
       ref.first_round!==2 || ref.last_round!==704 ||
       ref.last_draw_date!=="2026-11-20" ||
       ref.draw_count!==703 || ref.last_round-ref.first_round+1!==ref.draw_count ||
-      !/^[0-9a-f]{64}$/.test(ref.public_data_sha256||"") ||
+      ref.public_data_sha256!=="9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80" ||
       typeof ref.same_dataset_as_latest!=="boolean" ||
       ref.ticket_count_per_draw!==5 || ref.ticket_cost_yen!==300 ||
       ref.total_cost_yen_per_arm!==ref.draw_count*ref.ticket_count_per_draw*ref.ticket_cost_yen ||
-      !validInt(ref.roi_v2_payout_yen) || !validInt(ref.previous_v1_payout_yen) ||
-      !validInt(ref.rank_order_payout_yen) || !validInt(ref.largest_single_win_yen) ||
+      ref.roi_v2_payout_yen!==922400 || ref.previous_v1_payout_yen!==228600 ||
+      ref.rank_order_payout_yen!==205500 || ref.largest_single_win_yen!==705400 ||
       ref.largest_single_win_round!==118 ||
       ref.roi_v2_net_yen!==ref.roi_v2_payout_yen-ref.total_cost_yen_per_arm ||
       ref.roi_v2_without_largest_single_win_yen!==ref.roi_v2_payout_yen-ref.largest_single_win_yen ||
