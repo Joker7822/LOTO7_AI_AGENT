@@ -22,6 +22,7 @@ from typing import Any
 from agent_operations_planner import build_plan
 from evaluation_scorecard import build_scorecard
 from public_issued_prediction import preview as issued_production_preview
+from dashboard_roi_cash_v2 import project_roi_cash_v2
 from loto7_evolving_agent import fingerprint_file
 
 VERSION = "loto7-ops-snapshot-v1"
@@ -61,7 +62,7 @@ PUBLIC_FIELDS = {
     "signal": ("status", "trusted_draws", "horizon_trusted_draws", "current_target_round", "start_target_round", "interim_descriptive"),
     "learning": ("status", "trusted_draws", "current_prefrozen_target", "latest_seen_round", "descriptive_future_only", "drift_monitoring"),
     "champion": ("model_version",),
-    "production": ("published", "target_round", "published_at_jst"),
+    "production": ("published", "target_round", "published_at_jst", "ticket_policy", "model_version"),
     "scout": ("evaluated_rounds", "scout", "v2_reference", "synthetic_null_p_log_edge"),
     "budget": ("mode", "signal_trials_this_data", "max_signal_trials_per_data"),
 }
@@ -571,6 +572,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         root, sources["source"], read_object(out / "weekly_production_prediction_state.json")
     )
     sha.update(prediction_hashes)
+    roi_cash_v2 = project_roi_cash_v2(root, sources, latest_prediction)
     scientific, research_hash = scientific_research_projection(root, out)
     always_on, activity_hash = always_on_research_projection(
         out, sources["source"]["latest"]["round"]
@@ -614,6 +616,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         "sources": sources, "workflows": workflow_rows, "series": series,
         "scientific_validation": scientific,
         "latest_prediction": latest_prediction,
+        "roi_cash_v2": roi_cash_v2,
         "always_on_accuracy": always_on,
         "research_application": application,
         "research_priorities": priorities,
