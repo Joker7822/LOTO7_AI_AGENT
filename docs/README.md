@@ -6,7 +6,7 @@ A responsive, read-only Japanese dashboard showing the latest public research an
 
 **Intended official URL:** https://joker7822.github.io/LOTO7_AI_AGENT/
 
-As of **2026-11-23**, the repository reports GitHub Pages enabled (`has_pages: true`) and Pages deployment workflows have succeeded. The URL above is the dashboard entry point. If the site is unavailable, check the live [Pages Actions](https://github.com/Joker7822/LOTO7_AI_AGENT/actions/workflows/pages/pages-build-deployment) and repository Pages settings.
+As of **2026-11-23**, the repository reports GitHub Pages enabled (`has_pages: true`) and Pages deployment workflows have succeeded. The URL above is the dashboard entry point. If the site is unavailable, check the live [GitHub Actions](https://github.com/Joker7822/LOTO7_AI_AGENT/actions) and repository Pages settings.
 
 For new repositories without Pages enabled, the manual setup remains:
 
