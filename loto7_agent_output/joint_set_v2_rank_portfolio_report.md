@@ -7,14 +7,14 @@
 - Production promotion eligible: **NO**
 
 ## Strict selected policy
-- mean score: **2.8947**
-- unrestricted mean score: **2.8947**
+- mean score: **2.8940**
+- unrestricted mean score: **2.8940**
 - random mean score: **2.7772**
 - delta vs unrestricted: **+0.0000** (95% CI +0.0000〜+0.0000)
-- delta vs random: **+0.1175** (95% CI -0.1662〜+0.4051)
+- delta vs random: **+0.1168** (95% CI -0.1652〜+0.4045)
 - round win rate vs unrestricted: **0.00%**
-- mean Top7 slot exposure: **19.71%**
-- mean Top10 slot exposure: **28.24%**
+- mean Top7 slot exposure: **20.29%**
+- mean Top10 slot exposure: **28.86%**
 
 ## Selected policy counts
 - unrestricted: **60**
