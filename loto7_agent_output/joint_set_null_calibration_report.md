@@ -1,11 +1,11 @@
 # Joint Set Matched-Budget Null Calibration
 
-- worlds: **8 / 64**
+- worlds: **10 / 64**
 - observed strict True Nested score delta: **+0.214786**
-- empirical upper-tail p: **0.111111**
-- null median: **+0.026869**
-- null p95: **+0.150736**
-- null p99: **+0.156242**
+- empirical upper-tail p: **0.090909**
+- null median: **+0.030536**
+- null p95: **+0.179711**
+- null p99: **+0.194171**
 - calibration complete: **false**
 
 > 完全ランダム7/37世界でも、実データと同じconfig family・選択窓・Dynamic Gate・Joint pair/regime・5口scenario最適化を実行します。
