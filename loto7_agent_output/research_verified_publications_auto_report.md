@@ -4,9 +4,9 @@
 - DOI candidates: 27
 - Attempted this cycle: 3 / 3 max
 - Next rotation index: 3
-- Source SHA256: `9d0e2ed4ae5a8a3304734d086e18eed3c568abfeed9b2fcbbbd9556193f3386a`
-- SHA chain tip: `27fde78fd660c96f936d42839d13e9a3e801f13d876d4fd6ade99eff6bd6008b`
-- Run (UTC): 2026-11-24T10:51:56+00:00
+- Source SHA256: `d567733d65a328cec41bdc991f9837f0a9bec8c81b744fa7cd312d7f57be8ae1`
+- SHA chain tip: `0df99ce43f9c1cfd75adff96b1e84d99bb5670977f892c65fe31f9af57d254ad`
+- Run (UTC): 2026-11-24T23:00:27+00:00
 
 ## Bibliographic status
 - conflict_do_not_use: 0
