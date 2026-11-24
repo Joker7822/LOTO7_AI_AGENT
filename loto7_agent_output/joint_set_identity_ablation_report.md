@@ -12,15 +12,15 @@
 
 ## Joint Set v1
 
-- Top7 hits: observed **1.5167** / permuted mean **1.3257** / identity edge **+0.1909** / p **0.065658**
-- portfolio score: observed **2.9525** / permuted mean **2.8038** / identity edge **+0.1487** / p **0.134977**
-- portfolio permutation p95/p99: **3.0280 / 3.1277**
+- Top7 hits: observed **1.5333** / permuted mean **1.3244** / identity edge **+0.2089** / p **0.038809**
+- portfolio score: observed **2.9920** / permuted mean **2.8059** / identity edge **+0.1861** / p **0.086893**
+- portfolio permutation p95/p99: **3.0312 / 3.1344**
 
 ## Joint Set v2
 
-- Top7 hits: observed **1.5833** / permuted mean **1.3255** / identity edge **+0.2579** / p **0.027093**
-- portfolio score: observed **2.8947** / permuted mean **2.8092** / identity edge **+0.0854** / p **0.258970**
-- portfolio permutation p95/p99: **3.0308 / 3.1282**
+- Top7 hits: observed **1.5000** / permuted mean **1.3232** / identity edge **+0.1768** / p **0.092751**
+- portfolio score: observed **2.8940** / permuted mean **2.8091** / identity edge **+0.0849** / p **0.254332**
+- portfolio permutation p95/p99: **3.0309 / 3.1280**
 
 > p値はResearch診断です。過去60回の再利用データであり、Future OOSの独立証拠ではありません。
 > この検定で優位でもProduction昇格条件は変わりません。
