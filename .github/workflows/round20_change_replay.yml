@@ -45,11 +45,11 @@ jobs:
       PYTHONHASHSEED: "0"
     steps:
       - name: Read-only checkout, no persisted credentials
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 2
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -106,7 +106,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Store every prior-only prediction and its comparison
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: round20-full-forecast-replay
           path: |

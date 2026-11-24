@@ -38,12 +38,12 @@ jobs:
       PYTHONHASHSEED: "0"
     steps:
       - name: Checkout current audited branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: true
       - name: Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install dependencies
@@ -126,7 +126,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Archive safe repair research and evidence
         if: github.event_name != 'pull_request' && success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: watch-automated-research-improvement
           path: |

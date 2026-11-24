@@ -30,11 +30,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 18
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: true
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install existing research dependencies
@@ -106,7 +106,7 @@ jobs:
         run: cat loto7_agent_output/online_fresh_research_report.md >> "$GITHUB_STEP_SUMMARY"
       - name: Archive research-only feed
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frequent-online-research-feed
           path: |

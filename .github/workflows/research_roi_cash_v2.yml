@@ -20,10 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install project and tests
@@ -113,7 +113,7 @@ jobs:
           cat "${OUT_DIR}/CASH_V2_REPORT.md"
 
       - name: Save all per-round public payout comparisons
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: success()
         with:
           name: cash-trained-roi-v2-triple-arm-round2-replay

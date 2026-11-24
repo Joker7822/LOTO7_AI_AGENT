@@ -31,10 +31,10 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout without publication credentials
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install pinned dependencies
@@ -113,7 +113,7 @@ jobs:
           PY
           git diff --exit-code --             loto7.csv STATUS.md loto7_agent_output/             research/disjoint_future_oos/ weekly_production_prediction.py
       - name: Archive reproducible strict-past research and model comparison
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: success()
         with:
           name: production-roi-cash-v2-full-replay-operator-override

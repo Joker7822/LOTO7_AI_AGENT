@@ -18,10 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Install required packages
@@ -54,7 +54,7 @@ jobs:
           PY
           git diff --exit-code -- loto7.csv STATUS.md loto7_agent_output/ research/disjoint_future_oos/
       - name: Upload historical research diagnostic
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: top1-overlap34-prior-only-historical-diagnostic
           path: research_output/top1_overlap34_research.json
