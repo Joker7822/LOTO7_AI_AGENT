@@ -1,4 +1,7 @@
 # Keep runtime dependencies and Actions pinned through reviewable PRs.
+# Actions are pinned to full commit SHAs in the workflow files; this
+# github-actions config is what advances those pins (SHA + version
+# comment) as grouped weekly PRs. Do not reintroduce bare tags.
 # Grouped updates minimize CI load across the large workflow inventory.
 version: 2
 updates:
