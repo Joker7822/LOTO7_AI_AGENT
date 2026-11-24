@@ -42,10 +42,10 @@ def test_recursive_action_upgrade_keeps_validation_and_operational_triggers():
     assert "  pull_request:" in workflow
     assert "  push:\n    branches: [main]" in workflow
 
-    assert workflow.count("uses: actions/checkout@v5") == 2
-    assert workflow.count("uses: actions/setup-python@v6") == 2
-    assert "uses: actions/checkout@v4" not in workflow
-    assert "uses: actions/setup-python@v5" not in workflow
+    assert workflow.count("uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7") == 2
+    assert workflow.count("uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7") == 2
+    assert "checkout@v" not in workflow
+    assert "setup-python@v" not in workflow
     assert workflow.count('python-version: "3.12"') == 2
     assert "python -m pytest -q tests/test_recursive_self_evolution_agent.py tests/test_recursive_evolution_workflow_security.py" in workflow
     assert workflow.count('      - "tests/test_recursive_evolution_workflow_security.py"') == 2

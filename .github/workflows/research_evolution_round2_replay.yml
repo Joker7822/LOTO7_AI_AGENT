@@ -37,12 +37,12 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out audited repository state
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           # workflow_run always uses the default-branch code/checkpoints.
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || 'main' }}
           persist-credentials: false
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.12"
       - name: Install scientific dependencies
@@ -92,7 +92,7 @@ jobs:
               f.write("- Selected with hindsight: **not independent evidence; no Production change**\n")
           PY
       - name: Archive every target prediction and result
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: verified-research-round2-reforecast
           path: research_output/verified_research_round2_reforecast.json
