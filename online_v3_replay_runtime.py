@@ -113,6 +113,36 @@ def replay_adapter(events: list[dict], original):
     return adapted
 
 
+def grade_replay_adapter(events: list[dict], original):
+    """Recompute each sealed grade; accept only bounded float roundoff.
+
+    The registered validator still authenticates each event, source date,
+    forecast identity, chronology and wealth chain. New grades are never
+    substituted. A categorical or material difference stops the run.
+    """
+    grades = {}
+    for event in events:
+        if event.get("kind") == "grade":
+            target = event["target_round"]
+            if target in grades:
+                raise ValueError("v3 duplicate graded target")
+            grades[target] = event["metrics"]
+
+    def adapted(freeze, actual, prior_log_wealth):
+        generated = original(freeze, actual, prior_log_wealth)
+        target = freeze["target_round"]
+        sealed = grades.get(target)
+        if sealed is None:
+            return generated
+        changes, maximum = _compare_recursively(sealed, generated, f"grade_{target:04d}")
+        if changes:
+            print(f"[V3-NUMERIC-REPLAY] grade_{target:04d}: {changes} "
+                  f"sub-tolerance float changes; max={maximum:.17g}. "
+                  "Reusing ONLY immutable sealed grade.")
+        return dict(sealed)
+    return adapted
+
+
 def write_atomic(path: Path, obj: dict) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     descriptor, temporary = tempfile.mkstemp(prefix=".v3-current-", dir=path.parent)
@@ -228,14 +258,17 @@ def run(root: Path, *, now: datetime | None = None) -> dict:
     now = now.astimezone(JST)
     immutable = root / registered.STATE
     original = registered.model_forecast
+    original_score = registered.score_frozen
     if immutable.exists():
         state = json.loads(immutable.read_text(encoding="utf-8"))
         registered.model_forecast = replay_adapter(state.get("events", []),
                                                     original)
+        registered.score_frozen = grade_replay_adapter(state.get("events", []), original_score)
     try:
         report = registered.run(root, now=now)
     finally:
         registered.model_forecast = original
+        registered.score_frozen = original_score
     if not immutable.exists():
         return {**report, "mutable_preview": "not_issued"}
     current = json.loads(immutable.read_text(encoding="utf-8"))

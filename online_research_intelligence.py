@@ -186,17 +186,30 @@ def frozen_inputs(root: Path) -> tuple[list[dict], dict, dict, dict, dict, dict,
     )
     if plans.get("proposals") != expected_plans:
         raise ValueError("proposal deviates from locked human-authored designs")
-    if (verified.get("discovery_state_sha256") != state_hash
-            or verified.get("discovery_tip_sha256") != tip
+    # The bounded DOI verifier may advance during observation-only operation
+    # while proposal/readiness evidence remains anchored to an older prefix.
+    # Validate the complete newer catalog before intersecting it with that
+    # historical proposal catalog. Never re-label newer evidence as old.
+    aligned = (verified.get("discovery_state_sha256") == state_hash
+               and verified.get("discovery_tip_sha256") == tip
+               and verified.get("latest_round") == plans["last_resolved_round"])
+    live_bibliography = (
+        historical_snapshot
+        and verified.get("discovery_state_sha256") == live_state_sha
+        and verified.get("discovery_tip_sha256") == chain[-1]["record_sha256"]
+        and verified.get("latest_round") == state.get("latest_resolved_round")
+    )
+    if (not (aligned or live_bibliography)
+            or verified.get("version") != verification.VERSION
             or verified.get("research_mode") != state["research_mode"]
             or readiness.get("input_draw_sha256") != plans["draw_history_sha256"]
             or readiness.get("latest_round") != plans["last_resolved_round"]
             or readiness.get("research_mode") != state["research_mode"]):
         raise ValueError("online verification/readiness does not trace to source audit")
-    if (verified.get("latest_round") != plans["last_resolved_round"]
-            or len(verified.get("verifications", [])) != len(papers)):
+    catalog = {p["doi"]: p for p in (current_papers if live_bibliography else papers)}
+    if (not isinstance(verified.get("verifications"), list)
+            or len(verified["verifications"]) != len(catalog)):
         raise ValueError("incomplete cross-provider identity reconciliation")
-    catalog = {p["doi"]: p for p in papers}
     statuses = {}
     for item in verified["verifications"]:
         if not isinstance(item, dict):
@@ -222,6 +235,9 @@ def frozen_inputs(root: Path) -> tuple[list[dict], dict, dict, dict, dict, dict,
         statuses[doi] = item
     if set(catalog) != set(statuses):
         raise ValueError("one or more discovered works have no verified identity record")
+    # Keep the real verifier provenance in the returned object. Only the
+    # scoped status view is reduced to the historical proposal catalog.
+    statuses = {p["doi"]: statuses[p["doi"]] for p in papers}
     return papers, reviewed, plans, verified, readiness, guard, statuses
 
 

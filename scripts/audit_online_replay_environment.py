@@ -71,12 +71,15 @@ def run(root: Path) -> dict:
         if registration["algorithm_manifest"] != v3.manifest(root):
             raise ValueError("v3 registered algorithm manifest changed")
         original = v3.model_forecast
+        original_score = v3.score_frozen
         v3.model_forecast = v3runtime.replay_adapter(ledger.get("events", []), original)
+        v3.score_frozen = v3runtime.grade_replay_adapter(ledger.get("events", []), original_score)
         try:
             es, ms, ts, edges, wealth = v3.validate_state(
                 ledger, registration, root, x, frame)
         finally:
             v3.model_forecast = original
+            v3.score_frozen = original_score
         status["v3"] = {
             "registered_manifest_sha256": registration["algorithm_manifest"]["manifest_sha256"],
             "events": len(ledger["events"]), "grades": len(edges),
