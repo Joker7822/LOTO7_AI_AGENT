@@ -1,9 +1,9 @@
 # Workflow Permissions Inventory
 
-_Generated from a full static audit of `.github/workflows/` on 2026-11-24.
-Counts are measured, not estimated: 58 workflows, 40 with
-`contents: write`, 18 read-only. Every `contents: write` workflow was
-checked for an actual `git push` — all 40 push their own research or
+_Generated from a full static audit of `.github/workflows/` on 2026-11-24; adjusted for external integration retirement on 2026-11-25.
+Counts are measured, not estimated: 56 workflows, 39 with
+`contents: write`, 17 read-only. Every `contents: write` workflow was
+checked for an actual `git push` — all 39 push their own research or
 production outputs back to `main`, so none of them can be downgraded to
 read-only without breaking their function. The risk to manage is
 therefore **when** the write token is exposed, not whether it exists._
@@ -64,7 +64,7 @@ in `RESEARCH_EXPANSION_POLICY.md` applies.
 | `research_data_quality_auto.yml` | PR, push(main), schedule, manual | actions: write |
 | `watch_auto_improvement.yml` | PR, push(main), schedule, manual | - |
 
-### C. Single job, no PR trigger (13)
+### C. Single job, no PR trigger (12)
 
 Triggered only by pushes to `main`, schedules, or manual dispatch, so
 unreviewed PR code never runs with the write token. Keep as is; re-check
@@ -83,11 +83,10 @@ category B and the guard requirement applies).
 | `signal_expert_attribution_oos.yml` | push(main), schedule, manual | - |
 | `signal_meta_research.yml` | push(main), manual | - |
 | `strict_oos_bootstrap.yml` | push(main), manual | - |
-| `verify_sakura_credential_rotation.yml` | manual | issues: write |
 | `weekly_production_fallback.yml` | schedule, manual | - |
 | `weekly_production_publisher.yml` | push(main), schedule, manual | - |
 
-### Read-only (18)
+### Read-only (17)
 
 `contents: read` only. Two watchdogs additionally hold `actions: write`
 and no contents write; that is dispatch-only privilege, used to start
@@ -111,7 +110,6 @@ another workflow via `gh workflow run`.
 | `research_roi_cash_v2.yml` | PR, manual | - |
 | `round20_change_replay.yml` | PR, push(main), schedule, manual | - |
 | `signal_portfolio_factorial.yml` | PR, manual | - |
-| `sync_sakura_prediction_db.yml` | PR, push(main), manual | - |
 | `top1_overlap34_research.yml` | PR, manual | - |
 
 ## Additional write permissions — all verified in use
@@ -120,14 +118,13 @@ another workflow via `gh workflow run`.
 |---|---|---|
 | `actions: write` | `continuous_loto7_v4.yml`, `research_data_quality_auto.yml` | `gh workflow run` self/target re-dispatch |
 | `actions: write` (no contents write) | `friday_production_publication_watchdog.yml`, `friday_result_check_watchdog.yml` | `gh workflow run` watchdog dispatch |
-| `issues: write` | `verify_sakura_credential_rotation.yml` | `gh issue comment` / `gh issue close` after a successful verification run |
 
 No other write scopes (`packages`, `deployments`, `id-token`, …) appear
 anywhere in the inventory.
 
 ## SHA pinning
 
-Every `uses:` reference (162 across 57 workflow files; one workflow uses
+Every `uses:` reference (158 across 55 workflow files; one workflow uses
 no actions) is pinned to a full 40-character commit SHA with the
 major-version tag kept as a trailing comment, e.g.
 `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7`.
