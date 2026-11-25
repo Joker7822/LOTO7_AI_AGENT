@@ -255,6 +255,8 @@ def literature_examiner(root: Path) -> dict:
     ]
     return report("literature_examiner", root, checks, context={
         "candidate_dois": len(verifications),
+        "bibliography_discovery_state_sha256": bibliography.get("discovery_state_sha256"),
+        "bibliography_discovery_chain_tip": bibliography.get("discovery_tip_sha256"),
         "status_counts": dict(sorted(statuses.items())),
         "draft_proposals": plans["count"],
         "full_text_reviewed_count": bibliography.get("full_text_reviewed_count"),

@@ -244,9 +244,16 @@ def evidence_engine(
             or any(type(x) is not int or x < 0 or x > 26 for x in obs.values())
             or oos["context"].get("fixed_horizon") != 26):
         raise ValueError("invalid fixed prospective sample ledger")
-    if (literature["context"]["candidate_dois"] !=
-            scholarly["research_snapshot"]["paper_count"]):
-        raise ValueError("bibliographic candidate count disagreement")
+    # Specialist reports count all independently checked metadata, while
+    # proposal intelligence may intentionally use a validated older subset.
+    # Compare the same full bibliography scope and its actual provenance.
+    lit_ctx = literature["context"]
+    snapshot = scholarly["research_snapshot"]
+    if (lit_ctx["candidate_dois"] != snapshot["bibliography_candidate_count"]
+            or not 0 <= snapshot["paper_count"] <= snapshot["bibliography_candidate_count"] <= 36
+            or lit_ctx["bibliography_discovery_state_sha256"] != snapshot["bibliography_discovery_state_sha256"]
+            or lit_ctx["bibliography_discovery_chain_tip"] != snapshot["bibliography_discovery_chain_tip"]):
+        raise ValueError("bibliographic candidate count or lineage disagreement")
     if (literature["context"]["draft_proposals"] !=
             scholarly["research_snapshot"]["proposal_count"]):
         raise ValueError("proposal count disagreement")

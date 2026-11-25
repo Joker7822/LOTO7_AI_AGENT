@@ -22,6 +22,8 @@ import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+import numpy as np
+
 import advanced_online_v3 as registered
 from loto7_evolving_agent import fingerprint_file, make_history, read_csv_flexible
 
@@ -134,6 +136,12 @@ def grade_replay_adapter(events: list[dict], original):
         sealed = grades.get(target)
         if sealed is None:
             return generated
+        # The registered ratio calculation can return a NumPy float scalar,
+        # while the JSON ledger necessarily stores a Python float. Normalize
+        # only this continuous field; never coerce discrete counts or flags.
+        ratio = "exact_7_of_37_set_likelihood_ratio"
+        if isinstance(generated.get(ratio), np.floating):
+            generated = {**generated, ratio: float(generated[ratio])}
         changes, maximum = _compare_recursively(sealed, generated, f"grade_{target:04d}")
         if changes:
             print(f"[V3-NUMERIC-REPLAY] grade_{target:04d}: {changes} "

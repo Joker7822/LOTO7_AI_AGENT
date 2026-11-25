@@ -187,3 +187,14 @@ def test_grade_replay_preserves_sealed_values_and_rejects_material_changes():
             runtime.grade_replay_adapter(events, lambda *_: changed)(freeze, None, [])
     with pytest.raises(ValueError, match="duplicate graded"):
         runtime.grade_replay_adapter(events + events, lambda *_: sealed)
+
+
+def test_grade_replay_normalizes_only_numpy_likelihood_ratio():
+    key = "exact_7_of_37_set_likelihood_ratio"
+    sealed = {key: 0.9999999999999998, "top7_hits": 1}
+    events = [{"kind": "grade", "target_round": 703, "metrics": sealed}]
+    adapter = runtime.grade_replay_adapter(events, lambda *_: {key: np.float64(1.0), "top7_hits": 1})
+    assert adapter({"target_round": 703}, None, []) == sealed
+    for bad in [{key: np.float64(1.01), "top7_hits": 1}, {key: np.float64(1.0), "top7_hits": np.float64(1)}]:
+        with pytest.raises(ValueError, match="MATERIAL replay change"):
+            runtime.grade_replay_adapter(events, lambda *_: bad)({"target_round": 703}, None, [])
