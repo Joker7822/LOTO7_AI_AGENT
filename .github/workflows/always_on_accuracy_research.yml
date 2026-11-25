@@ -11,6 +11,7 @@ on:
   workflow_run:
     workflows: ["Advanced Statistical Validation Lab"]
     types: [completed]
+    branches: [main]
   pull_request:
     paths:
       - "always_on_accuracy_agent.py"
@@ -64,7 +65,7 @@ on:
       - "RESEARCH_EVIDENCE_RESILIENCE.md"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: bounded-always-on-accuracy-main
@@ -81,7 +82,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.12"
@@ -136,6 +137,54 @@ jobs:
           assert all(t["safe_autonomous_action"] == "report_only" for t in queue["tasks"])
           print("safe research verification:", [r["status"] for r in paper["verifications"]])
           PY
+      - name: Research and recovery report
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Hourly research, source validation and safe recovery"
+            cat loto7_agent_output/always_on_accuracy_research_report.md 2>/dev/null || \
+              cat /tmp/accuracy-research-smoke/loto7_agent_output/always_on_accuracy_research_report.md 2>/dev/null || true
+            cat loto7_agent_output/research_literature_review_report.md 2>/dev/null || \
+              cat /tmp/accuracy-research-smoke/loto7_agent_output/research_literature_review_report.md 2>/dev/null || true
+            cat loto7_agent_output/research_verified_method_report.md 2>/dev/null || \
+              cat /tmp/accuracy-research-smoke/loto7_agent_output/research_verified_method_report.md 2>/dev/null || true
+            cat loto7_agent_output/research_application_readiness_report.md 2>/dev/null || \
+              cat /tmp/accuracy-research-smoke/loto7_agent_output/research_application_readiness_report.md 2>/dev/null || true
+            cat loto7_agent_output/research_data_quality_report.md 2>/dev/null || \
+               cat /tmp/accuracy-research-smoke/loto7_agent_output/research_data_quality_report.md 2>/dev/null || true
+             cat loto7_agent_output/research_autonomy_priority_report.md 2>/dev/null || \
+              cat /tmp/accuracy-research-smoke/loto7_agent_output/research_autonomy_priority_report.md 2>/dev/null || true
+            echo "No unreviewed paper executes model code. No Production or registered OOS edits."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  publish-research-only:
+    needs: bounded-research
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
+      needs.bounded-research.result == 'success' &&
+      (github.event_name != 'workflow_run' ||
+       (github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.event != 'pull_request'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      TZ: Asia/Tokyo
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.12"
+      - name: Install research dependencies
+        run: python -m pip install -r requirements.txt
       - name: Inspect trusted source and registered science lag before research
         if: github.event_name != 'pull_request'
         id: science_provenance
