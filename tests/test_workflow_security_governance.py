@@ -104,3 +104,24 @@ def test_retired_external_db_integration_is_absent():
         for forbidden in ("prediction_db_sync.py", "verify_sakura_rotation.py",
                           "SAKURA_PREDICTION_", "--credential-rotation-status"):
             assert forbidden not in workflow, f"{path.name}: {forbidden}"
+
+
+def test_strict_bootstrap_checks_live_and_pinned_evidence_before_main_write():
+    workflow = (WORKFLOWS / "strict_oos_bootstrap.yml").read_text(encoding="utf-8")
+    verify, publish = workflow.split("\n  bootstrap:", 1)
+    assert "  pull_request:" in verify
+    assert "permissions:\n  contents: read" in verify
+    assert "persist-credentials: false" in verify
+    assert "tests/test_live_evidence_boundaries.py" in verify
+    assert "tests/test_strict_oos_governance.py" in verify
+    assert "tests/test_strict_oos_migration.py" in verify
+    assert "run: bash scripts/ci_verify_frozen_regressions.sh" in verify
+    assert not re.search(r"^\s*python -m pytest -q\s*$", verify, re.M)
+    assert "git push" not in verify
+    assert "needs: verify" in publish
+    assert "needs.verify.result == 'success'" in publish
+    assert "github.event_name != 'pull_request'" in publish
+    assert "github.ref == 'refs/heads/main'" in publish
+    assert "permissions:\n      contents: write" in publish
+    assert "python strict_oos_bootstrap.py" in publish
+    assert "git push origin HEAD:main" in publish

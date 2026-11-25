@@ -1,6 +1,6 @@
 # Workflow Permissions Inventory
 
-_Generated from a full static audit of `.github/workflows/` on 2026-11-24; updated for the three-job-split migration and external integration retirement on 2026-11-25.
+_Generated from a full static audit of `.github/workflows/` on 2026-11-24; updated for the three-job-split migration and external integration retirement on 2026-11-25; strict OOS bootstrap split on 2026-11-26.
 Counts are measured, not estimated: 56 workflows, 39 with
 `contents: write`, 17 read-only. Every `contents: write` workflow was
 checked for an actual `git push` — all 39 push their own research or
@@ -10,7 +10,7 @@ therefore **when** the write token is exposed, not whether it exists._
 
 ## Classification
 
-### A. Split jobs — least privilege already applied (13)
+### A. Split jobs — least privilege already applied (14)
 
 Top-level permission is `contents: read`; only the publish job, gated by
 `needs:` on the verify job and an `if:` excluding `pull_request`, receives
@@ -31,6 +31,7 @@ Top-level permission is `contents: read`; only the publish job, gated by
 | `advanced_validation_lab.yml` | PR, push(main), schedule, manual | - |
 | `always_on_accuracy_research.yml` | PR, push(main), schedule, manual, workflow_run (trusted main only) | - |
 | `frequent_online_research_feed.yml` | PR, push(main), schedule, manual | - |
+| `strict_oos_bootstrap.yml` | PR, push(main), manual | - |
 
 ### B. Single job, PR-triggered, push step guarded (14)
 
@@ -62,7 +63,7 @@ in `RESEARCH_EXPANSION_POLICY.md` applies.
 | `research_data_quality_auto.yml` | PR, push(main), schedule, manual | actions: write |
 | `watch_auto_improvement.yml` | PR, push(main), schedule, manual | - |
 
-### C. Single job, no PR trigger (12)
+### C. Single job, no PR trigger (11)
 
 Triggered only by pushes to `main`, schedules, or manual dispatch, so
 unreviewed PR code never runs with the write token. Keep as is; re-check
@@ -80,7 +81,6 @@ category B and the guard requirement applies).
 | `publish_production_now.yml` | manual | - |
 | `signal_expert_attribution_oos.yml` | push(main), schedule, manual | - |
 | `signal_meta_research.yml` | push(main), manual | - |
-| `strict_oos_bootstrap.yml` | push(main), manual | - |
 | `weekly_production_fallback.yml` | schedule, manual | - |
 | `weekly_production_publisher.yml` | push(main), schedule, manual | - |
 
@@ -122,7 +122,7 @@ anywhere in the inventory.
 
 ## SHA pinning
 
-Every `uses:` reference (164 across 55 workflow files; one workflow uses
+Every `uses:` reference (166 across 55 workflow files; one workflow uses
 no actions) is pinned to a full 40-character commit SHA with the
 major-version tag kept as a trailing comment, e.g.
 `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7`.
