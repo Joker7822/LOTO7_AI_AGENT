@@ -1,8 +1,8 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-11-25T22:32:34+09:00**
-- Completed audit cycles: **74**
-- This cycle: **source_audit** / 科学的事前凍結欠損のため監査のみ：結果の二重ソース照合と鮮度を点検
+- Last executed: **2026-11-25T22:35:46+09:00**
+- Completed audit cycles: **75**
+- This cycle: **future_protocol** / 科学的事前凍結欠損のため監査のみ：事前凍結と真正将来採点の連続性を監査
 - Network discovery: **not_scheduled**
 - Trusted draw latest: **704**, two-source: **True**
 - Registered science: **BLOCKED_MISSING_PREFROZEN_701**
@@ -14,7 +14,7 @@
 - 第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。
 - 探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 最新信頼ステータス: verified_two_result_sources
+- 26回固定holdout 11/26、新規v2 4回
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
 - [PV-Aware Multi-Horizon Probabilistic Net-Load Forecasting with Horizon-Delayed Online Conformal Calibration](https://doi.org/10.9734/cjast/2026/v45i124824) (2026) — UNREVIEWED
