@@ -447,6 +447,28 @@ export function normalizePredictionMetrics(value) {
   };
 }
 
+export function normalizePrizeTotals(value) {
+  const empty={status:"unavailable"};
+  if(!value || value.version!=="dashboard-prize-totals-v1")return {historical:empty,live:empty};
+  const grades=["1等","2等","3等","4等","5等","6等","はずれ"];
+  const int=n=>Number.isSafeInteger(n)&&n>=0;
+  function one(v,scope){
+    if(!v||v.scope!==scope||v.actual_purchase_verified!==false||
+       !["verified","payout_incomplete"].includes(v.status))return empty;
+    const g=v.grade_counts;
+    if(!g||Object.keys(g).length!==grades.length||!grades.every(k=>int(g[k]))||
+       ![v.rounds,v.tickets,v.winning_tickets,v.reference_cost_yen,v.excluded_rounds,v.pending_rounds].every(int)||
+       v.rounds===0||v.tickets!==v.rounds*5||grades.reduce((s,k)=>s+g[k],0)!==v.tickets||
+       v.winning_tickets!==v.tickets-g["はずれ"]||v.reference_cost_yen!==v.tickets*300)return empty;
+    if(v.status==="verified"){
+      if(!int(v.reference_payout_yen)||!Number.isFinite(v.reference_roi)||
+         Math.abs(v.reference_roi-v.reference_payout_yen/v.reference_cost_yen)>1e-9)return empty;
+    }else if(v.reference_payout_yen!==null||v.reference_roi!==null)return empty;
+    return v;
+  }
+  return {historical:one(value.historical,"historical_replay"),live:one(value.live,"issued_production")};
+}
+
 export function normalizeSnapshot(snapshot, now = new Date()) {
   if (!snapshot || typeof snapshot !== "object" ||
       snapshot.version !== SNAPSHOT_VERSION ||
@@ -587,6 +609,7 @@ export function normalizeSnapshot(snapshot, now = new Date()) {
     researchApplication,
     researchPriorities,
     predictionMetrics,
+    prizeTotals: normalizePrizeTotals(snapshot.prize_totals),
     operationsPlan: { overall:plan.overall, counts:plan.counts, tasks:incidentTasks },
     healthyRuns: workflows.filter(x => x.health === "ok").length
   };

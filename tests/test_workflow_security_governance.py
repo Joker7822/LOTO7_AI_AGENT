@@ -52,6 +52,43 @@ def test_no_workflow_requests_unreviewed_write_scopes():
     assert not offenders, f"Unreviewed write scopes: {offenders}"
 
 
+def test_high_frequency_research_publishers_use_separate_main_only_write_jobs():
+    jobs = {
+        "always_on_accuracy_research.yml": "bounded-research",
+        "frequent_online_research_feed.yml": "search-verify-triage",
+        "advanced_validation_lab.yml": "scientific-validation",
+    }
+    for filename, job in jobs.items():
+        workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
+        verify, publish = workflow.split("  publish-research-only:\n", 1)
+        header = publish.split("    steps:\n", 1)[0]
+        assert "permissions:\n  contents: read" in verify, filename
+        assert "contents: write" not in verify, filename
+        assert "persist-credentials: false" in verify, filename
+        assert "persist-credentials: true" not in verify, filename
+        assert "git push origin HEAD:main" not in verify, filename
+        assert f"needs: {job}" in header, filename
+        assert f"needs.{job}.result == 'success'" in header, filename
+        assert "github.event_name != 'pull_request' &&" in header, filename
+        assert "github.ref == 'refs/heads/main' &&" in header, filename
+        assert "permissions:\n      contents: write" in header, filename
+        assert workflow.count("contents: write") == 1, filename
+        assert "persist-credentials: true" in publish, filename
+        assert "git push origin HEAD:main" in publish, filename
+        assert "unexpected=" in publish, filename
+
+
+def test_hourly_privileged_workflow_run_requires_trusted_main_predecessor():
+    workflow = (WORKFLOWS / "always_on_accuracy_research.yml").read_text(encoding="utf-8")
+    trigger = workflow.split("  workflow_run:\n", 1)[1].split("  pull_request:", 1)[0]
+    assert "branches: [main]" in trigger
+    header = workflow.split("  publish-research-only:\n", 1)[1].split("    steps:\n", 1)[0]
+    assert "github.event.workflow_run.conclusion == 'success'" in header
+    assert "github.event.workflow_run.head_branch == 'main'" in header
+    assert "github.event.workflow_run.head_repository.full_name == github.repository" in header
+    assert "github.event.workflow_run.event != 'pull_request'" in header
+
+
 def test_retired_external_db_integration_is_absent():
     for relative in ("sakura", "prediction_db_sync.py", "verify_sakura_rotation.py",
                      ".github/workflows/sync_sakura_prediction_db.yml",

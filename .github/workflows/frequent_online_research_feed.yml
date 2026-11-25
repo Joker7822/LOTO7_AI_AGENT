@@ -19,7 +19,7 @@ on:
       - "FREQUENT_ONLINE_RESEARCH_FEED.md"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: frequent-online-research-feed-main
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: "3.12"
@@ -43,6 +43,27 @@ jobs:
         run: |
           python -m compileall -q frequent_online_research_feed.py
           python -m pytest -q tests/test_frequent_online_research_feed.py
+
+  publish-research-only:
+    needs: search-verify-triage
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
+      needs.search-verify-triage.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.12"
+      - name: Install existing research dependencies
+        run: python -m pip install -r requirements.txt pytest
       - name: Discover recent papers, cross-check providers and persist research-only sidecar
         if: github.event_name != 'pull_request'
         shell: bash

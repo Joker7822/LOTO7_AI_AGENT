@@ -23,6 +23,7 @@ from agent_operations_planner import build_plan
 from evaluation_scorecard import build_scorecard
 from public_issued_prediction import preview as issued_production_preview
 from dashboard_roi_cash_v2 import project_roi_cash_v2
+from dashboard_prize_totals import project as project_prize_totals
 from loto7_evolving_agent import fingerprint_file
 
 VERSION = "loto7-ops-snapshot-v1"
@@ -621,6 +622,7 @@ def create_snapshot(root: Path, workflows: list[dict], *, now: datetime | None =
         "research_application": application,
         "research_priorities": priorities,
         "prediction_metrics": metric_scorecard,
+        "prize_totals": project_prize_totals(out, sources["source"], read_object(out / "weekly_production_prediction_state.json"), metric_scorecard),
         "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
     }
     snapshot["operations_plan"] = build_plan(snapshot, now=moment)
