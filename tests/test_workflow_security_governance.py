@@ -59,6 +59,11 @@ def test_retired_external_db_integration_is_absent():
         assert not (ROOT / relative).exists(), relative
     for path in _workflow_files():
         workflow = path.read_text(encoding="utf-8")
+        # The browser CI negative grep guards against leaked secret identifiers;
+        # it is not a credential reference or an external network call.
+        if path.name == "browser_dashboard_ci.yml":
+            workflow = "\n".join(line for line in workflow.splitlines()
+                                 if not line.lstrip().startswith("! grep -Eq "))
         for forbidden in ("prediction_db_sync.py", "verify_sakura_rotation.py",
                           "SAKURA_PREDICTION_", "--credential-rotation-status"):
             assert forbidden not in workflow, f"{path.name}: {forbidden}"
