@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-25T17:22:25+09:00",
-  "source_commit": "017723d4a000c21e8c48c8738e1f2b179e0a28fb",
-  "state_hashes_sha256": "5ecd7266eefbf9a238d48f0980be3882ed744f17353e35dd70cdc2b332f789fc",
+  "generated_at_jst": "2026-11-25T18:05:24+09:00",
+  "source_commit": "d94b868eb0928d60f4a89216abeec9ec92b9defd",
+  "state_hashes_sha256": "e774955a4103300a6876f874d066811b9bc4938491fe283f2cd28a96a60501d1",
   "sources": {
     "source": {
       "status": "ok",
@@ -224,9 +224,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45545721801,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45545721801",
-      "updated_at": "2026-11-25T04:18:58Z",
+      "run_id": 45581768084,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45581768084",
+      "updated_at": "2026-11-25T09:05:11Z",
       "recent_failure_count": 0
     },
     {
@@ -235,9 +235,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45510862721,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45510862721",
-      "updated_at": "2026-11-24T23:35:11Z",
+      "run_id": 45580263424,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45580263424",
+      "updated_at": "2026-11-25T08:56:46Z",
       "recent_failure_count": 1
     },
     {
@@ -279,9 +279,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45575101615,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45575101615",
-      "updated_at": "2026-11-25T08:19:35Z",
+      "run_id": 45581413131,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45581413131",
+      "updated_at": "2026-11-25T09:02:27Z",
       "recent_failure_count": 0
     },
     {
@@ -724,15 +724,21 @@
     "activity_stale_vs_verified_round": false,
     "activity_latest_round": 704,
     "verified_latest_round": 704,
-    "sequence": 72,
-    "last_activity_jst": "2026-11-25T13:18:52+09:00",
-    "current_phase": "budget_and_plan",
-    "current_activity": "科学的事前凍結欠損のため監査のみ：試行予算を守り次の検証を計画",
-    "online_search_status": "not_scheduled",
+    "sequence": 73,
+    "last_activity_jst": "2026-11-25T18:05:04+09:00",
+    "current_phase": "literature_search",
+    "current_activity": "科学的事前凍結欠損のため監査のみ：インターネットから最新の研究論文を検索",
+    "online_search_status": "searched",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": true,
-    "new_papers_count": 0,
+    "new_papers_count": 1,
     "papers": [
+      {
+        "title": "PV-Aware Multi-Horizon Probabilistic Net-Load Forecasting with Horizon-Delayed Online Conformal Calibration",
+        "url": "https://doi.org/10.9734/cjast/2026/v45i124824",
+        "year": 2026,
+        "review_status": "unreviewed"
+      },
       {
         "title": "Cross-Version Defect Prediction: Does Excessive Train-Test Similarity Affect the Reliability of Evaluation?",
         "url": "https://doi.org/10.5220/0013481700003928",
@@ -774,12 +780,6 @@
         "url": "https://doi.org/10.5194/egusphere-egu24-8807",
         "year": 2025,
         "review_status": "unreviewed"
-      },
-      {
-        "title": "How Much Sharpe is Illusory? Quantifying Backtest Overfitting in Crypto Factor Strategies",
-        "url": "https://doi.org/10.2139/ssrn.7350238",
-        "year": 2026,
-        "review_status": "unreviewed"
       }
     ],
     "promotion_authorized": false,
@@ -787,7 +787,8 @@
       "第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "同一履歴の新規試行予算 602/800"
+      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
+      "オンライン検索: searched / 新規候補 1件"
     ]
   },
   "research_application": {
@@ -863,7 +864,7 @@
       },
       "calibration": {
         "file": "champion_calibration_oos_state.json",
-        "sha256": "024bbd5eb9a52495bbd779afda81dab0e1722e47097590ce27a8d504ef5dbc86"
+        "sha256": "c488d80cd2cf702ce666a4fcbab6215360a406f73aa0e56c03cef9eb97fbd3a2"
       },
       "future_oos": {
         "file": "future_holdout_evidence.json",
@@ -874,9 +875,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "017723d4a000c21e8c48c8738e1f2b179e0a28fb",
-    "snapshot_generated_at_jst": "2026-11-25T17:22:25+09:00",
-    "computed_at_jst": "2026-11-25T08:22:25+00:00",
+    "source_commit": "d94b868eb0928d60f4a89216abeec9ec92b9defd",
+    "snapshot_generated_at_jst": "2026-11-25T18:05:24+09:00",
+    "computed_at_jst": "2026-11-25T09:05:24+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
