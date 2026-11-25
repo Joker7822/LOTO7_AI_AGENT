@@ -1,6 +1,6 @@
 {
   "version": "recursive-code-meta-evolution-v1",
-  "generations_total": 314435,
+  "generations_total": 316991,
   "evaluation_data_sha256": "9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80",
   "latest_verification": "verified_two_result_sources",
   "independent_source_verified": true,
@@ -37,6 +37,18 @@
       "assessment": {
         "fitness": 0.0076259329523635,
         "mean_log_edge_vs_uniform": 0.008766620947388453,
+        "mean_top7_hits": 1.8333333333333333,
+        "historical_selection_only": true,
+        "prospective_improvement_proven": false
+      },
+      "research_data_sha256": "9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80"
+    },
+    {
+      "generation": 315285,
+      "expression": "sqrt(abs(0.97479 - sqrt(abs(decay - cold20) + 0.07858) * (cold20 + cold20)) + 0.01) + sqrt(abs(1.07431 - sqrt(abs(hot80 - cold20) + 0.02171) * (cold20 + cold20)) + 0.01)",
+      "assessment": {
+        "fitness": 0.007625853763736015,
+        "mean_log_edge_vs_uniform": 0.008766413655625862,
         "mean_top7_hits": 1.8333333333333333,
         "historical_selection_only": true,
         "prospective_improvement_proven": false
@@ -126,48 +138,36 @@
         "prospective_improvement_proven": false
       },
       "research_data_sha256": "9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80"
-    },
-    {
-      "generation": 291859,
-      "expression": "sqrt(abs(0.9753 - sqrt(abs(decay - cold20) + 0.07868) * (cold20 + cold20)) + 0.01) + sqrt(abs(1.07431 - sqrt(abs(hot80 - cold20) + 0.02171) * (cold20 + cold20)) + 0.01001)",
-      "assessment": {
-        "fitness": 0.007625547963535003,
-        "mean_log_edge_vs_uniform": 0.00876652811070515,
-        "mean_top7_hits": 1.8333333333333333,
-        "historical_selection_only": true,
-        "prospective_improvement_proven": false
-      },
-      "research_data_sha256": "9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80"
     }
   ],
   "mutation_policy": {
     "restart": {
-      "trials": 8248,
+      "trials": 8750,
       "wins": 0
     },
     "splice": {
-      "trials": 8148,
+      "trials": 8680,
       "wins": 0
     },
     "tune": {
-      "trials": 8462,
+      "trials": 8990,
       "wins": 10
     },
     "wrap": {
-      "trials": 8279,
+      "trials": 8746,
       "wins": 0
     },
     "crossover": {
-      "trials": 8407,
+      "trials": 8934,
       "wins": 0
     }
   },
   "mutation_probabilities": {
-    "restart": 0.1995747037622464,
-    "splice": 0.19962280490784545,
-    "tune": 0.20174248644136514,
-    "wrap": 0.19955997311602774,
-    "crossover": 0.1995000317725152
+    "restart": 0.19960232310053688,
+    "splice": 0.19963302706921593,
+    "tune": 0.20163720632993923,
+    "wrap": 0.19960406748778806,
+    "crossover": 0.1995233760125199
   },
   "execution_limits": {
     "global_generations": null,
@@ -183,5 +183,5 @@
   },
   "scope": "autonomous_recursive_mathematical_program_and_meta_policy_evolution_research_only",
   "claim": "Repeated historical optimization cannot establish future lottery advantage.",
-  "last_record_sha256": "957e507220ed5019e6b7c1338ae9bd3cfc22258b2a98604fb1a8fcac453c5a6c"
+  "last_record_sha256": "7f5c3d856ae3ab73962839876ac3b79a8f5ea51b5c46ea6a7cfd28d2d1281ac1"
 }
