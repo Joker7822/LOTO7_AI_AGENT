@@ -8,8 +8,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://raw.githubusercontent.com; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>LOTO7 AI AGENT | LIVE DASHBOARD</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20261123-simplified-view">
-  <script type="module" src="app.js?v=20261123-simplified-view"></script>
+  <link rel="stylesheet" href="style.css?v=20261125-prediction-tabs">
+  <script type="module" src="app.js?v=20261125-prediction-tabs"></script>
 </head>
 <body>
   <a class="skip" href="#main">本文に移動</a>
@@ -31,8 +31,8 @@
 
     <nav class="quick-nav" aria-label="主な情報へ移動">
       <a href="#overview">抽せん結果</a>
-      <a href="#roi-v2">AIモデル・回収率</a>
-      <a href="#issued-predictions">予測5口</a>
+      <a href="#roi-v2" data-prediction-tab="history">過去の予測検証</a>
+      <a href="#issued-predictions" data-prediction-tab="live">LIVE予測</a>
       <a href="#validation">将来の検証</a>
       <a href="#operations">運用状況</a>
       <a href="#research-details" data-expand-research>研究の詳細</a>
@@ -74,6 +74,27 @@
         </div>
       </section>
 
+      <section class="section prediction-workspace" aria-labelledby="prediction-workspace-title">
+        <div class="section-heading"><div><span class="section-index">02 / PREDICTION CENTER</span><h2 id="prediction-workspace-title">予測・検証センター</h2></div><p>過去の仮想検証と抽せん前に実際に発行した予測を分離</p></div>
+        <div class="prediction-view-tabs" role="tablist" aria-label="予測の表示切替">
+          <button type="button" role="tab" id="prediction-tab-history" aria-controls="prediction-panel-history" aria-selected="false" tabindex="-1">過去の予測検証</button>
+          <button type="button" role="tab" id="prediction-tab-live" aria-controls="prediction-panel-live" aria-selected="true" tabindex="0">LIVE予測</button>
+        </div>
+        <div id="prediction-panel-history" role="tabpanel" aria-labelledby="prediction-tab-history" tabindex="0" hidden>
+          <article class="panel prediction-history-summary">
+            <div class="panel-heading"><div><h3>過去の予測検証（ウォークフォワード）</h3><span id="history-tab-period">検証範囲を確認中</span></div><span class="label-outline">過去の仮想検証</span></div>
+            <div class="prediction-summary-grid">
+              <div><small>評価した抽せん回数</small><strong id="history-tab-rounds">—</strong></div>
+              <div><small>Top7平均一致 / 理論値</small><strong id="history-tab-top7">—</strong></div>
+              <div><small>5口最大一致 / ランダム</small><strong id="history-tab-max">—</strong></div>
+              <div><small>ランダム比のスコア差</small><strong id="history-tab-score">—</strong></div>
+              <div><small>参考購入額 / 払戻額</small><strong id="history-tab-cash">—</strong></div>
+              <div><small>参考回収率</small><strong id="history-tab-roi">—</strong></div>
+            </div>
+            <p class="explain" id="history-tab-freshness">公開スナップショットの検証待ち</p>
+            <p class="explain">実際の事前発行成績・実購入記録ではありません。同じ過去データを使った改善は未来の優位性を証明しません。</p>
+            <div class="roi-evidence-links"><a href="https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/historical_accuracy_report.md" target="_blank" rel="noopener noreferrer">過去検証レポート ↗</a><a href="https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/historical_round_accuracy.csv" target="_blank" rel="noopener noreferrer">各回の検証データ（CSV） ↗</a></div>
+          </article>
       <section class="section roi-section" id="roi-v2" aria-labelledby="roi-heading">
         <div class="section-heading">
           <div><span class="section-index">02 / AIモデルとお金</span><h2 id="roi-heading">使っているAIと回収率</h2></div>
@@ -120,9 +141,16 @@
         </article>
       </section>
 
+        </div>
+        <div id="prediction-panel-live" role="tabpanel" aria-labelledby="prediction-tab-live" tabindex="0">
+          <article class="panel prediction-live-summary" aria-live="polite">
+            <div class="panel-heading"><div><h3 id="live-tab-next">次回のLIVE予測を確認中</h3><span id="live-tab-date">抽せん予定を確認中</span></div><span class="label-outline" id="live-tab-state">取得中</span></div>
+            <p id="live-tab-note" class="explain">事前発行台帳の確認後に表示します。</p>
+            <p id="live-tab-freshness" class="explain">公開データの更新時刻を確認中</p>
+          </article>
       <section class="section" id="issued-predictions" aria-labelledby="issued-predictions-title">
         <div class="section-heading">
-          <div><span class="section-index">03 / 発行済み予測</span><h2 id="issued-predictions-title">最新の予測5口</h2></div>
+          <div><span class="section-index">LIVE / 発行済み予測</span><h2 id="issued-predictions-title">最新の予測5口</h2></div>
           <p>実際に発行した番号のみ表示。研究中の番号は非公開</p>
         </div>
         <article class="panel published-prediction-panel">
@@ -144,6 +172,9 @@
           <div id="issued-previous-results" class="issued-previous-results" aria-live="polite"><p class="muted">真正結果の確認待ち...</p></div>
         </article>
         <p class="explain">ここに掲載する数字は既存のProduction発行台帳に記録済みのものだけです。公開サイトなので予測番号は誰でも閲覧できます。未発行・研究用の候補・登録済みFuture-OOSの凍結予測は表示しません。予測は当せんや精度向上を保証しません。</p>
+      </section>
+
+        </div>
       </section>
 
       <section class="section" id="validation" aria-labelledby="section-validation">
