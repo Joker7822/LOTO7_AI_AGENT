@@ -1,8 +1,8 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-25T21:45:35+09:00",
-  "source_commit": "68fde019d31671d798264b62827d988d9c3b426f",
-  "state_hashes_sha256": "7652567ef2fe87a17a9d5b306b74762af526450c29bccc44884885c60b526cd9",
+  "generated_at_jst": "2026-11-25T22:32:43+09:00",
+  "source_commit": "9e04687a15d72feaf7eb4affd8b77b26e91da3b0",
+  "state_hashes_sha256": "8bc648500b43c8068fa6f0a15f41930bfadfbc9334efeb7542da385a58dac73a",
   "sources": {
     "source": {
       "status": "ok",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-25T19:29:36+09:00",
+      "checked_at_jst": "2026-11-25T22:32:32+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -199,12 +199,12 @@
     {
       "file": "continuous_loto7_v4.yml",
       "label": "継続研究",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 45524069641,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45524069641",
-      "updated_at": "2026-11-25T01:15:47Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 45624136225,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45624136225",
+      "updated_at": "2026-11-25T13:30:58Z",
       "recent_failure_count": 0
     },
     {
@@ -221,12 +221,12 @@
     {
       "file": "always_on_accuracy_research.yml",
       "label": "自律研究監査",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 45581768084,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45581768084",
-      "updated_at": "2026-11-25T09:05:11Z",
+      "health": "running",
+      "status": "queued",
+      "conclusion": null,
+      "run_id": 45624613567,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45624613567",
+      "updated_at": "2026-11-25T13:32:39Z",
       "recent_failure_count": 0
     },
     {
@@ -257,9 +257,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45595256728,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45595256728",
-      "updated_at": "2026-11-25T10:29:41Z",
+      "run_id": 45624375956,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45624375956",
+      "updated_at": "2026-11-25T13:32:37Z",
       "recent_failure_count": 0
     },
     {
@@ -301,9 +301,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45507367611,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45507367611",
-      "updated_at": "2026-11-24T23:08:46Z",
+      "run_id": 45624126054,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45624126054",
+      "updated_at": "2026-11-25T13:29:44Z",
       "recent_failure_count": 0
     }
   ],
@@ -724,14 +724,14 @@
     "activity_stale_vs_verified_round": false,
     "activity_latest_round": 704,
     "verified_latest_round": 704,
-    "sequence": 73,
-    "last_activity_jst": "2026-11-25T18:05:04+09:00",
-    "current_phase": "literature_search",
-    "current_activity": "科学的事前凍結欠損のため監査のみ：インターネットから最新の研究論文を検索",
-    "online_search_status": "searched",
+    "sequence": 74,
+    "last_activity_jst": "2026-11-25T22:32:34+09:00",
+    "current_phase": "source_audit",
+    "current_activity": "科学的事前凍結欠損のため監査のみ：結果の二重ソース照合と鮮度を点検",
+    "online_search_status": "not_scheduled",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": true,
-    "new_papers_count": 1,
+    "new_papers_count": 0,
     "papers": [
       {
         "title": "PV-Aware Multi-Horizon Probabilistic Net-Load Forecasting with Horizon-Delayed Online Conformal Calibration",
@@ -787,8 +787,7 @@
       "第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
-      "オンライン検索: searched / 新規候補 1件"
+      "最新信頼ステータス: verified_two_result_sources"
     ]
   },
   "research_application": {
@@ -872,12 +871,59 @@
       }
     }
   },
+  "prize_totals": {
+    "version": "dashboard-prize-totals-v1",
+    "historical": {
+      "scope": "historical_replay",
+      "status": "verified",
+      "rounds": 604,
+      "tickets": 3020,
+      "grade_counts": {
+        "1等": 0,
+        "2等": 0,
+        "3等": 0,
+        "4等": 4,
+        "5等": 44,
+        "6等": 79,
+        "はずれ": 2893
+      },
+      "winning_tickets": 127,
+      "reference_cost_yen": 906000,
+      "reference_payout_yen": 175900,
+      "reference_roi": 0.19415011037527594,
+      "excluded_rounds": 0,
+      "pending_rounds": 0,
+      "actual_purchase_verified": false
+    },
+    "live": {
+      "scope": "issued_production",
+      "status": "verified",
+      "rounds": 12,
+      "tickets": 60,
+      "grade_counts": {
+        "1等": 0,
+        "2等": 0,
+        "3等": 0,
+        "4等": 0,
+        "5等": 0,
+        "6等": 5,
+        "はずれ": 55
+      },
+      "winning_tickets": 5,
+      "reference_cost_yen": 18000,
+      "reference_payout_yen": 5100,
+      "reference_roi": 0.2833333333333333,
+      "excluded_rounds": 2,
+      "pending_rounds": 0,
+      "actual_purchase_verified": false
+    }
+  },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "68fde019d31671d798264b62827d988d9c3b426f",
-    "snapshot_generated_at_jst": "2026-11-25T21:45:35+09:00",
-    "computed_at_jst": "2026-11-25T12:45:35+00:00",
+    "source_commit": "9e04687a15d72feaf7eb4affd8b77b26e91da3b0",
+    "snapshot_generated_at_jst": "2026-11-25T22:32:43+09:00",
+    "computed_at_jst": "2026-11-25T13:32:43+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
