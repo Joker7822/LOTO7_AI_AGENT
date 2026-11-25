@@ -1,4 +1,5 @@
-import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261123-simplified-view";
+import { predictionTabFromHash, predictionTabView } from "./prediction-tabs.mjs?v=20261125-prize-totals";
+import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261125-prize-totals";
 import {
   LEVEL_LABELS, buildView, percent, displayMetric
 } from "./model.mjs?v=20261123-simplified-view";
@@ -78,6 +79,64 @@ function renderQuickPrediction(ops) {
     " ／ 次回は発行待ち":"";
   set("quick-prediction-note","5口・"+model+"で発行済み"+waiting);
 }
+function renderPrizeTotals(ops){
+  const grades=["1等","2等","3等","4等","5等","6等","はずれ"];
+  const amount=n=>Number.isSafeInteger(n)?n.toLocaleString("ja-JP")+"円":"—";
+  for(const [key,source] of [["history","historical"],["live","live"]]){
+    const p=ops?.prizeTotals?.[source];
+    const ok=p&&["verified","payout_incomplete"].includes(p.status);
+    set(key+"-prize-scope",ok?p.rounds+"回 / "+p.tickets+"口"+(key==="live"?" ／ 除外 "+p.excluded_rounds+"回・結果待ち "+p.pending_rounds+"回":"")+(ops.outdated?" ／ 更新遅延あり":""):"集計未確認");
+    set(key+"-prize-wins",ok?p.winning_tickets.toLocaleString("ja-JP")+"口":"—");
+    set(key+"-prize-payout",ok?amount(p.reference_payout_yen):"—");
+    set(key+"-prize-cost",ok?amount(p.reference_cost_yen):"—");
+    set(key+"-prize-roi",ok&&Number.isFinite(p.reference_roi)?(p.reference_roi*100).toFixed(2)+"%":"—");
+    grades.forEach((g,i)=>set(key+"-prize-grade-"+(i+1),ok?p.grade_counts[g].toLocaleString("ja-JP")+"口":"—"));
+  }
+}
+
+function renderPredictionTabs(ops, view) {
+  renderPrizeTotals(ops);
+  const tab=predictionTabView(ops,view);
+  for(const [id,value] of Object.entries(tab))set(id,value);
+  if(ops) {
+    const timestamp=asJst(ops.generatedAt);
+    const freshness="公開データ作成: "+timestamp+(ops.outdated?" ／ 更新遅延あり・最新状態は未確認":"");
+    set("history-tab-freshness",freshness);
+    set("live-tab-freshness",freshness);
+  }
+}
+
+function installPredictionTabs() {
+  const names=["history","live"];
+  const select=(name,focus=false)=>{
+    for(const key of names){
+      const selected=key===name;
+      const tab=el("prediction-tab-"+key),panel=el("prediction-panel-"+key);
+      if(!tab||!panel)continue;
+      tab.setAttribute("aria-selected",String(selected));
+      tab.tabIndex=selected?0:-1;
+      panel.hidden=!selected;
+      if(selected&&focus)tab.focus();
+    }
+  };
+  for(const name of names){
+    const tab=el("prediction-tab-"+name);
+    tab?.addEventListener("click",()=>select(name));
+    tab?.addEventListener("keydown",event=>{
+      const other=names[1-names.indexOf(name)];
+      const target=event.key==="Home"?"history":event.key==="End"?"live":
+        ["ArrowLeft","ArrowRight"].includes(event.key)?other:null;
+      if(target){event.preventDefault();select(target,true);}
+    });
+  }
+  for(const link of document.querySelectorAll("[data-prediction-tab]")){
+    link.addEventListener("click",()=>select(link.dataset.predictionTab));
+  }
+  const sync=()=>{const name=predictionTabFromHash(location.hash);if(name)select(name);};
+  window.addEventListener("hashchange",sync);
+  select(predictionTabFromHash(location.hash)||"live");
+}
+
 function renderProgress(v) {
   const grid = clear("progress-grid");
   if (!grid) return;
@@ -214,7 +273,7 @@ function renderIssuedPredictions(ops){
     history?.append(node("p","muted","直近の照合済み予測成績は未取得です。"));
     return;
   }
-  set("issued-target","第"+prediction.targetRound+"回向け · Production 5口");
+  set("issued-target","第"+prediction.targetRound+"回 · 発行記録（Production 5口）");
   set("issued-details","予測発行: "+asJst(prediction.publishedAt)+"　/　モデル: "+prediction.model);
   set("issued-status",prediction.currentResult?"2ソース照合済み":"発行済み");
   for(const ticket of prediction.tickets){
@@ -600,6 +659,7 @@ export async function refresh(){
       " ／ 取得先: "+(loaded.source.includes("raw.githubusercontent.com")?"GitHub Raw":"GitHub Pages")+
       (ops.outdated?" ／ 更新遅延あり":""));
     renderQuickPrediction(ops);
+    renderPredictionTabs(ops,view);
     renderProgress(view);renderResearch(view);renderOperations(view);renderRoiCashV2(ops);renderIssuedPredictions(ops);
     renderWorkflowStatus(ops);renderPredictionMetrics(ops);renderProspective(ops);renderScientific(ops);renderAlwaysOn(ops);renderResearchApplication(ops);renderResearchPriorities(ops);renderCommandCenter(ops);appendOperationalWarnings(ops);
     set("alerts-count",view.handoffs.length+view.inconsistencies.length+ops.alerts.length+" 件");
@@ -610,6 +670,8 @@ export async function refresh(){
     set("snapshot-freshness","未取得・通信状況を確認してください");
     const list=clear("alert-list");list.append(node("p","error-line",String(e.message||"監視情報の取得失敗")));
     renderRoiCashV2({roiCashV2:{status:"unavailable"}});
+    renderPredictionTabs(null,null);
+    renderIssuedPredictions({issuedPrediction:{status:"not_published"}});
     set("quick-prediction-state","未取得");
     set("quick-prediction-note","公開予測を検証できません");
     set("issued-status","検証データ未取得");
@@ -632,6 +694,7 @@ if(location.hash==="#research-details" || location.hash.startsWith("#always-on-a
   const details=el("research-details");
   if(details)details.open=true;
 }
+installPredictionTabs();
 el("refresh")?.addEventListener("click",refresh);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh();});
 setInterval(()=>{if(!document.hidden)refresh();},REFRESH_MS);
