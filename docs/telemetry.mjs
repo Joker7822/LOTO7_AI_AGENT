@@ -449,7 +449,7 @@ export function normalizePredictionMetrics(value) {
 
 export function normalizePrizeTotals(value) {
   const empty={status:"unavailable"};
-  if(!value || value.version!=="dashboard-prize-totals-v1")return {historical:empty,live:empty};
+  if(!value || !["dashboard-prize-totals-v1","dashboard-prize-totals-v2"].includes(value.version))return {historical:empty,live:empty};
   const grades=["1等","2等","3等","4等","5等","6等","はずれ"];
   const int=n=>Number.isSafeInteger(n)&&n>=0;
   function one(v,scope){
@@ -464,9 +464,27 @@ export function normalizePrizeTotals(value) {
       if(!int(v.reference_payout_yen)||!Number.isFinite(v.reference_roi)||
          Math.abs(v.reference_roi-v.reference_payout_yen/v.reference_cost_yen)>1e-9)return empty;
     }else if(v.reference_payout_yen!==null||v.reference_roi!==null)return empty;
+    if(scope==="historical_roi_cash_v2"){
+      if(v.model!=="production-ai-ranked35-roi-cash-v2"||v.rounds!==703||
+         v.first_round!==2||v.last_round!==704||v.first_draw_date!=="2013-04-12"||
+         v.last_draw_date!=="2026-11-20"||v.reference_payout_yen!==922400||
+         v.artifact_id!==14742025156||v.ticket_csv_sha256!=="da3ae04a601aec74d1ad7b27d08e6ca3ff9408feee3bed877ddc546fc896c030"||
+         v.audit_url!=="https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44990515557"||
+         grades.some((k,i)=>g[k]!==[0,0,1,4,52,90,3368][i]))return empty;
+    }
+    if(scope==="issued_production"&&value.version==="dashboard-prize-totals-v2"){
+      const date=x=>x&&Number.isInteger(x.round)&&x.round>0&&
+        typeof x.draw_date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x.draw_date)&&
+        typeof x.created_at_jst==="string"&&x.created_at_jst.endsWith("+09:00")&&
+        Number.isFinite(Date.parse(x.created_at_jst))&&
+        Date.parse(x.created_at_jst)<Date.parse(x.draw_date+"T18:00:00+09:00");
+      if(!date(v.first_settled)||!date(v.last_settled)||v.last_settled.round-v.first_settled.round+1<v.rounds||
+         v.first_settled.draw_date>v.last_settled.draw_date||
+         Date.parse(v.first_settled.created_at_jst)>Date.parse(v.last_settled.created_at_jst))return empty;
+    }
     return v;
   }
-  return {historical:one(value.historical,"historical_replay"),live:one(value.live,"issued_production")};
+  return {historical:one(value.historical,"historical_roi_cash_v2"),live:one(value.live,"issued_production")};
 }
 
 export function normalizeSnapshot(snapshot, now = new Date()) {

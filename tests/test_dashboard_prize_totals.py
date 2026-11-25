@@ -1,16 +1,14 @@
 import json
 from dashboard_prize_totals import history, summary, money, live
 
-def test_grade_count_and_reference_roi(tmp_path):
-    raw={"grade_counts":{"6等":1,"はずれ":4},"evaluated_rounds":1}
-    (tmp_path/"historical_reconciliation_summary.json").write_text(json.dumps(raw))
-    p={"status":"historical_hypothetical_only","tickets":5,"winning_tickets":1,
-       "reference_cost_yen":1500,"reference_payout_yen":1100}
-    got=history(tmp_path,{"reference_payout":p})
-    assert got["grade_counts"]["1等"]==0 and got["grade_counts"]["6等"]==1
-    assert got["reference_roi"]==1100/1500
-    p["winning_tickets"]=2
-    assert history(tmp_path,{"reference_payout":p})["status"]=="unavailable"
+def test_v2_grade_count_and_reference_roi(tmp_path):
+    got=history(tmp_path,{})
+    assert got["model"]=="production-ai-ranked35-roi-cash-v2"
+    assert got["rounds"]==703 and got["tickets"]==3515
+    assert got["grade_counts"]=={"1等":0,"2等":0,"3等":1,"4等":4,"5等":52,"6等":90,"はずれ":3368}
+    assert got["winning_tickets"]==147
+    assert got["reference_payout_yen"]==922400
+    assert got["reference_roi"]==922400/1054500
 
 def test_unknown_payout_never_becomes_zero():
     x=summary("issued_production",{"6等":1,"はずれ":4},1,None)

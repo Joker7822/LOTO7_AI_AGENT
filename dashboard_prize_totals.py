@@ -1,9 +1,9 @@
 """Read-only prize tallies, kept separate for replay and pre-draw issued tickets."""
 from collections import Counter
 from datetime import datetime
-import json
 import re
 
+from dashboard_roi_cash_v2 import AUDITED_DRAW_COUNT, AUDITED_CANDIDATE_PAYOUT_YEN, AUDITED_LAST_ROUND, AUDIT_RUN
 from public_issued_prediction import forecast_group, grade, parse_round, trusted_draws, TRUST
 
 GRADES = tuple(f"{i}等" for i in range(1, 7)) + ("はずれ",)
@@ -40,26 +40,21 @@ def unavailable(scope):
     return {"scope": scope, "status": "unavailable", "actual_purchase_verified": False}
 
 
-def history(out, scorecard):
-    scope = "historical_replay"
-    try:
-        p = scorecard["reference_payout"]
-        if p["status"] != "historical_hypothetical_only":
-            return unavailable(scope)
-        raw = json.loads((out / "historical_reconciliation_summary.json").read_text(encoding="utf-8"))
-        counts = raw["grade_counts"]
-        if not isinstance(counts, dict) or set(counts) - set(GRADES):
-            raise ValueError("invalid grades")
-        counts = {g: count(counts.get(g, 0)) for g in GRADES}
-        rounds = count(raw["evaluated_rounds"])
-        result = summary(scope, counts, rounds, count(p["reference_payout_yen"]))
-        if (result["tickets"] != p["tickets"] or result["tickets"] != rounds * 5
-                or result["winning_tickets"] != p["winning_tickets"]
-                or result["reference_cost_yen"] != p["reference_cost_yen"]):
-            raise ValueError("replay counts disagree")
-        return result
-    except (OSError, ValueError, TypeError, KeyError):
-        return unavailable(scope)
+def history(out=None, scorecard=None):
+    """Audited cash_v2 arm of run 44990515557, artifact 14742025156.
+    All 703 targets have five unique ticket positions; CSV SHA256 below.
+    """
+    counts = {"1等": 0, "2等": 0, "3等": 1, "4等": 4, "5等": 52,
+              "6等": 90, "はずれ": 3368}
+    result = summary("historical_roi_cash_v2", counts, AUDITED_DRAW_COUNT,
+                     AUDITED_CANDIDATE_PAYOUT_YEN)
+    if result["tickets"] != AUDITED_DRAW_COUNT * 5:
+        raise ValueError("audited v2 grade count mismatch")
+    return {**result, "model": "production-ai-ranked35-roi-cash-v2",
+            "first_round": 2, "last_round": AUDITED_LAST_ROUND,
+            "first_draw_date": "2013-04-12", "last_draw_date": "2026-11-20",
+            "audit_url": AUDIT_RUN, "artifact_id": 14742025156,
+            "ticket_csv_sha256": "da3ae04a601aec74d1ad7b27d08e6ca3ff9408feee3bed877ddc546fc896c030"}
 
 
 def live(out, source, published):
@@ -88,6 +83,7 @@ def live(out, source, published):
         payout = 0
         incomplete = False
         settled = excluded = pending = 0
+        first = last = None
         for rnd in sorted(by_target):
             if rnd > target:
                 continue
@@ -116,6 +112,11 @@ def live(out, source, published):
             except (ValueError, TypeError, KeyError):
                 excluded += 1
                 continue
+            period = {"round": rnd, "draw_date": draw["date"],
+                      "created_at_jst": group[0]["prediction_created_at_jst"]}
+            if first is None:
+                first = period
+            last = period
             settled += 1
             for item in scores:
                 g = item["grade"]
@@ -126,12 +127,13 @@ def live(out, source, published):
                         incomplete = True
                     else:
                         payout += amount
-        return summary(scope, counts, settled, None if incomplete else payout,
-                       excluded=excluded, pending=pending)
+        return {**summary(scope, counts, settled, None if incomplete else payout,
+                          excluded=excluded, pending=pending),
+                "first_settled": first, "last_settled": last}
     except (OSError, ValueError, TypeError, KeyError):
         return unavailable(scope)
 
 
 def project(out, source, published, scorecard):
-    return {"version": "dashboard-prize-totals-v1",
+    return {"version": "dashboard-prize-totals-v2",
             "historical": history(out, scorecard), "live": live(out, source, published)}
