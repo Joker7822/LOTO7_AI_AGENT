@@ -42,7 +42,7 @@ def test_permissions_inventory_covers_every_workflow():
 
 
 def test_no_workflow_requests_unreviewed_write_scopes():
-    allowed = {"contents: write", "actions: write", "issues: write"}
+    allowed = {"contents: write", "actions: write"}
     offenders = []
     for path in _workflow_files():
         for line in path.read_text(encoding="utf-8").splitlines():
@@ -50,3 +50,15 @@ def test_no_workflow_requests_unreviewed_write_scopes():
             if m and f"{m.group(1)}: write" not in allowed:
                 offenders.append(f"{path.name}: {m.group(1)}: write")
     assert not offenders, f"Unreviewed write scopes: {offenders}"
+
+
+def test_retired_external_db_integration_is_absent():
+    for relative in ("sakura", "prediction_db_sync.py", "verify_sakura_rotation.py",
+                     ".github/workflows/sync_sakura_prediction_db.yml",
+                     ".github/workflows/verify_sakura_credential_rotation.yml"):
+        assert not (ROOT / relative).exists(), relative
+    for path in _workflow_files():
+        workflow = path.read_text(encoding="utf-8")
+        for forbidden in ("prediction_db_sync.py", "verify_sakura_rotation.py",
+                          "SAKURA_PREDICTION_", "--credential-rotation-status"):
+            assert forbidden not in workflow, f"{path.name}: {forbidden}"

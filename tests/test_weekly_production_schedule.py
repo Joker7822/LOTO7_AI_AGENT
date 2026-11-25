@@ -124,13 +124,12 @@ def test_current_production_outputs_reject_incomplete_ticket_set(tmp_path):
     assert weekly.current_production_outputs_are_current(out, "sha-a", "baseline-test") is False
 
 
-def test_every_publisher_validates_disjoint35_before_commit_and_sync():
+def test_every_publisher_validates_disjoint35_before_commit():
     for file in ("weekly_production_publisher.yml", "weekly_production_fallback.yml",
                  "publish_production_now.yml"):
         text = Path(".github/workflows", file).read_text(encoding="utf-8")
         assert "production_ticket_geometry35.py --verify-canonical" in text
         assert text.index("production_ticket_geometry35.py --verify-canonical") < text.index("git add")
-        assert text.index("production_ticket_geometry35.py --verify-canonical") < text.index("python prediction_db_sync.py") if "python prediction_db_sync.py" in text else True
 
 
 def test_publish_now_is_manual_republish_only():
@@ -140,10 +139,10 @@ def test_publish_now_is_manual_republish_only():
     assert "--republish-only" in text
 
 
-def test_production_publishers_never_embed_sakura_endpoint():
-    for filename in ("weekly_production_publisher.yml", "weekly_production_fallback.yml"):
+def test_production_publishers_have_no_retired_external_db_sync():
+    for filename in ("weekly_production_publisher.yml", "weekly_production_fallback.yml",
+                     "publish_production_now.yml"):
         workflow = Path(".github/workflows", filename).read_text(encoding="utf-8")
-        assert "SAKURA_PREDICTION_API_URL: ${{ secrets.SAKURA_PREDICTION_API_URL }}" in workflow
-        assert "SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}" in workflow
-        assert "https://www.epic-creation.com/" not in workflow
-        assert 'if [ -z "${SAKURA_PREDICTION_API_URL:-}" ] ||' in workflow
+        assert "prediction_db_sync.py" not in workflow
+        assert "SAKURA_PREDICTION_" not in workflow
+        assert "production_ticket_geometry35.py --verify-canonical" in workflow

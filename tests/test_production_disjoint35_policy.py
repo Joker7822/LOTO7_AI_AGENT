@@ -1,4 +1,4 @@
-"""Dependency-free issued-ticket policy used by Sakura sync and Production."""
+"""Dependency-free issued-ticket policy used by Production."""
 import pytest
 
 import production_disjoint35_policy as policy
