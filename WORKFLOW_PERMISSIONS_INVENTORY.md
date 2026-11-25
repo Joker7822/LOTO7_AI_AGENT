@@ -1,6 +1,6 @@
 # Workflow Permissions Inventory
 
-_Generated from a full static audit of `.github/workflows/` on 2026-11-24.
+_Generated from a full static audit of `.github/workflows/` on 2026-11-24; updated for the three-job-split migration on 2026-11-25.
 Counts are measured, not estimated: 58 workflows, 40 with
 `contents: write`, 18 read-only. Every `contents: write` workflow was
 checked for an actual `git push` — all 40 push their own research or
@@ -10,7 +10,7 @@ therefore **when** the write token is exposed, not whether it exists._
 
 ## Classification
 
-### A. Split jobs — least privilege already applied (10)
+### A. Split jobs — least privilege already applied (13)
 
 Top-level permission is `contents: read`; only the publish job, gated by
 `needs:` on the verify job and an `if:` excluding `pull_request`, receives
@@ -28,8 +28,11 @@ Top-level permission is `contents: read`; only the publish job, gated by
 | `pair_context_v2.yml` | PR, push(main), schedule, manual | - |
 | `recursive_self_evolution.yml` | PR, push(main), schedule, manual | - |
 | `repair_online_schedule_20261111.yml` | PR, push(main) | - |
+| `advanced_validation_lab.yml` | PR, push(main), schedule, manual | - |
+| `always_on_accuracy_research.yml` | PR, push(main), schedule, manual, workflow_run (trusted main only) | - |
+| `frequent_online_research_feed.yml` | PR, push(main), schedule, manual | - |
 
-### B. Single job, PR-triggered, push step guarded (17)
+### B. Single job, PR-triggered, push step guarded (14)
 
 One job holds `contents: write` for its whole run, including on
 `pull_request`. In every case the commit/push step (or the job itself) is
@@ -37,9 +40,7 @@ guarded by an event condition such as
 `if: github.event_name != 'pull_request'`, so PR code cannot push — but
 PR code does execute while a write-capable token exists in the job.
 **Next step:** migrate these to the category-A split in small batches,
-starting with the high-frequency ones
-(`always_on_accuracy_research` hourly, `frequent_online_research_feed`
-every 2 hours, `advanced_validation_lab` every 3 hours). Until migrated,
+The first batch (hourly research, two-hourly discovery and three-hourly validation) now uses separate read-only validation and main-only publish jobs. Continue migrating the remaining 14 in reviewable batches. Until migrated,
 the push guard is mandatory: a new workflow in this category without an
 event guard on its push step must not be merged, and the net-zero rule
 in `RESEARCH_EXPANSION_POLICY.md` applies.
@@ -47,14 +48,11 @@ in `RESEARCH_EXPANSION_POLICY.md` applies.
 | Workflow | Triggers | Extra permissions |
 |---|---|---|
 | `accuracy_extension_agent.yml` | PR, push(main), schedule, manual | - |
-| `advanced_validation_lab.yml` | PR, push(main), schedule, manual | - |
 | `agent_role_council.yml` | PR, push(main), schedule, manual | - |
-| `always_on_accuracy_research.yml` | PR, push(main), schedule, manual | - |
 | `autonomous_evolution_lab.yml` | PR, push(main), schedule, manual | - |
 | `autonomous_self_rewrite.yml` | PR, push(main), schedule, manual | - |
 | `continuous_learning_agent.yml` | PR, push(main), schedule, manual | - |
 | `first_prize_prospective_oos.yml` | PR, push(main), schedule, manual | - |
-| `frequent_online_research_feed.yml` | PR, push(main), schedule, manual | - |
 | `joint_set_v2_continuous_rank_bonus.yml` | PR, push(main), manual | - |
 | `joint_set_v2_conversion_audit.yml` | PR, push(main), manual | - |
 | `joint_set_v2_rank_portfolio.yml` | PR, push(main), manual | - |
@@ -127,7 +125,7 @@ anywhere in the inventory.
 
 ## SHA pinning
 
-Every `uses:` reference (162 across 57 workflow files; one workflow uses
+Every `uses:` reference (168 across 57 workflow files; one workflow uses
 no actions) is pinned to a full 40-character commit SHA with the
 major-version tag kept as a trailing comment, e.g.
 `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7`.
