@@ -165,3 +165,36 @@ def test_view_fails_closed_on_tampered_revision_or_after_draw(tmp_path, monkeypa
                                  tzinfo=timezone(timedelta(hours=9))), None)
     assert repeat["preview_status"] == "unchanged_expired"
     assert repeat["revision"] == 2
+
+
+def test_grade_replay_preserves_sealed_values_and_rejects_material_changes():
+    sealed = {"frozen_event_sha256": "a"*64, "actual_numbers": [1, 2],
+              "top7_hits": 1, "e_process_log_wealth": [0.1], "threshold": False}
+    events = [{"kind": "grade", "target_round": 704, "metrics": sealed}]
+    freeze = {"target_round": 704}
+    before = copy.deepcopy(events)
+    rounded = copy.deepcopy(sealed)
+    rounded["e_process_log_wealth"][0] += 1e-14
+    adapter = runtime.grade_replay_adapter(events, lambda *_: rounded)
+    assert adapter(freeze, None, []) == sealed
+    assert events == before
+    assert adapter({"target_round": 705}, None, []) == rounded
+    for field, value in [("top7_hits", 2), ("actual_numbers", [1, 3]),
+                         ("threshold", True), ("frozen_event_sha256", "b"*64),
+                         ("e_process_log_wealth", [0.2])]:
+        changed = dict(sealed, **{field: value})
+        with pytest.raises(ValueError, match="MATERIAL replay change"):
+            runtime.grade_replay_adapter(events, lambda *_: changed)(freeze, None, [])
+    with pytest.raises(ValueError, match="duplicate graded"):
+        runtime.grade_replay_adapter(events + events, lambda *_: sealed)
+
+
+def test_grade_replay_normalizes_only_numpy_likelihood_ratio():
+    key = "exact_7_of_37_set_likelihood_ratio"
+    sealed = {key: 0.9999999999999998, "top7_hits": 1}
+    events = [{"kind": "grade", "target_round": 703, "metrics": sealed}]
+    adapter = runtime.grade_replay_adapter(events, lambda *_: {key: np.float64(1.0), "top7_hits": 1})
+    assert adapter({"target_round": 703}, None, []) == sealed
+    for bad in [{key: np.float64(1.01), "top7_hits": 1}, {key: np.float64(1.0), "top7_hits": np.float64(1)}]:
+        with pytest.raises(ValueError, match="MATERIAL replay change"):
+            runtime.grade_replay_adapter(events, lambda *_: bad)({"target_round": 703}, None, [])

@@ -138,7 +138,15 @@ def test_real_research_inputs_have_provenance_chain():
     papers, reviewed, plans, pub, readiness, guard, statuses = intel.frozen_inputs(ROOT)
     assert len(papers) == len(statuses) == reviewed["count"]
     assert plans["count"] == len(plans["proposals"])
-    assert pub["discovery_state_sha256"] == reviewed["discovery_state_sha256"]
+    if pub["discovery_state_sha256"] != reviewed["discovery_state_sha256"]:
+        state_path = ROOT / "loto7_agent_output" / intel.discovery.STATE
+        state = intel.read(state_path)
+        assert state["observation_only"] is True
+        assert pub["discovery_state_sha256"] == hashlib.sha256(state_path.read_bytes()).hexdigest()
+        assert pub["discovery_tip_sha256"] == state["last_record_sha256"]
+        assert set(statuses) == {p["doi"] for p in papers}
+    else:
+        assert pub["discovery_tip_sha256"] == reviewed["discovery_chain_tip"]
     assert readiness["input_draw_sha256"] == plans["draw_history_sha256"]
 
 
@@ -320,3 +328,16 @@ def test_observation_only_tail_cannot_authorize_external_methods(monkeypatch):
     if data.get("observation_only") and data["last_record_sha256"] != rev["discovery_chain_tip"]:
         with pytest.raises(ValueError, match="unsafe|stale"):
             intel.run(ROOT)
+
+
+def test_verifier_cannot_claim_unanchored_newer_catalog(monkeypatch):
+    original = intel.read
+    def fake(path):
+        obj = original(path)
+        if path.name == intel.verification.EVIDENCE:
+            obj = copy.deepcopy(obj)
+            obj["discovery_tip_sha256"] = "f" * 64
+        return obj
+    monkeypatch.setattr(intel, "read", fake)
+    with pytest.raises(ValueError, match="does not trace"):
+        intel.frozen_inputs(ROOT)
