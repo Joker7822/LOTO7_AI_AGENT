@@ -227,4 +227,5 @@ def test_primary_and_fallback_commit_freeze_with_original_issued_production():
         assert "Refusing non-additive first-prize archive change" in text
         assert 'date +%H%M)" -lt 1800' in text
         assert text.count("      - name: Commit Production checkpoint") == 1
-        assert text.count("      - name: Validate Sakura sync payload") == 1
+        assert "prediction_db_sync.py" not in text
+        assert "SAKURA_PREDICTION_" not in text

@@ -33,7 +33,7 @@ The dashboard first fetches the published `/LOTO7_AI_AGENT/data/dashboard_snapsh
 
 ### Privacy and accuracy limits
 
-The GitHub Pages dashboard **now displays only the five already-published Production forecast tickets** after checking the weekly publisher state against the canonical prediction ledger and the correction/invalidation log. Because GitHub Pages is public, these five issued ticket numbers are public information; no password, private Sakura connection, unissued candidate, or registered research Future-OOS vector is exposed. The separately password-protected Sakura prediction viewer remains protected by its own controls.
+The GitHub Pages dashboard **now displays only the five already-published Production forecast tickets** after checking the weekly publisher state against the canonical prediction ledger and the correction/invalidation log. Because GitHub Pages is public, these five issued ticket numbers are public information; no password, unissued candidate, or registered research Future-OOS vector is exposed. No external database synchronization is required.
 
 Failing JSON fetches and cross-system version/round discrepancies produce an **unknown / warning** rather than a fabricated successful score. A WATCH is a governance reminder, not evidence that the agent is broken. Historical Top7 scores are explicitly marked HISTORICAL ONLY; genuinely prospective data are shown separately. Accuracy gains, lottery winnings and Production promotion are never implied by past or partial exploratory data.
 

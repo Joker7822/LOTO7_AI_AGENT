@@ -42,7 +42,7 @@ def test_permissions_inventory_covers_every_workflow():
 
 
 def test_no_workflow_requests_unreviewed_write_scopes():
-    allowed = {"contents: write", "actions: write", "issues: write"}
+    allowed = {"contents: write", "actions: write"}
     offenders = []
     for path in _workflow_files():
         for line in path.read_text(encoding="utf-8").splitlines():
@@ -87,3 +87,20 @@ def test_hourly_privileged_workflow_run_requires_trusted_main_predecessor():
     assert "github.event.workflow_run.head_branch == 'main'" in header
     assert "github.event.workflow_run.head_repository.full_name == github.repository" in header
     assert "github.event.workflow_run.event != 'pull_request'" in header
+
+
+def test_retired_external_db_integration_is_absent():
+    for relative in ("sakura", "prediction_db_sync.py", "verify_sakura_rotation.py",
+                     ".github/workflows/sync_sakura_prediction_db.yml",
+                     ".github/workflows/verify_sakura_credential_rotation.yml"):
+        assert not (ROOT / relative).exists(), relative
+    for path in _workflow_files():
+        workflow = path.read_text(encoding="utf-8")
+        # The browser CI negative grep guards against leaked secret identifiers;
+        # it is not a credential reference or an external network call.
+        if path.name == "browser_dashboard_ci.yml":
+            workflow = "\n".join(line for line in workflow.splitlines()
+                                 if not line.lstrip().startswith("! grep -Eq "))
+        for forbidden in ("prediction_db_sync.py", "verify_sakura_rotation.py",
+                          "SAKURA_PREDICTION_", "--credential-rotation-status"):
+            assert forbidden not in workflow, f"{path.name}: {forbidden}"

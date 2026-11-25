@@ -184,7 +184,7 @@ jobs:
             --out-dir loto7_agent_output \
             --status-md STATUS.md
 
-      - name: Verify canonical 702+ disjoint35 before commit and Sakura sync
+      - name: Verify canonical 702+ disjoint35 before commit
         if: steps.publication_gate.outputs.publish == 'true'
         run: python production_ticket_geometry35.py --verify-canonical --out-dir loto7_agent_output
 
@@ -233,34 +233,6 @@ jobs:
           else
             echo "[PRODUCTION] canonical Production already current"
           fi
-
-      - name: Validate Sakura sync payload
-        if: steps.publication_gate.outputs.publish == 'true'
-        run: |
-          python -m py_compile prediction_db_sync.py
-          python prediction_db_sync.py --dry-run --output /tmp/sakura_payload.json
-          python - <<'PY'
-          import json
-          p = json.load(open('/tmp/sakura_payload.json', encoding='utf-8'))
-          assert p['schema_version'] == 'loto7-db-sync-v1'
-          print(f"payload predictions={len(p['predictions'])} results={len(p['results'])}")
-          PY
-
-      - name: Sync Production to Sakura MySQL
-        if: steps.publication_gate.outputs.publish == 'true'
-        env:
-          SAKURA_PREDICTION_API_URL: ${{ secrets.SAKURA_PREDICTION_API_URL }}
-          SAKURA_PREDICTION_HMAC_SECRET: ${{ secrets.SAKURA_PREDICTION_HMAC_SECRET }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -z "${SAKURA_PREDICTION_API_URL:-}" ] || [ -z "${SAKURA_PREDICTION_HMAC_SECRET:-}" ]; then
-            echo "::error::Both Sakura URL and HMAC secrets are required; refusing network sync"
-            exit 1
-          fi
-          # prediction_db_sync.py also requires live-verified rotation status
-          # and a matching credential generation before any network request.
-          python prediction_db_sync.py
 
       - name: Show Production state
         if: always() && steps.publication_gate.outputs.publish == 'true'

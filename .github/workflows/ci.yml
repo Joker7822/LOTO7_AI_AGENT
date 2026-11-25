@@ -8,7 +8,6 @@ on:
       - "*.py"
       - "tests/**"
       - "requirements.txt"
-      - "sakura/**"
       - ".github/workflows/**"
 
 permissions:
@@ -23,12 +22,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Guard uncommitted Sakura secrets
+      - name: Guard against reintroduction of retired external integration
         shell: bash
         run: |
           set -euo pipefail
-          if [ -f sakura/prediction_ingest_config.php ]; then
-            echo "ERROR: sakura/prediction_ingest_config.php must never be committed."
+          if [ -n "$(git ls-files -- sakura/)" ]; then
+            echo "ERROR: retired external integration files must not be committed."
             exit 1
           fi
 
