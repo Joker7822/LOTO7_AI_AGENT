@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-26T07:29:11+09:00",
-  "source_commit": "7c59110d573cb6f1be3a4eef2e8cd4fa50f997f5",
-  "state_hashes_sha256": "5aa42327099591344e3c5ae03a6990dc8606bf0945c14431e53894475478f068",
+  "generated_at_jst": "2026-11-26T07:41:20+09:00",
+  "source_commit": "be515eb0619eb12330bd23a6c39c9b030dcf6ce5",
+  "state_hashes_sha256": "de3012fccade806e4f65f404db7a78ab016f96814c44d7c06197dfbe964d1b15",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-26T07:05:20+09:00",
+      "checked_at_jst": "2026-11-26T07:40:01+09:00",
       "latest": {
         "round": 704,
         "date": "2026-11-20",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-26T07:06:37+09:00",
+      "checked_at_jst": "2026-11-26T07:41:15+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -202,9 +202,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45709881643,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45709881643",
-      "updated_at": "2026-11-25T22:05:33Z",
+      "run_id": 45714916107,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45714916107",
+      "updated_at": "2026-11-25T22:40:09Z",
       "recent_failure_count": 0
     },
     {
@@ -243,23 +243,23 @@
     {
       "file": "recursive_self_evolution.yml",
       "label": "再帰的研究進化",
-      "health": "running",
-      "status": "in_progress",
-      "conclusion": null,
+      "health": "ok",
+      "status": "completed",
+      "conclusion": "success",
       "run_id": 45713323902,
       "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45713323902",
-      "updated_at": "2026-11-25T22:28:19Z",
+      "updated_at": "2026-11-25T22:30:09Z",
       "recent_failure_count": 0
     },
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 45710220177,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45710220177",
-      "updated_at": "2026-11-25T22:06:41Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 45715197766,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45715197766",
+      "updated_at": "2026-11-25T22:40:19Z",
       "recent_failure_count": 0
     },
     {
@@ -301,9 +301,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45709881800,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45709881800",
-      "updated_at": "2026-11-25T22:03:33Z",
+      "run_id": 45714916095,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45714916095",
+      "updated_at": "2026-11-25T22:38:22Z",
       "recent_failure_count": 0
     }
   ],
@@ -872,28 +872,36 @@
     }
   },
   "prize_totals": {
-    "version": "dashboard-prize-totals-v1",
+    "version": "dashboard-prize-totals-v2",
     "historical": {
-      "scope": "historical_replay",
+      "scope": "historical_roi_cash_v2",
       "status": "verified",
-      "rounds": 604,
-      "tickets": 3020,
+      "rounds": 703,
+      "tickets": 3515,
       "grade_counts": {
         "1等": 0,
         "2等": 0,
-        "3等": 0,
+        "3等": 1,
         "4等": 4,
-        "5等": 44,
-        "6等": 79,
-        "はずれ": 2893
+        "5等": 52,
+        "6等": 90,
+        "はずれ": 3368
       },
-      "winning_tickets": 127,
-      "reference_cost_yen": 906000,
-      "reference_payout_yen": 175900,
-      "reference_roi": 0.19415011037527594,
+      "winning_tickets": 147,
+      "reference_cost_yen": 1054500,
+      "reference_payout_yen": 922400,
+      "reference_roi": 0.8747273589378852,
       "excluded_rounds": 0,
       "pending_rounds": 0,
-      "actual_purchase_verified": false
+      "actual_purchase_verified": false,
+      "model": "production-ai-ranked35-roi-cash-v2",
+      "first_round": 2,
+      "last_round": 704,
+      "first_draw_date": "2013-04-12",
+      "last_draw_date": "2026-11-20",
+      "audit_url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44990515557",
+      "artifact_id": 14742025156,
+      "ticket_csv_sha256": "da3ae04a601aec74d1ad7b27d08e6ca3ff9408feee3bed877ddc546fc896c030"
     },
     "live": {
       "scope": "issued_production",
@@ -915,15 +923,25 @@
       "reference_roi": 0.2833333333333333,
       "excluded_rounds": 2,
       "pending_rounds": 0,
-      "actual_purchase_verified": false
+      "actual_purchase_verified": false,
+      "first_settled": {
+        "round": 692,
+        "draw_date": "2026-08-28",
+        "created_at_jst": "2026-08-21T20:19:21+09:00"
+      },
+      "last_settled": {
+        "round": 704,
+        "draw_date": "2026-11-20",
+        "created_at_jst": "2026-11-20T16:02:29+09:00"
+      }
     }
   },
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "7c59110d573cb6f1be3a4eef2e8cd4fa50f997f5",
-    "snapshot_generated_at_jst": "2026-11-26T07:29:11+09:00",
-    "computed_at_jst": "2026-11-25T22:29:11+00:00",
+    "source_commit": "be515eb0619eb12330bd23a6c39c9b030dcf6ce5",
+    "snapshot_generated_at_jst": "2026-11-26T07:41:20+09:00",
+    "computed_at_jst": "2026-11-25T22:41:20+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
