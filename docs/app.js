@@ -1,5 +1,5 @@
-import { predictionTabFromHash, predictionTabView } from "./prediction-tabs.mjs?v=20261125-prediction-tabs";
-import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261123-simplified-view";
+import { predictionTabFromHash, predictionTabView } from "./prediction-tabs.mjs?v=20261125-prize-totals";
+import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261125-prize-totals";
 import {
   LEVEL_LABELS, buildView, percent, displayMetric
 } from "./model.mjs?v=20261123-simplified-view";
@@ -79,7 +79,23 @@ function renderQuickPrediction(ops) {
     " ／ 次回は発行待ち":"";
   set("quick-prediction-note","5口・"+model+"で発行済み"+waiting);
 }
+function renderPrizeTotals(ops){
+  const grades=["1等","2等","3等","4等","5等","6等","はずれ"];
+  const amount=n=>Number.isSafeInteger(n)?n.toLocaleString("ja-JP")+"円":"—";
+  for(const [key,source] of [["history","historical"],["live","live"]]){
+    const p=ops?.prizeTotals?.[source];
+    const ok=p&&["verified","payout_incomplete"].includes(p.status);
+    set(key+"-prize-scope",ok?p.rounds+"回 / "+p.tickets+"口"+(key==="live"?" ／ 除外 "+p.excluded_rounds+"回・結果待ち "+p.pending_rounds+"回":"")+(ops.outdated?" ／ 更新遅延あり":""):"集計未確認");
+    set(key+"-prize-wins",ok?p.winning_tickets.toLocaleString("ja-JP")+"口":"—");
+    set(key+"-prize-payout",ok?amount(p.reference_payout_yen):"—");
+    set(key+"-prize-cost",ok?amount(p.reference_cost_yen):"—");
+    set(key+"-prize-roi",ok&&Number.isFinite(p.reference_roi)?(p.reference_roi*100).toFixed(2)+"%":"—");
+    grades.forEach((g,i)=>set(key+"-prize-grade-"+(i+1),ok?p.grade_counts[g].toLocaleString("ja-JP")+"口":"—"));
+  }
+}
+
 function renderPredictionTabs(ops, view) {
+  renderPrizeTotals(ops);
   const tab=predictionTabView(ops,view);
   for(const [id,value] of Object.entries(tab))set(id,value);
   if(ops) {

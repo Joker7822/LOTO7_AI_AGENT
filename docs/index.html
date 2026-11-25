@@ -8,8 +8,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://raw.githubusercontent.com; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>LOTO7 AI AGENT | LIVE DASHBOARD</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20261125-prediction-tabs">
-  <script type="module" src="app.js?v=20261125-prediction-tabs"></script>
+  <link rel="stylesheet" href="style.css?v=20261125-prize-totals">
+  <script type="module" src="app.js?v=20261125-prize-totals"></script>
 </head>
 <body>
   <a class="skip" href="#main">本文に移動</a>
@@ -95,6 +95,26 @@
             <p class="explain">実際の事前発行成績・実購入記録ではありません。同じ過去データを使った改善は未来の優位性を証明しません。</p>
             <div class="roi-evidence-links"><a href="https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/historical_accuracy_report.md" target="_blank" rel="noopener noreferrer">過去検証レポート ↗</a><a href="https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/historical_round_accuracy.csv" target="_blank" rel="noopener noreferrer">各回の検証データ（CSV） ↗</a></div>
           </article>
+          <article class="panel prize-totals-panel">
+            <div class="panel-heading"><div><h3>過去の当選等級・回収率</h3><span>歴史再予測のみ</span></div></div>
+            <p class="explain" id="history-prize-scope">集計待ち</p>
+            <div class="prediction-summary-grid">
+              <div><small>当選合計（口数）</small><strong id="history-prize-wins">—</strong></div>
+              <div><small>当選金額合計（参考払戻）</small><strong id="history-prize-payout">—</strong></div>
+              <div><small>回収率（参考）</small><strong id="history-prize-roi">—</strong></div>
+              <div><small>参考購入額</small><strong id="history-prize-cost">—</strong></div>
+            </div>
+            <div class="prize-grade-grid" aria-label="等級ごとの当選口数">
+              <div><small>1等</small><strong id="history-prize-grade-1">—</strong></div>
+              <div><small>2等</small><strong id="history-prize-grade-2">—</strong></div>
+              <div><small>3等</small><strong id="history-prize-grade-3">—</strong></div>
+              <div><small>4等</small><strong id="history-prize-grade-4">—</strong></div>
+              <div><small>5等</small><strong id="history-prize-grade-5">—</strong></div>
+              <div><small>6等</small><strong id="history-prize-grade-6">—</strong></div>
+              <div><small>はずれ</small><strong id="history-prize-grade-7">—</strong></div>
+            </div>
+            <p class="explain">1口300円で全照合対象を購入した場合の参考値。実際の購入・受取金額ではありません。</p>
+          </article>
       <section class="section roi-section" id="roi-v2" aria-labelledby="roi-heading">
         <div class="section-heading">
           <div><span class="section-index">02 / AIモデルとお金</span><h2 id="roi-heading">使っているAIと回収率</h2></div>
@@ -147,6 +167,26 @@
             <div class="panel-heading"><div><h3 id="live-tab-next">次回のLIVE予測を確認中</h3><span id="live-tab-date">抽せん予定を確認中</span></div><span class="label-outline" id="live-tab-state">取得中</span></div>
             <p id="live-tab-note" class="explain">事前発行台帳の確認後に表示します。</p>
             <p id="live-tab-freshness" class="explain">公開データの更新時刻を確認中</p>
+          </article>
+          <article class="panel prize-totals-panel">
+            <div class="panel-heading"><div><h3>LIVE予測の累積当選実績</h3><span>事前発行台帳・独立2ソース照合済みのみ</span></div></div>
+            <p class="explain" id="live-prize-scope">集計待ち</p>
+            <div class="prediction-summary-grid">
+              <div><small>当選合計（口数）</small><strong id="live-prize-wins">—</strong></div>
+              <div><small>当選金額合計（参考払戻）</small><strong id="live-prize-payout">—</strong></div>
+              <div><small>回収率（参考）</small><strong id="live-prize-roi">—</strong></div>
+              <div><small>参考購入額</small><strong id="live-prize-cost">—</strong></div>
+            </div>
+            <div class="prize-grade-grid" aria-label="等級ごとの当選口数">
+              <div><small>1等</small><strong id="live-prize-grade-1">—</strong></div>
+              <div><small>2等</small><strong id="live-prize-grade-2">—</strong></div>
+              <div><small>3等</small><strong id="live-prize-grade-3">—</strong></div>
+              <div><small>4等</small><strong id="live-prize-grade-4">—</strong></div>
+              <div><small>5等</small><strong id="live-prize-grade-5">—</strong></div>
+              <div><small>6等</small><strong id="live-prize-grade-6">—</strong></div>
+              <div><small>はずれ</small><strong id="live-prize-grade-7">—</strong></div>
+            </div>
+            <p class="explain">1口300円で全照合対象を購入した場合の参考値。実際の購入・受取金額ではありません。</p>
           </article>
       <section class="section" id="issued-predictions" aria-labelledby="issued-predictions-title">
         <div class="section-heading">
