@@ -14,7 +14,7 @@ test("two accessible panels use distinct history and live content",()=>{
   }
   const historical=html.slice(html.indexOf('id="prediction-panel-history"'),html.indexOf('id="prediction-panel-live"'));
   assert.match(historical,/id="history-tab-rounds"/);
-  assert.match(historical,/historical_round_accuracy.csv/);
+  assert.match(historical,/44990515557\/artifacts\/14742025156/);
   assert.doesNotMatch(historical,/id="issued-ticket-grid"/);
   assert.match(app,/panel.hidden=!selected/);
   assert.match(app,/ArrowLeft/);
@@ -28,8 +28,9 @@ test("deep links select the correct tab",()=>{
 test("actual snapshot metrics are rendered only as historical aggregate diagnostics",()=>{
   const now=new Date(snapshot.generated_at_jst),ops=normalizeSnapshot(snapshot,now);
   const view=buildView(ops.sources,{},now),result=predictionTabView(ops,view);
-  assert.equal(result["history-tab-rounds"],ops.predictionMetrics.historical.rounds.toLocaleString("ja-JP")+"回");
-  assert.match(result["history-tab-period"],/過去の再予測/);
+  assert.equal(result["history-tab-rounds"],ops.roiCashV2.rounds.toLocaleString("ja-JP")+"回");
+  assert.match(result["history-tab-period"],/ROI Cash v2/);
+  assert.equal(result["history-tab-roi"],"87.47%");
 });
 test("previous issue cannot masquerade as next live forecast; stale and missing fail closed",()=>{
   const ops={outdated:false,issuedPrediction:{status:"published",targetRound:704}};

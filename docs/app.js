@@ -1,5 +1,5 @@
-import { predictionTabFromHash, predictionTabView } from "./prediction-tabs.mjs?v=20261125-prize-totals";
-import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261125-prize-totals";
+import { predictionTabFromHash, predictionTabView } from "./prediction-tabs.mjs?v=20261126-v2-live-dates";
+import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261126-v2-live-dates";
 import {
   LEVEL_LABELS, buildView, percent, displayMetric
 } from "./model.mjs?v=20261123-simplified-view";
@@ -86,6 +86,12 @@ function renderPrizeTotals(ops){
     const p=ops?.prizeTotals?.[source];
     const ok=p&&["verified","payout_incomplete"].includes(p.status);
     set(key+"-prize-scope",ok?p.rounds+"回 / "+p.tickets+"口"+(key==="live"?" ／ 除外 "+p.excluded_rounds+"回・結果待ち "+p.pending_rounds+"回":"")+(ops.outdated?" ／ 更新遅延あり":""):"集計未確認");
+    if(key==="live"){
+      const first=p?.first_settled,last=p?.last_settled;
+      set("live-prize-period",ok&&first&&last?"集計対象：第"+first.round+"回（"+first.draw_date+"）〜第"+last.round+"回（"+last.draw_date+"）":"集計対象期間：未確認");
+      set("live-prize-start",ok&&first?"初回集計対象の予測作成日時： "+asJst(first.created_at_jst)+" JST":"初回予測作成日時：未確認");
+      set("live-prize-end",ok&&last?"最終集計対象の予測作成日時： "+asJst(last.created_at_jst)+" JST":"最終予測作成日時：未確認");
+    }
     set(key+"-prize-wins",ok?p.winning_tickets.toLocaleString("ja-JP")+"口":"—");
     set(key+"-prize-payout",ok?amount(p.reference_payout_yen):"—");
     set(key+"-prize-cost",ok?amount(p.reference_cost_yen):"—");
@@ -96,6 +102,8 @@ function renderPrizeTotals(ops){
 
 function renderPredictionTabs(ops, view) {
   renderPrizeTotals(ops);
+  const issued=ops?.issuedPrediction;
+  set("live-tab-issued-at",issued?.status==="published"?"直近の正式発行：第"+issued.targetRound+"回 ／ "+asJst(issued.publishedAt)+" JST":"直近の正式発行日時：未確認");
   const tab=predictionTabView(ops,view);
   for(const [id,value] of Object.entries(tab))set(id,value);
   if(ops) {

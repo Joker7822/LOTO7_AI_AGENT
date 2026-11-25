@@ -8,8 +8,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' https://raw.githubusercontent.com; img-src 'self' data:; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>LOTO7 AI AGENT | LIVE DASHBOARD</title>
   <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20261125-prize-totals">
-  <script type="module" src="app.js?v=20261125-prize-totals"></script>
+  <link rel="stylesheet" href="style.css?v=20261126-v2-live-dates">
+  <script type="module" src="app.js?v=20261126-v2-live-dates"></script>
 </head>
 <body>
   <a class="skip" href="#main">本文に移動</a>
@@ -82,21 +82,20 @@
         </div>
         <div id="prediction-panel-history" role="tabpanel" aria-labelledby="prediction-tab-history" tabindex="0" hidden>
           <article class="panel prediction-history-summary">
-            <div class="panel-heading"><div><h3>過去の予測検証（ウォークフォワード）</h3><span id="history-tab-period">検証範囲を確認中</span></div><span class="label-outline">過去の仮想検証</span></div>
+            <div class="panel-heading"><div><h3>過去の予測検証（ROI Cash v2）</h3><span id="history-tab-period">検証範囲を確認中</span></div><span class="label-outline">過去の仮想検証</span></div>
             <div class="prediction-summary-grid">
               <div><small>評価した抽せん回数</small><strong id="history-tab-rounds">—</strong></div>
-              <div><small>Top7平均一致 / 理論値</small><strong id="history-tab-top7">—</strong></div>
-              <div><small>5口最大一致 / ランダム</small><strong id="history-tab-max">—</strong></div>
-              <div><small>ランダム比のスコア差</small><strong id="history-tab-score">—</strong></div>
               <div><small>参考購入額 / 払戻額</small><strong id="history-tab-cash">—</strong></div>
               <div><small>参考回収率</small><strong id="history-tab-roi">—</strong></div>
+               <div><small>参考損益</small><strong id="history-tab-net">—</strong></div>
+               <div><small>最大当選1件を除く回収率</small><strong id="history-tab-risk">—</strong></div>
             </div>
             <p class="explain" id="history-tab-freshness">公開スナップショットの検証待ち</p>
             <p class="explain">実際の事前発行成績・実購入記録ではありません。同じ過去データを使った改善は未来の優位性を証明しません。</p>
-            <div class="roi-evidence-links"><a href="https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/historical_accuracy_report.md" target="_blank" rel="noopener noreferrer">過去検証レポート ↗</a><a href="https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/historical_round_accuracy.csv" target="_blank" rel="noopener noreferrer">各回の検証データ（CSV） ↗</a></div>
+            <div class="roi-evidence-links"><a href="https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44990515557" target="_blank" rel="noopener noreferrer">v2全703回検証 ↗</a><a href="https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44990515557/artifacts/14742025156" target="_blank" rel="noopener noreferrer">v2検証成果物（CSV入りZIP） ↗</a></div>
           </article>
           <article class="panel prize-totals-panel">
-            <div class="panel-heading"><div><h3>過去の当選等級・回収率</h3><span>歴史再予測のみ</span></div></div>
+            <div class="panel-heading"><div><h3>過去の当選等級・回収率（v2）</h3><span>ROI Cash v2の仮想検証のみ</span></div></div>
             <p class="explain" id="history-prize-scope">集計待ち</p>
             <div class="prediction-summary-grid">
               <div><small>当選合計（口数）</small><strong id="history-prize-wins">—</strong></div>
@@ -166,11 +165,16 @@
           <article class="panel prediction-live-summary" aria-live="polite">
             <div class="panel-heading"><div><h3 id="live-tab-next">次回のLIVE予測を確認中</h3><span id="live-tab-date">抽せん予定を確認中</span></div><span class="label-outline" id="live-tab-state">取得中</span></div>
             <p id="live-tab-note" class="explain">事前発行台帳の確認後に表示します。</p>
-            <p id="live-tab-freshness" class="explain">公開データの更新時刻を確認中</p>
+            <p id="live-tab-issued-at" class="explain">直近の正式発行日時：確認中</p>
+             <p id="live-tab-freshness" class="explain">公開データの更新時刻を確認中</p>
           </article>
           <article class="panel prize-totals-panel">
             <div class="panel-heading"><div><h3>LIVE予測の累積当選実績</h3><span>事前発行台帳・独立2ソース照合済みのみ</span></div></div>
             <p class="explain" id="live-prize-scope">集計待ち</p>
+             <p class="explain" id="live-prize-period">集計対象期間：確認中</p>
+             <p class="explain" id="live-prize-start">初回予測作成日時：確認中</p>
+             <p class="explain" id="live-prize-end">最終予測作成日時：確認中</p>
+             <p class="explain">LIVE累計は実際の発行時のモデルを使用し、過去の旧モデルをv2に置き換えません。</p>
             <div class="prediction-summary-grid">
               <div><small>当選合計（口数）</small><strong id="live-prize-wins">—</strong></div>
               <div><small>当選金額合計（参考払戻）</small><strong id="live-prize-payout">—</strong></div>
