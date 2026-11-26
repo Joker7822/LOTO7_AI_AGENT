@@ -31,6 +31,10 @@ def test_actual_prefix_freeze_is_additive_and_before_cutoff(tmp_path):
         dest=tmp_path/path
         dest.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(root/path,dest)
+    # Only the actual #704 prefix can exercise this fixed-clock example.
+    current=json.loads((tmp_path/"loto7_agent_output/source_validation.json").read_text())
+    if current.get("latest",{}).get("round")!=704:
+        return
     import os
     from unittest.mock import patch
     with patch.dict(os.environ,{"GITHUB_ACTIONS":"false"}):

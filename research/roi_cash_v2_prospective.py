@@ -23,7 +23,7 @@ from loto7_evolving_agent import make_history, read_csv_flexible, walk_forward_e
 import loto7_v2_runner as v2
 from production_ticket_geometry35 import ranked_portfolio_from_scores
 from production_roi_cash35_v2 import candidate_from_canonical_rows
-from combination_agent35_core import candidate_from_history
+from combination_agent35_core import AgentConfig, candidate_from_history
 from balanced_uniform_portfolio import validate_portfolio
 
 VERSION = "roi-cash-v2-prospective-commitment-v1"
@@ -74,7 +74,7 @@ def hash_portfolios(tickets, ranking):
 
 def commitments(history, canonical, ranking, p_hash, target, base_sha):
     cash, _ = candidate_from_canonical_rows(canonical, ranking)
-    old, _ = candidate_from_history(history, ranking)
+    old, _ = candidate_from_history(history, ranking, AgentConfig())
     matched = []
     for i in range(32):
         seed = int(hashlib.sha256(f"{p_hash}|{target}|{base_sha}|{i}".encode()).hexdigest(), 16)
@@ -138,6 +138,9 @@ def freeze(root, *, now=None, run_id=None, source_commit=None):
     now = now or datetime.now(JST)
     if now.tzinfo is None:
         raise ValueError("clock must be timezone aware")
+    last_day = canonical[-1]["抽せん日"]
+    if day <= last_day or now <= datetime.fromisoformat(last_day + "T18:00:00+09:00"):
+        raise ValueError("source prefix or schedule is in the future")
     path = root / ARCHIVE / f"commitment_{target:04d}.json"
     if path.exists():
         old = load_json(path)
