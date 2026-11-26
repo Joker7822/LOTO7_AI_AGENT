@@ -19,6 +19,8 @@ def test_dashboard_refreshes_on_critical_evidence_without_research_fanout():
         "Browser Ops Snapshot",
     ):
         assert f'- "{name}"' not in run_section
+    assert '- "Recursive Code and Meta Evolution"' in run_section
+    assert "outputs.refresh_required != 'false'" in text
     assert '- cron: "13,43 * * * *"' in text
     assert "git add -- docs/data/dashboard_snapshot.json" in text
 

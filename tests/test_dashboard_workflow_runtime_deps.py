@@ -99,3 +99,14 @@ def test_no_untrusted_workflow_run_can_start_validation_or_publication():
         assert "github.event.workflow_run.conclusion == 'success'" in gate
         assert "github.event.workflow_run.head_branch == 'main'" in gate
         assert "github.event.workflow_run.head_repository.full_name == github.repository" in gate
+
+
+def test_backup_heartbeat_rechecks_latest_main_without_fresh_snapshot_writes():
+    text = WORKFLOW.read_text(encoding="utf-8")
+    assert 'Recursive Code and Meta Evolution' in text
+    assert "github.event.workflow_run.event != 'pull_request'" in text
+    assert "needs.validate-public-status.outputs.refresh_required != 'false'" in text
+    assert "--github-output" in text
+    publisher = text.split("      - name: Update only public snapshot on main", 1)[1]
+    assert publisher.index("git reset --hard origin/main") < publisher.index("--is-fresh")
+    assert publisher.index("--is-fresh") < publisher.index("python dashboard_status_snapshot.py")
