@@ -449,10 +449,16 @@ export function normalizePredictionMetrics(value) {
 
 export function normalizePrizeTotals(value) {
   const empty={status:"unavailable"};
-  if(!value || !["dashboard-prize-totals-v1","dashboard-prize-totals-v2"].includes(value.version))return {historical:empty,live:empty};
+  if(!value || !["dashboard-prize-totals-v1","dashboard-prize-totals-v2"].includes(value.version))return {historical:empty,live:empty,liveV2:empty};
   const grades=["1等","2等","3等","4等","5等","6等","はずれ"];
   const int=n=>Number.isSafeInteger(n)&&n>=0;
   function one(v,scope){
+    const cohort=scope==="issued_roi_cash_v2";
+    if(cohort&&(!v||v.model!=="production-ai-ranked35-roi-cash-v2"||v.start_target_round!==705||v.independent_future_skill_confirmed!==false))return empty;
+    if(cohort&&v.status==="awaiting_first_settlement"){
+      if(v.scope!==scope||v.actual_purchase_verified!==false||v.rounds!==0||v.tickets!==0||v.winning_tickets!==0||v.reference_cost_yen!==0||v.reference_payout_yen!==null||v.reference_roi!==null||v.first_settled!==null||v.last_settled!==null||v.excluded_rounds!==0||!int(v.pending_rounds)||v.pending_rounds>1||!v.grade_counts||Object.keys(v.grade_counts).length!==grades.length||!grades.every(k=>v.grade_counts[k]===0))return empty;
+      return v;
+    }
     if(!v||v.scope!==scope||v.actual_purchase_verified!==false||
        !["verified","payout_incomplete"].includes(v.status))return empty;
     const g=v.grade_counts;
@@ -472,19 +478,19 @@ export function normalizePrizeTotals(value) {
          v.audit_url!=="https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/44990515557"||
          grades.some((k,i)=>g[k]!==[0,0,1,4,52,90,3368][i]))return empty;
     }
-    if(scope==="issued_production"&&value.version==="dashboard-prize-totals-v2"){
+    if((scope==="issued_production"||cohort)&&value.version==="dashboard-prize-totals-v2"){
       const date=x=>x&&Number.isInteger(x.round)&&x.round>0&&
         typeof x.draw_date==="string"&&/^\d{4}-\d{2}-\d{2}$/.test(x.draw_date)&&
         typeof x.created_at_jst==="string"&&x.created_at_jst.endsWith("+09:00")&&
         Number.isFinite(Date.parse(x.created_at_jst))&&
         Date.parse(x.created_at_jst)<Date.parse(x.draw_date+"T18:00:00+09:00");
-      if(!date(v.first_settled)||!date(v.last_settled)||v.last_settled.round-v.first_settled.round+1<v.rounds||
+      if(!date(v.first_settled)||!date(v.last_settled)||(cohort&&v.first_settled.round<705)||v.last_settled.round-v.first_settled.round+1<v.rounds||
          v.first_settled.draw_date>v.last_settled.draw_date||
          Date.parse(v.first_settled.created_at_jst)>Date.parse(v.last_settled.created_at_jst))return empty;
     }
     return v;
   }
-  return {historical:one(value.historical,"historical_roi_cash_v2"),live:one(value.live,"issued_production")};
+  return {historical:one(value.historical,"historical_roi_cash_v2"),live:one(value.live,"issued_production"),liveV2:value.version==="dashboard-prize-totals-v2"?one(value.live_v2,"issued_roi_cash_v2"):empty};
 }
 
 export function normalizeSnapshot(snapshot, now = new Date()) {
