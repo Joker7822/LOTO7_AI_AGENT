@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - "dashboard_status_snapshot.py"
+      - "dashboard_snapshot_freshness.py"
+      - "tests/test_dashboard_snapshot_freshness.py"
       - "dashboard_prize_totals.py"
       - "tests/test_dashboard_prize_totals.py"
       - "dashboard_roi_cash_v2.py"
@@ -24,6 +26,8 @@ on:
     branches: [main]
     paths:
       - "dashboard_status_snapshot.py"
+      - "dashboard_snapshot_freshness.py"
+      - "tests/test_dashboard_snapshot_freshness.py"
       - "dashboard_prize_totals.py"
       - "tests/test_dashboard_prize_totals.py"
       - "dashboard_roi_cash_v2.py"
@@ -43,11 +47,13 @@ on:
     # Half-hour snapshot cadence; no longer publish after every research job.
     - cron: "13,43 * * * *"
   # Immediate refresh only for source verification or public Production issue.
-  # Research states converge on the next half-hour refresh.
+  # One independent hourly research completion is a backup heartbeat only.
+  # It never rebuilds a snapshot younger than 60 minutes.
   workflow_run:
     workflows:
       - "LOTO7 Independent Result Corroboration"
       - "Weekly Production Publisher"
+      - "Recursive Code and Meta Evolution"
     types: [completed]
     # Never wake privileged dashboard publishing from a PR/fork branch.
     branches: [main]
@@ -58,7 +64,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: browser-ops-snapshot-main
+  group: browser-ops-snapshot-${{ github.event_name == 'pull_request' && github.ref || 'main' }}
   cancel-in-progress: false
 
 jobs:
@@ -69,11 +75,14 @@ jobs:
       (
         github.event.workflow_run.conclusion == 'success' &&
         github.event.workflow_run.head_branch == 'main' &&
-        github.event.workflow_run.head_repository.full_name == github.repository
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.event != 'pull_request'
       )
     permissions:
       contents: read
       actions: read
+    outputs:
+      refresh_required: ${{ steps.freshness.outputs.refresh_required }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -85,6 +94,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Check backup heartbeat freshness
+        id: freshness
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Recursive Code and Meta Evolution'
+        shell: bash
+        run: |
+          python3 dashboard_snapshot_freshness.py --snapshot docs/data/dashboard_snapshot.json --github-output
       - name: Setup Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
@@ -106,8 +121,8 @@ jobs:
         if: github.event_name == 'pull_request' || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
           python -m pip install pytest
-          python -m compileall -q dashboard_prize_totals.py dashboard_status_snapshot.py dashboard_roi_cash_v2.py evaluation_scorecard.py agent_operations_planner.py public_issued_prediction.py
-          python -m pytest -q tests/test_dashboard_prize_totals.py tests/test_dashboard_status_snapshot.py tests/test_evaluation_scorecard.py tests/test_agent_operations_planner.py tests/test_ephemeral_research_caches.py tests/test_public_issued_prediction.py tests/test_dashboard_roi_cash_v2.py tests/test_dashboard_workflow_runtime_deps.py
+          python -m compileall -q dashboard_snapshot_freshness.py dashboard_prize_totals.py dashboard_status_snapshot.py dashboard_roi_cash_v2.py evaluation_scorecard.py agent_operations_planner.py public_issued_prediction.py
+          python -m pytest -q tests/test_dashboard_snapshot_freshness.py tests/test_dashboard_prize_totals.py tests/test_dashboard_status_snapshot.py tests/test_evaluation_scorecard.py tests/test_agent_operations_planner.py tests/test_ephemeral_research_caches.py tests/test_public_issued_prediction.py tests/test_dashboard_roi_cash_v2.py tests/test_dashboard_workflow_runtime_deps.py
           node --check docs/app.js
           node --check docs/telemetry.mjs
           node --test docs/tests/*.test.mjs
@@ -147,12 +162,14 @@ jobs:
       github.event_name != 'pull_request' &&
       github.ref == 'refs/heads/main' &&
       needs.validate-public-status.result == 'success' &&
+      needs.validate-public-status.outputs.refresh_required != 'false' &&
       (
         github.event_name != 'workflow_run' ||
         (
           github.event.workflow_run.conclusion == 'success' &&
           github.event.workflow_run.head_branch == 'main' &&
-          github.event.workflow_run.head_repository.full_name == github.repository
+          github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.event != 'pull_request'
         )
       )
     permissions:
@@ -179,6 +196,8 @@ jobs:
           python -c "import numpy, pandas; print('Dashboard runtime imports OK')"
       - name: Update only public snapshot on main
         if: github.event_name != 'pull_request'
+        env:
+          BACKUP_HEARTBEAT: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Recursive Code and Meta Evolution' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -187,6 +206,10 @@ jobs:
           for attempt in 1 2 3 4 5; do
             git fetch origin main
             git reset --hard origin/main
+            if [ "$BACKUP_HEARTBEAT" = true ] && python dashboard_snapshot_freshness.py --snapshot docs/data/dashboard_snapshot.json --is-fresh; then
+              echo "Snapshot refreshed by another job; backup heartbeat is a no-op."
+              exit 0
+            fi
             python dashboard_status_snapshot.py --repo-root . --output docs/data/dashboard_snapshot.json --fetch-workflows
             git add -- docs/data/dashboard_snapshot.json
             if git diff --cached --quiet; then

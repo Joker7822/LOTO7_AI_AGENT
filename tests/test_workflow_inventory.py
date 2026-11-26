@@ -10,7 +10,8 @@ def test_workflow_inventory_and_dashboard_cadence():
     dashboard = next(x for x in rows if x["file"] == "dashboard_ops_snapshot.yml")
     assert dashboard["cron"] == ["13,43 * * * *"]
     assert dashboard["workflow_run_dependencies"] == [
-        "LOTO7 Independent Result Corroboration", "Weekly Production Publisher"]
+        "LOTO7 Independent Result Corroboration", "Weekly Production Publisher",
+        "Recursive Code and Meta Evolution"]
     assert dashboard["has_concurrency"] is True
     assert "git pushあり" in inventory.report(rows)
     assert "dashboard_ops_snapshot.yml" in inventory.report(rows)
