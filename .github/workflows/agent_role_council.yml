@@ -148,45 +148,7 @@ jobs:
               loto7_agent_output/agent_role_council_summary.json \
               loto7_agent_output/agent_role_council_report.md
 
-            unexpected="$(git diff --cached --name-only | grep -Ev '^(loto7_agent_output/agent_role_council_summary[.]json|loto7_agent_output/agent_role_council_report[.]md)
-              loto7_agent_output/agent_role_council_summary.json \
-              loto7_agent_output/agent_role_council_report.md)" ]; then
-              echo "No role-council report change."
-              break
-            fi
-
-            git commit -m "chore: refresh role council advisory report"
-            if git push origin HEAD:main; then
-              echo "Role-council report committed."
-              break
-            fi
-            if [ "$ATTEMPT" -eq 5 ]; then
-              echo "Could not persist role-council report" >&2
-              exit 1
-            fi
-          done
-
-          # Report first, then a meaningful red Actions status for a true blocker.
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          p = Path("loto7_agent_output/agent_role_council_summary.json")
-          report = json.loads(p.read_text(encoding="utf-8"))
-          if report["overall"] == "block":
-              raise SystemExit("Role council BLOCK: investigate high-priority handoffs; no automatic freeze/promotion.")
-          PY
-
-      - name: Always display evidence and prioritized handoffs
-        if: always()
-        run: |
-          {
-            echo "## LOTO7 Agent Role Council"
-            cat loto7_agent_output/agent_role_council_report.md 2>/dev/null || \
-              cat /tmp/loto7-agent-role-council/agent_role_council_report.md 2>/dev/null || true
-            echo
-            echo "Only this advisor's two report files can be written; no Production, Champion or Future-OOS writes."
-          } >> "$GITHUB_STEP_SUMMARY"
- || true)"
+            unexpected="$(git diff --cached --name-only | grep -Ev '^(loto7_agent_output/agent_role_council_summary[.]json|loto7_agent_output/agent_role_council_report[.]md)$' || true)"
             if [ -n "$unexpected" ]; then
               echo "::error::Unauthorized staged paths: $unexpected"
               exit 1
