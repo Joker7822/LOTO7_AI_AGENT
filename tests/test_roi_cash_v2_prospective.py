@@ -57,3 +57,24 @@ def test_actual_prefix_freeze_is_additive_and_before_cutoff(tmp_path):
         assert p.freeze(tmp_path,now=datetime(2026,11,27,9,tzinfo=timezone.utc),
                         run_id="124",source_commit="b"*40)["status"]=="cutoff_passed_no_backfill"
         assert not path.exists()
+
+
+def test_prior_commitments_bind_registration_and_reject_changed_digest(tmp_path):
+    pth=tmp_path/p.ARCHIVE
+    pth.mkdir(parents=True)
+    d={"cash_v2_sha256":"a"*64,"pairwise_v1_sha256":"b"*64,"ranking_sha256":"c"*64,
+       "matched_random32_sha256":["d"*64]*32}
+    record={"version":p.VERSION,"target_round":705,"base_round":704,"protocol_sha256":"e"*64,
+            "production_changed":False,"prediction_skill_confirmed":False,
+            "independent_snapshot_audit_passed":False,"digests":d,
+            "created_at_jst":"2026-11-26T18:00:00+09:00","draw_date":"2026-11-27"}
+    f=pth/"commitment_0705.json"
+    f.write_text(json.dumps(record))
+    reg={"first_target":705,"last_target":730}
+    p.validate_commitments(tmp_path,reg,"e"*64)
+    with pytest.raises(ValueError,match="protocol changed"):
+        p.validate_commitments(tmp_path,reg,"f"*64)
+    record["digests"]["cash_v2_sha256"]="invalid"
+    f.write_text(json.dumps(record))
+    with pytest.raises(ValueError,match="invalid commitment digest"):
+        p.validate_commitments(tmp_path,reg,"e"*64)

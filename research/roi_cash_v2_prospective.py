@@ -9,6 +9,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import platform
+from importlib.metadata import version as package_version
 import os
 import random
 import re
@@ -45,6 +47,11 @@ def protocol(root):
             or p.get("tickets_per_arm") != 5 or p.get("cost_yen_per_arm") != 1500
             or p.get("cutoff_jst") != "18:00:00"
             or p.get("authority") != "research_only_no_purchase_no_promotion_no_production_change"
+            or p.get("matched_seed") != "sha256(protocol_sha256|target|base_csv_sha256|member_index)"
+            or p.get("primary_endpoint") != "paired_total_public_payout_yen_vs_pairwise_v1"
+            or p.get("secondary_endpoint") != "paired_total_public_payout_yen_vs_mean_matched_random32"
+            or p.get("robustness") != ["exclude_top_four_positive_paired_deltas","last_13_rounds"]
+            or p.get("missing_round_policy") != "fixed_horizon_no_replacement_no_backfill_no_confirmatory_claim_if_incomplete"
             or p.get("independent_receipt_required") is not True):
         raise ValueError("prospective protocol changed")
     pins = p.get("algorithm_git_blob_sha1")
@@ -80,10 +87,40 @@ def commitments(history, canonical, ranking, p_hash, target, base_sha):
             "ranking_sha256": sha_object(ranking)}
 
 
+def validate_commitments(root, p, p_hash):
+    """A changed registration or malformed old commitment stops new writes."""
+    for path in sorted((root / ARCHIVE).glob("commitment_*.json")):
+        record = load_json(path)
+        target = record.get("target_round")
+        if (type(target) is not int or not p["first_target"] <= target <= p["last_target"]
+                or path.name != f"commitment_{target:04d}.json"
+                or record.get("protocol_sha256") != p_hash
+                or record.get("version") != VERSION
+                or record.get("base_round") != target - 1
+                or record.get("production_changed") is not False
+                or record.get("prediction_skill_confirmed") is not False
+                or record.get("independent_snapshot_audit_passed") is not False):
+            raise ValueError("existing commitment or protocol changed")
+        digests = record.get("digests")
+        if not isinstance(digests, dict) or set(digests) != {"cash_v2_sha256","pairwise_v1_sha256","matched_random32_sha256","ranking_sha256"}:
+            raise ValueError("invalid commitment digests")
+        matched = digests["matched_random32_sha256"]
+        if not isinstance(matched, list) or len(matched) != 32:
+            raise ValueError("invalid matched control commitments")
+        values = matched + [digests[k] for k in ("cash_v2_sha256","pairwise_v1_sha256","ranking_sha256")]
+        if not all(isinstance(x,str) and re.fullmatch(r"[a-f0-9]{64}",x) for x in values):
+            raise ValueError("invalid commitment digest")
+        created = datetime.fromisoformat(record["created_at_jst"])
+        if created.tzinfo is None:
+            raise ValueError("commitment timestamp lacks timezone")
+        frozen_now(created, record["draw_date"])
+
+
 def freeze(root, *, now=None, run_id=None, source_commit=None):
     root = Path(root)
     p = protocol(root)
     p_hash = sha_object(p)
+    validate_commitments(root, p, p_hash)
     out = root / "loto7_agent_output"
     csv_path = root / "loto7.csv"
     source_path = out / "source_validation.json"
@@ -139,6 +176,8 @@ def freeze(root, *, now=None, run_id=None, source_commit=None):
               "source_commit":source_commit,"github_run_id":run_id,
               "created_at_jst":now.astimezone(JST).isoformat(),
               "cost_yen_per_arm":1500, "digests":digests,
+              "runtime":{"python":platform.python_version(),"numpy":package_version("numpy"),
+                         "pandas":package_version("pandas")},
               "independent_snapshot_audit_passed":False,
               "prediction_skill_confirmed":False,"production_changed":False}
     with path.open("x", encoding="utf-8") as stream:

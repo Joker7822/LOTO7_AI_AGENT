@@ -122,7 +122,7 @@ anywhere in the inventory.
 
 ## SHA pinning
 
-Every `uses:` reference (174 across 55 workflow files; one workflow uses
+Every `uses:` reference (175 across 55 workflow files; one workflow uses
 no actions) is pinned to a full 40-character commit SHA with the
 major-version tag kept as a trailing comment, e.g.
 `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7`.

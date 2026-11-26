@@ -170,6 +170,7 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install -r requirements.txt
       - name: Create only pre-draw research hash commitment
+        id: commitment
         shell: bash
         run: |
           set -euo pipefail
@@ -187,6 +188,19 @@ jobs:
               exit 1
             fi
             git commit -m "research: pre-draw ROI cash v2 hash commitment"
-            if git push origin HEAD:main; then exit 0; fi
+            if git push origin HEAD:main; then
+              path="$(printf '%s\n' "$changed" | cut -f2)"
+              printf 'path=%s\n' "$path" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
           done
           exit 1
+
+      - name: Retain independently timestampable commitment receipt artifact
+        if: steps.commitment.outputs.path != ''
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: roi-v2-prospective-commitment-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ steps.commitment.outputs.path }}
+          retention-days: 90
+          if-no-files-found: error
