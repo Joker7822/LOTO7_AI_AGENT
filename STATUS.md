@@ -1,6 +1,6 @@
 # LOTO7 AI Agent Status
 
-- 更新日時 (JST): **2026-11-26T07:40:05+09:00**
+- 更新日時 (JST): **2026-11-26T09:49:28+09:00**
 - 最新取得回: **第704回 / 2026-11-20**
 - 最新Production対象: **第705回（未発行）**
 - 未照合予測: **0口**
@@ -171,3 +171,13 @@
 - 累積実測回数: **8504回**
 - 実行方式: **終了後、待ち時間なしで次の研究世代へ**
 - Git checkpoint: **10世代ごと、または重要イベント発生時**
+
+## Fixed Future OOS Evidence Claim
+
+- Claim status: **not_confirmed_holdout_incomplete**
+- 進捗: **11/26 trusted** / Matched **11/26**
+- Protocol lock verified: **True**
+- Confirmation policy preregistered before first outcome: **False**
+- vs Random: mean delta **-0.0964** / win **45.5%** / e **0.9118**
+- vs Matched Ensemble(32): mean delta **-0.1374** / win **36.4%** / e **0.9233**
+- 26/26完了前は confirmed を出さない。
