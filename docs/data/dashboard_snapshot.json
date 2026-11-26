@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-26T07:41:20+09:00",
-  "source_commit": "be515eb0619eb12330bd23a6c39c9b030dcf6ce5",
-  "state_hashes_sha256": "de3012fccade806e4f65f404db7a78ab016f96814c44d7c06197dfbe964d1b15",
+  "generated_at_jst": "2026-11-26T13:24:22+09:00",
+  "source_commit": "c49c76c359f84dec0ea6fcb9476687206a426592",
+  "state_hashes_sha256": "e716b7bb3c46e4d9589d64ffa79be2012cb71eb111abf9b0a4ce957d2cd519f7",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-26T07:40:01+09:00",
+      "checked_at_jst": "2026-11-26T09:49:26+09:00",
       "latest": {
         "round": 704,
         "date": "2026-11-20",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-26T07:41:15+09:00",
+      "checked_at_jst": "2026-11-26T09:51:09+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -202,9 +202,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45714916107,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45714916107",
-      "updated_at": "2026-11-25T22:40:09Z",
+      "run_id": 45731290842,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45731290842",
+      "updated_at": "2026-11-26T00:49:37Z",
       "recent_failure_count": 0
     },
     {
@@ -224,9 +224,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45686640311,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45686640311",
-      "updated_at": "2026-11-25T19:38:20Z",
+      "run_id": 45751104911,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45751104911",
+      "updated_at": "2026-11-26T03:50:00Z",
       "recent_failure_count": 0
     },
     {
@@ -235,9 +235,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45685332773,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45685332773",
-      "updated_at": "2026-11-25T19:30:04Z",
+      "run_id": 45745624039,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45745624039",
+      "updated_at": "2026-11-26T02:59:06Z",
       "recent_failure_count": 1
     },
     {
@@ -254,12 +254,12 @@
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "running",
-      "status": "in_progress",
-      "conclusion": null,
-      "run_id": 45715197766,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45715197766",
-      "updated_at": "2026-11-25T22:40:19Z",
+      "health": "ok",
+      "status": "completed",
+      "conclusion": "success",
+      "run_id": 45731493206,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45731493206",
+      "updated_at": "2026-11-26T00:51:14Z",
       "recent_failure_count": 0
     },
     {
@@ -724,11 +724,11 @@
     "activity_stale_vs_verified_round": false,
     "activity_latest_round": 704,
     "verified_latest_round": 704,
-    "sequence": 77,
-    "last_activity_jst": "2026-11-26T04:38:16+09:00",
-    "current_phase": "calibration",
-    "current_activity": "科学的事前凍結欠損のため監査のみ：未来の校正と逐次e値を点検",
-    "online_search_status": "not_scheduled",
+    "sequence": 79,
+    "last_activity_jst": "2026-11-26T12:49:55+09:00",
+    "current_phase": "literature_search",
+    "current_activity": "科学的事前凍結欠損のため監査のみ：インターネットから最新の研究論文を検索",
+    "online_search_status": "searched",
     "research_mode": "WAIT_FOR_NEW_DATA",
     "two_source_verified": true,
     "new_papers_count": 0,
@@ -787,7 +787,8 @@
       "第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。",
       "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "第701回事前凍結欠損：登録済みe値は更新せず、情報監査のみ継続。"
+      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
+      "オンライン検索: searched / 新規候補 0件"
     ]
   },
   "research_application": {
@@ -939,9 +940,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "be515eb0619eb12330bd23a6c39c9b030dcf6ce5",
-    "snapshot_generated_at_jst": "2026-11-26T07:41:20+09:00",
-    "computed_at_jst": "2026-11-25T22:41:20+00:00",
+    "source_commit": "c49c76c359f84dec0ea6fcb9476687206a426592",
+    "snapshot_generated_at_jst": "2026-11-26T13:24:22+09:00",
+    "computed_at_jst": "2026-11-26T04:24:22+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
