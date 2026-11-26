@@ -1,6 +1,6 @@
 # Workflow Permissions Inventory
 
-_Generated from a full static audit of `.github/workflows/` on 2026-11-24; updated for the three-job-split migration and external integration retirement on 2026-11-25; strict OOS bootstrap split on 2026-11-26.
+_Generated from a full static audit of `.github/workflows/` on 2026-11-24; updated for the three-job-split migration and external integration retirement on 2026-11-25; strict OOS bootstrap, role council and bibliography split on 2026-11-26.
 Counts are measured, not estimated: 56 workflows, 39 with
 `contents: write`, 17 read-only. Every `contents: write` workflow was
 checked for an actual `git push` — all 39 push their own research or
@@ -10,7 +10,7 @@ therefore **when** the write token is exposed, not whether it exists._
 
 ## Classification
 
-### A. Split jobs — least privilege already applied (14)
+### A. Split jobs — least privilege already applied (16)
 
 Top-level permission is `contents: read`; only the publish job, gated by
 `needs:` on the verify job and an `if:` excluding `pull_request`, receives
@@ -32,16 +32,18 @@ Top-level permission is `contents: read`; only the publish job, gated by
 | `always_on_accuracy_research.yml` | PR, push(main), schedule, manual, workflow_run (trusted main only) | - |
 | `frequent_online_research_feed.yml` | PR, push(main), schedule, manual | - |
 | `strict_oos_bootstrap.yml` | PR, push(main), manual | - |
+| `agent_role_council.yml` | PR, push(main), schedule, manual, workflow_run (trusted main only) | - |
+| `online_literature_auto_verify.yml` | PR, push(main), schedule, manual | - |
 
-### B. Single job, PR-triggered, push step guarded (14)
+### B. Single job, PR-triggered, push step guarded (12)
 
 One job holds `contents: write` for its whole run, including on
 `pull_request`. In every case the commit/push step (or the job itself) is
 guarded by an event condition such as
-`if: github.event_name != 'pull_request'`, so PR code cannot push — but
-PR code does execute while a write-capable token exists in the job.
+`if: github.event_name != 'pull_request'`, so the explicit publication step is skipped. PR code still runs with a
+requested write-capable token, subject to GitHub repository/fork token policy.
 **Next step:** migrate these to the category-A split in small batches,
-The first batch (hourly research, two-hourly discovery and three-hourly validation) now uses separate read-only validation and main-only publish jobs. Continue migrating the remaining 14 in reviewable batches. Until migrated,
+The first batch (hourly research, two-hourly discovery and three-hourly validation) now uses separate read-only validation and main-only publish jobs. Continue migrating the remaining 12 in reviewable batches. Until migrated,
 the push guard is mandatory: a new workflow in this category without an
 event guard on its push step must not be merged, and the net-zero rule
 in `RESEARCH_EXPANSION_POLICY.md` applies.
@@ -49,7 +51,6 @@ in `RESEARCH_EXPANSION_POLICY.md` applies.
 | Workflow | Triggers | Extra permissions |
 |---|---|---|
 | `accuracy_extension_agent.yml` | PR, push(main), schedule, manual | - |
-| `agent_role_council.yml` | PR, push(main), schedule, manual | - |
 | `autonomous_evolution_lab.yml` | PR, push(main), schedule, manual | - |
 | `autonomous_self_rewrite.yml` | PR, push(main), schedule, manual | - |
 | `continuous_learning_agent.yml` | PR, push(main), schedule, manual | - |
@@ -58,7 +59,6 @@ in `RESEARCH_EXPANSION_POLICY.md` applies.
 | `joint_set_v2_conversion_audit.yml` | PR, push(main), manual | - |
 | `joint_set_v2_rank_portfolio.yml` | PR, push(main), manual | - |
 | `joint_set_v2_signal_oos.yml` | PR, push(main), schedule, manual | - |
-| `online_literature_auto_verify.yml` | PR, push(main), schedule, manual | - |
 | `predictive_expert_agent.yml` | PR, push(main), schedule, manual | - |
 | `research_data_quality_auto.yml` | PR, push(main), schedule, manual | actions: write |
 | `watch_auto_improvement.yml` | PR, push(main), schedule, manual | - |
@@ -122,7 +122,7 @@ anywhere in the inventory.
 
 ## SHA pinning
 
-Every `uses:` reference (166 across 55 workflow files; one workflow uses
+Every `uses:` reference (170 across 55 workflow files; one workflow uses
 no actions) is pinned to a full 40-character commit SHA with the
 major-version tag kept as a trailing comment, e.g.
 `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7`.

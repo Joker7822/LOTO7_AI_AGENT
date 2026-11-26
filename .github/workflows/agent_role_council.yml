@@ -26,10 +26,11 @@ on:
   workflow_run:
     workflows: ["LOTO7 Independent Result Corroboration", "Joint Set v2 Signal Future OOS", "Continuous Learning Agent Prospective", "Continuous LOTO7 Research v4", "Pair Context v2 Numeric Diagnostics"]
     types: [completed]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: loto7-agent-role-council
@@ -37,6 +38,14 @@ concurrency:
 
 jobs:
   role-reviews:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.event != 'pull_request'
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -47,7 +56,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
-          persist-credentials: true
+          persist-credentials: false
 
       - name: Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
@@ -74,6 +83,52 @@ jobs:
             --out-dir /tmp/loto7-agent-role-council \
             --fail-on-blocker
 
+
+      - name: Show pull request advisory evidence
+        if: always() && github.event_name == 'pull_request'
+        run: |
+          cat /tmp/loto7-agent-role-council/agent_role_council_report.md 2>/dev/null >> "$GITHUB_STEP_SUMMARY" || true
+
+  publish-research-only:
+    needs: role-reviews
+    if: >-
+      github.event_name != 'pull_request' &&
+      github.ref == 'refs/heads/main' &&
+      needs.role-reviews.result == 'success' &&
+      (
+        github.event_name != 'workflow_run' ||
+        (
+          github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_branch == 'main' &&
+          github.event.workflow_run.head_repository.full_name == github.repository &&
+          github.event.workflow_run.event != 'pull_request'
+        )
+      )
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TZ: Asia/Tokyo
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Dependencies
+        run: |
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
       - name: Publish advisory report only
         if: github.event_name != 'pull_request'
         shell: bash
@@ -92,6 +147,12 @@ jobs:
             git add -- \
               loto7_agent_output/agent_role_council_summary.json \
               loto7_agent_output/agent_role_council_report.md
+
+            unexpected="$(git diff --cached --name-only | grep -Ev '^(loto7_agent_output/agent_role_council_summary[.]json|loto7_agent_output/agent_role_council_report[.]md)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "::error::Unauthorized staged paths: $unexpected"
+              exit 1
+            fi
 
             if [ -z "$(git status --porcelain -- \
               loto7_agent_output/agent_role_council_summary.json \

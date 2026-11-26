@@ -57,6 +57,8 @@ def test_high_frequency_research_publishers_use_separate_main_only_write_jobs():
         "always_on_accuracy_research.yml": "bounded-research",
         "frequent_online_research_feed.yml": "search-verify-triage",
         "advanced_validation_lab.yml": "scientific-validation",
+        "online_literature_auto_verify.yml": "DOI-independent-recheck",
+        "agent_role_council.yml": "role-reviews",
     }
     for filename, job in jobs.items():
         workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
@@ -125,3 +127,15 @@ def test_strict_bootstrap_checks_live_and_pinned_evidence_before_main_write():
     assert "permissions:\n      contents: write" in publish
     assert "python strict_oos_bootstrap.py" in publish
     assert "git push origin HEAD:main" in publish
+
+
+def test_role_council_workflow_run_is_first_party_main_only():
+    workflow = (WORKFLOWS / "agent_role_council.yml").read_text(encoding="utf-8")
+    trigger = workflow.split("  workflow_run:\n", 1)[1].split("  workflow_dispatch:", 1)[0]
+    assert "branches: [main]" in trigger
+    verify, publish = workflow.split("  publish-research-only:\n", 1)
+    for section in (verify, publish):
+        assert "github.event.workflow_run.conclusion == 'success'" in section
+        assert "github.event.workflow_run.head_branch == 'main'" in section
+        assert "github.event.workflow_run.head_repository.full_name == github.repository" in section
+        assert "github.event.workflow_run.event != 'pull_request'" in section
