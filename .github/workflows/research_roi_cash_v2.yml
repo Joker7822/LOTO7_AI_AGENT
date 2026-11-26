@@ -10,6 +10,19 @@ on:
       - "research/roi_cash_agent_v2_replay.py"
       - "tests/test_roi_cash_agent_v2.py"
       - ".github/workflows/research_roi_cash_v2.yml"
+      - "research/roi_cash_v2_prospective.py"
+      - "research/roi_cash_v2_prospective/registration.json"
+      - "tests/test_roi_cash_v2_prospective.py"
+  push:
+    branches: [main]
+    paths:
+      - "research/roi_cash_v2_prospective.py"
+      - "research/roi_cash_v2_prospective/registration.json"
+      - "tests/test_roi_cash_v2_prospective.py"
+      - ".github/workflows/research_roi_cash_v2.yml"
+  schedule:
+    - cron: "17 8 * * 4" # Thursday 17:17 JST
+    - cron: "23 0,4 * * 5" # Friday 09:23 / 13:23 JST
   workflow_dispatch:
 
 permissions:
@@ -17,6 +30,7 @@ permissions:
 
 jobs:
   full-history-roi-candidate:
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 50
     steps:
@@ -120,3 +134,59 @@ jobs:
           path: ${{ runner.temp }}/cash_roi_v2/
           retention-days: 90
           if-no-files-found: error
+
+  verify-prospective-registration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt pytest
+      - run: |
+          python -m research.roi_cash_v2_prospective --verify-registration
+          python -m pytest -q tests/test_roi_cash_v2_prospective.py
+
+  publish-prospective-commitment:
+    needs: verify-prospective-registration
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.verify-prospective-registration.result == 'success'
+    permissions:
+      contents: write
+    concurrency:
+      group: roi-cash-v2-prospective-commitment-main
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt
+      - name: Create only pre-draw research hash commitment
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "loto7-ai-agent[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for attempt in 1 2 3; do
+            git fetch origin main
+            git reset --hard origin/main
+            python -m research.roi_cash_v2_prospective
+            git add -- research/roi_cash_v2_prospective/
+            if git diff --cached --quiet; then exit 0; fi
+            changed="$(git diff --cached --name-status)"
+            if ! printf '%s\n' "$changed" | grep -Eq '^A[[:space:]]+research/roi_cash_v2_prospective/commitment_[0-9]{4}[.]json$' || [ "$(printf '%s\n' "$changed" | wc -l)" -ne 1 ]; then
+              echo "::error::Only one newly created commitment is allowed"
+              exit 1
+            fi
+            git commit -m "research: pre-draw ROI cash v2 hash commitment"
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
