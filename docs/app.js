@@ -1,5 +1,5 @@
-import { predictionTabFromHash, predictionTabView } from "./prediction-tabs.mjs?v=20261126-v2-live-dates";
-import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261126-v2-live-dates";
+import { predictionTabFromHash, predictionTabView } from "./prediction-tabs.mjs?v=20261126-live-v2-cohort";
+import { loadPublishedSnapshot, SERIES_TABS } from "./telemetry.mjs?v=20261126-live-v2-cohort";
 import {
   LEVEL_LABELS, buildView, percent, displayMetric
 } from "./model.mjs?v=20261123-simplified-view";
@@ -102,6 +102,14 @@ function renderPrizeTotals(ops){
 
 function renderPredictionTabs(ops, view) {
   renderPrizeTotals(ops);
+  const cohort=ops?.prizeTotals?.liveV2;
+  const settled=cohort&&["verified","payout_incomplete"].includes(cohort.status);
+  const waiting=cohort?.status==="awaiting_first_settlement";
+  set("live-v2-summary",settled?"照合済み "+cohort.rounds+"回 ／ "+cohort.tickets+"口":waiting?(cohort.pending_rounds?"事前発行済み・初回結果待ち":"初回の正式発行待ち"):"v2専用成績は未確認");
+  set("live-v2-payout",settled&&Number.isSafeInteger(cohort.reference_payout_yen)?cohort.reference_payout_yen.toLocaleString("ja-JP")+"円":"—");
+  set("live-v2-roi",settled&&Number.isFinite(cohort.reference_roi)?(cohort.reference_roi*100).toFixed(2)+"%":"—");
+  set("live-v2-wins",settled?cohort.winning_tickets+"口":"—");
+  set("live-v2-date",settled?"第"+cohort.first_settled.round+"回（"+cohort.first_settled.draw_date+"）〜第"+cohort.last_settled.round+"回（"+cohort.last_settled.draw_date+"）":"第705回以降の実際のv2発行分のみ");
   const issued=ops?.issuedPrediction;
   set("live-tab-issued-at",issued?.status==="published"?"直近の正式発行：第"+issued.targetRound+"回 ／ "+asJst(issued.publishedAt)+" JST":"直近の正式発行日時：未確認");
   const tab=predictionTabView(ops,view);

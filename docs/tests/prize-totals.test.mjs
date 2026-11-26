@@ -13,3 +13,14 @@ test("v2 history cannot be confused with legacy replay; live dates are validated
   assert.equal(normalizePrizeTotals({...raw,live:{...live,reference_roi:1}}).live.status,"unavailable");
   assert.equal(normalizePrizeTotals(undefined).historical.status,"unavailable");
 });
+
+
+test("live v2 starts without invented winnings or return rate",()=>{
+ const grades={"1等":0,"2等":0,"3等":0,"4等":0,"5等":0,"6等":0,"はずれ":0};
+ const cohort={scope:"issued_roi_cash_v2",model:"production-ai-ranked35-roi-cash-v2",start_target_round:705,independent_future_skill_confirmed:false,status:"awaiting_first_settlement",actual_purchase_verified:false,rounds:0,tickets:0,winning_tickets:0,grade_counts:grades,reference_cost_yen:0,reference_payout_yen:null,reference_roi:null,first_settled:null,last_settled:null,excluded_rounds:0,pending_rounds:1};
+ const raw={version:"dashboard-prize-totals-v2",live_v2:cohort};
+ assert.equal(normalizePrizeTotals(raw).liveV2.status,"awaiting_first_settlement");
+ assert.equal(normalizePrizeTotals({...raw,live_v2:{...cohort,reference_roi:0}}).liveV2.status,"unavailable");
+ assert.equal(normalizePrizeTotals({...raw,live_v2:{...cohort,model:"legacy"}}).liveV2.status,"unavailable");
+ assert.equal(normalizePrizeTotals({version:"dashboard-prize-totals-v2"}).liveV2.status,"unavailable");
+});

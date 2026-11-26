@@ -4,6 +4,7 @@ from datetime import datetime
 import re
 
 from dashboard_roi_cash_v2 import AUDITED_DRAW_COUNT, AUDITED_CANDIDATE_PAYOUT_YEN, AUDITED_LAST_ROUND, AUDIT_RUN
+from production_disjoint35_policy import ROI_CASH_VERSION, ROI_CASH_MIN_TARGET_ROUND
 from public_issued_prediction import forecast_group, grade, parse_round, trusted_draws, TRUST
 
 GRADES = tuple(f"{i}等" for i in range(1, 7)) + ("はずれ",)
@@ -57,8 +58,8 @@ def history(out=None, scorecard=None):
             "ticket_csv_sha256": "da3ae04a601aec74d1ad7b27d08e6ca3ff9408feee3bed877ddc546fc896c030"}
 
 
-def live(out, source, published):
-    scope = "issued_production"
+def live(out, source, published, *, v2_only=False):
+    scope = "issued_roi_cash_v2" if v2_only else "issued_production"
     try:
         # No number vectors leave this projection. Reuse the existing canonical
         # validation, with a conservative 18:00 JST cutoff for this cash tally.
@@ -76,6 +77,14 @@ def live(out, source, published):
         by_target = {parse_round(r.get("target_round")) for r in active}
         if None in by_target:
             raise ValueError("malformed target")
+        def v2_model(row):
+            return re.fullmatch(r"baseline-[0-9a-f]{10}\+" + re.escape(ROI_CASH_VERSION),
+                                row.get("model_version") or "") is not None
+        if v2_only:
+            # Select entire targets, not individual tickets; mixed-model groups
+            # must fail validation rather than becoming a partial portfolio.
+            by_target = {parse_round(r["target_round"]) for r in active if v2_model(r)
+                         and parse_round(r["target_round"]) >= ROI_CASH_MIN_TARGET_ROUND}
         trusted = trusted_draws(out)
         raw = {parse_round(r["round"]): r for r in rows("actual_results.csv")
                if r.get("source_status") == "ok" and r.get("source_verification") == TRUST}
@@ -88,6 +97,20 @@ def live(out, source, published):
             if rnd > target:
                 continue
             if rnd > latest:
+                if v2_only:
+                    try:
+                        group = forecast_group(active, rnd, required=True)
+                        if (rnd != target or len({r["model_version"] for r in group}) != 1
+                                or not all(v2_model(r) for r in group)
+                                or published.get("model_version") != group[0]["model_version"]
+                                or len({r["prediction_created_at_jst"] for r in group}) != 1
+                                or len({r["target_draw_date_estimate"] for r in group}) != 1
+                                or datetime.fromisoformat(group[0]["prediction_created_at_jst"]) >=
+                                   datetime.fromisoformat(group[0]["target_draw_date_estimate"] + "T18:00:00+09:00")):
+                            raise ValueError("unverified v2 pending issue")
+                    except (ValueError, TypeError, KeyError):
+                        excluded += 1
+                        continue
                 pending += 1
                 continue
             draw = trusted.get(rnd)
@@ -101,6 +124,9 @@ def live(out, source, published):
                 continue
             try:
                 group = forecast_group(active, rnd, required=True)
+                if v2_only and (not all(v2_model(r) for r in group)
+                                or len({r["model_version"] for r in group}) != 1):
+                    raise ValueError("mixed v2 issuance")
                 cutoff = datetime.fromisoformat(draw["date"] + "T18:00:00+09:00")
                 if any(r["target_draw_date_estimate"] != draw["date"]
                        or datetime.fromisoformat(r["prediction_created_at_jst"]) >= cutoff
@@ -127,13 +153,20 @@ def live(out, source, published):
                         incomplete = True
                     else:
                         payout += amount
-        return {**summary(scope, counts, settled, None if incomplete else payout,
-                          excluded=excluded, pending=pending),
-                "first_settled": first, "last_settled": last}
+        result = {**summary(scope, counts, settled, None if incomplete else payout,
+                            excluded=excluded, pending=pending),
+                  "first_settled": first, "last_settled": last}
+        if v2_only:
+            result.update(model=ROI_CASH_VERSION, start_target_round=ROI_CASH_MIN_TARGET_ROUND,
+                          independent_future_skill_confirmed=False)
+            if not settled:
+                result["status"] = "awaiting_first_settlement" if not excluded else "unavailable"
+        return result
     except (OSError, ValueError, TypeError, KeyError):
         return unavailable(scope)
 
 
 def project(out, source, published, scorecard):
     return {"version": "dashboard-prize-totals-v2",
-            "historical": history(out, scorecard), "live": live(out, source, published)}
+            "historical": history(out, scorecard), "live": live(out, source, published),
+            "live_v2": live(out, source, published, v2_only=True)}
