@@ -1,6 +1,6 @@
 {
   "version": "recursive-code-meta-evolution-v1",
-  "generations_total": 326293,
+  "generations_total": 328267,
   "evaluation_data_sha256": "9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80",
   "latest_verification": "verified_two_result_sources",
   "independent_source_verified": true,
@@ -37,6 +37,18 @@
       "assessment": {
         "fitness": 0.0076259329523635,
         "mean_log_edge_vs_uniform": 0.008766620947388453,
+        "mean_top7_hits": 1.8333333333333333,
+        "historical_selection_only": true,
+        "prospective_improvement_proven": false
+      },
+      "research_data_sha256": "9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80"
+    },
+    {
+      "generation": 327524,
+      "expression": "sqrt(abs(0.9753 - sqrt(abs(decay - cold20) + 0.07871) * (cold20 + cold20)) + 0.01) + sqrt(abs(1.07431 - sqrt(abs(hot80 - cold20) + 0.02171) * (cold20 + cold20)) + 0.01)",
+      "assessment": {
+        "fitness": 0.007625881749990983,
+        "mean_log_edge_vs_uniform": 0.008766540397371599,
         "mean_top7_hits": 1.8333333333333333,
         "historical_selection_only": true,
         "prospective_improvement_proven": false
@@ -116,23 +128,11 @@
       "research_data_sha256": "9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80"
     },
     {
-      "generation": 307282,
-      "expression": "sqrt(abs(0.9753 - sqrt(abs(decay - cold20) + 0.07889) * (cold20 + cold20)) + 0.01) + sqrt(abs(1.07431 - sqrt(abs(hot80 - cold20) + 0.02171) * (cold20 + cold20)) + 0.01)",
+      "generation": 327059,
+      "expression": "sqrt(abs(0.9753 - sqrt(abs(decay - cold20) + 0.0782) * (cold20 + cold20)) + 0.01) + sqrt(abs(1.07431 - sqrt(abs(hot80 - cold20) + 0.02171) * (cold20 + cold20)) + 0.01)",
       "assessment": {
-        "fitness": 0.0076255700020831495,
-        "mean_log_edge_vs_uniform": 0.008766055025784336,
-        "mean_top7_hits": 1.8333333333333333,
-        "historical_selection_only": true,
-        "prospective_improvement_proven": false
-      },
-      "research_data_sha256": "9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80"
-    },
-    {
-      "generation": 293884,
-      "expression": "sqrt(abs(0.9753 - sqrt(abs(decay - cold20) + 0.07874) * (cold20 + cold20)) + 0.01) + sqrt(abs(1.07431 - sqrt(abs(hot80 - cold20) + 0.0217) * (cold20 + cold20)) + 0.01)",
-      "assessment": {
-        "fitness": 0.007625565889551217,
-        "mean_log_edge_vs_uniform": 0.008766069211745078,
+        "fitness": 0.007625577052616213,
+        "mean_log_edge_vs_uniform": 0.008766506989152491,
         "mean_top7_hits": 1.8333333333333333,
         "historical_selection_only": true,
         "prospective_improvement_proven": false
@@ -142,32 +142,32 @@
   ],
   "mutation_policy": {
     "restart": {
-      "trials": 10643,
+      "trials": 11046,
       "wins": 0
     },
     "splice": {
-      "trials": 10512,
+      "trials": 10900,
       "wins": 0
     },
     "tune": {
-      "trials": 10868,
+      "trials": 11275,
       "wins": 10
     },
     "wrap": {
-      "trials": 10578,
+      "trials": 10958,
       "wins": 0
     },
     "crossover": {
-      "trials": 10801,
+      "trials": 11197,
       "wins": 0
     }
   },
   "mutation_probabilities": {
-    "restart": 0.19965671132560783,
-    "splice": 0.19969962171937197,
-    "tune": 0.20135974865441963,
-    "wrap": 0.19967790137004315,
-    "crossover": 0.19960601693055746
+    "restart": 0.19966612007440745,
+    "splice": 0.19971136978232595,
+    "tune": 0.2013089557123498,
+    "wrap": 0.1996932837692708,
+    "crossover": 0.19962027066164603
   },
   "execution_limits": {
     "global_generations": null,
@@ -183,5 +183,5 @@
   },
   "scope": "autonomous_recursive_mathematical_program_and_meta_policy_evolution_research_only",
   "claim": "Repeated historical optimization cannot establish future lottery advantage.",
-  "last_record_sha256": "9582a051baf505203a61b88892dd5c5245bc5f6a1f8d1dade683c83a55e583e7"
+  "last_record_sha256": "e029c69da9fa9b68641f44973265255ccb1ca953bebf7a601758b3a74b755c6e"
 }
