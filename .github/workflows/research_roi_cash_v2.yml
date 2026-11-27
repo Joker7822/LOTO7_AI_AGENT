@@ -12,6 +12,9 @@ on:
       - "research/roi_cash_robust_v3.py"
       - "research/roi_cash_robust_v3_replay.py"
       - "tests/test_roi_cash_robust_v3.py"
+      - "research/roi_cash_cooccurrence_v4.py"
+      - "research/roi_cash_cooccurrence_v4_replay.py"
+      - "tests/test_roi_cash_cooccurrence_v4.py"
       - ".github/workflows/research_roi_cash_v2.yml"
   workflow_dispatch:
 
@@ -122,6 +125,14 @@ jobs:
           set -euo pipefail
           python -m pytest -q tests/test_roi_cash_robust_v3.py
           python -m research.roi_cash_robust_v3_replay --base-dir "${RUNNER_TEMP}/cash_roi_v2" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Validate and replay shrunk pair-triple combination v4
+        env:
+          PYTHONPATH: .
+        run: |
+          set -euo pipefail
+          python -m pytest -q tests/test_roi_cash_cooccurrence_v4.py
+          python -m research.roi_cash_cooccurrence_v4_replay --base-dir "${RUNNER_TEMP}/cash_roi_v2" >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Save all per-round public payout comparisons
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
