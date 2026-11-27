@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -165,6 +166,8 @@ def publish(
         v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
         return result
 
+    geometry35.production_window_guard(datetime.fromisoformat(v4.now_jst()))
+
     # Frozen predictions are handled above; the new ranked layout starts
     # only with unfrozen targets 705+. Research promotion gates are untouched.
     if target_round >= geometry35.MIN_TARGET_ROUND:
@@ -232,6 +235,9 @@ def publish(
             tuple(int(n) for n in r.get("numbers", "").split())
             for r in ticket_rows
         ])
+    # Recheck after expensive training, immediately before the canonical append.
+    checked_at = v4.now_jst()
+    geometry35.production_window_guard(datetime.fromisoformat(checked_at))
     added = ledger.append_current_predictions(
         loto_rows,
         ticket_rows,
@@ -276,7 +282,7 @@ def publish(
 
 def main() -> int:
     ap = argparse.ArgumentParser(
-        description="Publish Production prediction during the weekly Friday 13:00-15:00 JST window"
+        description="Publish Production Friday 13:00-15:00 JST; hard cutoff 17:00 JST"
     )
     ap.add_argument("--csv", type=Path, default=Path("loto7.csv"))
     ap.add_argument("--out-dir", type=Path, default=Path("loto7_agent_output"))
