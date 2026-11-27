@@ -1,20 +1,19 @@
 # Always-on Accuracy Research — bounded hourly activities
 
-- Last executed: **2026-11-27T11:54:42+09:00**
-- Completed audit cycles: **84**
-- This cycle: **budget_and_plan** / 科学的事前凍結欠損のため監査のみ：試行予算を守り次の検証を計画
+- Last executed: **2026-11-28T07:01:22+09:00**
+- Completed audit cycles: **87**
+- This cycle: **future_protocol** / 科学的事前凍結欠損のため監査のみ：事前凍結と真正将来採点の連続性を監査
 - Network discovery: **not_scheduled**
-- Trusted draw latest: **704**, two-source: **True**
+- Trusted draw latest: **705**, two-source: **True**
 - Registered science: **BLOCKED_MISSING_PREFROZEN_701**
 - Observation only: **True**; no future e-value calculation or model selection
-- Research guard: **WAIT_FOR_NEW_DATA**, same-data trials: **602/800**
-- Future actuals: portfolio 11/26, v2 4, fifth-expert 0
+- Research guard: **SEARCH**, same-data trials: **296/800**
+- Future actuals: portfolio 12/26, v2 5, fifth-expert 0
 
 ## Completed evidence review
 - 第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。
-- 探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。
 - 真正Future-OOSの実測がまだ不足。改善を断定しない。
-- 同一履歴の新規試行予算 602/800
+- 26回固定holdout 12/26、新規v2 5回
 
 ## Online research leads (unreviewed; do NOT deploy as algorithms)
 - [PV-Aware Multi-Horizon Probabilistic Net-Load Forecasting with Horizon-Delayed Online Conformal Calibration](https://doi.org/10.9734/cjast/2026/v45i124824) (2026) — UNREVIEWED

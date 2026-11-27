@@ -217,7 +217,8 @@ jobs:
             python first_prize_research.py --mode freeze
             python first_prize_research.py --mode verify
           else
-            echo "[FIRST-PRIZE] prospective freeze excluded after 17:00 JST"
+            echo "::error::New publication cannot proceed at/after 17:00 JST"
+            exit 1
           fi
 
       - name: Commit Production checkpoint
