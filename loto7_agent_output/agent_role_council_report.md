@@ -1,9 +1,9 @@
 # LOTO7 AI Agent — Role Council
 
-- checked JST: **2026-11-27T19:09:39+09:00**
-- latest round: **704**
+- checked JST: **2026-11-28T06:40:54+09:00**
+- latest round: **705**
 - overall: **WATCH**
-- input snapshot SHA256: 37ce5688c61ccb382945b8c65a662967249ef662f83fae2fe50e7924580566f2
+- input snapshot SHA256: eac64e6aa4e07d9ee2e9e04d6148df127a5167fdf8f1f920ebbd6276aba3a532
 - **Read-only advice; never promote, publish, freeze or backfill.**
 
 ## Role checks
@@ -17,12 +17,12 @@
 
 ## Prioritized handoffs
 ### WATCH — data_steward: PAIR_CONTEXT_INT8_OVERFLOW
-- evidence: legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=704; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified
-- next action: The separate v2 int64 candidate is independently numerically verified for this exact code/data snapshot. Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and explicit approval are required before any Production migration.
+- evidence: legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=705; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified
+- next action: Refresh the separate v2 numerical evidence using its existing workflow. Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and explicit approval are required before any Production migration.
 - executor: **existing workflow / human review only**
 
 ### WATCH — oos_risk_officer: NO_EARLY_PORTFOLIO_CLAIM
-- evidence: holdout=11/26
+- evidence: holdout=12/26
 - next action: Keep all comparator evidence and wait until 26/26 for independent confirmation.
 - executor: **existing workflow / human review only**
 

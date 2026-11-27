@@ -1,9 +1,9 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-11-27T19:09:39+09:00",
-  "latest_resolved_round": 704,
+  "checked_at_jst": "2026-11-28T06:40:54+09:00",
+  "latest_resolved_round": 705,
   "overall": "watch",
-  "input_snapshot_sha256": "37ce5688c61ccb382945b8c65a662967249ef662f83fae2fe50e7924580566f2",
+  "input_snapshot_sha256": "eac64e6aa4e07d9ee2e9e04d6148df127a5167fdf8f1f920ebbd6276aba3a532",
   "governance": {
     "authority": "read_only_advisory",
     "permissions": {
@@ -25,14 +25,14 @@
         {
           "level": "ok",
           "code": "TRUSTED_RESULT_EXACT_MATCH",
-          "evidence": "round=704; secondary=loto7_tsushin",
+          "evidence": "round=705; secondary=loto7_tsushin",
           "next_action": "Continue predeclared workflow."
         },
         {
           "level": "watch",
           "code": "PAIR_CONTEXT_INT8_OVERFLOW",
-          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=704; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified",
-          "next_action": "The separate v2 int64 candidate is independently numerically verified for this exact code/data snapshot. Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and explicit approval are required before any Production migration."
+          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=705; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified",
+          "next_action": "Refresh the separate v2 numerical evidence using its existing workflow. Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and explicit approval are required before any Production migration."
         }
       ]
     },
@@ -42,7 +42,7 @@
         {
           "level": "ok",
           "code": "V2_LOCK_AND_IMMUTABLE_HISTORY",
-          "evidence": "locked_manifest=e38bc090fe5d691f; trusted=4/26; target=705",
+          "evidence": "locked_manifest=e38bc090fe5d691f; trusted=5/26; target=706",
           "next_action": "Continue predeclared workflow."
         }
       ]
@@ -53,13 +53,13 @@
         {
           "level": "ok",
           "code": "OOS_REFERENCE_CONSISTENCY",
-          "evidence": "champion=baseline-5fdb8dc2ad; frozen=705; trusted=11/26",
+          "evidence": "champion=baseline-5fdb8dc2ad; frozen=706; trusted=12/26",
           "next_action": "Continue predeclared workflow."
         },
         {
           "level": "watch",
           "code": "NO_EARLY_PORTFOLIO_CLAIM",
-          "evidence": "holdout=11/26",
+          "evidence": "holdout=12/26",
           "next_action": "Keep all comparator evidence and wait until 26/26 for independent confirmation."
         }
       ]
@@ -70,7 +70,7 @@
         {
           "level": "ok",
           "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
-          "evidence": "history reused; mode=WAIT_FOR_NEW_DATA; trials=602/800",
+          "evidence": "history reused; mode=SEARCH; trials=260/800",
           "next_action": "Continue predeclared workflow."
         }
       ]
@@ -81,7 +81,7 @@
         {
           "level": "ok",
           "code": "RELEASE_SCHEDULE_GUARD",
-          "evidence": "next=705 on 2026-11-27; already_published=True",
+          "evidence": "next=706 on 2026-12-04; already_published=False",
           "next_action": "Continue predeclared workflow."
         }
       ]
@@ -92,8 +92,8 @@
       "priority": "watch",
       "owner": "data_steward",
       "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-      "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=704; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified",
-      "next_action": "The separate v2 int64 candidate is independently numerically verified for this exact code/data snapshot. Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and explicit approval are required before any Production migration.",
+      "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=705; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified",
+      "next_action": "Refresh the separate v2 numerical evidence using its existing workflow. Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and explicit approval are required before any Production migration.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
     },
@@ -101,7 +101,7 @@
       "priority": "watch",
       "owner": "oos_risk_officer",
       "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
-      "evidence": "holdout=11/26",
+      "evidence": "holdout=12/26",
       "next_action": "Keep all comparator evidence and wait until 26/26 for independent confirmation.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
