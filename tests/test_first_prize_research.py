@@ -69,7 +69,7 @@ def fixture(tmp_path, target=702, policy=geometry.VERSION):
     csvfile(out / "predictions.csv", list(issued[0]), issued)
     csvfile(out / "prediction_corrections.csv", ["prediction_id", "action"], [])
     state = {
-        "published": True, "target_round": "第702回",
+        "published": True, "target_round": f"第{target}回",
         "reason": "frozen_to_canonical_prediction_ledger",
         "ticket_policy": policy,
         "published_at_jst": issuance.isoformat(),
