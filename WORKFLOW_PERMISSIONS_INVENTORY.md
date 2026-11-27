@@ -1,8 +1,8 @@
 # Workflow Permissions Inventory
 
 _Generated from a full static audit of `.github/workflows/` on 2026-11-24; updated for the three-job-split migration and external integration retirement on 2026-11-25; strict OOS bootstrap, role council and bibliography split on 2026-11-26.
-Counts are measured, not estimated: 56 workflows, 39 with
-`contents: write`, 17 read-only. Every `contents: write` workflow was
+Counts are measured, not estimated: 56 workflows, 40 with
+`contents: write`, 16 read-only. Every `contents: write` workflow was
 checked for an actual `git push` — all 39 push their own research or
 production outputs back to `main`, so none of them can be downgraded to
 read-only without breaking their function. The risk to manage is
@@ -10,7 +10,7 @@ therefore **when** the write token is exposed, not whether it exists._
 
 ## Classification
 
-### A. Split jobs — least privilege already applied (16)
+### A. Split jobs — least privilege already applied (17)
 
 Top-level permission is `contents: read`; only the publish job, gated by
 `needs:` on the verify job and an `if:` excluding `pull_request`, receives
@@ -32,6 +32,7 @@ Top-level permission is `contents: read`; only the publish job, gated by
 | `always_on_accuracy_research.yml` | PR, push(main), schedule, manual, workflow_run (trusted main only) | - |
 | `frequent_online_research_feed.yml` | PR, push(main), schedule, manual | - |
 | `strict_oos_bootstrap.yml` | PR, push(main), manual | - |
+| `research_roi_cash_v2.yml` | PR, push(main), schedule, manual | - |
 | `agent_role_council.yml` | PR, push(main), schedule, manual, workflow_run (trusted main only) | - |
 | `online_literature_auto_verify.yml` | PR, push(main), schedule, manual | - |
 
@@ -105,7 +106,6 @@ another workflow via `gh workflow run`.
 | `production_roi_cash_v2_adoption.yml` | PR, manual | - |
 | `research_evolution_round2_replay.yml` | PR, schedule, manual | - |
 | `research_intelligence_core.yml` | PR, schedule, manual | - |
-| `research_roi_cash_v2.yml` | PR, manual | - |
 | `round20_change_replay.yml` | PR, push(main), schedule, manual | - |
 | `signal_portfolio_factorial.yml` | PR, manual | - |
 | `top1_overlap34_research.yml` | PR, manual | - |
@@ -122,7 +122,7 @@ anywhere in the inventory.
 
 ## SHA pinning
 
-Every `uses:` reference (170 across 55 workflow files; one workflow uses
+Every `uses:` reference (175 across 55 workflow files; one workflow uses
 no actions) is pinned to a full 40-character commit SHA with the
 major-version tag kept as a trailing comment, e.g.
 `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7`.

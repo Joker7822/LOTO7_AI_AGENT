@@ -1,0 +1,47 @@
+{
+  "version": "roi-cash-combination-prospective-commitment-v2",
+  "candidate_version": "research-roi-cash-trained-ranked35-v2",
+  "champion": "baseline-5fdb8dc2ad",
+  "first_target": 706,
+  "last_target": 731,
+  "fixed_rounds": 26,
+  "cutoff_jst": "17:00:00",
+  "arms": [
+    "cash_v2",
+    "robust_v3",
+    "cooccurrence_v4",
+    "pairwise_v1",
+    "matched_random32"
+  ],
+  "matched_seed": "sha256(protocol_sha256|target|base_csv_sha256|member_index)",
+  "tickets_per_arm": 5,
+  "cost_yen_per_arm": 1500,
+  "primary_endpoint": "paired_total_public_payout_yen_vs_pairwise_v1",
+  "secondary_endpoint": "paired_total_public_payout_yen_vs_mean_matched_random32",
+  "robustness": [
+    "exclude_top_four_positive_paired_deltas",
+    "last_13_rounds"
+  ],
+  "missing_round_policy": "fixed_horizon_no_replacement_no_backfill_no_confirmatory_claim_if_incomplete",
+  "authority": "research_only_no_purchase_no_promotion_no_production_change",
+  "independent_receipt_required": true,
+  "algorithm_git_blob_sha1": {
+    "audit_ledger.py": "e3342cb972ceb98b4b46fe80948accd7b18fed60",
+    "balanced_uniform_portfolio.py": "0a9bab242c7bc6ecb05348ce18557fff2810f876",
+    "combination_agent35_core.py": "08d10c97b68508c83917271593624294e1f683ce",
+    "first_prize_research.py": "484e951d26f6c9b514e41974d4170a24c4a3a48d",
+    "loto7_evolving_agent.py": "e1fc72e2e3e265e513ccc9d38ff17565923bb634",
+    "loto7_v2_runner.py": "e232758724918fc035568568e1a5acc05192e8bb",
+    "production_disjoint35_policy.py": "ef8a6a7c125958766e9ae1ea832195e3fad04519",
+    "production_roi_cash35_v2.py": "ae70c4b7a43731cf2652fb8d64f4ba60828b8c3f",
+    "production_ticket_geometry35.py": "742f7452d259a839092d4cff3ed86a4ddfd4a208",
+    "requirements.txt": "019ab66e5ee5ad639b5ea1a35a2b4f3cae0f141e",
+    "research/roi_cash_agent_v2.py": "8e89f461f660f75d015afe8abe0bab97fe2b9e7d",
+    "research/roi_cash_robust_v3.py": "be4c249cdf6d395d85c920e081a5d255ebf1c6db",
+    "research/roi_cash_cooccurrence_v4.py": "c6a4a3abddacc979a5d9402f2d8fe5c5592840d2"
+  },
+  "additional_exploratory_endpoints": [
+    "paired_v3_vs_v2",
+    "paired_v4_vs_v2"
+  ]
+}
