@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-27T14:22:58+09:00",
-  "source_commit": "dc93c9f72ea03fa4b37645f6022608d1bf2de8b8",
-  "state_hashes_sha256": "3db80343349a43031307325506ab4aa2b3dfdf65cbeb1e2902717f70e5c5fc23",
+  "generated_at_jst": "2026-11-27T17:16:34+09:00",
+  "source_commit": "195e1f2b3561d9cc1856861e9ec3f7d3643c9537",
+  "state_hashes_sha256": "c900026bd19da7c41b8c1babb23e80ad484f1f20f44d93222087e68dfe4c950f",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-27T09:56:31+09:00",
+      "checked_at_jst": "2026-11-27T17:13:54+09:00",
       "latest": {
         "round": 704,
         "date": "2026-11-20",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-27T09:59:30+09:00",
+      "checked_at_jst": "2026-11-27T17:12:02+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -174,10 +174,10 @@
     },
     "production": {
       "published": true,
-      "target_round": "第704回",
-      "published_at_jst": "2026-11-20T16:02:29+09:00",
-      "ticket_policy": "production-disjoint35-layout-v1",
-      "model_version": "baseline-5fdb8dc2ad+production-disjoint35-layout-v1"
+      "target_round": "第705回",
+      "published_at_jst": "2026-11-27T17:13:54+09:00",
+      "ticket_policy": "production-ai-ranked35-roi-cash-v2",
+      "model_version": "baseline-5fdb8dc2ad+production-ai-ranked35-roi-cash-v2"
     },
     "scout": {
       "evaluated_rounds": 60,
@@ -199,13 +199,13 @@
     {
       "file": "continuous_loto7_v4.yml",
       "label": "継続研究",
-      "health": "ok",
+      "health": "block",
       "status": "completed",
-      "conclusion": "success",
-      "run_id": 45919431580,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45919431580",
-      "updated_at": "2026-11-27T00:56:45Z",
-      "recent_failure_count": 0
+      "conclusion": "failure",
+      "run_id": 45963914743,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45963914743",
+      "updated_at": "2026-11-27T08:15:19Z",
+      "recent_failure_count": 1
     },
     {
       "file": "continuous_learning_agent.yml",
@@ -243,23 +243,23 @@
     {
       "file": "recursive_self_evolution.yml",
       "label": "再帰的研究進化",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 45912861122,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45912861122",
-      "updated_at": "2026-11-26T23:48:29Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 45964097857,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45964097857",
+      "updated_at": "2026-11-27T08:15:29Z",
       "recent_failure_count": 0
     },
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "ok",
+      "health": "warning",
       "status": "completed",
-      "conclusion": "success",
-      "run_id": 45919705980,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45919705980",
-      "updated_at": "2026-11-27T00:59:36Z",
+      "conclusion": "skipped",
+      "run_id": 45964258019,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45964258019",
+      "updated_at": "2026-11-27T08:15:23Z",
       "recent_failure_count": 0
     },
     {
@@ -279,10 +279,10 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45792015711,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45792015711",
-      "updated_at": "2026-11-26T09:28:04Z",
-      "recent_failure_count": 0
+      "run_id": 45963914904,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45963914904",
+      "updated_at": "2026-11-27T08:14:01Z",
+      "recent_failure_count": 2
     },
     {
       "file": "friday_result_check_watchdog.yml",
@@ -458,123 +458,75 @@
   "latest_prediction": {
     "version": "issued-production-forecast-public-v1",
     "status": "published",
-    "target_round": 704,
-    "draw_date": "2026-11-20",
-    "published_at_jst": "2026-11-20T16:02:29+09:00",
-    "model": "baseline-5fdb8dc2ad+production-disjoint35-layout-v1",
-    "source_base_round": 703,
+    "target_round": 705,
+    "draw_date": "2026-11-27",
+    "published_at_jst": "2026-11-27T17:13:54+09:00",
+    "model": "baseline-5fdb8dc2ad+production-ai-ranked35-roi-cash-v2",
+    "source_base_round": 704,
     "tickets": [
       {
         "ticket": 1,
         "numbers": [
-          5,
+          3,
           13,
-          17,
-          18,
+          21,
+          23,
           24,
           26,
-          37
+          36
         ]
       },
       {
         "ticket": 2,
         "numbers": [
-          12,
-          14,
+          1,
+          5,
+          6,
+          11,
           15,
-          20,
-          32,
-          33,
-          36
+          16,
+          34
         ]
       },
       {
         "ticket": 3,
         "numbers": [
-          3,
           8,
-          16,
-          21,
-          28,
-          34,
+          10,
+          14,
+          17,
+          18,
+          25,
           35
         ]
       },
       {
         "ticket": 4,
         "numbers": [
-          2,
           7,
-          11,
+          9,
+          20,
           22,
-          25,
-          27,
-          29
+          28,
+          31,
+          37
         ]
       },
       {
         "ticket": 5,
         "numbers": [
-          1,
+          2,
           4,
-          9,
-          10,
+          12,
           19,
-          23,
-          31
+          29,
+          30,
+          32
         ]
       }
     ],
-    "result_status": "independently_verified",
-    "current_result": {
-      "round": 704,
-      "date": "2026-11-20",
-      "main": [
-        3,
-        4,
-        14,
-        16,
-        28,
-        36,
-        37
-      ],
-      "bonus": [
-        21,
-        30
-      ],
-      "tickets": [
-        {
-          "ticket": 1,
-          "main_hits": 1,
-          "bonus_hits": 0,
-          "grade": "はずれ"
-        },
-        {
-          "ticket": 2,
-          "main_hits": 2,
-          "bonus_hits": 0,
-          "grade": "はずれ"
-        },
-        {
-          "ticket": 3,
-          "main_hits": 3,
-          "bonus_hits": 1,
-          "grade": "6等"
-        },
-        {
-          "ticket": 4,
-          "main_hits": 0,
-          "bonus_hits": 0,
-          "grade": "はずれ"
-        },
-        {
-          "ticket": 5,
-          "main_hits": 1,
-          "bonus_hits": 0,
-          "grade": "はずれ"
-        }
-      ]
-    },
+    "result_status": "awaiting_independently_verified_draw",
+    "current_result": null,
     "latest_verified": {
       "round": 704,
       "date": "2026-11-20",
@@ -683,10 +635,10 @@
     "adoption": "explicit_operator_instruction_not_statistical_promotion",
     "new_issuance_from_round": 705,
     "next_target_round": 705,
-    "latest_issued_target_round": 704,
-    "latest_issued_policy": "production-disjoint35-layout-v1",
-    "latest_issued_v2": false,
-    "issuance_status": "selected_not_yet_issued",
+    "latest_issued_target_round": 705,
+    "latest_issued_policy": "production-ai-ranked35-roi-cash-v2",
+    "latest_issued_v2": true,
+    "issuance_status": "roi_v2_published",
     "source_verified": true,
     "reference": {
       "scope": "exploratory_walk_forward_hypothetical_purchases",
@@ -922,7 +874,7 @@
       "reference_payout_yen": 5100,
       "reference_roi": 0.2833333333333333,
       "excluded_rounds": 2,
-      "pending_rounds": 0,
+      "pending_rounds": 1,
       "actual_purchase_verified": false,
       "first_settled": {
         "round": 692,
@@ -954,7 +906,7 @@
       "reference_payout_yen": null,
       "reference_roi": null,
       "excluded_rounds": 0,
-      "pending_rounds": 0,
+      "pending_rounds": 1,
       "actual_purchase_verified": false,
       "first_settled": null,
       "last_settled": null,
@@ -966,13 +918,13 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "dc93c9f72ea03fa4b37645f6022608d1bf2de8b8",
-    "snapshot_generated_at_jst": "2026-11-27T14:22:58+09:00",
-    "computed_at_jst": "2026-11-27T05:22:58+00:00",
-    "overall": "watch",
+    "source_commit": "195e1f2b3561d9cc1856861e9ec3f7d3643c9537",
+    "snapshot_generated_at_jst": "2026-11-27T17:16:34+09:00",
+    "computed_at_jst": "2026-11-27T08:16:34+00:00",
+    "overall": "block",
     "counts": {
-      "block": 0,
-      "watch": 1,
+      "block": 1,
+      "watch": 2,
       "info": 1
     },
     "checkpoints": {
@@ -991,6 +943,19 @@
     },
     "tasks": [
       {
+        "id": "0faaf3af3c9a4977",
+        "priority": "block",
+        "code": "WORKFLOW_FAILED:continuous_loto7_v4.yml",
+        "owner": "研究復旧エージェント",
+        "title": "継続研究：最新実行が失敗",
+        "detail": "直近の実行が失敗しています。過去の修正だけで復旧済みとは判定しません。",
+        "evidence": "45963914743",
+        "recommended_action": "研究CIの直近ログを確認し、修正後の実行を別途検証してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45963914743"
+      },
+      {
         "id": "bef623a2503719e7",
         "priority": "watch",
         "code": "COUNCIL:PAIR_CONTEXT_INT8_OVERFLOW",
@@ -1002,6 +967,19 @@
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
         "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
+      },
+      {
+        "id": "bd9f6d2a539c3be3",
+        "priority": "watch",
+        "code": "WORKFLOW_WARNING:agent_role_council.yml",
+        "owner": "監査エージェント",
+        "title": "役割監査：スキップ・キャンセルなどを確認",
+        "detail": "最新の実行が正常終了として記録されていません。",
+        "evidence": "45964258019",
+        "recommended_action": "監査結果と入力データの整合性を確認してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45964258019"
       },
       {
         "id": "615a36ffa6f66937",
