@@ -2,7 +2,7 @@ name: Weekly Production Fallback
 
 on:
   schedule:
-    # Offset from minute 00; existing Friday 13:00-19:59 JST gate is unchanged.
+    # Offset from minute 00; existing Friday 13:00-16:59 JST gate is unchanged.
     # 05:23 UTC = 14:23 JST. The canonical publisher is idempotent by target round.
     - cron: "23 5 * * 5"
   workflow_dispatch:
@@ -16,6 +16,7 @@ concurrency:
 
 jobs:
   publish-production-fallback:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -71,9 +72,9 @@ jobs:
             exit 1
           fi
 
-          if [ "${HM}" -ge 2000 ]; then
+          if [ "${HM}" -ge 1700 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
-            echo "::error::Production was not published before the 20:00 JST fail-closed cutoff"
+            echo "::error::Production was not published before the 17:00 JST fail-closed cutoff"
             exit 1
           fi
 
@@ -81,7 +82,7 @@ jobs:
           if [ "${HM}" -lt 1500 ]; then
             echo "[PRODUCTION-FALLBACK] normal publication allowed inside Friday 13:00-14:59 JST"
           else
-            echo "[PRODUCTION-FALLBACK] delayed GitHub recovery allowed until 19:59 JST"
+            echo "[PRODUCTION-FALLBACK] delayed GitHub recovery allowed until 16:59 JST"
           fi
 
       - name: Set up Python
@@ -133,6 +134,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python production_publication_deadline.py
           GITHUB_SHA="$(git rev-parse HEAD)" python weekly_production_prediction.py \
             --csv loto7.csv \
             --out-dir loto7_agent_output \
@@ -158,13 +160,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # The Production publication policy is unchanged; late recoveries
-          # cannot be recorded as *prospective* evidence after the cutoff.
-          if [ "$(TZ=Asia/Tokyo date +%H%M)" -lt 1800 ]; then
+          # New Production and its prospective control must both precede 17:00 JST.
+          if [ "$(TZ=Asia/Tokyo date +%H%M)" -lt 1700 ]; then
             python first_prize_research.py --mode freeze
             python first_prize_research.py --mode verify
           else
-            echo "::error::New publication cannot proceed after 18:00 JST"
+            echo "::error::New publication cannot proceed at/after 17:00 JST"
             exit 1
           fi
 
@@ -195,12 +196,7 @@ jobs:
             )
             git commit -m "chore: weekly Production fallback ${TARGET}"
             git pull --rebase
-            # Conservative exception ceiling for the current publication path.
-            # Do not publish newly generated tickets after the pre-draw cutoff.
-            if [ "$(TZ=Asia/Tokyo date +%u)" != 5 ] || [ "$(TZ=Asia/Tokyo date +%H%M)" -ge 1759 ]; then
-              echo "::error::Insufficient time to publish safely before 18:00 JST"
-              exit 1
-            fi
+            python production_publication_deadline.py --before-push
             timeout 30s git push origin HEAD:main
           else
             echo "[PRODUCTION-FALLBACK] canonical Production already current"

@@ -82,7 +82,7 @@ category B and the guard requirement applies).
 | `signal_expert_attribution_oos.yml` | push(main), schedule, manual | - |
 | `signal_meta_research.yml` | push(main), manual | - |
 | `weekly_production_fallback.yml` | schedule, manual | - |
-| `weekly_production_publisher.yml` | push(main), schedule, manual | - |
+| `weekly_production_publisher.yml` | push(main), schedule, manual, workflow_run (trusted main only) | - |
 
 ### Read-only (17)
 

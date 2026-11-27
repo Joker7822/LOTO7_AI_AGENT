@@ -40,10 +40,12 @@ JST = timezone(timedelta(hours=9))
 
 
 def production_window_guard(now: datetime) -> None:
+    if now.tzinfo is None:
+        raise RuntimeError("Production clock must be timezone-aware")
     local = now.astimezone(JST)
     hour_min = local.hour * 100 + local.minute
-    if local.weekday() != 4 or not (1300 <= hour_min < 2000):
-        raise RuntimeError("refusing disjoint35 Production outside Friday 13:00-19:59 JST")
+    if local.weekday() != 4 or not (1300 <= hour_min < 1700):
+        raise RuntimeError("refusing disjoint35 Production outside Friday 13:00-16:59 JST")
 
 
 def verify_source(csv_path: Path, source_path: Path,

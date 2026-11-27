@@ -6,7 +6,8 @@ on:
     - cron: "37 4 * * 5"   # Friday 13:37 JST
     - cron: "41 5 * * 5"   # Friday 14:41 JST
     - cron: "19 7 * * 5"   # Friday 16:19 JST
-    - cron: "11 9 * * 5"   # Friday 18:11 JST
+    - cron: "49 7 * * 5"   # Friday 16:49 JST
+    - cron: "1 8 * * 5"    # Friday 17:01 JST, alert only
   push:
     branches: [main]
     paths:
@@ -23,6 +24,7 @@ concurrency:
 
 jobs:
   verify-and-recover:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -41,8 +43,8 @@ jobs:
           # Never create a post-outcome forecast, even when push/dispatch is late.
           DOW=$(TZ=Asia/Tokyo date +%u)
           HM=$(TZ=Asia/Tokyo date +%H%M)
-          if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1300 ] || [ "${HM}" -ge 2000 ]; then
-            echo "[PRODUCTION-WATCHDOG] Outside Friday 13:00-19:59 JST; no dispatch"
+          if [ "${DOW}" != "5" ] || [ "${HM}" -lt 1300 ]; then
+            echo "[PRODUCTION-WATCHDOG] Outside Friday from 13:00 JST; no dispatch"
             exit 0
           fi
 
@@ -70,6 +72,15 @@ jobs:
           if [ "${ALREADY_PUBLISHED}" = "true" ]; then
             echo "[PRODUCTION-WATCHDOG] Today's canonical prediction is already issued"
             exit 0
+          fi
+
+          if [ "${HM}" -ge 1700 ]; then
+            echo "::error::17:00 JST cutoff missed; do not create a new prediction."
+            exit 1
+          fi
+          if [ "${HM}" -ge 1500 ]; then
+            echo "::warning::Canonical prediction is late (after 15:00 JST)."
+            echo "Production publication overdue; recovery requested before 17:00 JST." >> "$GITHUB_STEP_SUMMARY"
           fi
 
           # Avoid redundant dispatches while the publisher/fallback is active.

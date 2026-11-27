@@ -14,12 +14,13 @@ on:
     paths:
       - ".github/workflows/weekly_production_publisher.yml"
   # Event-driven recovery path: normal publication is targeted for 13:00-15:00 JST,
-  # but GitHub-delayed OOS completion may recover the publication until 19:59 JST.
+  # but GitHub-delayed OOS completion may recover the publication until 16:59 JST.
   workflow_run:
     workflows:
       - "Champion Calibration Future OOS"
       - "Signal Expert Attribution Future OOS"
       - "Pair Context v2 Numeric Diagnostics"
+      - "Recursive Code and Meta Evolution"
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -33,6 +34,17 @@ concurrency:
 
 jobs:
   publish-production:
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (
+        github.event_name != 'workflow_run' ||
+        (
+          github.event.workflow_run.conclusion == 'success' &&
+          github.event.workflow_run.head_branch == 'main' &&
+          github.event.workflow_run.head_repository.full_name == github.repository &&
+          github.event.workflow_run.event != 'pull_request'
+        )
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -47,6 +59,8 @@ jobs:
 
       - name: Gate Production publication window
         id: publication_gate
+        env:
+          BACKUP_HEARTBEAT: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.name == 'Recursive Code and Meta Evolution' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -94,7 +108,7 @@ jobs:
           fi
 
           # 11:00/12:00 JST lead probes are intentionally early. If GitHub runs them on time,
-          # they are clean no-ops; if GitHub delays them into 13:00-19:59, they become recovery runs.
+          # they are clean no-ops; if GitHub delays them into 13:00-16:59, they become recovery runs.
           if [ "${HM}" -lt 1300 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
             if [ "${GITHUB_EVENT_NAME}" = "schedule" ] || [ "${GITHUB_EVENT_NAME}" = "workflow_run" ] || [ "${GITHUB_EVENT_NAME}" = "push" ]; then
@@ -105,10 +119,14 @@ jobs:
             exit 1
           fi
 
-          # Recover GitHub-delayed runs until the result-check window begins.
-          if [ "${HM}" -ge 2000 ]; then
+          # Recover GitHub-delayed runs only before the user-selected cutoff.
+          if [ "${HM}" -ge 1700 ]; then
             echo "publish=false" >> "${GITHUB_OUTPUT}"
-            echo "::error::Production was not published before the 20:00 JST fail-closed cutoff"
+            if [ "$BACKUP_HEARTBEAT" = true ]; then
+              echo "Heartbeat is too late; no publication attempted."
+              exit 0
+            fi
+            echo "::error::Production was not published before the 17:00 JST fail-closed cutoff"
             exit 1
           fi
 
@@ -116,7 +134,7 @@ jobs:
           if [ "${HM}" -lt 1500 ]; then
             echo "[PRODUCTION] normal publication allowed inside Friday 13:00-14:59 JST"
           else
-            echo "[PRODUCTION] delayed GitHub recovery allowed until 19:59 JST"
+            echo "[PRODUCTION] delayed GitHub recovery allowed until 16:59 JST"
           fi
 
       - name: Set up Python
@@ -168,6 +186,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          python production_publication_deadline.py
           GITHUB_SHA="$(git rev-parse HEAD)" python weekly_production_prediction.py \
             --csv loto7.csv \
             --out-dir loto7_agent_output \
@@ -193,13 +212,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # The Production publication policy is unchanged; late recoveries
-          # cannot be recorded as *prospective* evidence after the cutoff.
-          if [ "$(TZ=Asia/Tokyo date +%H%M)" -lt 1800 ]; then
+          # New Production and its prospective control must both precede 17:00 JST.
+          if [ "$(TZ=Asia/Tokyo date +%H%M)" -lt 1700 ]; then
             python first_prize_research.py --mode freeze
             python first_prize_research.py --mode verify
           else
-            echo "::error::New publication cannot proceed after 18:00 JST"
+            echo "::error::New publication cannot proceed at/after 17:00 JST"
             exit 1
           fi
 
@@ -230,12 +248,7 @@ jobs:
             )
             git commit -m "chore: freeze weekly Production ${TARGET}"
             git pull --rebase
-            # Conservative exception ceiling for the current publication path.
-            # Do not publish newly generated tickets after the pre-draw cutoff.
-            if [ "$(TZ=Asia/Tokyo date +%u)" != 5 ] || [ "$(TZ=Asia/Tokyo date +%H%M)" -ge 1759 ]; then
-              echo "::error::Insufficient time to publish safely before 18:00 JST"
-              exit 1
-            fi
+            python production_publication_deadline.py --before-push
             timeout 30s git push origin HEAD:main
           else
             echo "[PRODUCTION] canonical Production already current"

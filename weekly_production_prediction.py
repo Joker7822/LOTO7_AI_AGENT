@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -175,6 +176,7 @@ def publish(
             if (raw_champion.get("model_version") != champion.version()
                     or v4.cfg_from_obj(raw_champion.get("config")) != champion):
                 raise RuntimeError("ranked Production requires a valid approved Champion file")
+        geometry35.production_window_guard(datetime.fromisoformat(v4.now_jst()))
         state = geometry35.prepare_new_production_outputs(
             csv_path=csv_path,
             out_dir=out_dir,
@@ -190,6 +192,7 @@ def publish(
             min_train=min_train,
         )
     else:
+        geometry35.production_window_guard(datetime.fromisoformat(v4.now_jst()))
         reused_current_outputs = current_production_outputs_are_current(
             out_dir,
             data_sha,
@@ -232,6 +235,9 @@ def publish(
             tuple(int(n) for n in r.get("numbers", "").split())
             for r in ticket_rows
         ])
+    # Recheck after expensive training, immediately before the canonical append.
+    checked_at = v4.now_jst()
+    geometry35.production_window_guard(datetime.fromisoformat(checked_at))
     added = ledger.append_current_predictions(
         loto_rows,
         ticket_rows,
@@ -276,7 +282,7 @@ def publish(
 
 def main() -> int:
     ap = argparse.ArgumentParser(
-        description="Publish Production prediction during the weekly Friday 13:00-15:00 JST window"
+        description="Publish Production Friday 13:00-15:00 JST; hard cutoff 17:00 JST"
     )
     ap.add_argument("--csv", type=Path, default=Path("loto7.csv"))
     ap.add_argument("--out-dir", type=Path, default=Path("loto7_agent_output"))
