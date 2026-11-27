@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-28T06:40:17+09:00",
-  "source_commit": "4d8ce6b5da4fb5ad829e01b9dfe71972412dfd98",
-  "state_hashes_sha256": "cc4ef91304b91800458d91cae1e9ee268246b6be81d6014f87a5c2f3a76d114f",
+  "generated_at_jst": "2026-11-28T08:36:44+09:00",
+  "source_commit": "c11f908b5c406fe258757c18d43647e760147d63",
+  "state_hashes_sha256": "73199084b13fda16732d69916b50cabf3ca675ca935f28749b1f95fbd541e709",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-28T06:37:52+09:00",
+      "checked_at_jst": "2026-11-28T08:34:24+09:00",
       "latest": {
         "round": 705,
         "date": "2026-11-27",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-27T19:09:39+09:00",
+      "checked_at_jst": "2026-11-28T06:43:52+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -42,12 +42,12 @@
             {
               "code": "TRUSTED_RESULT_EXACT_MATCH",
               "level": "ok",
-              "evidence": "round=704; secondary=loto7_tsushin"
+              "evidence": "round=705; secondary=loto7_tsushin"
             },
             {
               "code": "PAIR_CONTEXT_INT8_OVERFLOW",
               "level": "watch",
-              "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=704; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified"
+              "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=705; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified"
             }
           ]
         },
@@ -57,7 +57,7 @@
             {
               "code": "V2_LOCK_AND_IMMUTABLE_HISTORY",
               "level": "ok",
-              "evidence": "locked_manifest=e38bc090fe5d691f; trusted=4/26; target=705"
+              "evidence": "locked_manifest=e38bc090fe5d691f; trusted=5/26; target=706"
             }
           ]
         },
@@ -67,12 +67,12 @@
             {
               "code": "OOS_REFERENCE_CONSISTENCY",
               "level": "ok",
-              "evidence": "champion=baseline-5fdb8dc2ad; frozen=705; trusted=11/26"
+              "evidence": "champion=baseline-5fdb8dc2ad; frozen=706; trusted=12/26"
             },
             {
               "code": "NO_EARLY_PORTFOLIO_CLAIM",
               "level": "watch",
-              "evidence": "holdout=11/26"
+              "evidence": "holdout=12/26"
             }
           ]
         },
@@ -82,7 +82,7 @@
             {
               "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
               "level": "ok",
-              "evidence": "history reused; mode=WAIT_FOR_NEW_DATA; trials=602/800"
+              "evidence": "history reused; mode=SEARCH; trials=266/800"
             }
           ]
         },
@@ -92,7 +92,7 @@
             {
               "code": "RELEASE_SCHEDULE_GUARD",
               "level": "ok",
-              "evidence": "next=705 on 2026-11-27; already_published=True"
+              "evidence": "next=706 on 2026-12-04; already_published=False"
             }
           ]
         }
@@ -102,22 +102,22 @@
           "owner": "data_steward",
           "priority": "watch",
           "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=704; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified"
+          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=705; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified"
         },
         {
           "owner": "oos_risk_officer",
           "priority": "watch",
           "issue_code": "NO_EARLY_PORTFOLIO_CLAIM",
-          "evidence": "holdout=11/26"
+          "evidence": "holdout=12/26"
         }
       ],
-      "latest_resolved_round": 704
+      "latest_resolved_round": 705
     },
     "research": {
-      "generation": 6923,
-      "total_research_evaluations": 48460,
+      "generation": 7019,
+      "total_research_evaluations": 49132,
       "champion_version": "baseline-5fdb8dc2ad",
-      "last_run_jst": "2026-11-28T06:39:15+09:00"
+      "last_run_jst": "2026-11-28T08:34:51+09:00"
     },
     "holdout": {
       "status": "active",
@@ -142,15 +142,15 @@
     },
     "signal": {
       "status": "active_target_prefrozen_waiting_result",
-      "trusted_draws": 4,
+      "trusted_draws": 5,
       "horizon_trusted_draws": 26,
-      "current_target_round": 705,
+      "current_target_round": 706,
       "start_target_round": 701,
       "interim_descriptive": {
-        "mean_top7_hits": 0.75,
-        "mean_actual_inclusion_probability": 0.18867214791528794,
-        "mean_bernoulli_log_edge_vs_uniform": -0.0006556030672529717,
-        "mean_bernoulli_brier_edge_vs_uniform": -0.00020162978822131639
+        "mean_top7_hits": 1.0,
+        "mean_actual_inclusion_probability": 0.18869942772218629,
+        "mean_bernoulli_log_edge_vs_uniform": -0.0006236882598426363,
+        "mean_bernoulli_brier_edge_vs_uniform": -0.00019166132468252938
       }
     },
     "learning": {
@@ -192,7 +192,7 @@
     },
     "budget": {
       "mode": "SEARCH",
-      "signal_trials_this_data": 260,
+      "signal_trials_this_data": 452,
       "max_signal_trials_per_data": 800
     }
   },
@@ -203,9 +203,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 46061013668,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46061013668",
-      "updated_at": "2026-11-27T20:04:10Z",
+      "run_id": 46083080384,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46083080384",
+      "updated_at": "2026-11-27T23:32:58Z",
       "recent_failure_count": 1
     },
     {
@@ -222,12 +222,12 @@
     {
       "file": "always_on_accuracy_research.yml",
       "label": "自律研究監査",
-      "health": "warning",
+      "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 46003969874,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46003969874",
-      "updated_at": "2026-11-27T13:07:53Z",
+      "run_id": 46073702458,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46073702458",
+      "updated_at": "2026-11-27T22:01:28Z",
       "recent_failure_count": 0
     },
     {
@@ -255,23 +255,23 @@
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "running",
-      "status": "pending",
-      "conclusion": null,
-      "run_id": 46071756464,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46071756464",
-      "updated_at": "2026-11-27T21:39:56Z",
+      "health": "warning",
+      "status": "completed",
+      "conclusion": "skipped",
+      "run_id": 46083108674,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46083108674",
+      "updated_at": "2026-11-27T23:32:59Z",
       "recent_failure_count": 0
     },
     {
       "file": "joint_set_v2_signal_oos.yml",
       "label": "v2将来検証",
-      "health": "running",
-      "status": "in_progress",
-      "conclusion": null,
+      "health": "ok",
+      "status": "completed",
+      "conclusion": "success",
       "run_id": 46071564992,
       "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46071564992",
-      "updated_at": "2026-11-27T21:38:04Z",
+      "updated_at": "2026-11-27T21:40:56Z",
       "recent_failure_count": 0
     },
     {
@@ -280,9 +280,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 46011019926,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46011019926",
-      "updated_at": "2026-11-27T13:54:39Z",
+      "run_id": 46083080337,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46083080337",
+      "updated_at": "2026-11-27T23:34:06Z",
       "recent_failure_count": 0
     },
     {
@@ -423,6 +423,13 @@
         "mean_log_edge": -0.0006556031,
         "mean_brier_edge": -0.0002016298,
         "mean_top7_hits": 0.75
+      },
+      {
+        "round": 705,
+        "date": "2026-11-27",
+        "mean_log_edge": -0.0006236883,
+        "mean_brier_edge": -0.0001916613,
+        "mean_top7_hits": 1.0
       }
     ],
     "adaptive": [
@@ -733,18 +740,18 @@
     "adoption_pr_url": "https://github.com/Joker7822/LOTO7_AI_AGENT/pull/161"
   },
   "always_on_accuracy": {
-    "status": "stale_historical_activity",
+    "status": "registered_science_blocked_observational_audit",
     "observation_only": true,
     "registered_science_status": "BLOCKED_MISSING_PREFROZEN_701",
-    "activity_stale_vs_verified_round": true,
-    "activity_latest_round": 704,
+    "activity_stale_vs_verified_round": false,
+    "activity_latest_round": 705,
     "verified_latest_round": 705,
-    "sequence": 86,
-    "last_activity_jst": "2026-11-27T22:07:47+09:00",
-    "current_phase": "source_audit",
-    "current_activity": "科学的事前凍結欠損のため監査のみ：結果の二重ソース照合と鮮度を点検",
+    "sequence": 87,
+    "last_activity_jst": "2026-11-28T07:01:22+09:00",
+    "current_phase": "future_protocol",
+    "current_activity": "科学的事前凍結欠損のため監査のみ：事前凍結と真正将来採点の連続性を監査",
     "online_search_status": "not_scheduled",
-    "research_mode": "WAIT_FOR_NEW_DATA",
+    "research_mode": "SEARCH",
     "two_source_verified": true,
     "new_papers_count": 0,
     "papers": [
@@ -800,9 +807,8 @@
     "promotion_authorized": false,
     "review_notes": [
       "第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。",
-      "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "最新信頼ステータス: verified_two_result_sources"
+      "26回固定holdout 12/26、新規v2 5回"
     ]
   },
   "research_application": {
@@ -989,14 +995,14 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "4d8ce6b5da4fb5ad829e01b9dfe71972412dfd98",
-    "snapshot_generated_at_jst": "2026-11-28T06:40:17+09:00",
-    "computed_at_jst": "2026-11-27T21:40:17+00:00",
+    "source_commit": "c11f908b5c406fe258757c18d43647e760147d63",
+    "snapshot_generated_at_jst": "2026-11-28T08:36:44+09:00",
+    "computed_at_jst": "2026-11-27T23:36:44+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
-      "watch": 3,
-      "info": 0
+      "watch": 2,
+      "info": 1
     },
     "checkpoints": {
       "portfolio": {
@@ -1004,7 +1010,7 @@
         "fixed_horizon": 26
       },
       "v2_signal": {
-        "trusted_draws": 4,
+        "trusted_draws": 5,
         "fixed_horizon": 26
       },
       "adaptive": {
@@ -1013,19 +1019,6 @@
       }
     },
     "tasks": [
-      {
-        "id": "615a36ffa6f66937",
-        "priority": "watch",
-        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
-        "owner": "統計・リスクエージェント",
-        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
-        "detail": "監査の判定と元の公表記録を照合してください。",
-        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
-        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
-        "requires_existing_workflow_or_human_review": true,
-        "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
-      },
       {
         "id": "bef623a2503719e7",
         "priority": "watch",
@@ -1040,17 +1033,30 @@
         "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
       },
       {
-        "id": "23ac32ba2a5a9b34",
+        "id": "9386554c87a6f018",
         "priority": "watch",
-        "code": "WORKFLOW_WARNING:always_on_accuracy_research.yml",
-        "owner": "自律研究監査エージェント",
-        "title": "自律研究監査：研究台帳の更新を確認できません",
-        "detail": "Actionsの成功は研究台帳の更新を証明しません。",
-        "evidence": "46003969874",
-        "recommended_action": "事前凍結の欠損を後付け修復せず、研究活動台帳と科学レポートの前提を照合してください。",
+        "code": "WORKFLOW_WARNING:agent_role_council.yml",
+        "owner": "監査エージェント",
+        "title": "役割監査：スキップ・キャンセルなどを確認",
+        "detail": "最新の実行が正常終了として記録されていません。",
+        "evidence": "46083108674",
+        "recommended_action": "監査結果と入力データの整合性を確認してください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46003969874"
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46083108674"
+      },
+      {
+        "id": "615a36ffa6f66937",
+        "priority": "info",
+        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
+        "owner": "統計・リスクエージェント",
+        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
+        "detail": "監査の判定と元の公表記録を照合してください。",
+        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
+        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
       }
     ],
     "authority": {
