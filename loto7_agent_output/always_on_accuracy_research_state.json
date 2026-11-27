@@ -1,25 +1,25 @@
 {
   "version": "always-on-accuracy-research-v1",
-  "sequence": 79,
-  "last_record_sha256": "3c718b8804e7cdd574688613e6304daeb964de97c648b51edb10de12e20a827b",
-  "last_activity_jst": "2026-11-26T12:49:55+09:00",
-  "current_phase": "literature_search",
-  "current_activity": "科学的事前凍結欠損のため監査のみ：インターネットから最新の研究論文を検索",
+  "sequence": 88,
+  "last_record_sha256": "4173ea0aed811e26a0a22122c9ab561e89e2e6028036c5f0f02d6e5bf4dcf38b",
+  "last_activity_jst": "2026-11-28T08:47:41+09:00",
+  "current_phase": "generalization",
+  "current_activity": "科学的事前凍結欠損のため監査のみ：過去モデル比較・多重比較を点検",
   "status": "registered_science_blocked_observational_audit",
   "observation_only": true,
   "registered_science_status": "BLOCKED_MISSING_PREFROZEN_701",
-  "research_mode": "WAIT_FOR_NEW_DATA",
-  "latest_resolved_round": 704,
+  "research_mode": "SEARCH",
+  "latest_resolved_round": 705,
   "two_source_verified": true,
-  "same_data_trials": 602,
+  "same_data_trials": 472,
   "max_same_data_trials": 800,
   "future_verified_counts": {
-    "holdout": 11,
-    "v2": 4,
-    "adaptive": 4,
+    "holdout": 12,
+    "v2": 5,
+    "adaptive": 5,
     "fifth_expert": 0
   },
-  "online_search_status": "searched",
+  "online_search_status": "not_scheduled",
   "papers": [
     {
       "doi": "10.9734/cjast/2026/v45i124824",
@@ -221,10 +221,8 @@
   "new_papers_count": 0,
   "review_notes": [
     "第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。",
-    "探索予算ガードがWAIT_FOR_NEW_DATA。既存データの無制限再探索は禁止。",
     "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-    "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
-    "オンライン検索: searched / 新規候補 0件"
+    "過去の4/5モデル比較は探索済み。独立した未来結果なしに選別・昇格しない。"
   ],
   "promotion_authorized": false,
   "read_only_scientific_activity": true

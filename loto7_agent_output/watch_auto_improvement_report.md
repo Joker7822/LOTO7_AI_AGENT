@@ -1,10 +1,10 @@
 # Autonomous WATCH improvement (research-only, auditable)
 
-- Time UTC: 2026-11-26T08:06:53+00:00
+- Time UTC: 2026-11-27T21:44:59+00:00
 - Result: **research_fix_checked_only_not_production_resolved**
-- Trusted source: True; round #704
+- Trusted source: True; round #705
 - Champion (unchanged): `baseline-5fdb8dc2ad`
-- Budget: WAIT_FOR_NEW_DATA / 602/800
+- Budget: SEARCH / 268/800
 
 ## PAIR_CONTEXT_INT8_OVERFLOW
 - Research action: **separately_versioned_research_candidate_validated**
@@ -12,7 +12,7 @@
 - Corrected version: pair-context-wide-int-v2-research-only
 - Prior-only retrospective rounds: 120
 - Top7 hit change (descriptive): -0.075000
-- Marginal logscore change (descriptive): -0.05752892
+- Marginal logscore change (descriptive): -0.05721661
 - Separate versioned candidate only; existing model NOT corrected in Production.
 
 ## NO_EARLY_PORTFOLIO_CLAIM

@@ -23,7 +23,8 @@ def csvfile(path, columns, data):
         writer.writerows(data)
 
 
-def fixture(tmp_path):
+def fixture(tmp_path, target=702, policy=geometry.VERSION):
+    issuance = ISSUANCE + timedelta(days=7 * (target - 702))
     source = tmp_path / "loto7.csv"
     out = tmp_path / "out"
     root = tmp_path / "prospective"
@@ -31,7 +32,7 @@ def fixture(tmp_path):
     first = datetime(2026, 10, 30) - timedelta(days=7 * 700)
     # Realistic sequential test source: valid but synthetic and non-predictive.
     records = []
-    for i in range(701):
+    for i in range(target - 1):
         main = sorted(((i * 13 + j * 5) % 37) + 1 for j in range(7))
         remain = [n for n in range(1, 38) if n not in main]
         records.append({"抽せん日": (first + timedelta(days=7 * i)).date().isoformat(),
@@ -43,24 +44,24 @@ def fixture(tmp_path):
     last = records[-1]
     report = {
         "status": "ok", "verification": fp.TRUST,
-        "latest": {"round": 701, "date": last["抽せん日"],
+        "latest": {"round": target - 1, "date": last["抽せん日"],
                    "main": fp.numbers(last["本数字"], 7),
                    "bonus": fp.numbers(last["ボーナス数字"], 2)},
         "verification_provenance": {"draw_csv_sha256": sha},
-        "checked_at_jst": ISSUANCE.isoformat(),
+        "checked_at_jst": issuance.isoformat(),
     }
     source_report = out / "source_validation.json"
     source_report.write_text(json.dumps(report), encoding="utf-8")
-    target_date = (first + timedelta(days=7 * 701)).date().isoformat()
+    target_date = (first + timedelta(days=7 * (target - 1))).date().isoformat()
     issued = [{
-        "prediction_id": f"issued-702-{i}",
-        "prediction_created_at_jst": ISSUANCE.isoformat(),
-        "base_round": "第701回",
-        "target_round": "第702回",
+        "prediction_id": f"issued-{target}-{i}",
+        "prediction_created_at_jst": issuance.isoformat(),
+        "base_round": f"第{target - 1}回",
+        "target_round": f"第{target}回",
         "target_draw_date_estimate": target_date,
         "ticket": str(i),
         "predicted_numbers": " ".join(f"{n:02d}" for n in ticket),
-        "model_version": "baseline+" + geometry.VERSION,
+        "model_version": "baseline+" + policy,
         "data_sha256": sha,
     } for i, ticket in enumerate([
         tuple(range(k * 7 + 1, k * 7 + 8)) for k in range(5)
@@ -68,11 +69,11 @@ def fixture(tmp_path):
     csvfile(out / "predictions.csv", list(issued[0]), issued)
     csvfile(out / "prediction_corrections.csv", ["prediction_id", "action"], [])
     state = {
-        "published": True, "target_round": "第702回",
+        "published": True, "target_round": f"第{target}回",
         "reason": "frozen_to_canonical_prediction_ledger",
-        "ticket_policy": geometry.VERSION,
-        "published_at_jst": ISSUANCE.isoformat(),
-        "model_version": "baseline+" + geometry.VERSION,
+        "ticket_policy": policy,
+        "published_at_jst": issuance.isoformat(),
+        "model_version": "baseline+" + policy,
         "data_sha256": sha,
     }
     (out / "weekly_production_prediction_state.json").write_text(
@@ -225,7 +226,42 @@ def test_primary_and_fallback_commit_freeze_with_original_issued_production():
         assert publication_gate < freeze < commit
         assert "research/first_prize_oos" in text
         assert "Refusing non-additive first-prize archive change" in text
-        assert 'date +%H%M)" -lt 1800' in text
+        assert 'date +%H%M)" -lt 1700' in text
         assert text.count("      - name: Commit Production checkpoint") == 1
         assert "prediction_db_sync.py" not in text
         assert "SAKURA_PREDICTION_" not in text
+
+
+def test_roi_cash_v2_freeze_uses_authorized_actual_ledger_policy(tmp_path):
+    source, report, out, root = fixture(tmp_path, target=705, policy=geometry.ROI_CASH_VERSION)
+    now = ISSUANCE + timedelta(days=21)
+    state_path = out / "weekly_production_prediction_state.json"
+    state = fp.load_json(state_path)
+    state_path.write_text(json.dumps({**state, "ticket_policy": geometry.VERSION}))
+    with pytest.raises(ValueError, match="policy differs"):
+        fp.freeze(source, report, out, root, now=now)
+    assert not root.exists()
+    state_path.write_text(json.dumps(state))
+    assert fp.freeze(source, report, out, root, now=now)["status"] == "prefrozen"
+    path = fp.freeze_file(root, 705)
+    before = path.read_bytes()
+    record = fp.load_json(path)
+    assert record["policy"] == geometry.VERSION  # unchanged geometry protocol
+    assert record["production_ticket_policy"] == geometry.ROI_CASH_VERSION
+    assert fp.validate_archive(root, out)[705] == record
+    assert fp.freeze(source, report, out, root, now=now)["status"] == "already_prefrozen"
+    assert path.read_bytes() == before
+    record["production_ticket_policy"] = geometry.VERSION
+    path.write_text(json.dumps(record))
+    with pytest.raises(ValueError, match="policy differs"):
+        fp.validate_archive(root, out)
+
+
+def test_legacy_archive_without_new_policy_field_remains_valid(tmp_path):
+    source, report, out, root = fixture(tmp_path)
+    fp.freeze(source, report, out, root, now=ISSUANCE)
+    path = fp.freeze_file(root, 702)
+    old = fp.load_json(path)
+    old.pop("production_ticket_policy")
+    path.write_text(json.dumps(old))
+    assert fp.validate_archive(root, out)[702] == old

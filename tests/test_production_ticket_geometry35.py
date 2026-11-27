@@ -45,7 +45,9 @@ def test_render_is_parseable_as_canonical_candidate_tickets():
     ("2026-10-25", 23, 35, False),  # Sunday
     ("2026-10-30", 12, 59, False),
     ("2026-10-30", 13, 0, True),
-    ("2026-10-30", 19, 59, True),
+    ("2026-10-30", 16, 59, True),
+    ("2026-10-30", 17, 0, False),
+    ("2026-10-30", 19, 59, False),
     ("2026-10-30", 20, 0, False),
     ("2026-10-31", 14, 0, False),
 ])

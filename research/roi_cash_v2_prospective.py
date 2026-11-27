@@ -15,10 +15,13 @@ import os
 import random
 import re
 import subprocess
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone, date, time
 from pathlib import Path
 
-from first_prize_research import checked_source, frozen_now, load_json, sha_object
+from first_prize_research import checked_source, load_json, sha_object
+from production_roi_cash35_v2 import training_arrays_from_canonical_rows
+from research.roi_cash_robust_v3 import refine
+from research.roi_cash_cooccurrence_v4 import refine_cooccurrence
 from loto7_evolving_agent import make_history, read_csv_flexible, walk_forward_evolve, final_score
 import loto7_v2_runner as v2
 from production_ticket_geometry35 import ranked_portfolio_from_scores
@@ -26,7 +29,13 @@ from production_roi_cash35_v2 import candidate_from_canonical_rows
 from combination_agent35_core import AgentConfig, candidate_from_history
 from balanced_uniform_portfolio import validate_portfolio
 
-VERSION = "roi-cash-v2-prospective-commitment-v1"
+VERSION = "roi-cash-combination-prospective-commitment-v2"
+FIRST_TARGET, LAST_TARGET = 706, 731
+CUTOFF = time(17)
+
+def frozen_now(now, draw_date):
+    if now.tzinfo is None or now >= datetime.combine(date.fromisoformat(draw_date), CUTOFF, JST):
+        raise ValueError("cannot freeze at/after 17:00 JST on draw day")
 JST = timezone(timedelta(hours=9))
 ARCHIVE = Path("research/roi_cash_v2_prospective")
 REGISTRATION = ARCHIVE / "registration.json"
@@ -39,23 +48,24 @@ def git_blob(path):
 
 def protocol(root):
     p = load_json(root / REGISTRATION)
-    if (p.get("version") != VERSION or p.get("first_target") != 705
-            or p.get("last_target") != 730 or p.get("fixed_rounds") != 26
+    if (p.get("version") != VERSION or p.get("first_target") != FIRST_TARGET
+            or p.get("last_target") != LAST_TARGET or p.get("fixed_rounds") != 26
             or p.get("champion") != "baseline-5fdb8dc2ad"
             or p.get("candidate_version") != "research-roi-cash-trained-ranked35-v2"
-            or p.get("arms") != ["cash_v2", "pairwise_v1", "matched_random32"]
+            or p.get("arms") != ["cash_v2", "robust_v3", "cooccurrence_v4", "pairwise_v1", "matched_random32"]
             or p.get("tickets_per_arm") != 5 or p.get("cost_yen_per_arm") != 1500
-            or p.get("cutoff_jst") != "18:00:00"
+            or p.get("cutoff_jst") != "17:00:00"
             or p.get("authority") != "research_only_no_purchase_no_promotion_no_production_change"
             or p.get("matched_seed") != "sha256(protocol_sha256|target|base_csv_sha256|member_index)"
             or p.get("primary_endpoint") != "paired_total_public_payout_yen_vs_pairwise_v1"
             or p.get("secondary_endpoint") != "paired_total_public_payout_yen_vs_mean_matched_random32"
             or p.get("robustness") != ["exclude_top_four_positive_paired_deltas","last_13_rounds"]
             or p.get("missing_round_policy") != "fixed_horizon_no_replacement_no_backfill_no_confirmatory_claim_if_incomplete"
+            or p.get("additional_exploratory_endpoints") != ["paired_v3_vs_v2","paired_v4_vs_v2"]
             or p.get("independent_receipt_required") is not True):
         raise ValueError("prospective protocol changed")
     pins = p.get("algorithm_git_blob_sha1")
-    required = ["audit_ledger.py","balanced_uniform_portfolio.py","combination_agent35_core.py","first_prize_research.py","loto7_evolving_agent.py","loto7_v2_runner.py","production_disjoint35_policy.py","production_roi_cash35_v2.py","production_ticket_geometry35.py","requirements.txt","research/roi_cash_agent_v2.py"]
+    required = ["audit_ledger.py","balanced_uniform_portfolio.py","combination_agent35_core.py","first_prize_research.py","loto7_evolving_agent.py","loto7_v2_runner.py","production_disjoint35_policy.py","production_roi_cash35_v2.py","production_ticket_geometry35.py","requirements.txt","research/roi_cash_agent_v2.py","research/roi_cash_robust_v3.py","research/roi_cash_cooccurrence_v4.py"]
     if not isinstance(pins, dict) or set(pins) != set(required):
         raise ValueError("algorithm manifest incomplete")
     for name, digest in pins.items():
@@ -75,6 +85,11 @@ def hash_portfolios(tickets, ranking):
 def commitments(history, canonical, ranking, p_hash, target, base_sha):
     cash, _ = candidate_from_canonical_rows(canonical, ranking)
     old, _ = candidate_from_history(history, ranking, AgentConfig())
+    h,b,p = training_arrays_from_canonical_rows(canonical)
+    if not (h.shape == history.shape and (h == history).all()):
+        raise ValueError("canonical history mismatch")
+    robust,_ = refine(h,b,p,ranking)
+    cooccurrence,_ = refine_cooccurrence(h,b,p,ranking,start=robust)
     matched = []
     for i in range(32):
         seed = int(hashlib.sha256(f"{p_hash}|{target}|{base_sha}|{i}".encode()).hexdigest(), 16)
@@ -83,6 +98,8 @@ def commitments(history, canonical, ranking, p_hash, target, base_sha):
         matched.append(hash_portfolios([sorted(permutation[j:j+7]) for j in range(0,35,7)], ranking))
     return {"cash_v2_sha256": hash_portfolios(cash, ranking),
             "pairwise_v1_sha256": hash_portfolios(old, ranking),
+            "robust_v3_sha256": hash_portfolios(robust, ranking),
+            "cooccurrence_v4_sha256": hash_portfolios(cooccurrence, ranking),
             "matched_random32_sha256": matched,
             "ranking_sha256": sha_object(ranking)}
 
@@ -102,12 +119,12 @@ def validate_commitments(root, p, p_hash):
                 or record.get("independent_snapshot_audit_passed") is not False):
             raise ValueError("existing commitment or protocol changed")
         digests = record.get("digests")
-        if not isinstance(digests, dict) or set(digests) != {"cash_v2_sha256","pairwise_v1_sha256","matched_random32_sha256","ranking_sha256"}:
+        if not isinstance(digests, dict) or set(digests) != {"cash_v2_sha256","pairwise_v1_sha256","robust_v3_sha256","cooccurrence_v4_sha256","matched_random32_sha256","ranking_sha256"}:
             raise ValueError("invalid commitment digests")
         matched = digests["matched_random32_sha256"]
         if not isinstance(matched, list) or len(matched) != 32:
             raise ValueError("invalid matched control commitments")
-        values = matched + [digests[k] for k in ("cash_v2_sha256","pairwise_v1_sha256","ranking_sha256")]
+        values = matched + [digests[k] for k in ("cash_v2_sha256","pairwise_v1_sha256","robust_v3_sha256","cooccurrence_v4_sha256","ranking_sha256")]
         if not all(isinstance(x,str) and re.fullmatch(r"[a-f0-9]{64}",x) for x in values):
             raise ValueError("invalid commitment digest")
         created = datetime.fromisoformat(record["created_at_jst"])
@@ -193,8 +210,15 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--verify-registration", action="store_true")
+    parser.add_argument("--before-push", type=Path)
     args = parser.parse_args()
     root = args.repo_root
+    if args.before_push:
+        record=load_json(args.before_push)
+        p=protocol(root)
+        validate_commitments(root,p,sha_object(p))
+        frozen_now(datetime.now(JST)+timedelta(minutes=1),record["draw_date"])
+        return
     if args.verify_registration:
         print("Registered protocol SHA256:", sha_object(protocol(root)))
         return

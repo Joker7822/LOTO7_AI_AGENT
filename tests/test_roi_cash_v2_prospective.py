@@ -8,7 +8,7 @@ import research.roi_cash_v2_prospective as p
 
 def test_registration_pins_current_algorithms():
     reg=p.protocol(Path("."))
-    assert reg["first_target"]==705 and reg["last_target"]==730
+    assert reg["first_target"]==706 and reg["last_target"]==731
     assert reg["independent_receipt_required"] is True
 
 
@@ -31,34 +31,34 @@ def test_actual_prefix_freeze_is_additive_and_before_cutoff(tmp_path):
         dest=tmp_path/path
         dest.parent.mkdir(parents=True,exist_ok=True)
         shutil.copyfile(root/path,dest)
-    # Only the actual #704 prefix can exercise this fixed-clock example.
+    # Only the actual #705 prefix can exercise this fixed-clock example.
     current=json.loads((tmp_path/"loto7_agent_output/source_validation.json").read_text())
-    if current.get("latest",{}).get("round")!=704:
-        return
+    if current.get("latest",{}).get("round")!=705:
+        pytest.skip("fixed live-prefix test requires round 705; archive tests still run")
     import os
     from unittest.mock import patch
     with patch.dict(os.environ,{"GITHUB_ACTIONS":"false"}):
-        result=p.freeze(tmp_path,now=datetime(2026,11,26,9,tzinfo=timezone.utc),
+        result=p.freeze(tmp_path,now=datetime(2026,11,28,0,tzinfo=timezone.utc),
                         run_id="123",source_commit="a"*40)
         # The frozen historical CI fixture, or an advanced live source, must
-        # not manufacture a target 705 freeze from an unrelated history.
+        # not manufacture a target 706 freeze from an unrelated history.
         if result["status"]!="hash_commitment_created":
             assert result["status"] in {"outside_fixed_horizon","awaiting_verified_source",
                                        "awaiting_explicit_schedule","cutoff_passed_no_backfill"}
             return
-        assert result["target_round"]==705
+        assert result["target_round"]==706
         path=Path(result["file"])
         before=path.read_bytes()
         record=json.loads(before)
         assert record["independent_snapshot_audit_passed"] is False
         assert record["production_changed"] is False
         assert len(record["digests"]["matched_random32_sha256"])==32
-        assert set(record["digests"])=={"cash_v2_sha256","pairwise_v1_sha256","matched_random32_sha256","ranking_sha256"}
-        assert p.freeze(tmp_path,now=datetime(2026,11,27,9,tzinfo=timezone.utc),
+        assert set(record["digests"])=={"cash_v2_sha256","pairwise_v1_sha256","robust_v3_sha256","cooccurrence_v4_sha256","matched_random32_sha256","ranking_sha256"}
+        assert p.freeze(tmp_path,now=datetime(2026,12,4,8,tzinfo=timezone.utc),
                         run_id="124",source_commit="b"*40)["status"]=="already_committed"
         assert path.read_bytes()==before
         path.unlink()
-        assert p.freeze(tmp_path,now=datetime(2026,11,27,9,tzinfo=timezone.utc),
+        assert p.freeze(tmp_path,now=datetime(2026,12,4,8,tzinfo=timezone.utc),
                         run_id="124",source_commit="b"*40)["status"]=="cutoff_passed_no_backfill"
         assert not path.exists()
 
@@ -67,14 +67,15 @@ def test_prior_commitments_bind_registration_and_reject_changed_digest(tmp_path)
     pth=tmp_path/p.ARCHIVE
     pth.mkdir(parents=True)
     d={"cash_v2_sha256":"a"*64,"pairwise_v1_sha256":"b"*64,"ranking_sha256":"c"*64,
+       "robust_v3_sha256":"a"*64,"cooccurrence_v4_sha256":"b"*64,
        "matched_random32_sha256":["d"*64]*32}
-    record={"version":p.VERSION,"target_round":705,"base_round":704,"protocol_sha256":"e"*64,
+    record={"version":p.VERSION,"target_round":706,"base_round":705,"protocol_sha256":"e"*64,
             "production_changed":False,"prediction_skill_confirmed":False,
             "independent_snapshot_audit_passed":False,"digests":d,
-            "created_at_jst":"2026-11-26T18:00:00+09:00","draw_date":"2026-11-27"}
-    f=pth/"commitment_0705.json"
+            "created_at_jst":"2026-11-28T09:00:00+09:00","draw_date":"2026-12-04"}
+    f=pth/"commitment_0706.json"
     f.write_text(json.dumps(record))
-    reg={"first_target":705,"last_target":730}
+    reg={"first_target":706,"last_target":731}
     p.validate_commitments(tmp_path,reg,"e"*64)
     with pytest.raises(ValueError,match="protocol changed"):
         p.validate_commitments(tmp_path,reg,"f"*64)
@@ -82,3 +83,11 @@ def test_prior_commitments_bind_registration_and_reject_changed_digest(tmp_path)
     f.write_text(json.dumps(record))
     with pytest.raises(ValueError,match="invalid commitment digest"):
         p.validate_commitments(tmp_path,reg,"e"*64)
+
+
+def test_registered_cutoff_is_1700_jst():
+    from datetime import timedelta
+    local=timezone(timedelta(hours=9))
+    p.frozen_now(datetime(2026,12,4,16,59,59,tzinfo=local),"2026-12-04")
+    with pytest.raises(ValueError,match="17:00"):
+        p.frozen_now(datetime(2026,12,4,17,tzinfo=local),"2026-12-04")

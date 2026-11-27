@@ -3,7 +3,7 @@
 _Generated from a full static audit of `.github/workflows/` on 2026-11-24; updated for the three-job-split migration and external integration retirement on 2026-11-25; strict OOS bootstrap, role council and bibliography split on 2026-11-26.
 Counts are measured, not estimated: 56 workflows, 40 with
 `contents: write`, 16 read-only. Every `contents: write` workflow was
-checked for an actual `git push` — all 40 push their own research or
+checked for an actual `git push` — all 39 push their own research or
 production outputs back to `main`, so none of them can be downgraded to
 read-only without breaking their function. The risk to manage is
 therefore **when** the write token is exposed, not whether it exists._
@@ -83,7 +83,7 @@ category B and the guard requirement applies).
 | `signal_expert_attribution_oos.yml` | push(main), schedule, manual | - |
 | `signal_meta_research.yml` | push(main), manual | - |
 | `weekly_production_fallback.yml` | schedule, manual | - |
-| `weekly_production_publisher.yml` | push(main), schedule, manual | - |
+| `weekly_production_publisher.yml` | push(main), schedule, manual, workflow_run (trusted main only) | - |
 
 ### Read-only (17)
 
