@@ -166,8 +166,6 @@ def publish(
         v4.write_json(out_dir / "weekly_production_prediction_state.json", result)
         return result
 
-    geometry35.production_window_guard(datetime.fromisoformat(v4.now_jst()))
-
     # Frozen predictions are handled above; the new ranked layout starts
     # only with unfrozen targets 705+. Research promotion gates are untouched.
     if target_round >= geometry35.MIN_TARGET_ROUND:
@@ -178,6 +176,7 @@ def publish(
             if (raw_champion.get("model_version") != champion.version()
                     or v4.cfg_from_obj(raw_champion.get("config")) != champion):
                 raise RuntimeError("ranked Production requires a valid approved Champion file")
+        geometry35.production_window_guard(datetime.fromisoformat(v4.now_jst()))
         state = geometry35.prepare_new_production_outputs(
             csv_path=csv_path,
             out_dir=out_dir,
@@ -193,6 +192,7 @@ def publish(
             min_train=min_train,
         )
     else:
+        geometry35.production_window_guard(datetime.fromisoformat(v4.now_jst()))
         reused_current_outputs = current_production_outputs_are_current(
             out_dir,
             data_sha,
