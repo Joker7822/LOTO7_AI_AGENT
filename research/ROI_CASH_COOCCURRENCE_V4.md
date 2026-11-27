@@ -1,0 +1,7 @@
+# Shrunk pair/triple combination v4 — research only (2026-11-28)
+
+Full-history pair/triple frequency search (705 draws) found no Bonferroni-significant pair or triple. Historical top-20 patterns selected on rounds 1–450 did not beat fair expectations on rounds 451–705. Do not interpret frequent pairs as predictive evidence.
+
+Candidate: start from v3's 35 labels/five disjoint tickets. In each half of the prior 104 draws, calculate exact fair-draw reference frequencies (7/37, 21/666, 35/7770); shrink pair estimates with 104 pseudo draws and triple estimates with 416 pseudo draws. Use centered log ratios after removing lower-order main/pair effects, clip at +/-1, score each ticket by average pair score plus 0.5 times average triple score. At most two cross-ticket swaps, require positive interaction gain in both halves and no loss of capped cash or 3+ concentration in either half. These are engineering regularizers, not statistically established parameters or significance tests.
+
+Reuse the existing read-only v2/v3 replay workflow, no added agent or schedule. Refit on strictly prior draws and compare v4/v3/v2/rank-order/matched32 using unchanged 35 labels, same hypothetical ¥1500 per draw and uncapped public cash. Reject missing data and v3 replay mismatch. Report only historical metrics; no new future vectors. Fixed study ends at the report artifact, no automatic promotion. Existing production code, issued ledger, prior candidate archive and registration untouched. Bounded exception to research expansion policy, not independent future evidence.
