@@ -164,7 +164,8 @@ jobs:
             python first_prize_research.py --mode freeze
             python first_prize_research.py --mode verify
           else
-            echo "[FIRST-PRIZE] prospective freeze excluded after 18:00 JST"
+            echo "::error::New publication cannot proceed after 18:00 JST"
+            exit 1
           fi
 
       - name: Commit Production checkpoint
@@ -194,7 +195,13 @@ jobs:
             )
             git commit -m "chore: weekly Production fallback ${TARGET}"
             git pull --rebase
-            git push
+            # Conservative exception ceiling for the current publication path.
+            # Do not publish newly generated tickets after the pre-draw cutoff.
+            if [ "$(TZ=Asia/Tokyo date +%u)" != 5 ] || [ "$(TZ=Asia/Tokyo date +%H%M)" -ge 1759 ]; then
+              echo "::error::Insufficient time to publish safely before 18:00 JST"
+              exit 1
+            fi
+            timeout 30s git push origin HEAD:main
           else
             echo "[PRODUCTION-FALLBACK] canonical Production already current"
           fi
