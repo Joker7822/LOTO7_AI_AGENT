@@ -1,34 +1,34 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-28T03:58:59+09:00",
-  "source_commit": "67a8d5ac049ad23726b96a215f5eca22f0084687",
-  "state_hashes_sha256": "efe6100498767b67796d91d311ced7a9cb235366609402b3a578f99d1a992c59",
+  "generated_at_jst": "2026-11-28T06:40:17+09:00",
+  "source_commit": "4d8ce6b5da4fb5ad829e01b9dfe71972412dfd98",
+  "state_hashes_sha256": "cc4ef91304b91800458d91cae1e9ee268246b6be81d6014f87a5c2f3a76d114f",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-27T17:13:54+09:00",
+      "checked_at_jst": "2026-11-28T06:37:52+09:00",
       "latest": {
-        "round": 704,
-        "date": "2026-11-20",
+        "round": 705,
+        "date": "2026-11-27",
         "main": [
           3,
           4,
-          14,
-          16,
-          28,
-          36,
-          37
+          7,
+          11,
+          25,
+          31,
+          34
         ],
         "bonus": [
-          21,
-          30
+          10,
+          36
         ]
       },
       "sources": {
         "official_schedule": {
-          "round": 705,
-          "date": "2026-11-27"
+          "round": 706,
+          "date": "2026-12-04"
         }
       }
     },
@@ -114,14 +114,14 @@
       "latest_resolved_round": 704
     },
     "research": {
-      "generation": 6792,
-      "total_research_evaluations": 47543,
+      "generation": 6923,
+      "total_research_evaluations": 48460,
       "champion_version": "baseline-5fdb8dc2ad",
-      "last_run_jst": "2026-11-21T09:41:26+09:00"
+      "last_run_jst": "2026-11-28T06:39:15+09:00"
     },
     "holdout": {
       "status": "active",
-      "trusted_draws": 11,
+      "trusted_draws": 12,
       "horizon_trusted_draws": 26,
       "graded_rounds": [
         693,
@@ -135,7 +135,8 @@
         701,
         702,
         703,
-        704
+        704,
+        705
       ],
       "start_target_round": 693
     },
@@ -154,18 +155,18 @@
     },
     "learning": {
       "status": "active_prefrozen_waiting_result",
-      "trusted_draws": 4,
-      "current_prefrozen_target": 705,
-      "latest_seen_round": 704,
+      "trusted_draws": 5,
+      "current_prefrozen_target": 706,
+      "latest_seen_round": 705,
       "descriptive_future_only": {
-        "mean_log_edge_vs_uniform": -0.0005213118962063418,
-        "mean_brier_edge_vs_uniform": -0.0001624070185105228,
+        "mean_log_edge_vs_uniform": -0.0006450255956845452,
+        "mean_brier_edge_vs_uniform": -0.00020025153069159752,
         "mean_top7_hits": 1.0,
         "uniform_expected_top7_hits": 1.3243243243243243
       },
       "drift_monitoring": {
-        "recent_observed_draws": 4,
-        "recent_mean_log_edge": -0.0005213118962063418,
+        "recent_observed_draws": 5,
+        "recent_mean_log_edge": -0.0006450255956845452,
         "watch_no_claim_of_improvement": true
       }
     },
@@ -190,8 +191,8 @@
       "synthetic_null_p_log_edge": 0.7692307692307693
     },
     "budget": {
-      "mode": "WAIT_FOR_NEW_DATA",
-      "signal_trials_this_data": 602,
+      "mode": "SEARCH",
+      "signal_trials_this_data": 260,
       "max_signal_trials_per_data": 800
     }
   },
@@ -202,9 +203,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 46052091142,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46052091142",
-      "updated_at": "2026-11-27T18:47:48Z",
+      "run_id": 46061013668,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46061013668",
+      "updated_at": "2026-11-27T20:04:10Z",
       "recent_failure_count": 1
     },
     {
@@ -213,15 +214,15 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 45978141397,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45978141397",
-      "updated_at": "2026-11-27T09:59:49Z",
+      "run_id": 46071564882,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46071564882",
+      "updated_at": "2026-11-27T21:39:51Z",
       "recent_failure_count": 0
     },
     {
       "file": "always_on_accuracy_research.yml",
       "label": "自律研究監査",
-      "health": "ok",
+      "health": "warning",
       "status": "completed",
       "conclusion": "success",
       "run_id": 46003969874,
@@ -254,23 +255,23 @@
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 45979370881,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45979370881",
-      "updated_at": "2026-11-27T10:09:45Z",
+      "health": "running",
+      "status": "pending",
+      "conclusion": null,
+      "run_id": 46071756464,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46071756464",
+      "updated_at": "2026-11-27T21:39:56Z",
       "recent_failure_count": 0
     },
     {
       "file": "joint_set_v2_signal_oos.yml",
       "label": "v2将来検証",
-      "health": "ok",
-      "status": "completed",
-      "conclusion": "success",
-      "run_id": 45975444470,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/45975444470",
-      "updated_at": "2026-11-27T09:40:08Z",
+      "health": "running",
+      "status": "in_progress",
+      "conclusion": null,
+      "run_id": 46071564992,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46071564992",
+      "updated_at": "2026-11-27T21:38:04Z",
       "recent_failure_count": 0
     },
     {
@@ -290,9 +291,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 46052704478,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46052704478",
-      "updated_at": "2026-11-27T18:53:09Z",
+      "run_id": 46061002125,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46061002125",
+      "updated_at": "2026-11-27T20:03:54Z",
       "recent_failure_count": 0
     },
     {
@@ -385,6 +386,13 @@
         "mean_delta_vs_random": -0.0963636364,
         "mean_delta_vs_champion": 0.0154545455,
         "holdout_max_hits": 3
+      },
+      {
+        "round": 705,
+        "date": "2026-11-27",
+        "mean_delta_vs_random": -0.0,
+        "mean_delta_vs_champion": 0.0141666667,
+        "holdout_max_hits": 2
       }
     ],
     "v2": [
@@ -444,6 +452,13 @@
         "date": "2026-11-20",
         "mean_log_edge": -0.0005213119,
         "mean_brier_edge": -0.000162407,
+        "mean_top7_hits": 1.0
+      },
+      {
+        "round": 705,
+        "date": "2026-11-27",
+        "mean_log_edge": -0.0006450256,
+        "mean_brier_edge": -0.0002002515,
         "mean_top7_hits": 1.0
       }
     ],
@@ -525,40 +540,88 @@
         ]
       }
     ],
-    "result_status": "awaiting_independently_verified_draw",
-    "current_result": null,
-    "latest_verified": {
-      "round": 704,
-      "date": "2026-11-20",
+    "result_status": "independently_verified",
+    "current_result": {
+      "round": 705,
+      "date": "2026-11-27",
       "main": [
         3,
         4,
-        14,
-        16,
-        28,
-        36,
-        37
+        7,
+        11,
+        25,
+        31,
+        34
       ],
       "bonus": [
-        21,
-        30
+        10,
+        36
       ],
-      "source_verification": "verified_two_result_sources",
-      "issued_at_jst": "2026-11-20T16:02:29+09:00",
       "tickets": [
         {
           "ticket": 1,
           "main_hits": 1,
+          "bonus_hits": 1,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 2,
+          "main_hits": 2,
           "bonus_hits": 0,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 3,
+          "main_hits": 1,
+          "bonus_hits": 1,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 4,
+          "main_hits": 2,
+          "bonus_hits": 0,
+          "grade": "はずれ"
+        },
+        {
+          "ticket": 5,
+          "main_hits": 1,
+          "bonus_hits": 0,
+          "grade": "はずれ"
+        }
+      ]
+    },
+    "latest_verified": {
+      "round": 705,
+      "date": "2026-11-27",
+      "main": [
+        3,
+        4,
+        7,
+        11,
+        25,
+        31,
+        34
+      ],
+      "bonus": [
+        10,
+        36
+      ],
+      "source_verification": "verified_two_result_sources",
+      "issued_at_jst": "2026-11-27T17:13:54+09:00",
+      "tickets": [
+        {
+          "ticket": 1,
+          "main_hits": 1,
+          "bonus_hits": 1,
           "grade": "はずれ",
           "numbers": [
-            5,
+            3,
             13,
-            17,
-            18,
+            21,
+            23,
             24,
             26,
-            37
+            36
           ]
         },
         {
@@ -567,43 +630,43 @@
           "bonus_hits": 0,
           "grade": "はずれ",
           "numbers": [
-            12,
-            14,
+            1,
+            5,
+            6,
+            11,
             15,
-            20,
-            32,
-            33,
-            36
+            16,
+            34
           ]
         },
         {
           "ticket": 3,
-          "main_hits": 3,
+          "main_hits": 1,
           "bonus_hits": 1,
-          "grade": "6等",
+          "grade": "はずれ",
           "numbers": [
-            3,
             8,
-            16,
-            21,
-            28,
-            34,
+            10,
+            14,
+            17,
+            18,
+            25,
             35
           ]
         },
         {
           "ticket": 4,
-          "main_hits": 0,
+          "main_hits": 2,
           "bonus_hits": 0,
           "grade": "はずれ",
           "numbers": [
-            2,
             7,
-            11,
+            9,
+            20,
             22,
-            25,
-            27,
-            29
+            28,
+            31,
+            37
           ]
         },
         {
@@ -612,13 +675,13 @@
           "bonus_hits": 0,
           "grade": "はずれ",
           "numbers": [
-            1,
+            2,
             4,
-            9,
-            10,
+            12,
             19,
-            23,
-            31
+            29,
+            30,
+            32
           ]
         }
       ]
@@ -634,11 +697,11 @@
     "operator_selected": true,
     "adoption": "explicit_operator_instruction_not_statistical_promotion",
     "new_issuance_from_round": 705,
-    "next_target_round": 705,
+    "next_target_round": 706,
     "latest_issued_target_round": 705,
     "latest_issued_policy": "production-ai-ranked35-roi-cash-v2",
     "latest_issued_v2": true,
-    "issuance_status": "roi_v2_published",
+    "issuance_status": "selected_not_yet_issued",
     "source_verified": true,
     "reference": {
       "scope": "exploratory_walk_forward_hypothetical_purchases",
@@ -647,7 +710,7 @@
       "last_draw_date": "2026-11-20",
       "draw_count": 703,
       "public_data_sha256": "9114a6f11003e7cc590e317f50b08da7cfc32cd5dfb1b9779432b032eca87b80",
-      "same_dataset_as_latest": true,
+      "same_dataset_as_latest": false,
       "ticket_count_per_draw": 5,
       "ticket_cost_yen": 300,
       "total_cost_yen_per_arm": 1054500,
@@ -670,12 +733,12 @@
     "adoption_pr_url": "https://github.com/Joker7822/LOTO7_AI_AGENT/pull/161"
   },
   "always_on_accuracy": {
-    "status": "registered_science_blocked_observational_audit",
+    "status": "stale_historical_activity",
     "observation_only": true,
     "registered_science_status": "BLOCKED_MISSING_PREFROZEN_701",
-    "activity_stale_vs_verified_round": false,
+    "activity_stale_vs_verified_round": true,
     "activity_latest_round": 704,
-    "verified_latest_round": 704,
+    "verified_latest_round": 705,
     "sequence": 86,
     "last_activity_jst": "2026-11-27T22:07:47+09:00",
     "current_phase": "source_audit",
@@ -755,23 +818,23 @@
     "prediction_skill_confirmed": false,
     "historical": {
       "status": "historical_only",
-      "rounds": 604,
+      "rounds": 605,
       "start_round": 101,
-      "end_round": 704,
-      "top7_mean_hits": 1.3658940397350994,
+      "end_round": 705,
+      "top7_mean_hits": 1.3652892561983472,
       "uniform_expected_hits": 1.3243243243243243,
-      "top7_delta_vs_uniform": 0.04156971541077503,
-      "p_value_exploratory": 0.28013615063866126
+      "top7_delta_vs_uniform": 0.040964931874022836,
+      "p_value_exploratory": 0.28679381596582154
     },
     "random_baseline": {
       "status": "historical_only",
-      "rounds": 604,
-      "portfolio_mean_max_hits": 2.2450331125827816,
-      "random_mean_max_hits": 2.4245653973509933,
-      "mean_max_hits_delta": -0.1795322847682117,
-      "portfolio_mean_score": 2.561854304635762,
-      "random_mean_score": 2.7579760993377485,
-      "mean_score_delta": -0.19612179470198665,
+      "rounds": 605,
+      "portfolio_mean_max_hits": 2.244628099173554,
+      "random_mean_max_hits": 2.424690082644628,
+      "mean_max_hits_delta": -0.18006198347107416,
+      "portfolio_mean_score": 2.561123966942149,
+      "random_mean_score": 2.7581617785123966,
+      "mean_score_delta": -0.1970378115702478,
       "random_portfolios_per_round": 32
     },
     "calibration": {
@@ -788,17 +851,17 @@
     },
     "reference_payout": {
       "status": "historical_hypothetical_only",
-      "tickets": 3020,
+      "tickets": 3025,
       "winning_tickets": 127,
-      "reference_cost_yen": 906000,
+      "reference_cost_yen": 907500,
       "reference_payout_yen": 175900,
-      "reference_net_yen": -730100,
-      "reference_roi": 0.19415011037527594,
+      "reference_net_yen": -731600,
+      "reference_roi": 0.19382920110192836,
       "actual_profit": null
     },
     "future_oos": {
       "status": "diagnostic_only",
-      "trusted_draws": 11,
+      "trusted_draws": 12,
       "horizon_draws": 26,
       "policy_registered_before_first_outcome": false,
       "claim_status": "not_confirmed_holdout_incomplete",
@@ -807,11 +870,11 @@
     "provenance": {
       "historical": {
         "file": "historical_replay_summary.json",
-        "sha256": "cc8de8dc67e1d646fea5cb5d0ba3f8649960270fcac7021e1be5b86743c3ef43"
+        "sha256": "dd003cc7b1bb731ca9b185beb2b1872d6d3d438858f5fa0b5526b0668e5b0f3f"
       },
       "reconciliation": {
         "file": "historical_reconciliation_summary.json",
-        "sha256": "23662739e147c4f5d99d2cd8c2c0847f7c10324ffb3814dc676240fad06045dd"
+        "sha256": "8f8f9b9c6cd06b691b3dd7cdbadde6818dedc149ca463695b424dc1ecab0a759"
       },
       "calibration": {
         "file": "champion_calibration_oos_state.json",
@@ -819,7 +882,7 @@
       },
       "future_oos": {
         "file": "future_holdout_evidence.json",
-        "sha256": "19472b7ede54eb50efb80851957e64255489890bfa0cf5fa05631ca52f4ea0b5"
+        "sha256": "f48ebfc6fb92ec2c3f0464ba76370614624508ddd4b1ea592e73f0f94fba97fd"
       }
     }
   },
@@ -858,8 +921,8 @@
     "live": {
       "scope": "issued_production",
       "status": "verified",
-      "rounds": 12,
-      "tickets": 60,
+      "rounds": 13,
+      "tickets": 65,
       "grade_counts": {
         "1等": 0,
         "2等": 0,
@@ -867,14 +930,14 @@
         "4等": 0,
         "5等": 0,
         "6等": 5,
-        "はずれ": 55
+        "はずれ": 60
       },
       "winning_tickets": 5,
-      "reference_cost_yen": 18000,
+      "reference_cost_yen": 19500,
       "reference_payout_yen": 5100,
-      "reference_roi": 0.2833333333333333,
+      "reference_roi": 0.26153846153846155,
       "excluded_rounds": 2,
-      "pending_rounds": 1,
+      "pending_rounds": 0,
       "actual_purchase_verified": false,
       "first_settled": {
         "round": 692,
@@ -882,16 +945,16 @@
         "created_at_jst": "2026-08-21T20:19:21+09:00"
       },
       "last_settled": {
-        "round": 704,
-        "draw_date": "2026-11-20",
-        "created_at_jst": "2026-11-20T16:02:29+09:00"
+        "round": 705,
+        "draw_date": "2026-11-27",
+        "created_at_jst": "2026-11-27T17:13:54+09:00"
       }
     },
     "live_v2": {
       "scope": "issued_roi_cash_v2",
-      "status": "awaiting_first_settlement",
-      "rounds": 0,
-      "tickets": 0,
+      "status": "verified",
+      "rounds": 1,
+      "tickets": 5,
       "grade_counts": {
         "1等": 0,
         "2等": 0,
@@ -899,17 +962,25 @@
         "4等": 0,
         "5等": 0,
         "6等": 0,
-        "はずれ": 0
+        "はずれ": 5
       },
       "winning_tickets": 0,
-      "reference_cost_yen": 0,
-      "reference_payout_yen": null,
-      "reference_roi": null,
+      "reference_cost_yen": 1500,
+      "reference_payout_yen": 0,
+      "reference_roi": 0.0,
       "excluded_rounds": 0,
-      "pending_rounds": 1,
+      "pending_rounds": 0,
       "actual_purchase_verified": false,
-      "first_settled": null,
-      "last_settled": null,
+      "first_settled": {
+        "round": 705,
+        "draw_date": "2026-11-27",
+        "created_at_jst": "2026-11-27T17:13:54+09:00"
+      },
+      "last_settled": {
+        "round": 705,
+        "draw_date": "2026-11-27",
+        "created_at_jst": "2026-11-27T17:13:54+09:00"
+      },
       "model": "production-ai-ranked35-roi-cash-v2",
       "start_target_round": 705,
       "independent_future_skill_confirmed": false
@@ -918,18 +989,18 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "67a8d5ac049ad23726b96a215f5eca22f0084687",
-    "snapshot_generated_at_jst": "2026-11-28T03:58:59+09:00",
-    "computed_at_jst": "2026-11-27T18:58:59+00:00",
+    "source_commit": "4d8ce6b5da4fb5ad829e01b9dfe71972412dfd98",
+    "snapshot_generated_at_jst": "2026-11-28T06:40:17+09:00",
+    "computed_at_jst": "2026-11-27T21:40:17+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
-      "watch": 1,
-      "info": 1
+      "watch": 3,
+      "info": 0
     },
     "checkpoints": {
       "portfolio": {
-        "trusted_draws": 11,
+        "trusted_draws": 12,
         "fixed_horizon": 26
       },
       "v2_signal": {
@@ -937,11 +1008,24 @@
         "fixed_horizon": 26
       },
       "adaptive": {
-        "trusted_draws": 4,
+        "trusted_draws": 5,
         "descriptive_open_ended": true
       }
     },
     "tasks": [
+      {
+        "id": "615a36ffa6f66937",
+        "priority": "watch",
+        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
+        "owner": "統計・リスクエージェント",
+        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
+        "detail": "監査の判定と元の公表記録を照合してください。",
+        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
+        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
+        "requires_existing_workflow_or_human_review": true,
+        "autonomous_mutation_allowed": false,
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
+      },
       {
         "id": "bef623a2503719e7",
         "priority": "watch",
@@ -956,17 +1040,17 @@
         "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
       },
       {
-        "id": "615a36ffa6f66937",
-        "priority": "info",
-        "code": "COUNCIL:NO_EARLY_PORTFOLIO_CLAIM",
-        "owner": "統計・リスクエージェント",
-        "title": "5口の26回将来検証はまだ途中です。精度改善を確定扱いしないでください。",
-        "detail": "監査の判定と元の公表記録を照合してください。",
-        "evidence": "NO_EARLY_PORTFOLIO_CLAIM",
-        "recommended_action": "既存の監査レポートを確認し、権限を持つ既存workflowまたは人が対処してください。",
+        "id": "23ac32ba2a5a9b34",
+        "priority": "watch",
+        "code": "WORKFLOW_WARNING:always_on_accuracy_research.yml",
+        "owner": "自律研究監査エージェント",
+        "title": "自律研究監査：研究台帳の更新を確認できません",
+        "detail": "Actionsの成功は研究台帳の更新を証明しません。",
+        "evidence": "46003969874",
+        "recommended_action": "事前凍結の欠損を後付け修復せず、研究活動台帳と科学レポートの前提を照合してください。",
         "requires_existing_workflow_or_human_review": true,
         "autonomous_mutation_allowed": false,
-        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/blob/main/loto7_agent_output/agent_role_council_report.md"
+        "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46003969874"
       }
     ],
     "authority": {
