@@ -16,7 +16,7 @@ from collections import Counter
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
-from production_disjoint35_policy import MIN_TARGET_ROUND, VERSION as TICKET_POLICY, validate_issued_rows
+from production_disjoint35_policy import MIN_TARGET_ROUND, VERSION as TICKET_POLICY, issued_policy, publication_policy_for_target, validate_issued_rows
 
 VERSION = "first-prize-prospective-v1"
 TRUST = "verified_two_result_sources"
@@ -225,6 +225,9 @@ def validate_archive(root: Path, out: Path) -> dict[int, dict]:
                 raise ValueError("pre-draw freeze publication timestamp has no timezone")
             frozen_now(published, entry["target_draw_date"])
             issued = ticket_rows(out, target)
+            actual_policy = issued_policy(issued, target)
+            if entry.get("production_ticket_policy", TICKET_POLICY) != actual_policy:
+                raise ValueError("prospective freeze Production policy differs from issued ledger")
             identity = ticket_identity(issued)
             if entry.get("prediction_rows_sha256") != sha_object(identity):
                 raise ValueError("issued prediction ledger changed since pre-draw freeze")
@@ -283,9 +286,13 @@ def freeze(csv_path: Path, source_path: Path, out: Path, root: Path,
         return {"status": "already_prefrozen", "target_round": target}
     if state.get("reason") != "frozen_to_canonical_prediction_ledger":
         raise ValueError("cannot prefreeze republished or non-original prediction")
-    if state.get("published") is not True or state.get("ticket_policy") != TICKET_POLICY:
+    if state.get("published") is not True:
         raise ValueError("canonical Production not yet published under disjoint35")
     issued = ticket_rows(out, target)
+    actual_policy = issued_policy(issued, target)
+    if (state.get("ticket_policy") != actual_policy
+            or actual_policy != publication_policy_for_target(target)):
+        raise ValueError("canonical Production policy differs from authorized new issue")
     if len({row["prediction_created_at_jst"] for row in issued}) != 1:
         raise ValueError("issued tickets have inconsistent creation timestamps")
     identity = ticket_identity(issued)
@@ -316,6 +323,7 @@ def freeze(csv_path: Path, source_path: Path, out: Path, root: Path,
 
     record = {
         "version": VERSION, "policy": TICKET_POLICY,
+        "production_ticket_policy": actual_policy,
         "target_round": target, "target_draw_date": draw_date,
         "base_round": target - 1, "base_csv_sha256": base_sha,
         "verified_source_report_sha256": sha_bytes(source_path.read_bytes()),
