@@ -87,6 +87,7 @@ def project_roi_cash_v2(root: Path, sources: dict, latest_prediction: dict) -> d
         "operator_selected": selected,
         "adoption": "explicit_operator_instruction_not_statistical_promotion",
         "new_issuance_from_round": 705,
+        "next_selected_policy": publication_policy_for_target(next_target),
         "next_target_round": next_target,
         "latest_issued_target_round": issued_target,
         "latest_issued_policy": (

@@ -236,7 +236,7 @@ def append_current_predictions(
         if (state.get("production_ticket_policy_version") != expected_policy
                 or not str(state.get("model_version", "")).endswith("+" + expected_policy)):
             raise RuntimeError("refusing Production freeze without disjoint35 policy (expected target-specific version)")
-        if expected_policy in (geometry35.RANKED_VERSION, geometry35.COMBINATION_VERSION, geometry35.ROI_CASH_VERSION):
+        if expected_policy in (geometry35.RANKED_VERSION, geometry35.COMBINATION_VERSION, geometry35.ROI_CASH_VERSION, geometry35.ROI_COOCCURRENCE_VERSION):
             ranked = state.get("production_rank_order")
             if (not isinstance(ranked, list)
                     or len(ranked) != 37 or
@@ -353,6 +353,28 @@ def append_current_predictions(
                     or abs(float(gain)-roi_meta["training_cash_objective_gain_yen_per_draw"]) > 1e-9
                 ):
                     raise RuntimeError("refusing ROI-cash v2 Production without exact cash-trained model output")
+            if expected_policy == geometry35.ROI_COOCCURRENCE_VERSION:
+                from production_roi_cooccurrence35_v4 import candidate_from_canonical_rows, provenance
+                if (state.get("production_promotion_method") != "explicit_operator_policy_switch_without_proven_future_roi"
+                        or state.get("production_roi_prediction_skill_confirmed") is not False
+                        or state.get("production_expected_future_roi") is not None
+                        or state.get("production_purchase_automation") is not False
+                        or state.get("production_roi_governance") != "prospective_oos_required_no_purchase_authorization"
+                        or state.get("production_reference_cost_yen_for_five_tickets") != 1500):
+                    raise RuntimeError("refusing ROI v4 Production without financial governance")
+                ordered_rows = sorted(loto_rows, key=lambda r:rno(r.get("回別","")) or -1)
+                if len(ordered_rows) != base or [rno(r.get("回別","")) for r in ordered_rows] != list(range(1,base+1)):
+                    raise RuntimeError("refusing ROI v4 Production without complete preceding draw history")
+                try:
+                    expected_tickets, meta = candidate_from_canonical_rows(ordered_rows, ranked)
+                    expected_meta = provenance(target_round=target, data_sha=current_data_sha,
+                        champion_version=str(state["production_rank_model_version"]),
+                        ranking=ranked, tickets=expected_tickets, meta=meta)
+                except (ValueError, TypeError, AssertionError) as exc:
+                    raise RuntimeError("refusing ROI v4 Production without verified prize history") from exc
+                actual_meta={k:state.get(k) for k in expected_meta}
+                if json.dumps(actual_meta,sort_keys=True,allow_nan=False) != json.dumps(expected_meta,sort_keys=True,allow_nan=False):
+                    raise RuntimeError("refusing ROI v4 Production without authentic layout provenance")
             actual_tickets = [tuple(nums(ticket["numbers"])) for ticket in tickets]
             if actual_tickets != expected_tickets:
                 raise RuntimeError("refusing ranked Production: tickets disagree with Champion ranking")

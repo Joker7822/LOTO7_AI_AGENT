@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - "production_roi_cash35_v2.py"
+      - "production_roi_cooccurrence35_v4.py"
+      - "research/roi_cash_robust_v3.py"
+      - "research/roi_cash_cooccurrence_v4.py"
+      - "tests/test_production_roi_cooccurrence35_v4.py"
       - "production_disjoint35_policy.py"
       - "production_ticket_geometry35.py"
       - "weekly_production_prediction.py"
@@ -45,7 +49,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m compileall -q             production_roi_cash35_v2.py production_disjoint35_policy.py             production_ticket_geometry35.py weekly_production_prediction.py             audit_ledger.py research/roi_cash_agent_v2.py
-          python -m pytest -q             tests/test_production_roi_cash35_v2.py             tests/test_production_combination_agent35.py             tests/test_production_ai_ranked35.py             tests/test_production_ticket_geometry35.py             tests/test_roi_cash_agent_v2.py             tests/test_roi_cash_v2_promotion_gate.py             tests/test_audit_ledger.py
+          python -m pytest -q             tests/test_production_roi_cash35_v2.py             tests/test_production_combination_agent35.py             tests/test_production_ai_ranked35.py             tests/test_production_ticket_geometry35.py             tests/test_roi_cash_agent_v2.py             tests/test_roi_cash_v2_promotion_gate.py             tests/test_audit_ledger.py tests/test_production_roi_cooccurrence35_v4.py
       - name: Relearn from earliest draw through all verified draws, triple-arm ROI replay
         env:
           PYTHONPATH: .
@@ -82,6 +86,8 @@ jobs:
           # Disable the FRIDAY clock restriction solely in this ephemeral
           # read-only preview; no ledger freeze or purchase is attempted.
           geometry.production_window_guard=lambda now:None
+          # Legacy v2 replay must remain reproducible separately from current policy.
+          geometry.publication_policy_for_target=lambda target:policy.ROI_CASH_VERSION
           champion=v2.load_champion(root/"loto7_agent_output/model_champion.json")
           with tempfile.TemporaryDirectory() as scratch:
               state=geometry.prepare_new_production_outputs(
@@ -110,6 +116,19 @@ jobs:
           print("ROI-CASH-v2 source verified through draw",len(hist))
           print("Production candidate matches research frozen next-target preview",len(hist)+1)
           print("No new tickets issued; next scheduled Friday only")
+          geometry.publication_policy_for_target=policy.publication_policy_for_target
+          if len(hist)+1>=706:
+              from production_roi_cooccurrence35_v4 import candidate_from_canonical_rows as v4_candidate
+              import audit_ledger as ledger
+              with tempfile.TemporaryDirectory() as scratch:
+                  out=Path(scratch)
+                  state=geometry.prepare_new_production_outputs(csv_path=root/"loto7.csv",out_dir=out,champion_version=champion.version(),data_sha=fingerprint_file(root/"loto7.csv"),latest_round=len(hist),target_round=len(hist)+1,latest_draw_date=clean["抽せん日"].iloc[-1].date().isoformat(),git_sha=os.environ.get("GITHUB_SHA","ci"),source_path=root/"loto7_agent_output/source_validation.json",history=hist,champion_config=champion)
+                  expected,_=v4_candidate(canon,state["production_rank_order"])
+                  rows=ledger.read_csv(out/"candidate_tickets.csv")
+                  assert [tuple(map(int,r["numbers"].split())) for r in rows]==expected
+                  assert state["production_ticket_policy_version"]==policy.ROI_COOCCURRENCE_VERSION
+                  assert ledger.append_current_predictions(canon,rows,out/"predictions.csv",state,current_data_sha=fingerprint_file(root/"loto7.csv"))==5
+                  print("v4 actual-source adapter and independent ledger recomputation verified (ephemeral only)")
           PY
           git diff --exit-code --             loto7.csv STATUS.md loto7_agent_output/             research/disjoint_future_oos/ weekly_production_prediction.py
       - name: Archive reproducible strict-past research and model comparison

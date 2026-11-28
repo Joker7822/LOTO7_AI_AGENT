@@ -135,7 +135,7 @@ def publish(
             "production_promotion_method": (
                 "explicit_operator_policy_switch_without_proven_future_roi"
                 if frozen[0].get("model_version", "").endswith(
-                    "+" + geometry35.ROI_CASH_VERSION
+                    ("+" + geometry35.ROI_CASH_VERSION, "+" + geometry35.ROI_COOCCURRENCE_VERSION)
                 ) else "future_oos_only"
             ),
             "ticket_policy": (

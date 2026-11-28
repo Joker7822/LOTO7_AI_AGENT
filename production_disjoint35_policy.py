@@ -15,6 +15,8 @@ VERSION = "production-disjoint35-layout-v1"  # Immutable legacy policy (702+).
 RANKED_VERSION = "production-ai-ranked-disjoint35-layout-v1"
 COMBINATION_VERSION = "production-ai-ranked35-pairwise-combination-v1"
 ROI_CASH_VERSION = "production-ai-ranked35-roi-cash-v2"
+ROI_COOCCURRENCE_VERSION = "production-ai-ranked35-roi-cooccurrence-v4"
+ROI_COOCCURRENCE_MIN_TARGET_ROUND = 706
 MIN_TARGET_ROUND = 702
 RANKED_MIN_TARGET_ROUND = 705
 COMBINATION_MIN_TARGET_ROUND = 705
@@ -25,6 +27,8 @@ def publication_policy_for_target(target_round: int) -> str:
     """New issuances only; never infer a frozen target's policy from its round."""
     if type(target_round) is not int or target_round < MIN_TARGET_ROUND:
         raise ValueError("disjoint35 publisher requires target 702+")
+    if target_round >= ROI_COOCCURRENCE_MIN_TARGET_ROUND:
+        return ROI_COOCCURRENCE_VERSION
     return ROI_CASH_VERSION if target_round >= ROI_CASH_MIN_TARGET_ROUND else VERSION
 
 
@@ -46,6 +50,8 @@ def issued_policy(rows: Sequence[Mapping[str, object]], target_round: int) -> st
         return COMBINATION_VERSION
     if model.endswith("+" + ROI_CASH_VERSION) and target_round >= ROI_CASH_MIN_TARGET_ROUND:
         return ROI_CASH_VERSION
+    if model.endswith("+" + ROI_COOCCURRENCE_VERSION) and target_round >= ROI_COOCCURRENCE_MIN_TARGET_ROUND:
+        return ROI_COOCCURRENCE_VERSION
     raise ValueError("unknown or ineligible disjoint35 Production policy")
 
 
