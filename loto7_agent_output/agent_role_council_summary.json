@@ -1,9 +1,9 @@
 {
   "version": "loto7-agent-role-council-v1",
-  "checked_at_jst": "2026-11-28T06:43:52+09:00",
+  "checked_at_jst": "2026-11-28T16:38:15+09:00",
   "latest_resolved_round": 705,
   "overall": "watch",
-  "input_snapshot_sha256": "40abea629170d7b92666e1ce26a899538268baf618de36c04f7a05f17c03c9ee",
+  "input_snapshot_sha256": "8c94b86266d6f51989e210a386ddc8d8997e7a51e49037b7287363c2bf01712d",
   "governance": {
     "authority": "read_only_advisory",
     "permissions": {
@@ -31,8 +31,8 @@
         {
           "level": "watch",
           "code": "PAIR_CONTEXT_INT8_OVERFLOW",
-          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=705; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified",
-          "next_action": "Refresh the separate v2 numerical evidence using its existing workflow. Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and explicit approval are required before any Production migration."
+          "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=705; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified",
+          "next_action": "The separate v2 int64 candidate is independently numerically verified for this exact code/data snapshot. Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and explicit approval are required before any Production migration."
         }
       ]
     },
@@ -70,7 +70,7 @@
         {
           "level": "ok",
           "code": "DIAGNOSTIC_RESEARCH_ISOLATION",
-          "evidence": "history reused; mode=SEARCH; trials=266/800",
+          "evidence": "history reused; mode=VALIDATION_ONLY; trials=706/800",
           "next_action": "Continue predeclared workflow."
         }
       ]
@@ -92,8 +92,8 @@
       "priority": "watch",
       "owner": "data_steward",
       "issue_code": "PAIR_CONTEXT_INT8_OVERFLOW",
-      "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=705; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=missing_or_stale_do_not_claim_verified",
-      "next_action": "Refresh the separate v2 numerical evidence using its existing workflow. Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and explicit approval are required before any Production migration.",
+      "evidence": "legacy_int8_corrupted_cooccurrence_cells=27; corrected_int64_corrupted_cooccurrence_cells=0; history_draws=705; corrected_candidate_version=pair-context-v2-int64-prospective-candidate; candidate_report=current_independently_verified",
+      "next_action": "The separate v2 int64 candidate is independently numerically verified for this exact code/data snapshot. Legacy frozen v1 remains unchanged; new pre-registered Future-OOS and explicit approval are required before any Production migration.",
       "existing_workflow_or_human_required": true,
       "autonomous_production_write_allowed": false
     },
