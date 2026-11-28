@@ -1,6 +1,6 @@
 # Frequent independent online research — audit
 
-- UTC: 2026-11-28T02:49:14+00:00
+- UTC: 2026-11-28T13:15:28+00:00
 - Search topic: online probabilistic forecasting calibration
 - Source catalog: 28 SHA-anchored works
 - Search results before dedup: 7
