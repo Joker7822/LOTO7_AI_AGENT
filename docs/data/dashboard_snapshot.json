@@ -1,13 +1,13 @@
 {
   "version": "loto7-ops-snapshot-v1",
-  "generated_at_jst": "2026-11-28T21:26:51+09:00",
-  "source_commit": "986e28213c1ff6d8a7f5c7e3c258ce010197813c",
-  "state_hashes_sha256": "400ae4e8deb9c309008e917210e6253e24ce6a069848cd984a9a058609737054",
+  "generated_at_jst": "2026-11-28T23:10:15+09:00",
+  "source_commit": "ef37b16539369ff4180e94a378cdc5cd603df03d",
+  "state_hashes_sha256": "ff2aa9e3a592b01f6e4a01b0c3ed268844711528fa9761281d3ddbb6a86c1121",
   "sources": {
     "source": {
       "status": "ok",
       "verification": "verified_two_result_sources",
-      "checked_at_jst": "2026-11-28T21:23:43+09:00",
+      "checked_at_jst": "2026-11-28T22:15:40+09:00",
       "latest": {
         "round": 705,
         "date": "2026-11-27",
@@ -34,7 +34,7 @@
     },
     "council": {
       "overall": "watch",
-      "checked_at_jst": "2026-11-28T21:26:33+09:00",
+      "checked_at_jst": "2026-11-28T21:30:03+09:00",
       "roles": {
         "data_steward": {
           "status": "watch",
@@ -183,12 +183,12 @@
     "scout": {
       "evaluated_rounds": 60,
       "scout": {
-        "mean_top7_hits": 1.4
+        "mean_top7_hits": 1.3833333333333333
       },
       "v2_reference": {
-        "mean_top7_hits": 1.5
+        "mean_top7_hits": null
       },
-      "synthetic_null_p_log_edge": 0.7692307692307693
+      "synthetic_null_p_log_edge": 0.7846153846153846
     },
     "budget": {
       "mode": "VALIDATION_ONLY",
@@ -203,9 +203,9 @@
       "health": "running",
       "status": "in_progress",
       "conclusion": null,
-      "run_id": 46127743222,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46127743222",
-      "updated_at": "2026-11-28T08:51:29Z",
+      "run_id": 46148561197,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46148561197",
+      "updated_at": "2026-11-28T13:13:49Z",
       "recent_failure_count": 0
     },
     {
@@ -225,9 +225,9 @@
       "health": "ok",
       "status": "completed",
       "conclusion": "success",
-      "run_id": 46125686033,
-      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46125686033",
-      "updated_at": "2026-11-28T08:28:13Z",
+      "run_id": 46147566620,
+      "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46147566620",
+      "updated_at": "2026-11-28T13:05:26Z",
       "recent_failure_count": 0
     },
     {
@@ -255,12 +255,12 @@
     {
       "file": "agent_role_council.yml",
       "label": "役割監査",
-      "health": "running",
-      "status": "in_progress",
-      "conclusion": null,
+      "health": "ok",
+      "status": "completed",
+      "conclusion": "success",
       "run_id": 46144600565,
       "url": "https://github.com/Joker7822/LOTO7_AI_AGENT/actions/runs/46144600565",
-      "updated_at": "2026-11-28T12:26:41Z",
+      "updated_at": "2026-11-28T12:30:07Z",
       "recent_failure_count": 0
     },
     {
@@ -746,11 +746,11 @@
     "activity_stale_vs_verified_round": false,
     "activity_latest_round": 705,
     "verified_latest_round": 705,
-    "sequence": 90,
-    "last_activity_jst": "2026-11-28T17:28:09+09:00",
-    "current_phase": "budget_and_plan",
-    "current_activity": "科学的事前凍結欠損のため監査のみ：試行予算を守り次の検証を計画",
-    "online_search_status": "not_scheduled",
+    "sequence": 91,
+    "last_activity_jst": "2026-11-28T22:05:20+09:00",
+    "current_phase": "literature_search",
+    "current_activity": "科学的事前凍結欠損のため監査のみ：インターネットから最新の研究論文を検索",
+    "online_search_status": "searched",
     "research_mode": "VALIDATION_ONLY",
     "two_source_verified": true,
     "new_papers_count": 0,
@@ -809,7 +809,8 @@
       "第701回の初回事前凍結欠損。登録済み将来検証・e値・モデル選定は停止。文献と入力資料の監査のみ。",
       "探索予算ガードがVALIDATION_ONLY。既存データの無制限再探索は禁止。",
       "真正Future-OOSの実測がまだ不足。改善を断定しない。",
-      "同一履歴の新規試行予算 706/800"
+      "オンライン論文の検索結果は未査読・未検証の研究候補であり、コードを自動採用しない。",
+      "オンライン検索: searched / 新規候補 0件"
     ]
   },
   "research_application": {
@@ -996,9 +997,9 @@
   "limitations": "Read-only point-in-time repository state; API run statuses sampled separately. Historical charts never constitute prospective proof. No Production promotion.",
   "operations_plan": {
     "version": "agent-operations-command-center-v1",
-    "source_commit": "986e28213c1ff6d8a7f5c7e3c258ce010197813c",
-    "snapshot_generated_at_jst": "2026-11-28T21:26:51+09:00",
-    "computed_at_jst": "2026-11-28T12:26:51+00:00",
+    "source_commit": "ef37b16539369ff4180e94a378cdc5cd603df03d",
+    "snapshot_generated_at_jst": "2026-11-28T23:10:15+09:00",
+    "computed_at_jst": "2026-11-28T14:10:15+00:00",
     "overall": "watch",
     "counts": {
       "block": 0,
