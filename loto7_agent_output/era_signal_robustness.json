@@ -1,12 +1,23 @@
 {
-  "report_version": "robust-signal-era-gated-v1",
+  "report_version": "research-cycle-guard-v2-data-scoped",
   "data_sha256": "59aa4f632d8bd05225e7bbaa3d98c6d97c39fedc0dd14ff4b647bd963c7072b6",
   "model_version": "signal-g06845-c01-6183c9b064",
+  "config": {
+    "name": "signal-g06845-c01",
+    "eta": 0.612623,
+    "decay": 0.974868,
+    "expert_uniform_mix": 0.36731,
+    "final_uniform_mix": 0.6,
+    "overlap_penalty": 1.15
+  },
   "eras": [
     {
       "label": "101-250",
+      "first_round": 101,
+      "last_round": 250,
       "evaluated_rounds": 150,
       "signal_objective": -0.03265491145866674,
+      "top7_hits": 1.4533333333333334,
       "top7_delta_vs_uniform": 0.12900900900900902,
       "actual_mass_delta_vs_uniform": 0.0024331050538117793,
       "log_edge_vs_uniform": -0.0170640885222606,
@@ -14,8 +25,11 @@
     },
     {
       "label": "251-400",
+      "first_round": 251,
+      "last_round": 400,
       "evaluated_rounds": 150,
       "signal_objective": -0.04606142491064722,
+      "top7_hits": 1.3,
       "top7_delta_vs_uniform": -0.024324324324324298,
       "actual_mass_delta_vs_uniform": 0.0016614572396911331,
       "log_edge_vs_uniform": -0.016563057253948354,
@@ -23,8 +37,11 @@
     },
     {
       "label": "401-550",
+      "first_round": 401,
+      "last_round": 550,
       "evaluated_rounds": 150,
       "signal_objective": -0.07228925747222734,
+      "top7_hits": 1.2066666666666668,
       "top7_delta_vs_uniform": -0.11765765765765757,
       "actual_mass_delta_vs_uniform": -0.0007836264712129393,
       "log_edge_vs_uniform": -0.02214930615854982,
@@ -32,8 +49,11 @@
     },
     {
       "label": "551-latest",
+      "first_round": 551,
+      "last_round": null,
       "evaluated_rounds": 155,
       "signal_objective": -0.03314732996337922,
+      "top7_hits": 1.4129032258064516,
       "top7_delta_vs_uniform": 0.08857890148212721,
       "actual_mass_delta_vs_uniform": 0.0016961958161879342,
       "log_edge_vs_uniform": -0.015525198041748567,
