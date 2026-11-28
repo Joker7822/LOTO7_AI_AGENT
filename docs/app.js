@@ -245,11 +245,11 @@ function renderRoiCashV2(ops) {
     state.className="roi-state"+(roi.status==="roi_v2_published"?"":roi.status==="selected_not_yet_issued"?" waiting":" unknown");
     state.textContent=status[roi.status]||"確認中";
   }
-  set("roi-v2-model","次回以降の未発行予測に採用 ／ 35数字を5口に配置");
+  set("roi-v2-model",roi.status==="outside_current_policy"?"過去のv2採用成績（現在の本番モデルとは別）":"次回以降の未発行予測に採用 ／ 35数字を5口に配置");
   set("roi-v2-target","第"+roi.targetRound+"回");
   const old=roi.latestIssuedPolicy;
   set("roi-last-issued",old?
-    (roi.latestIssuedV2?"v2":"旧モデル")+"で発行（第"+roi.latestIssuedTargetRound+"回）":
+    (roi.latestIssuedV2?"v2":old.endsWith("roi-cooccurrence-v4")?"v4":"旧モデル")+"で発行（第"+roi.latestIssuedTargetRound+"回）":
     "発行履歴なし");
   set("roi-cost-draw",money(roi.costPerDraw)+" / 5口");
   set("roi-future-skill","未確認");

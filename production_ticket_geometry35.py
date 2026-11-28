@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Production ticket-layout policy for new targets, separate from Champion.
 
-Legacy targets 702-704 use seeded uniform geometry. Unfrozen 705+ targets
-use Champion-ranked top35 and the operator-selected ROI-cash v2 model.
+Legacy targets 702-704 use seeded uniform geometry, 705 uses ROI cash v2.
+New 706+ targets use operator-selected v4 cooccurrence refinement.
 This layout does not establish a predictive edge over a fair lottery.
 Pre-existing freezes and strict Future-OOS evidence are not modified.
 
@@ -24,7 +24,7 @@ from pathlib import Path
 from balanced_uniform_portfolio import disjoint_portfolio, validate_portfolio
 from combination_agent35_core import AgentConfig, candidate_from_history
 from production_disjoint35_policy import (
-    VERSION, RANKED_VERSION, COMBINATION_VERSION, ROI_CASH_VERSION, MIN_TARGET_ROUND,
+    VERSION, RANKED_VERSION, COMBINATION_VERSION, ROI_CASH_VERSION, ROI_COOCCURRENCE_VERSION, MIN_TARGET_ROUND,
     RANKED_MIN_TARGET_ROUND, COMBINATION_MIN_TARGET_ROUND, ROI_CASH_MIN_TARGET_ROUND,
     publication_policy_for_target, issued_policy, validate_issued_rows,
 )
@@ -145,7 +145,7 @@ def prepare_new_production_outputs(
     q: np.ndarray | None = None
     ranked_extras: dict[str, object] = {}
     expert_weights: dict[str, float] = {}
-    if policy in (RANKED_VERSION, COMBINATION_VERSION, ROI_CASH_VERSION):
+    if policy in (RANKED_VERSION, COMBINATION_VERSION, ROI_CASH_VERSION, ROI_COOCCURRENCE_VERSION):
         if (history is None or champion_config is None
                 or champion_config.version() != champion_version):
             raise RuntimeError("ranked Production requires the exact approved Champion and history")
@@ -208,6 +208,17 @@ def prepare_new_production_outputs(
                 "production_roi_cash_v2_selection_authority": SELECTION_AUTHORITY,
                 "production_roi_cash_v2_target_outcome_used": False,
             })
+        if policy == ROI_COOCCURRENCE_VERSION:
+            from production_roi_cooccurrence35_v4 import candidate_from_canonical_rows, provenance
+            from production_roi_cash35_v2 import training_arrays_from_canonical_rows
+            with csv_path.open(encoding="utf-8-sig", newline="") as stream:
+                canonical_rows = list(csv.DictReader(stream))
+            canonical_main, _, _ = training_arrays_from_canonical_rows(canonical_rows)
+            if len(history) != latest_round or not np.array_equal(canonical_main, history):
+                raise RuntimeError("ROI v4 source history and approved Champion history differ")
+            tickets, meta = candidate_from_canonical_rows(canonical_rows, ranking)
+            ranked_extras.update(provenance(target_round=target_round, data_sha=data_sha,
+                champion_version=champion_version, ranking=ranking, tickets=tickets, meta=meta))
         expert_weights = {
             key: float(bt.final_weights[i]) for i, key in enumerate(bt.keys)
         }
@@ -237,6 +248,8 @@ def prepare_new_production_outputs(
         "signal_champion_version": champion_version,
         "production_ticket_policy_version": policy,
         "production_ticket_policy_role": (
+            "champion_ranked_top35_with_roi_cooccurrence_v4_operator_override_no_skill_claim"
+            if policy == ROI_COOCCURRENCE_VERSION else
             "champion_ranked_top35_with_roi_cash_v2_operator_override_no_skill_claim"
             if policy == ROI_CASH_VERSION else
             "champion_ranked_top35_with_pairwise_combination_ai_no_skill_claim"
@@ -252,7 +265,7 @@ def prepare_new_production_outputs(
         "git_sha": git_sha,
         "production_promotion_method": (
             "explicit_operator_policy_switch_without_proven_future_roi"
-            if policy == ROI_CASH_VERSION else "future_oos_only"
+            if policy in (ROI_CASH_VERSION, ROI_COOCCURRENCE_VERSION) else "future_oos_only"
         ),
         "promotion_this_run": None,
         "ticket_count": 5,
